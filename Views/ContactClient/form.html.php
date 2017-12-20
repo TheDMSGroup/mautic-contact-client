@@ -53,59 +53,11 @@ echo $view['form']->start($form);
                 echo $view['form']->row($form['publishDown']);
                 ?>
                 <hr />
-                <h5><?php echo $view['translator']->trans('mautic.email.utm_tags'); ?></h5>
-                <br />
-                <?php
-                foreach ($form['utmTags'] as $i => $utmTag):
-                    echo $view['form']->row($utmTag);
-                endforeach;
-                ?>
             </div>
         </div>
     </div>
 
     <div class="hide builder contactclient-builder">
-        <div class="builder-content">
-            <div class="website-preview">
-                <div class="website-placeholder hide well well-lg col-md-6 col-md-offset-3 mt-lg">
-                    <div class="row">
-                        <div class="mautibot-image col-xs-3 text-center">
-                            <img class="img-responsive" style="max-height: 125px; margin-left: auto; margin-right: auto;" src="<?php echo $view['mautibot']->getImage(
-                                'wave'
-                            ); ?>"/>
-                        </div>
-                        <div class="col-xs-9">
-                            <h4><i class="fa fa-quote-left"></i> <?php echo $view['translator']->trans('mautic.core.noresults.tip'); ?>
-                                <i class="fa fa-quote-right"></i></h4>
-                            <p class="mt-md">
-                                <?php echo $view['translator']->trans('mautic.contactclient.website_placeholder'); ?>
-                            </p>
-                            <div class="input-group">
-                                <input id="websiteUrlPlaceholderInput" disabled type="text" class="form-control" placeholder="http..."/>
-                                <span class="input-group-btn">
-                                <button class="btn btn-default btn-fetch" type="button"><?php echo $view['translator']->trans(
-                                        'mautic.contactclient.fetch_snapshot'
-                                    ); ?></button>
-                            </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="viewport-switcher text-center bdr-t-sm bdr-b-sm bdr-r-sm">
-                    <div class="btn btn-sm btn-success btn-nospin btn-viewport" data-viewport="desktop">
-                        <i class="fa fa-mobile-phone fa-3x"></i>
-                    </div>
-                </div>
-                <figure id="websiteScreenshot">
-                    <div class="screenshot-container text-center">
-                        <div class="preview-body text-left"></div>
-                        <canvas id="websiteCanvas">
-                            Your browser does not support the canvas element.
-                        </canvas>
-                    </div>
-                </figure>
-            </div>
-        </div>
         <div class="builder-panel builder-panel-contactclient">
             <div class="builder-panel-top">
                 <p>

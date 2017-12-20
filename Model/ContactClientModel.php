@@ -190,8 +190,7 @@ class ContactClientModel extends FormModel
                 $url = $this->trackableModel->generateTrackableUrl(
                     $trackable,
                     ['channel' => ['contactclient', $contactclientArray['id']]],
-                    false,
-                    $contactclient->getUtmTags()
+                    false
                 );
             }
 

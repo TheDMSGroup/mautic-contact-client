@@ -90,11 +90,6 @@ class ContactClient extends FormEntity
     private $properties = [];
 
     /**
-     * @var array
-     */
-    private $utmTags = [];
-
-    /**
      * @var int
      */
     private $form;
@@ -118,19 +113,19 @@ class ContactClient extends FormEntity
             )
         );
 
-        $metadata->addPropertyConstraint(
-            'type',
-            new NotBlank(
-                ['message' => 'mautic.contactclient.error.select_type']
-            )
-        );
-
-        $metadata->addPropertyConstraint(
-            'style',
-            new NotBlank(
-                ['message' => 'mautic.contactclient.error.select_style']
-            )
-        );
+//        $metadata->addPropertyConstraint(
+//            'type',
+//            new NotBlank(
+//                ['message' => 'mautic.contactclient.error.select_type']
+//            )
+//        );
+//
+//        $metadata->addPropertyConstraint(
+//            'style',
+//            new NotBlank(
+//                ['message' => 'mautic.contactclient.error.select_style']
+//            )
+//        );
     }
 
     /**
@@ -159,11 +154,6 @@ class ContactClient extends FormEntity
         $builder->addPublishDates();
 
         $builder->addNullableField('properties', 'array');
-
-        $builder->createField('utmTags', 'array')
-            ->columnName('utm_tags')
-            ->nullable()
-            ->build();
 
         $builder->addNamedField('form', 'integer', 'form_id', true);
 
@@ -203,7 +193,6 @@ class ContactClient extends FormEntity
                     'publishUp',
                     'publishDown',
                     'properties',
-                    'utmTags',
                     'form',
                     'htmlMode',
                     'html',
@@ -424,25 +413,6 @@ class ContactClient extends FormEntity
         $this->isChanged('properties', $properties);
 
         $this->properties = $properties;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUtmTags()
-    {
-        return $this->utmTags;
-    }
-
-    /**
-     * @param array $utmTags
-     */
-    public function setUtmTags($utmTags)
-    {
-        $this->isChanged('utmTags', $utmTags);
-        $this->utmTags = $utmTags;
 
         return $this;
     }
