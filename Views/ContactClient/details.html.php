@@ -150,11 +150,7 @@ $view['slots']->set(
                     <h5 class="fw-sb mb-sm"><?php echo $view['translator']->trans('mautic.contactclient.install.header'); ?></h5>
                     <p class="mb-sm"><?php echo $view['translator']->trans('mautic.contactclient.install.description'); ?></p>
 
-                    <input onclick="this.setSelectionRange(0, this.value.length);" type="text" class="form-control" readonly value="&lt;script src=&quot;<?php echo $view['router']->url(
-                        'mautic_contactclient_generate',
-                        ['id' => $item->getId()],
-                        true
-                    ); ?>&quot; type=&quot;text/javascript&quot; charset=&quot;utf-8&quot; async=&quot;async&quot;&gt;&lt;/script&gt;"/>
+
                 </div>
             </div>
         </div>

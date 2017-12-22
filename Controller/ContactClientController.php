@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ContactClientController extends FormController
 {
+
     public function __construct()
     {
         $this->setStandardParameters(

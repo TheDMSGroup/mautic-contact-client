@@ -219,7 +219,7 @@ class ContactClientSubscriber extends CommonSubscriber
              * @var Trackable $trackable
              */
             foreach ($trackables as $token => $trackable) {
-                $tokens[$token] = $this->trackableModel->generateTrackableUrl($trackable, $clickthrough, false, $contactclient->getUtmTags());
+                $tokens[$token] = $this->trackableModel->generateTrackableUrl($trackable, $clickthrough, false);
             }
 
             $content = str_replace(array_keys($tokens), array_values($tokens), $content);

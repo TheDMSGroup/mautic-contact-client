@@ -41,8 +41,8 @@ class ContactClientType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url', 'html' => 'html', 'editor' => 'html']));
-        $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
+        // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url', 'specification' => 'html']));
+        // $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
 
         $builder->add(
             'name',
@@ -66,64 +66,14 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
-            'utmTags',
-            'utm_tags',
-            [
-                'label'      => 'mautic.email.utm_tags',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'   => 'form-control',
-                    'tooltip' => 'mautic.email.utm_tags.tooltip',
-                ],
-                'required' => false,
-            ]
-        );
-
-        $builder->add(
-            'html_mode',
-            'button_group',
-            [
-                'label'      => 'mautic.contactclient.form.html_mode',
-                'label_attr' => ['class' => 'control-label'],
-                'data'       => !empty($options['data']->getHtmlMode()) ? $options['data']->getHtmlMode() : 'basic',
-                'attr'       => [
-                    'class'    => 'form-control',
-                    'onchange' => 'Mautic.contactclientUpdatePreview()',
-                    'tooltip'  => 'mautic.focums.html_mode.tooltip',
-                ],
-                'choices' => [
-                    'mautic.contactclient.form.basic'  => 'basic',
-                    'mautic.contactclient.form.editor' => 'editor',
-                    'mautic.contactclient.form.html'   => 'html',
-                ],
-                'choices_as_values' => true,
-            ]
-        );
-
-        $builder->add(
-            'editor',
+            'specification',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.editor',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'        => 'form-control editor editor-basic',
-                    'data-show-on' => '{"contactclient_html_mode_1":"checked"}',
-                ],
-                'required' => false,
-            ]
-        );
-
-        $builder->add(
-            'html',
-            'textarea',
-            [
-                'label'      => 'mautic.contactclient.form.html',
+                'label'      => 'mautic.contactclient.form.specification',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
                     'class'        => 'form-control',
                     'rows'         => 12,
-                    'data-show-on' => '{"contactclient_html_mode_2":"checked"}',
                     'onchange'     => 'Mautic.contactclientUpdatePreview()',
                 ],
                 'required' => false,
@@ -205,21 +155,21 @@ class ContactClientType extends AbstractType
             ]
         );
 
-        $builder->add('properties', 'contactclient_entity_properties', ['data' => $options['data']->getProperties()]);
-
-        // Will be managed by JS
-        $builder->add('type', 'hidden');
-        $builder->add('style', 'hidden');
-
         $builder->add(
-            'form',
-            'form_list',
+            'type',
+            'button_group',
             [
-                'label'       => 'mautic.contactclient.form.choose_form',
-                'multiple'    => false,
-                'empty_value' => '',
-                'attr'        => [
-                    'onchange' => 'Mautic.contactclientUpdatePreview()',
+                'label' => 'mautic.contactclient.form.type',
+                'label_attr' => ['class' => 'control-label'],
+                'choices' => [
+                    'mautic.contactclient.form.type.api' => 'api',
+                    'mautic.contactclient.form.type.file' => 'file',
+                ],
+                'choices_as_values' => true,
+                'required' => true,
+                'attr'       => [
+                    'class'       => 'form-control',
+                    'tooltip'     => 'mautic.contactclient.form.type.tooltip',
                 ],
             ]
         );
@@ -228,17 +178,7 @@ class ContactClientType extends AbstractType
             $builder->setAction($options['action']);
         }
 
-        $customButtons = [
-            [
-                'name'  => 'builder',
-                'label' => 'mautic.core.builder',
-                'attr'  => [
-                    'class'   => 'btn btn-default btn-dnd btn-nospin',
-                    'icon'    => 'fa fa-cube',
-                    'onclick' => 'Mautic.launchContactClientBuilder();',
-                ],
-            ],
-        ];
+        $customButtons = [];
 
         if (!empty($options['update_select'])) {
             $builder->add(

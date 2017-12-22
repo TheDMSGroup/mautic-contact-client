@@ -37,17 +37,7 @@ class ContactClient extends FormEntity
     /**
      * @var string
      */
-    private $editor;
-
-    /**
-     * @var string
-     */
-    private $html;
-
-    /**
-     * @var string
-     */
-    private $htmlMode;
+    private $specification;
 
     /**
      * @var string
@@ -70,11 +60,6 @@ class ContactClient extends FormEntity
     private $website;
 
     /**
-     * @var string
-     */
-    private $style;
-
-    /**
      * @var \DateTime
      */
     private $publishUp;
@@ -85,24 +70,9 @@ class ContactClient extends FormEntity
     private $publishDown;
 
     /**
-     * @var array()
-     */
-    private $properties = [];
-
-    /**
-     * @var array
-     */
-    private $utmTags = [];
-
-    /**
      * @var int
      */
     private $form;
-
-    /**
-     * @var string
-     */
-    private $cache;
 
     /**
      * @param ClassMetadata $metadata
@@ -125,12 +95,6 @@ class ContactClient extends FormEntity
             )
         );
 
-        $metadata->addPropertyConstraint(
-            'style',
-            new NotBlank(
-                ['message' => 'mautic.contactclient.error.select_style']
-            )
-        );
     }
 
     /**
@@ -142,9 +106,7 @@ class ContactClient extends FormEntity
 
         $builder->setTable('contactclient')
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository')
-            ->addIndex(['contactclient_type'], 'contactclient_type')
-            ->addIndex(['style'], 'contactclient_style')
-            ->addIndex(['form_id'], 'contactclient_form');
+            ->addIndex(['contactclient_type'], 'contactclient_type');
 
         $builder->addIdColumns();
 
@@ -152,31 +114,11 @@ class ContactClient extends FormEntity
 
         $builder->addNamedField('type', 'string', 'contactclient_type');
 
-        $builder->addField('style', 'string');
-
         $builder->addNullableField('website', 'string');
 
         $builder->addPublishDates();
 
-        $builder->addNullableField('properties', 'array');
-
-        $builder->createField('utmTags', 'array')
-            ->columnName('utm_tags')
-            ->nullable()
-            ->build();
-
-        $builder->addNamedField('form', 'integer', 'form_id', true);
-
-        $builder->addNullableField('cache', 'text');
-
-        $builder->createField('htmlMode', 'string')
-            ->columnName('html_mode')
-            ->nullable()
-            ->build();
-
-        $builder->addNullableField('editor', 'text');
-
-        $builder->addNullableField('html', 'text');
+        $builder->addNullableField('specification', 'text');
     }
 
     /**
@@ -199,16 +141,10 @@ class ContactClient extends FormEntity
                     'description',
                     'type',
                     'website',
-                    'style',
                     'publishUp',
                     'publishDown',
-                    'properties',
-                    'utmTags',
                     'form',
-                    'htmlMode',
-                    'html',
-                    'editor',
-                    'cache',
+                    'specification',
                 ]
             )
             ->build();
@@ -255,65 +191,21 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getEditor()
+    public function getSpecification()
     {
-        return $this->editor;
+        return $this->specification;
     }
 
     /**
-     * @param mixed $setHtml
+     * @param mixed $specification
      *
      * @return ContactClient
      */
-    public function setEditor($editor)
+    public function setSpecification($specification)
     {
-        $this->isChanged('editor', $editor);
+        $this->isChanged('specification', $specification);
 
-        $this->editor = $editor;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtml()
-    {
-        return $this->html;
-    }
-
-    /**
-     * @param mixed $setHtml
-     *
-     * @return ContactClient
-     */
-    public function setHtml($html)
-    {
-        $this->isChanged('html', $html);
-
-        $this->html = $html;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtmlMode()
-    {
-        return $this->htmlMode;
-    }
-
-    /**
-     * @param mixed $html
-     *
-     * @return ContactClient
-     */
-    public function setHtmlMode($htmlMode)
-    {
-        $this->isChanged('htmlMode', $htmlMode);
-
-        $this->htmlMode = $htmlMode;
+        $this->specification = $specification;
 
         return $this;
     }
@@ -409,47 +301,6 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getProperties()
-    {
-        return $this->properties;
-    }
-
-    /**
-     * @param mixed $properties
-     *
-     * @return ContactClient
-     */
-    public function setProperties($properties)
-    {
-        $this->isChanged('properties', $properties);
-
-        $this->properties = $properties;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUtmTags()
-    {
-        return $this->utmTags;
-    }
-
-    /**
-     * @param array $utmTags
-     */
-    public function setUtmTags($utmTags)
-    {
-        $this->isChanged('utmTags', $utmTags);
-        $this->utmTags = $utmTags;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getType()
     {
         return $this->type;
@@ -465,28 +316,6 @@ class ContactClient extends FormEntity
         $this->isChanged('type', $type);
 
         $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getStyle()
-    {
-        return $this->style;
-    }
-
-    /**
-     * @param mixed $style
-     *
-     * @return ContactClient
-     */
-    public function setStyle($style)
-    {
-        $this->isChanged('style', $style);
-
-        $this->style = $style;
 
         return $this;
     }
@@ -539,23 +368,4 @@ class ContactClient extends FormEntity
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getCache()
-    {
-        return $this->cache;
-    }
-
-    /**
-     * @param mixed $cache
-     *
-     * @return ContactClient
-     */
-    public function setCache($cache)
-    {
-        $this->cache = $cache;
-
-        return $this;
-    }
 }

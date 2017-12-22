@@ -15,19 +15,6 @@ use Mautic\CoreBundle\Entity\CommonRepository;
 
 class ContactClientRepository extends CommonRepository
 {
-    /**
-     * @param $formId
-     *
-     * @return array
-     */
-    public function findByForm($formId)
-    {
-        return $this->findBy(
-            [
-                'form' => (int) $formId,
-            ]
-        );
-    }
 
     /**
      * Get a list of entities.

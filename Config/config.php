@@ -30,19 +30,6 @@ return [
 
     'services' => [
         'events' => [
-            'mautic.contactclient.subscriber.form_bundle' => [
-                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\FormSubscriber',
-                'arguments' => [
-                    'mautic.contactclient.model.contactclient',
-                ],
-            ],
-            'mautic.contactclient.subscriber.page_bundle' => [
-                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\PageSubscriber',
-                'arguments' => [
-                    'mautic.contactclient.model.contactclient',
-                    'router',
-                ],
-            ],
             'mautic.contactclient.subscriber.stat' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\StatSubscriber',
                 'arguments' => [
@@ -79,10 +66,6 @@ return [
             ],
         ],
         'forms' => [
-            'mautic.contactclient.form.type.color' => [
-                'class' => 'MauticPlugin\MauticContactClientBundle\Form\Type\ColorType',
-                'alias' => 'contactclient_color',
-            ],
             'mautic.contactclient.form.type.content' => [
                 'class' => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContentType',
                 'alias' => 'contactclient_content',
@@ -91,14 +74,6 @@ return [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientType',
                 'alias'     => 'contactclient',
                 'arguments' => 'mautic.security',
-            ],
-            'mautic.contactclient.form.type.entity_properties' => [
-                'class' => 'MauticPlugin\MauticContactClientBundle\Form\Type\PropertiesType',
-                'alias' => 'contactclient_entity_properties',
-            ],
-            'mautic.contactclient.form.type.properties' => [
-                'class' => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientPropertiesType',
-                'alias' => 'contactclient_properties',
             ],
             'mautic.contactclient.form.type.contactclientshow_list' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientShowType',

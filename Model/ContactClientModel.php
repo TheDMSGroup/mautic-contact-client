@@ -159,78 +159,7 @@ class ContactClientModel extends FormModel
     {
         parent::saveEntity($entity, $unlock);
 
-        // Generate cache after save to have ID available
-        $content = $this->generateJavascript($entity);
-        $entity->setCache($content);
-
         $this->getRepository()->saveEntity($entity);
-    }
-
-    /**
-     * @param ContactClient $contactclient
-     * @param bool  $preview
-     *
-     * @return string
-     */
-    public function generateJavascript(ContactClient $contactclient, $isPreview = false, $byPassCache = false)
-    {
-        // If cached is not an array, rebuild to support the new format
-        $cached = json_decode($contactclient->getCache(), true);
-        if ($isPreview || $byPassCache || empty($cached) || !isset($cached['js'])) {
-            $contactclientArray = $contactclient->toArray();
-
-            $url = '';
-            if ($contactclientArray['type'] == 'link' && !empty($contactclientArray['properties']['content']['link_url'])) {
-                $trackable = $this->trackableModel->getTrackableByUrl(
-                    $contactclientArray['properties']['content']['link_url'],
-                    'contactclient',
-                    $contactclientArray['id']
-                );
-
-                $url = $this->trackableModel->generateTrackableUrl(
-                    $trackable,
-                    ['channel' => ['contactclient', $contactclientArray['id']]],
-                    false,
-                    $contactclient->getUtmTags()
-                );
-            }
-
-            $javascript = $this->templating->getTemplating()->render(
-                'MauticContactClientBundle:Builder:generate.js.php',
-                [
-                    'contactclient'    => $contactclientArray,
-                    'preview'  => $isPreview,
-                    'clickUrl' => $url,
-                ]
-            );
-
-            $content = $this->getContent($contactclientArray, $isPreview, $url);
-            $cached  = [
-                'js'    => \Minify_HTML::minify($javascript),
-                'contactclient' => \Minify_HTML::minify($content['contactclient']),
-                'form'  => \Minify_HTML::minify($content['form']),
-            ];
-
-            if (!$byPassCache) {
-                $contactclient->setCache(json_encode($cached));
-                $this->saveEntity($contactclient);
-            }
-        }
-
-        // Replace tokens to ensure clickthroughs, lead tokens etc are appropriate
-        $lead       = $this->leadModel->getCurrentLead();
-        $tokenEvent = new TokenReplacementEvent($cached['contactclient'], $lead, ['contactclient_id' => $contactclient->getId()]);
-        $this->dispatcher->dispatch(ContactClientEvents::TOKEN_REPLACEMENT, $tokenEvent);
-        $contactclientContent = $tokenEvent->getContent();
-        $contactclientContent = str_replace('{contactclient_form}', $cached['form'], $contactclientContent, $formReplaced);
-        if (!$formReplaced && !empty($cached['form'])) {
-            // Form token missing so just append the form
-            $contactclientContent .= $cached['form'];
-        }
-
-        $contactclientContent = $this->templating->getTemplating()->getEngine('MauticContactClientBundle:Builder:content.html.php')->escape($contactclientContent, 'js');
-
-        return str_replace('{contactclient_content}', $contactclientContent, $cached['js']);
     }
 
     /**
@@ -244,20 +173,11 @@ class ContactClientModel extends FormModel
     {
         $form = (!empty($contactclient['form'])) ? $this->formModel->getEntity($contactclient['form']) : null;
 
-        if (isset($contactclient['html_mode'])) {
-            $htmlMode = $contactclient['html_mode'];
-        } elseif (isset($contactclient['htmlMode'])) {
-            $htmlMode = $contactclient['htmlMode'];
-        } else {
-            $htmlMode = 'basic';
-        }
-
         $content = $this->templating->getTemplating()->render(
             'MauticContactClientBundle:Builder:content.html.php',
             [
                 'contactclient'    => $contactclient,
                 'preview'  => $isPreview,
-                'htmlMode' => $htmlMode,
                 'clickUrl' => $url,
             ]
         );
@@ -267,7 +187,6 @@ class ContactClientModel extends FormModel
             'MauticContactClientBundle:Builder:form.html.php',
             [
                 'form'    => $form,
-                'style'   => $contactclient['style'],
                 'contactclientId' => $contactclient['id'],
                 'preview' => $isPreview,
             ]

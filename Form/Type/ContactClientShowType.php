@@ -59,7 +59,6 @@ class ContactClientShowType extends AbstractType
                         ['message' => 'mautic.contactclient.choosecontactclient.notblank']
                     ),
                 ],
-                'data' => $options['data']['properties']['contactclient'],
             ]
         );
 

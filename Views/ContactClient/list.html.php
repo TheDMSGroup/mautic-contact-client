@@ -66,16 +66,6 @@ if ($tmpl == 'index') {
                     'MauticCoreBundle:Helper:tableheader.html.php',
                     [
                         'sessionVar' => 'contactclient',
-                        'orderBy'    => 'f.style',
-                        'text'       => 'mautic.contactclient.thead.style',
-                        'class'      => 'visible-md visible-lg col-contactclient-style',
-                    ]
-                );
-
-                echo $view->render(
-                    'MauticCoreBundle:Helper:tableheader.html.php',
-                    [
-                        'sessionVar' => 'contactclient',
                         'orderBy'    => 'f.id',
                         'text'       => 'mautic.core.id',
                         'class'      => 'visible-md visible-lg col-contactclient-id',
@@ -134,7 +124,6 @@ if ($tmpl == 'index') {
                         <span style="white-space: nowrap;"><span class="label label-default pa-4" style="border: 1px solid #d5d5d5; background: <?php echo $color; ?>;"> </span> <span><?php echo $catName; ?></span></span>
                     </td>
                     <td class="visible-md visible-lg"><?php echo $view['translator']->trans('mautic.contactclient.type.'.$item->getType()); ?></td>
-                    <td class="visible-md visible-lg"><?php echo $view['translator']->trans('mautic.contactclient.style.'.$item->getStyle()); ?></td>
                     <td class="visible-md visible-lg"><?php echo $item->getId(); ?></td>
                 </tr>
             <?php endforeach; ?>

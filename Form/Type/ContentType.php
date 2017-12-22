@@ -32,7 +32,6 @@ class ContentType extends AbstractType
                 'attr'       => [
                     'class'        => 'form-control',
                     'onblur'       => 'Mautic.contactclientUpdatePreview()',
-                    'data-show-on' => '{"contactclient_html_mode_0":"checked"}',
                 ],
                 'required' => false,
             ]
@@ -48,7 +47,6 @@ class ContentType extends AbstractType
                     'class'        => 'form-control',
                     'placeholder'  => 'mautic.core.optional',
                     'onblur'       => 'Mautic.contactclientUpdatePreview()',
-                    'data-show-on' => '{"contactclient_html_mode_0":"checked"}',
                 ],
                 'required' => false,
             ]
@@ -63,7 +61,6 @@ class ContentType extends AbstractType
                 'attr'       => [
                     'class'        => 'form-control',
                     'onblur'       => 'Mautic.contactclientUpdatePreview()',
-                    'data-show-on' => '{"contactclient_html_mode_0":"checked"}',
                 ],
             ]
         );
@@ -77,7 +74,6 @@ class ContentType extends AbstractType
                 'attr'       => [
                     'class'        => 'form-control',
                     'onblur'       => 'Mautic.contactclientUpdatePreview()',
-                    'data-show-on' => '{"contactclient_html_mode_0":"checked"}',
                 ],
             ]
         );
@@ -90,7 +86,6 @@ class ContentType extends AbstractType
                 'data'  => (isset($options['link_new_window'])) ? $options['link_new_window'] : true,
                 'attr'  => [
                     'onchange'     => 'Mautic.contactclientUpdatePreview()',
-                    'data-show-on' => '{"contactclient_html_mode_0":"checked"}',
                 ],
             ]
         );
@@ -121,7 +116,6 @@ class ContentType extends AbstractType
                 'attr'       => [
                     'class'        => 'form-control',
                     'onchange'     => 'Mautic.contactclientUpdatePreview()',
-                    'data-show-on' => '{"contactclient_html_mode_0":"checked"}',
                 ],
                 'required'    => false,
                 'empty_value' => false,

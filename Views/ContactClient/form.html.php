@@ -31,16 +31,24 @@ echo $view['form']->start($form);
         <!-- container -->
         <div class="col-md-9 bg-auto height-auto bdr-r pa-md">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <?php echo $view['form']->row($form['name']); ?>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-2">
+                    <?php echo $view['form']->row($form['type']); ?>
+                </div>
+                <div class="col-md-5">
                     <?php echo $view['form']->row($form['website']); ?>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-12">
                     <?php echo $view['form']->row($form['description']); ?>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <?php echo $view['form']->row($form['specification']); ?>
                 </div>
             </div>
         </div>
@@ -53,59 +61,11 @@ echo $view['form']->start($form);
                 echo $view['form']->row($form['publishDown']);
                 ?>
                 <hr />
-                <h5><?php echo $view['translator']->trans('mautic.email.utm_tags'); ?></h5>
-                <br />
-                <?php
-                foreach ($form['utmTags'] as $i => $utmTag):
-                    echo $view['form']->row($utmTag);
-                endforeach;
-                ?>
             </div>
         </div>
     </div>
 
     <div class="hide builder contactclient-builder">
-        <div class="builder-content">
-            <div class="website-preview">
-                <div class="website-placeholder hide well well-lg col-md-6 col-md-offset-3 mt-lg">
-                    <div class="row">
-                        <div class="mautibot-image col-xs-3 text-center">
-                            <img class="img-responsive" style="max-height: 125px; margin-left: auto; margin-right: auto;" src="<?php echo $view['mautibot']->getImage(
-                                'wave'
-                            ); ?>"/>
-                        </div>
-                        <div class="col-xs-9">
-                            <h4><i class="fa fa-quote-left"></i> <?php echo $view['translator']->trans('mautic.core.noresults.tip'); ?>
-                                <i class="fa fa-quote-right"></i></h4>
-                            <p class="mt-md">
-                                <?php echo $view['translator']->trans('mautic.contactclient.website_placeholder'); ?>
-                            </p>
-                            <div class="input-group">
-                                <input id="websiteUrlPlaceholderInput" disabled type="text" class="form-control" placeholder="http..."/>
-                                <span class="input-group-btn">
-                                <button class="btn btn-default btn-fetch" type="button"><?php echo $view['translator']->trans(
-                                        'mautic.contactclient.fetch_snapshot'
-                                    ); ?></button>
-                            </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="viewport-switcher text-center bdr-t-sm bdr-b-sm bdr-r-sm">
-                    <div class="btn btn-sm btn-success btn-nospin btn-viewport" data-viewport="desktop">
-                        <i class="fa fa-mobile-phone fa-3x"></i>
-                    </div>
-                </div>
-                <figure id="websiteScreenshot">
-                    <div class="screenshot-container text-center">
-                        <div class="preview-body text-left"></div>
-                        <canvas id="websiteCanvas">
-                            Your browser does not support the canvas element.
-                        </canvas>
-                    </div>
-                </figure>
-            </div>
-        </div>
         <div class="builder-panel builder-panel-contactclient">
             <div class="builder-panel-top">
                 <p>
@@ -116,7 +76,6 @@ echo $view['form']->start($form);
             </div>
             <?php
             $class = ($form['type']->vars['data']) ? 'contactclient-type-'.$form['type']->vars['data'] : 'contactclient-type-all';
-            $class .= ($form['style']->vars['data']) ? ' contactclient-style-'.$form['style']->vars['data'] : ' contactclient-style-all';
             ?>
             <div class="<?php echo $class; ?>" style="margin-top: 40px;" id="contactclientFormContent">
                 <!-- start contactclient type  -->
@@ -129,7 +88,6 @@ echo $view['form']->start($form);
                         </h4>
                     </div>
                     <div id="contactclientTypePanel" class="panel-collapse collapse in" role="tabpanel">
-                        <?php echo $view['form']->widget($form['type']); ?>
                         <ul class="list-group mb-0">
                             <li data-contactclient-type="form" class="contactclient-type list-group-item pl-sm pr-sm">
                                 <div class="row">
@@ -179,17 +137,6 @@ echo $view['form']->start($form);
 
                             <li class="contactclient-properties contactclient-link-properties list-group-item pl-sm pr-sm" style="display: none;"></li>
                         </ul>
-                    </div>
-
-                    <div class="hide" id="contactclientTypeProperties">
-                        <?php echo $view['form']->row($form['properties']['animate']); ?>
-                        <?php echo $view['form']->row($form['properties']['when']); ?>
-                        <?php echo $view['form']->row($form['properties']['timeout']); ?>
-                        <?php echo $view['form']->row($form['properties']['link_activation']); ?>
-                        <?php echo $view['form']->row($form['properties']['frequency']); ?>
-                        <div class="hidden-contactclient-type-notice">
-                            <?php echo $view['form']->row($form['properties']['stop_after_conversion']); ?>
-                        </div>
                     </div>
                 </div>
                 <!-- end contactclient type -->
@@ -268,30 +215,6 @@ echo $view['form']->start($form);
                             <!-- <li class="contactclient-properties contactclient-page-properties list-group-item pl-sm pr-sm" style="display: none;"></li> -->
                         </ul>
                     </div>
-
-                    <div class="hide" id="contactclientStyleProperties">
-                        <!-- bar type properties -->
-                        <div class="contactclient-hide visible-contactclient-style-bar">
-                            <?php echo $view['form']->row($form['properties']['bar']['allow_hide']); ?>
-                            <?php echo $view['form']->row($form['properties']['bar']['push_page']); ?>
-                            <?php echo $view['form']->row($form['properties']['bar']['sticky']); ?>
-                            <?php echo $view['form']->row($form['properties']['bar']['placement']); ?>
-                            <?php echo $view['form']->row($form['properties']['bar']['size']); ?>
-                        </div>
-
-                        <!-- modal type properties -->
-                        <div class="contactclient-hide visible-contactclient-style-modal">
-                            <?php echo $view['form']->row($form['properties']['modal']['placement']); ?>
-                        </div>
-
-                        <!-- notifications type properties -->
-                        <div class="contactclient-hide visible-contactclient-style-notification">
-                            <?php echo $view['form']->row($form['properties']['notification']['placement']); ?>
-                        </div>
-
-                        <!-- page type properties -->
-                        <!-- <div class="contactclient-hide visible-contactclient-style-page"></div> -->
-                    </div>
                 </div>
                 <!-- end contactclient style -->
 
@@ -303,69 +226,6 @@ echo $view['form']->start($form);
                                 <i class="fa fa-paint-brush"></i> <?php echo $view['translator']->trans('mautic.contactclient.tab.contactclient_colors'); ?>
                             </a>
                         </h4>
-                    </div>
-                    <div id="contactclientColorsPanel" class="panel-collapse collapse" role="tabpanel">
-                        <div class="panel-body pa-xs">
-                            <div class="row">
-                                <div class="form-group col-xs-12 ">
-                                    <?php echo $view['form']->label($form['properties']['colors']['primary']); ?>
-                                    <div class="input-group">
-                                        <?php echo $view['form']->widget($form['properties']['colors']['primary']); ?>
-                                        <span class="input-group-btn">
-                                        <button data-dropper="contactclient_properties_colors_primary" class="btn btn-default btn-nospin btn-dropper" type="button"><i class="fa fa-eyedropper"></i></button>
-                                    </span>
-                                    </div>
-                                    <div class="mt-xs site-color-list hide" id="primary_site_colors"></div>
-                                    <?php echo $view['form']->errors($form['properties']['colors']['primary']); ?>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="form-group col-xs-12 ">
-                                    <?php echo $view['form']->label($form['properties']['colors']['text']); ?>
-                                    <div class="input-group">
-                                        <?php echo $view['form']->widget($form['properties']['colors']['text']); ?>
-                                        <span class="input-group-btn">
-                                        <button data-dropper="contactclient_properties_colors_text" class="btn btn-default btn-nospin btn-dropper" type="button"><i class="fa fa-eyedropper"></i></button>
-                                    </span>
-                                    </div>
-                                    <div class="mt-xs site-color-list hide" id="text_site_colors"></div>
-                                    <?php echo $view['form']->errors($form['properties']['colors']['text']); ?>
-                                </div>
-                            </div>
-
-                            <div class="hidden-contactclient-type-notice">
-
-                                <div class="row">
-
-                                    <div class="form-group col-xs-12 ">
-                                        <?php echo $view['form']->label($form['properties']['colors']['button']); ?>
-                                        <div class="input-group">
-                                            <?php echo $view['form']->widget($form['properties']['colors']['button']); ?>
-                                            <span class="input-group-btn">
-                                        <button data-dropper="contactclient_properties_colors_button" class="btn btn-default btn-nospin btn-dropper" type="button"><i class="fa fa-eyedropper"></i></button>
-                                    </span>
-                                        </div>
-                                        <div class="mt-xs site-color-list hide" id="button_site_colors"></div>
-                                        <?php echo $view['form']->errors($form['properties']['colors']['button']); ?>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="form-group col-xs-12 ">
-                                        <?php echo $view['form']->label($form['properties']['colors']['button_text']); ?>
-                                        <div class="input-group">
-                                            <?php echo $view['form']->widget($form['properties']['colors']['button_text']); ?>
-                                            <span class="input-group-btn">
-                                        <button data-dropper="contactclient_properties_colors_button_text" class="btn btn-default btn-nospin btn-dropper" type="button"><i class="fa fa-eyedropper"></i></button>
-                                    </span>
-                                        </div>
-                                        <div class="mt-xs site-color-list hide" id="button_text_site_colors"></div>
-                                        <?php echo $view['form']->errors($form['properties']['colors']['button_text']); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <!-- end contactclient colors -->
@@ -381,32 +241,19 @@ echo $view['form']->start($form);
                     </div>
                     <div id="contactclientContentPanel" class="panel-collapse collapse" role="tabpanel">
                         <div class="panel-body pa-xs">
-                            <?php echo $view['form']->row($form['html_mode']); ?>
-                            <?php echo $view['form']->row($form['editor']); ?>
-                            <?php echo $view['form']->row($form['html']); ?>
-                            <?php echo $view['form']->row($form['properties']['content']['headline']); ?>
-                            <div class="hidden-contactclient-style-bar">
-                                <?php echo $view['form']->row($form['properties']['content']['tagline']); ?>
-                            </div>
-                            <?php echo $view['form']->row($form['properties']['content']['font']); ?>
 
                             <!-- form type properties -->
                             <div class="contactclient-hide visible-contactclient-type-form">
-                                <div class="col-sm-12" id="contactclientFormAlert" data-hide-on='{"contactclient_html_mode_0":"checked"}'>
+                                <div class="col-sm-12" id="contactclientFormAlert">
                                     <div class="alert alert-info">
                                         <?php echo $view['translator']->trans('mautic.contactclient.form_token.instructions'); ?>
                                     </div>
                                 </div>
-                                <?php echo $view['form']->row($form['form']); ?>
+<!--                                --><?php //echo $view['form']->row($form['form']); ?>
                                 <div style="margin-bottom: 50px;"></div>
                             </div>
 
                             <!-- link type properties -->
-                            <div class="contactclient-hide visible-contactclient-type-link">
-                                <?php echo $view['form']->row($form['properties']['content']['link_text']); ?>
-                                <?php echo $view['form']->row($form['properties']['content']['link_url']); ?>
-                                <?php echo $view['form']->row($form['properties']['content']['link_new_window']); ?>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -65,7 +65,6 @@ class Stat
         $builder->setTable('contactclient_stats')
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\StatRepository')
             ->addIndex(['type'], 'contactclient_type')
-            ->addIndex(['type', 'type_id'], 'contactclient_type_id')
             ->addIndex(['date_added'], 'contactclient_date_added');
 
         $builder->addId();
@@ -75,8 +74,6 @@ class Stat
             ->build();
 
         $builder->addField('type', 'string');
-
-        $builder->addNamedField('typeId', 'integer', 'type_id', true);
 
         $builder->addNamedField('dateAdded', 'datetime', 'date_added');
 
