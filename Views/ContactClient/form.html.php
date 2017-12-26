@@ -21,7 +21,16 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/jquery.timepicker.min.js');
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/jquery.businessHours.min.js');
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/jsoneditor.min.js');
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/query-builder.min.js');
+echo $view['assets']->includeScript('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js');
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
+
+echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/jquery.businessHours.css');
+echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/jquery.timepicker.min.css');
+echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/query-builder.default.min.css');
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/contactclient.css');
 
 echo $view['form']->start($form);
@@ -30,8 +39,8 @@ echo $view['form']->start($form);
 <div class="box-layout">
 
     <!-- tab container -->
-    <div class="col-md-9 bg-auto height-auto bdr-l">
-        <div class="bg-auto">
+    <div class="col-md-9 bg-white height-auto bdr-l">
+        <div class="">
             <ul class="nav nav-tabs pr-md pl-md mt-10">
                 <li class="active">
                     <a href="#details" role="tab" data-toggle="tab">
@@ -39,8 +48,8 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
-                    <a href="#exclusivity" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusivity'); ?>
+                    <a href="#exclusive" role="tab" data-toggle="tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
                     </a>
                 </li>
                 <li>
@@ -101,7 +110,7 @@ echo $view['form']->start($form);
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="exclusivity">
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="exclusive">
                 <div class="pa-md">
                     <div class="form-group mb-0">
                         <div class="row">

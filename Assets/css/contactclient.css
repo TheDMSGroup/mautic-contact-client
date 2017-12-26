@@ -1,0 +1,13 @@
+.workingBusinssDay {
+    border: 2px solid #462d6c;
+    background-color: #563d7c;
+}
+
+.dayOff {
+    border: 2px solid #cd3804;
+    background-color: #dd4814;
+}
+
+div h3 {
+    padding-top: 20px;
+}
