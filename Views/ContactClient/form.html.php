@@ -59,13 +59,8 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
-                    <a href="#api_payload" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.api_payload'); ?>
-                    </a>
-                </li>
-                <li>
-                    <a href="#file_payload" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.file_payload'); ?>
+                    <a href="#payload" role="tab" data-toggle="tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
                     </a>
                 </li>
             </ul>
@@ -79,7 +74,7 @@ echo $view['form']->start($form);
                             <div class="col-md-5">
                                 <?php echo $view['form']->row($form['name']); ?>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-2 contactclient-type-group">
                                 <?php echo $view['form']->row($form['type']); ?>
                             </div>
                             <div class="col-md-5">
@@ -142,24 +137,12 @@ echo $view['form']->start($form);
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="api_payload">
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="payload">
                 <div class="pa-md">
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-md-12">
                                 <?php echo $view['form']->row($form['api_payload']); ?>
-                            </div>
-                        </div>
-                        <hr class="mnr-md mnl-md">
-                        Advanced widget to go here.
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="file_payload">
-                <div class="pa-md">
-                    <div class="form-group mb-0">
-                        <div class="row">
-                            <div class="col-md-12">
                                 <?php echo $view['form']->row($form['file_payload']); ?>
                             </div>
                         </div>

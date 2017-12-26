@@ -70,9 +70,9 @@ class ContactClientType extends AbstractType
             'textarea',
             [
                 'label'      => 'mautic.contactclient.form.api_payload',
-                'label_attr' => ['class' => 'control-label'],
+                'label_attr' => ['class' => 'control-label hide api-payload'],
                 'attr'       => [
-                    'class'        => 'form-control',
+                    'class'        => 'form-control hide api-payload',
                     'rows'         => 12,
                     'onchange'     => 'Mautic.contactclientUpdatePreview()',
                 ],
@@ -85,9 +85,9 @@ class ContactClientType extends AbstractType
             'textarea',
             [
                 'label'      => 'mautic.contactclient.form.file_payload',
-                'label_attr' => ['class' => 'control-label'],
+                'label_attr' => ['class' => 'control-label hide file-payload'],
                 'attr'       => [
-                    'class'        => 'form-control',
+                    'class'        => 'form-control hide file-payload',
                     'rows'         => 12,
                     'onchange'     => 'Mautic.contactclientUpdatePreview()',
                 ],
@@ -175,7 +175,7 @@ class ContactClientType extends AbstractType
             'button_group',
             [
                 'label' => 'mautic.contactclient.form.type',
-                'label_attr' => ['class' => 'control-label'],
+                'label_attr' => ['class' => 'control-label contactclient-type'],
                 'choices' => [
                     'mautic.contactclient.form.type.api' => 'api',
                     'mautic.contactclient.form.type.file' => 'file',
