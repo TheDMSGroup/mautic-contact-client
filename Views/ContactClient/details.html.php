@@ -116,27 +116,63 @@ $view['slots']->set(
             </div>
             <!--/ stats -->
 
-
             <!-- tabs controls -->
-            <?php if (!empty($trackables)): ?>
-            <ul class="nav nav-tabs pr-md pl-md">
+            <ul class="nav nav-tabs pr-md pl-md mt-10">
                 <li class="active">
-                    <a href="#clicks-container" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.trackable.click_counts'); ?>
+                    <a href="#timeline-container" role="tab" data-toggle="tab">
+                        <span class="label label-primary mr-sm" id="TimelineCount">
+                            <?php // echo $events['total']; ?>
+                        </span>
+                        <?php echo $view['translator']->trans('mautic.lead.lead.tab.history'); ?>
                     </a>
                 </li>
+                <li class="">
+                    <a href="#auditlog-container" role="tab" data-toggle="tab">
+                    <span class="label label-primary mr-sm" id="AuditLogCount">
+                        <?php // echo $auditlog['total']; ?>
+                    </span>
+                        <?php echo $view['translator']->trans('mautic.lead.lead.tab.auditlog'); ?>
+                    </a>
+                </li>
+
+                <?php echo $view['content']->getCustomContent('tabs', $mauticTemplateVars); ?>
             </ul>
             <!--/ tabs controls -->
 
             <!-- start: tab-content -->
-                <div class="tab-content pa-md">
-                    <div class="tab-pane active bdr-w-0" id="clicks-container">
-                        <?php echo $view->render('MauticPageBundle:Trackable:click_counts.html.php', ['trackables' => $trackables]); ?>
-                    </div>
+            <div class="tab-content pa-md">
+                <!-- #history-container -->
+                <div class="tab-pane fade in active bdr-w-0" id="timeline-container">
+                    <?php /*echo $view->render(
+                        'MauticLeadBundle:Timeline:list.html.php',
+                        [
+                            'events' => $events,
+                            'lead'   => $lead,
+                            'tmpl'   => 'index',
+                        ]
+                    );*/ ?>
                 </div>
-                <!-- end: tab-content -->
-            <?php endif; ?>
+                <!--/ #history-container -->
 
+                <!-- #auditlog-container -->
+                <div class="tab-pane fade bdr-w-0" id="auditlog-container">
+                    <?php /*echo $view->render(
+                        'MauticLeadBundle:Auditlog:list.html.php',
+                        [
+                            'events' => $auditlog,
+                            'lead'   => $lead,
+                            'tmpl'   => 'index',
+                        ]
+                    );*/ ?>
+                </div>
+                <!--/ #auditlog-container -->
+
+                <!-- custom content -->
+                <?php echo $view['content']->getCustomContent('tabs.content', $mauticTemplateVars); ?>
+                <!-- end: custom content -->
+
+            </div>
+            <!--/ end: tab-content -->
         </div>
     </div>
     <!--/ left section -->

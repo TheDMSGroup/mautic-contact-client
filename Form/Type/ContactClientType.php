@@ -41,7 +41,7 @@ class ContactClientType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url', 'specification' => 'html']));
+        // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url', 'api_payload' => 'html']));
         // $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
 
         $builder->add(
@@ -66,10 +66,25 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
-            'specification',
+            'api_payload',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.specification',
+                'label'      => 'mautic.contactclient.form.api_payload',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
+                    'onchange'     => 'Mautic.contactclientUpdatePreview()',
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'file_payload',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.file_payload',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
                     'class'        => 'form-control',

@@ -37,7 +37,12 @@ class ContactClient extends FormEntity
     /**
      * @var string
      */
-    private $specification;
+    private $api_payload;
+
+    /**
+     * @var string
+     */
+    private $file_payload;
 
     /**
      * @var string
@@ -118,7 +123,9 @@ class ContactClient extends FormEntity
 
         $builder->addPublishDates();
 
-        $builder->addNullableField('specification', 'text');
+        $builder->addNullableField('api_payload', 'text');
+
+        $builder->addNullableField('file_payload', 'text');
     }
 
     /**
@@ -144,7 +151,8 @@ class ContactClient extends FormEntity
                     'publishUp',
                     'publishDown',
                     'form',
-                    'specification',
+                    'api_payload',
+                    'file_payload',
                 ]
             )
             ->build();
@@ -191,21 +199,43 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getSpecification()
+    public function getAPIPayload()
     {
-        return $this->specification;
+        return $this->api_payload;
     }
 
     /**
-     * @param mixed $specification
+     * @param mixed $payload
      *
      * @return ContactClient
      */
-    public function setSpecification($specification)
+    public function setAPIPayload($payload)
     {
-        $this->isChanged('specification', $specification);
+        $this->isChanged('api_payload', $payload);
 
-        $this->specification = $specification;
+        $this->api_payload = $payload;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFilePayload()
+    {
+        return $this->file_payload;
+    }
+
+    /**
+     * @param mixed $payload
+     *
+     * @return ContactClient
+     */
+    public function setFilePayload($payload)
+    {
+        $this->isChanged('file_payload', $payload);
+
+        $this->file_payload = $payload;
 
         return $this;
     }
