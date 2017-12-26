@@ -66,15 +66,6 @@ return [
             ],
         ],
         'forms' => [
-            'mautic.contactclient.form.type.content' => [
-                'class' => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContentType',
-                'alias' => 'contactclient_content',
-            ],
-            'mautic.contactclient.form.type.contactclient' => [
-                'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientType',
-                'alias'     => 'contactclient',
-                'arguments' => 'mautic.security',
-            ],
             'mautic.contactclient.form.type.contactclientshow_list' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientShowType',
                 'arguments' => 'router',

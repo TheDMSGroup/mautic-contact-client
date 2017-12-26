@@ -1,13 +1,15 @@
-.workingBusinssDay {
-    border: 2px solid #462d6c;
-    background-color: #563d7c;
-}
-
-.dayOff {
-    border: 2px solid #cd3804;
-    background-color: #dd4814;
-}
-
-div h3 {
+#contactclient_schedule_hours_widget div h3 {
     padding-top: 20px;
+}
+
+#contactclient_schedule_hours_widget .dayContainer {
+    width: 94px;
+    height: 150px;
+}
+#contactclient_schedule_hours_widget .input-group-addon {
+    padding: 4px;
+}
+#contactclient_schedule_hours_widget .operationTime .mini-time  {
+    width: 64px;
+    padding-left: 4px;
 }

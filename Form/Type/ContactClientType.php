@@ -74,7 +74,6 @@ class ContactClientType extends AbstractType
                 'attr'       => [
                     'class'        => 'form-control hide api-payload',
                     'rows'         => 12,
-                    'onchange'     => 'Mautic.contactclientUpdatePreview()',
                 ],
                 'required' => false,
             ]
@@ -89,7 +88,6 @@ class ContactClientType extends AbstractType
                 'attr'       => [
                     'class'        => 'form-control hide file-payload',
                     'rows'         => 12,
-                    'onchange'     => 'Mautic.contactclientUpdatePreview()',
                 ],
                 'required' => false,
             ]
@@ -104,6 +102,94 @@ class ContactClientType extends AbstractType
                 'attr'       => [
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.form.website.tooltip',
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'exclusive',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.exclusive',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'filter',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.filter',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'limits',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.limits',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'schedule_timezone',
+            'timezone',
+            [
+                'label'      => 'mautic.contactclient.form.schedule_timezone',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip'      => 'mautic.contactclient.form.schedule_timezone.tooltip',
+                ],
+                'multiple'    => false,
+                'empty_value' => 'mautic.user.user.form.defaulttimezone',
+                'required'    => false,
+            ]
+        );
+
+        $builder->add(
+            'schedule_hours',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.schedule_hours',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control hide',
+                    'rows'         => 12,
+                    'tooltip'      => 'mautic.contactclient.form.schedule_hours.tooltip',
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'schedule_exclusions',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.schedule_exclusions',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
+                    'tooltip'      => 'mautic.contactclient.form.schedule_exclusions.tooltip',
                 ],
                 'required' => false,
             ]

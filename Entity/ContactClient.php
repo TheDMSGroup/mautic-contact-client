@@ -87,12 +87,22 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
-    private $limit;
+    private $limits;
 
     /**
      * @var int
      */
-    private $schedule;
+    private $schedule_timezone;
+
+    /**
+     * @var int
+     */
+    private $schedule_hours;
+
+    /**
+     * @var int
+     */
+    private $schedule_exclusions;
 
     /**
      * @param ClassMetadata $metadata
@@ -138,6 +148,18 @@ class ContactClient extends FormEntity
 
         $builder->addPublishDates();
 
+        $builder->addNullableField('exclusive', 'text');
+
+        $builder->addNullableField('filter', 'text');
+
+        $builder->addNullableField('limits', 'text');
+
+        $builder->addNullableField('schedule_hours', 'text');
+
+        $builder->addNullableField('schedule_timezone', 'string');
+
+        $builder->addNullableField('schedule_exclusions', 'text');
+
         $builder->addNullableField('api_payload', 'text');
 
         $builder->addNullableField('file_payload', 'text');
@@ -165,7 +187,12 @@ class ContactClient extends FormEntity
                     'website',
                     'publishUp',
                     'publishDown',
-                    'form',
+                    'exclusive',
+                    'filter',
+                    'limits',
+                    'schedule_timezone',
+                    'schedule_hours',
+                    'schedule_exclusions',
                     'api_payload',
                     'file_payload',
                 ]
@@ -226,7 +253,7 @@ class ContactClient extends FormEntity
      */
     public function setAPIPayload($payload)
     {
-        $this->isChanged('api_payload', $payload);
+        $this->isChanged('APIPayload', $payload);
 
         $this->api_payload = $payload;
 
@@ -248,7 +275,7 @@ class ContactClient extends FormEntity
      */
     public function setFilePayload($payload)
     {
-        $this->isChanged('file_payload', $payload);
+        $this->isChanged('FilePayload', $payload);
 
         $this->file_payload = $payload;
 
@@ -434,21 +461,21 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getLimit()
+    public function getLimits()
     {
-        return $this->limit;
+        return $this->limits;
     }
 
     /**
-     * @param mixed $limit
+     * @param mixed $limits
      *
      * @return ContactClient
      */
-    public function setLimit($limit)
+    public function setLimits($limits)
     {
-        $this->isChanged('limit', $limit);
+        $this->isChanged('limits', $limits);
 
-        $this->limit = $limit;
+        $this->limits = $limits;
 
         return $this;
     }
@@ -456,21 +483,65 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getSchedule()
+    public function getScheduleHours()
     {
-        return $this->schedule;
+        return $this->schedule_hours;
     }
 
     /**
-     * @param mixed $schedule
+     * @param mixed $schedule_hours
      *
      * @return ContactClient
      */
-    public function setSchedule($schedule)
+    public function setScheduleHours($schedule_hours)
     {
-        $this->isChanged('schedule', $schedule);
+        $this->isChanged('scheduleHours', $schedule_hours);
 
-        $this->schedule = $schedule;
+        $this->schedule_hours = $schedule_hours;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScheduleTimezone()
+    {
+        return $this->schedule_timezone;
+    }
+
+    /**
+     * @param mixed $schedule_timezone
+     *
+     * @return ContactClient
+     */
+    public function setScheduleTimezone($schedule_timezone)
+    {
+        $this->isChanged('scheduleTimezone', $schedule_timezone);
+
+        $this->schedule_timezone = $schedule_timezone;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScheduleExclusions()
+    {
+        return $this->schedule_exclusions;
+    }
+
+    /**
+     * @param mixed $schedule_exclusions
+     *
+     * @return ContactClient
+     */
+    public function setScheduleExclusions($schedule_exclusions)
+    {
+        $this->isChanged('scheduleExclusions', $schedule_exclusions);
+
+        $this->schedule_exclusions = $schedule_exclusions;
 
         return $this;
     }

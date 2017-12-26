@@ -21,20 +21,22 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/jquery.timepicker.min.js');
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/jquery.businessHours.min.js');
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/jsoneditor.min.js');
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/query-builder.min.js');
-echo $view['assets']->includeScript('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js');
+echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/json-editor/master/dist/jsoneditor.min.js');
+//echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/js/query-builder.min.js');
+//echo $view['assets']->includeScript('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js');
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
 
-echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/jquery.businessHours.css');
-echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/jquery.timepicker.min.css');
-echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/query-builder.default.min.css');
+echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css');
+echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.css');
+echo $view['assets']->includeStylesheet('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/css/query-builder.default.min.css');
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/contactclient.css');
 
 echo $view['form']->start($form);
 ?>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" data-source="mautic"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js" data-source="mautic"></script>
+
 <!-- start: box layout -->
 <div class="box-layout">
 
@@ -58,8 +60,8 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
-                    <a href="#limit" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.limit'); ?>
+                    <a href="#limits" role="tab" data-toggle="tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.limits'); ?>
                     </a>
                 </li>
                 <li class="hide payload-tab">
@@ -83,7 +85,7 @@ echo $view['form']->start($form);
                             <div class="col-md-5">
                                 <?php echo $view['form']->row($form['name']); ?>
                             </div>
-                            <div class="col-md-2 contactclient-type-group">
+                            <div class="col-md-2">
                                 <?php echo $view['form']->row($form['type']); ?>
                             </div>
                             <div class="col-md-5">
@@ -98,24 +100,12 @@ echo $view['form']->start($form);
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="capacity">
-                <div class="pa-md">
-                    <div class="form-group mb-0">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                fields
-                            </div>
-                        </div>
-                        <hr class="mnr-md mnl-md">
-                    </div>
-                </div>
-            </div>
             <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="exclusive">
                 <div class="pa-md">
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-sm-12">
-                                fields
+                                <?php echo $view['form']->row($form['exclusive']); ?>
                             </div>
                         </div>
                         <hr class="mnr-md mnl-md">
@@ -127,7 +117,19 @@ echo $view['form']->start($form);
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-sm-12">
-                                fields
+                                <?php echo $view['form']->row($form['filter']); ?>
+                            </div>
+                        </div>
+                        <hr class="mnr-md mnl-md">
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="limits">
+                <div class="pa-md">
+                    <div class="form-group mb-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <?php echo $view['form']->row($form['limits']); ?>
                             </div>
                         </div>
                         <hr class="mnr-md mnl-md">
@@ -153,7 +155,10 @@ echo $view['form']->start($form);
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-sm-12">
-                                fields
+                                <?php echo $view['form']->row($form['schedule_timezone']); ?>
+                                <?php echo $view['form']->row($form['schedule_hours']); ?>
+                                <div id="contactclient_schedule_hours_widget"></div>
+                                <?php echo $view['form']->row($form['schedule_exclusions']); ?>
                             </div>
                         </div>
                         <hr class="mnr-md mnl-md">
@@ -174,7 +179,6 @@ echo $view['form']->start($form);
             echo $view['form']->row($form['publishUp']);
             echo $view['form']->row($form['publishDown']);
             ?>
-            <hr />
         </div>
     </div>
     <!--/ container -->
