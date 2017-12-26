@@ -5,17 +5,17 @@ Mautic.contactclientOnLoad = function () {
         if (val === 'api') {
             mQuery('.api-payload').removeClass('hide');
             mQuery('.file-payload').addClass('hide');
-            console.log('api shown');
+            mQuery('.payload-tab').removeClass('hide');
         }
         else if (val === 'file') {
             mQuery('.api-payload').addClass('hide');
             mQuery('.file-payload').removeClass('hide');
-            console.log('file shown');
+            mQuery('.payload-tab').removeClass('hide');
         }
         else {
             mQuery('.api-payload').addClass('hide');
             mQuery('.file-payload').addClass('hide');
-            console.log('neither shown');
+            mQuery('.payload-tab').addClass('hide');
         }
     }).first().parent().parent().find('label.active input:first').trigger('change');
 

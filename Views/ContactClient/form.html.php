@@ -53,14 +53,14 @@ echo $view['form']->start($form);
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.limit'); ?>
                     </a>
                 </li>
-                <li>
-                    <a href="#schedule" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.schedule'); ?>
+                <li class="hide payload-tab">
+                    <a href="#payload" role="tab" data-toggle="tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
                     </a>
                 </li>
                 <li>
-                    <a href="#payload" role="tab" data-toggle="tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
+                    <a href="#schedule" role="tab" data-toggle="tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.schedule'); ?>
                     </a>
                 </li>
             </ul>
@@ -125,18 +125,6 @@ echo $view['form']->start($form);
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="schedule">
-                <div class="pa-md">
-                    <div class="form-group mb-0">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                fields
-                            </div>
-                        </div>
-                        <hr class="mnr-md mnl-md">
-                    </div>
-                </div>
-            </div>
             <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="payload">
                 <div class="pa-md">
                     <div class="form-group mb-0">
@@ -148,6 +136,18 @@ echo $view['form']->start($form);
                         </div>
                         <hr class="mnr-md mnl-md">
                         Advanced widget to go here.
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="schedule">
+                <div class="pa-md">
+                    <div class="form-group mb-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                fields
+                            </div>
+                        </div>
+                        <hr class="mnr-md mnl-md">
                     </div>
                 </div>
             </div>

@@ -192,7 +192,7 @@ class ContactClientSubscriber extends CommonSubscriber
     {
         /** @var Lead $lead */
         $lead         = $event->getLead();
-        $content      = $event->getContent();
+        $content      = '';
         $clickthrough = $event->getClickthrough();
 
         if ($content) {

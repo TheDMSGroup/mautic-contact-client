@@ -77,7 +77,22 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
-    private $form;
+    private $exclusive;
+
+    /**
+     * @var int
+     */
+    private $filter;
+
+    /**
+     * @var int
+     */
+    private $limit;
+
+    /**
+     * @var int
+     */
+    private $schedule;
 
     /**
      * @param ClassMetadata $metadata
@@ -375,25 +390,87 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getForm()
+    public function getExclusive()
     {
-        return $this->form;
+        return $this->exclusive;
     }
 
     /**
-     * @param mixed $form
+     * @param mixed $exclusive
      *
      * @return ContactClient
      */
-    public function setForm($form)
+    public function setExclusive($exclusive)
     {
-        if ($form instanceof Form) {
-            $form = $form->getId();
-        }
+        $this->isChanged('exclusive', $exclusive);
 
-        $this->isChanged('form', $form);
+        $this->exclusive = $exclusive;
 
-        $this->form = $form;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFilter()
+    {
+        return $this->filter;
+    }
+
+    /**
+     * @param mixed $filter
+     *
+     * @return ContactClient
+     */
+    public function setFilter($filter)
+    {
+        $this->isChanged('filter', $filter);
+
+        $this->filter = $filter;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLimit()
+    {
+        return $this->limit;
+    }
+
+    /**
+     * @param mixed $limit
+     *
+     * @return ContactClient
+     */
+    public function setLimit($limit)
+    {
+        $this->isChanged('limit', $limit);
+
+        $this->limit = $limit;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSchedule()
+    {
+        return $this->schedule;
+    }
+
+    /**
+     * @param mixed $schedule
+     *
+     * @return ContactClient
+     */
+    public function setSchedule($schedule)
+    {
+        $this->isChanged('schedule', $schedule);
+
+        $this->schedule = $schedule;
 
         return $this;
     }
