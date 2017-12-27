@@ -35,6 +35,8 @@ echo $view['form']->start($form);
 ?>
 
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/sceditor.min.js" data-source="mautic"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js" data-source="mautic"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/mode-json.js" data-source="mautic"></script>-->
 <script src="https://cdn.rawgit.com/heathdutton/json-editor/v0.7.28/dist/jsoneditor.min.js" data-source="mautic"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" data-source="mautic"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js" data-source="mautic"></script>

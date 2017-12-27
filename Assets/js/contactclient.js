@@ -41,6 +41,8 @@ Mautic.contactclientOnLoad = function () {
             }
             var scheduleHours = $scheduleHoursTarget.businessHours({
                 operationTime: operationTime,
+                checkedColorClass: 'btn-success',
+                uncheckedColorClass: 'btn-danger',
                 postInit: function () {
                     mQuery('.operationTimeFrom, .operationTimeTill').timepicker({
                         'timeFormat': 'H:i',
@@ -60,7 +62,7 @@ Mautic.contactclientOnLoad = function () {
             });
         }
 
-        // API Payload.
+        // API Payload JSON Schema.
         var $apiPayload = mQuery('#contactclient_api_payload_widget');
         if ($apiPayload.length) {
             var apiPayload = $apiPayload.val();
@@ -115,5 +117,10 @@ Mautic.contactclientOnLoad = function () {
                 }
             });
         }
+
+        // API Payload Raw JSON.
+        var editor = ace.edit("contactclient_api_payload");
+        editor.setTheme("ace/theme/github");
+        editor.getSession().setMode("ace/mode/json");
     });
 };
