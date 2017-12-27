@@ -93,14 +93,13 @@ Mautic.contactclientOnLoad = function () {
                         // Pull header nav to the right.
                         getHeaderButtonHolder: function() {
                             var el = this.getButtonHolder();
-                            el.style.marginLeft = '10px';
-                            el.className = 'btn-group pull-right';
+                            el.className = 'btn-group btn-right';
                             return el;
                         },
                         // Pull "new item" buttons to the left.
                         getButtonHolder: function () {
                             var el = document.createElement('div');
-                            el.className = 'btn-group';
+                            el.className = 'btn-group btn-left';
                             return el;
                         }
                     });

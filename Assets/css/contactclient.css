@@ -7,10 +7,24 @@
 #contactclient_api_payload_widget i.fa {
     font-size: 15px;
 }
+/* Hide outermost wrapping (API Payload and Operations) for now. */
+#contactclient_api_payload_widget > div > div > div > div > div > div > h3 > span,
 #contactclient_api_payload_widget > div > h3 {
     display: none;
 }
-
+#contactclient_api_payload_widget .btn-group.btn-left {
+    margin: 0 0 8px 0;
+}
+#contactclient_api_payload_widget .btn-group.btn-left .btn-success {
+    border-radius: 3px;
+}
+#contactclient_api_payload_widget .btn-group.btn-right {
+    position: absolute;
+    right: 0;
+    margin: 0;
+    display: block;
+    top: -7px
+}
 #contactclient_api_payload_widget > div > .well {
     min-height: 0;
     padding: 0;

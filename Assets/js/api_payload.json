@@ -244,7 +244,7 @@
       "type": "object",
       "options": {
         "collapsed": false,
-        "disable_collapse": true
+        "disable_collapse": false
       },
       "properties": {
         "key": {
