@@ -102,35 +102,13 @@
                 "title": "Request Format",
                 "description": "The method used to format fields to be sent to this endpoint.",
                 "default": "form",
-                "enumSource": [
-                  {
-                    "source": [
-                      {
-                        "value": "text",
-                        "title": "Raw text"
-                      },
-                      {
-                        "value": "json",
-                        "title": "JSON"
-                      },
-                      {
-                        "value": "xml",
-                        "title": "XML"
-                      },
-                      {
-                        "value": "form",
-                        "title": "Form"
-                      }
-                    ],
-                    "title": "{{item.title}}",
-                    "value": "{{item.value}}"
-                  }
-                ]
+                "$ref": "#/definitions/format"
               },
               "headers": {
                 "propertyOrder": 50,
                 "title": "Request Headers",
                 "type": "array",
+                "format": "table",
                 "options": {
                   "collapsed": false
                 },
@@ -143,6 +121,7 @@
                 "propertyOrder": 60,
                 "title": "Request Body",
                 "type": "array",
+                "format": "table",
                 "options": {
                   "collapsed": true
                 },
@@ -168,35 +147,13 @@
                 "type": "string",
                 "description": "The method used to format fields that we will be receiving.",
                 "default": "json",
-                "enumSource": [
-                  {
-                    "source": [
-                      {
-                        "value": "text",
-                        "title": "Raw text"
-                      },
-                      {
-                        "value": "json",
-                        "title": "JSON"
-                      },
-                      {
-                        "value": "xml",
-                        "title": "XML"
-                      },
-                      {
-                        "value": "form",
-                        "title": "Form"
-                      }
-                    ],
-                    "title": "{{item.title}}",
-                    "value": "{{item.value}}"
-                  }
-                ]
+                "$ref": "#/definitions/format"
               },
               "headers": {
                 "propertyOrder": 20,
                 "title": "Response Headers",
                 "type": "array",
+                "format": "table",
                 "options": {
                   "collapsed": true
                 },
@@ -209,6 +166,7 @@
                 "propertyOrder": 30,
                 "title": "Response Body",
                 "type": "array",
+                "format": "table",
                 "options": {
                   "collapsed": true
                 },
@@ -239,8 +197,38 @@
     }
   },
   "definitions": {
+    "format": {
+      "type": "string",
+      "title": "Format",
+      "default": "form",
+      "enumSource": [
+        {
+          "source": [
+            {
+              "value": "text",
+              "title": "Raw text"
+            },
+            {
+              "value": "json",
+              "title": "JSON"
+            },
+            {
+              "value": "xml",
+              "title": "XML"
+            },
+            {
+              "value": "form",
+              "title": "Form"
+            }
+          ],
+          "title": "{{item.title}}",
+          "value": "{{item.value}}"
+        }
+      ]
+    },
     "field": {
       "title": "Field",
+      "headerTemplate": "{{ self.key }}",
       "type": "object",
       "options": {
         "collapsed": false,

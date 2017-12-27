@@ -72,7 +72,6 @@ Mautic.contactclientOnLoad = function () {
                 cache: false,
                 url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/js/api_payload.json',
                 success: function (data) {
-                    console.log(data);
                     var schema = data;
                     JSONEditor.plugins.ace.theme = 'github';
                     // Custom theme to add more indication colors.
