@@ -76,6 +76,11 @@ return [
                 'arguments' => 'mautic.contactclient.model.contactclient',
                 'alias'     => 'contactclient_list',
             ],
+            'mautic.contactclient.form.type.contactclient' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientType',
+                'alias'     => 'contactclient',
+                'arguments' => 'mautic.security',
+            ],
         ],
         'models' => [
             'mautic.contactclient.model.contactclient' => [

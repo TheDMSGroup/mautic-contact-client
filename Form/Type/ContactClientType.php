@@ -41,8 +41,8 @@ class ContactClientType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url', 'api_payload' => 'html']));
-        // $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
+        $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url']));
+        $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
 
         $builder->add(
             'name',
