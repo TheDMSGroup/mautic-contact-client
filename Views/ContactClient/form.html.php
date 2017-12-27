@@ -1,8 +1,8 @@
 <?php
 
 /*
- * @copyright   2016 Mautic, Inc. All rights reserved
- * @author      Mautic, Inc
+ * @copyright   2016 Mautic Contributors. All rights reserved
+ * @author      Mautic
  *
  * @link        https://mautic.org
  *
@@ -21,9 +21,9 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
-echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/json-editor/master/dist/jsoneditor.min.js');
-//echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/js/query-builder.min.js');
-//echo $view['assets']->includeScript('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js');
+// echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/json-editor/master/dist/jsoneditor.min.js');
+// echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/js/query-builder.min.js');
+// echo $view['assets']->includeScript('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js');
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
 
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css');
@@ -34,6 +34,7 @@ echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Asset
 echo $view['form']->start($form);
 ?>
 
+<script src="https://cdn.rawgit.com/heathdutton/json-editor/v0.7.28/dist/jsoneditor.min.js" data-source="mautic"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" data-source="mautic"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js" data-source="mautic"></script>
 
@@ -142,6 +143,7 @@ echo $view['form']->start($form);
                         <div class="row">
                             <div class="col-md-12">
                                 <?php echo $view['form']->row($form['api_payload']); ?>
+                                <div id="contactclient_api_payload_widget"></div>
                                 <?php echo $view['form']->row($form['file_payload']); ?>
                             </div>
                         </div>
