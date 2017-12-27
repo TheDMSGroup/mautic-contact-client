@@ -1,3 +1,28 @@
+/* ContactClient Schedule API Payload widget */
+#contactclient_api_payload_widget h3 {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 0 0 5px 0;
+}
+#contactclient_api_payload_widget i.fa {
+    font-size: 15px;
+}
+#contactclient_api_payload_widget > div > h3 {
+    display: none;
+}
+
+#contactclient_api_payload_widget > div > .well {
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+/* ContactClient Schedule widget */
 #contactclient_schedule_hours_widget div h3 {
     padding-top: 20px;
 }

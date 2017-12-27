@@ -1,82 +1,3 @@
-var guzzleSchema = {
-    'operations': {
-        'description': 'Operations of the web service',
-        'type': 'object',
-        'properties': {
-            'extends': {
-                'type': 'string',
-                'description': 'Extend from another operation by name. The parent operation must be defined before the child.'
-            },
-            'httpMethod': {
-                'type': 'string',
-                'description': 'HTTP method used with the operation (e.g. GET, POST, PUT, DELETE, PATCH, etc)'
-            },
-            'uri': {
-                'type': 'string',
-                'description': 'URI of the operation. The uri attribute can contain URI templates. The variables of the URI template are parameters of the operation with a location value of uri'
-            },
-            'summary': {
-                'type': 'string',
-                'description': 'Short summary of what the operation does'
-            },
-            'class': {
-                'type': 'string',
-                'description': 'Custom class to instantiate instead of the default Guzzle\\Service\\Command\\OperationCommand'
-            },
-            'responseClass': {
-                'type': 'string',
-                'description': 'This is what is returned from the method. Can be a primitive, class name, or model name.'
-            },
-            'responseNotes': {
-                'type': 'string',
-                'description': 'A description of the response returned by the operation'
-            },
-            'responseType': {
-                'type': 'string',
-                'description': 'The type of response that the operation creates. If not specified, this value will be automatically inferred based on whether or not there is a model matching the name, if a matching class name is found, or set to \'primitive\' by default.',
-                'enum': ['primitive', 'class', 'model', 'documentation']
-            },
-            'deprecated': {
-                'type': 'boolean',
-                'description': 'Whether or not the operation is deprecated'
-            },
-            'errorResponses': {
-                'description': 'Errors that could occur while executing the operation',
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'code': {
-                            'type': 'number',
-                            'description': 'HTTP response status code of the error'
-                        },
-                        'reason': {
-                            'type': 'string',
-                            'description': 'Response reason phrase or description of the error'
-                        },
-                        'class': {
-                            'type': 'string',
-                            'description': 'A custom exception class that would be thrown if the error is encountered'
-                        }
-                    }
-                }
-            },
-            'data': {
-                'type': 'object',
-                'additionalProperties': 'true'
-            },
-            'parameters': {
-                // '$ref': 'parameters',
-                'description': 'Parameters of the operation. Parameters are used to define how input data is serialized into a HTTP request.'
-            },
-            'additionalParameters': {
-                // '$ref': 'parameters',
-                'description': 'Validation and serialization rules for any parameter supplied to the operation that was not explicitly defined.'
-            }
-        }
-    }
-};
-
 Mautic.contactclientOnLoad = function () {
     mQuery(document).ready(function () {
         // Trigger tab visibility based on contactClient type.
@@ -146,17 +67,55 @@ Mautic.contactclientOnLoad = function () {
             if (apiPayload.length) {
                 apiPayload = mQuery.parseJSON(apiPayload);
             }
-            // JSONEditor.plugins.epiceditor.basePath = 'json';
-            JSONEditor.plugins.ace.theme = 'github';
-            var editor = new JSONEditor($apiPayload[0], {
-                schema: guzzleSchema,
-                theme: 'bootstrap3',
-                iconlib: 'fontawesome4'
+            mQuery.ajax({
+                dataType: 'json',
+                cache: false,
+                url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/js/api_payload.json',
+                success: function (data) {
+                    console.log(data);
+                    var schema = data;
+                    JSONEditor.plugins.ace.theme = 'github';
+                    // Custom theme to add more indication colors.
+                    JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
+                        getButton: function (text, icon, title) {
+                            var el = this._super(text, icon, title);
+                            if (title.indexOf('Delete') !== -1) {
+                                el.className = el.className.replace('btn-default', 'btn-danger');
+                            }
+                            else if (title.indexOf('Add') !== -1) {
+                                el.className = el.className.replace('btn-default', 'btn-success');
+                            }
+                            else {
+                                el.className = el.className.replace('btn-default', 'btn-primary');
+                            }
+                            return el;
+                        },
+                        // Pull header nav to the right.
+                        getHeaderButtonHolder: function() {
+                            var el = this.getButtonHolder();
+                            el.style.marginLeft = '10px';
+                            el.className = 'btn-group pull-right';
+                            return el;
+                        },
+                        // Pull "new item" buttons to the left.
+                        getButtonHolder: function () {
+                            var el = document.createElement('div');
+                            el.className = 'btn-group';
+                            return el;
+                        }
+                    });
+                    var editor = new JSONEditor($apiPayload[0], {
+                        ajax: false,
+                        schema: schema,
+                        theme: 'custom',
+                        iconlib: 'fontawesome4',
+                        disable_edit_json: true,
+                        disable_properties: true,
+                        disable_array_delete_all_rows: true,
+                        disable_array_delete_last_row: true
+                    });
+                }
             });
         }
-        // mQuery('#contactclient_api_payload').val()
-
-        //
-        // var editor = new JSONEditor(element, options);
     });
 };

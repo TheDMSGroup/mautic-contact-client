@@ -21,19 +21,20 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
-// echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/json-editor/master/dist/jsoneditor.min.js');
-// echo $view['assets']->includeScript('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/js/query-builder.min.js');
-// echo $view['assets']->includeScript('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js');
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
 
+//echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/themes/default.min.css');
+//echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/themes/modern.min.css');
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css');
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.css');
 echo $view['assets']->includeStylesheet('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/css/query-builder.default.min.css');
+
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/contactclient.css');
 
 echo $view['form']->start($form);
 ?>
 
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/sceditor.min.js" data-source="mautic"></script>-->
 <script src="https://cdn.rawgit.com/heathdutton/json-editor/v0.7.28/dist/jsoneditor.min.js" data-source="mautic"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" data-source="mautic"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js" data-source="mautic"></script>
