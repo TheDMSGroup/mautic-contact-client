@@ -3,13 +3,16 @@
 }
 
 #contactclient_schedule_hours_widget .dayContainer {
-    width: 94px;
+    width: 86px;
     height: 150px;
 }
+
 #contactclient_schedule_hours_widget .input-group-addon {
-    padding: 4px;
+    padding: 6px;
 }
-#contactclient_schedule_hours_widget .operationTime .mini-time  {
-    width: 64px;
-    padding-left: 4px;
+
+#contactclient_schedule_hours_widget .operationTime .mini-time {
+    width: 52px;
+    padding-left: 7px;
+    font-size: 13px;
 }
