@@ -97,6 +97,15 @@ return [
                     'router',
                 ],
             ],
+            'mautic.contactclient.guzzle.client' => [
+                'class' => 'GuzzleHttp\Client',
+            ],
+            'mautic.contactclient.service.transport' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Services\Transport',
+                'arguments' => [
+                    'mautic.contactclient.guzzle.client',
+                ],
+            ],
         ],
     ],
 
