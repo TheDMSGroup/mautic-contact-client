@@ -1,4 +1,4 @@
-/* ContactClient Schedule API Payload widget */
+/* ContactClient API Payload - JSON Editor */
 #contactclient_api_payload_jsoneditor h3 {
     font-size: 16px;
     font-weight: 600;
@@ -7,7 +7,6 @@
 #contactclient_api_payload_jsoneditor i.fa {
     font-size: 15px;
 }
-/* Hide outermost wrapping (API Payload and Operations) for now. */
 #contactclient_api_payload_jsoneditor > div > div > div > div > div > div > h3 > span,
 #contactclient_api_payload_jsoneditor > div > h3 {
     display: none;
@@ -36,7 +35,32 @@
     box-shadow: none;
 }
 
-/* ContactClient Schedule widget */
+/* ContactClient API Payload - Ace Editor */
+#contactclient_api_payload_ace {
+    margin-top: 5px;
+}
+
+/* ContactClient API Payload - Advanced button */
+#api_payload_advanced .btn {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+}
+/*#api_payload_advanced .btn.active {*/
+    /*background-color: #c23a35;*/
+    /*border-color: #c23a35;*/
+    /*color: #fff;*/
+/*}*/
+#api_payload_advanced {
+    float: right;
+    z-index: 10;
+    position: relative;
+    height: 0;
+    margin-bottom: 2px;
+    overflow: visible;
+}
+
+/* ContactClient Schedule */
 #contactclient_schedule_hours_widget div h3 {
     padding-top: 20px;
 }
@@ -58,3 +82,4 @@
 #contactclient_schedule_hours_widget .colorBox {
     border: 0;
 }
+

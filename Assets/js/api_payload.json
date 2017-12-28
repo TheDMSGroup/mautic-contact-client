@@ -31,7 +31,7 @@
             "type": "string",
             "title": "Description",
             "description": "Optional description of this API operation.",
-            "format": "html",
+            "format": "textarea",
             "options": {
               "wysiwyg": false
             },

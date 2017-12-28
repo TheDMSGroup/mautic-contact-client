@@ -53,8 +53,7 @@ Mautic.contactclientOnLoad = function () {
         if ($apiPayload.length) {
 
             var apiPayloadAce,
-                apiPayloadJSONEditor,
-                apiPayloadSource;
+                apiPayloadJSONEditor;
 
             // API Payload JSON Schema.
             mQuery.getScriptCached('https://cdn.rawgit.com/heathdutton/json-editor/v0.7.28/dist/jsoneditor.min.js', function () {
@@ -95,7 +94,9 @@ Mautic.contactclientOnLoad = function () {
                         });
 
                         // Create our widget container.
-                        var $apiPayloadJSONEditor = mQuery('<div>', {id: 'contactclient_api_payload_jsoneditor'})
+                        var $apiPayloadJSONEditor = mQuery('<div>', {
+                                id: 'contactclient_api_payload_jsoneditor'
+                            })
                             .insertBefore($apiPayload);
 
                         // Instantiate the JSON Editor based on our schema.
@@ -119,7 +120,8 @@ Mautic.contactclientOnLoad = function () {
                                 if (typeof obj === 'object') {
                                     apiPayloadJSONEditor.setValue(obj);
                                 }
-                            } catch(e) {
+                            }
+                            catch (e) {
                                 console.warn('Invalid JSON');
                             }
                         }
@@ -128,23 +130,10 @@ Mautic.contactclientOnLoad = function () {
                         apiPayloadJSONEditor.on('change', function () {
                             var obj = apiPayloadJSONEditor.getValue();
                             if (typeof obj === 'object') {
-                                var raw = JSON.stringify(obj, null, '  '),
-                                    source = apiPayloadSource;
-                                if (!source && raw.length) {
-                                    console.log('change triggered from JSONEditor');
-                                    apiPayloadSource = 'JSONEditor';
-                                    if (apiPayloadAce) {
-                                        // Ace editor, which will update the
-                                        // textarea.
-                                        if (raw !== apiPayloadAce.getValue()) {
-                                            apiPayloadAce.setValue(raw, -1);
-                                        }
-                                    }
-                                    else {
-                                        // Set the textarea as a fallback.
-                                        $apiPayload.val(raw);
-                                    }
-                                    setTimeout(function () {apiPayloadSource = null;}, 200);
+                                var raw = JSON.stringify(obj, null, '  ');
+                                if (raw.length) {
+                                    // Set the textarea.
+                                    $apiPayload.val(raw);
                                 }
                             }
                         });
@@ -155,8 +144,10 @@ Mautic.contactclientOnLoad = function () {
             // API Payload Raw JSON using Ace.
             mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js', function () {
                 // Progressive enhancement of the textarea to ace.
-                var $apiPayloadAce = mQuery('<div>', {id: 'contactclient_api_payload_ace'})
-                    .insertBefore($apiPayload);
+                var $apiPayloadAce = mQuery('<div>', {
+                    id: 'contactclient_api_payload_ace',
+                    class: 'hide well'
+                }).insertBefore($apiPayload);
                 $apiPayload.css({'display': 'none'});
                 apiPayloadAce = ace.edit($apiPayloadAce[0]);
                 apiPayloadAce.setOptions({
@@ -170,27 +161,63 @@ Mautic.contactclientOnLoad = function () {
                 apiPayloadAce.setValue($apiPayload.val(), -1);
                 apiPayloadAce.on('change', function () {
                     // Set the value to the hidden textarea.
-                    var raw = apiPayloadAce.getValue(),
-                        source = apiPayloadSource;
-                    if (!source && raw.length) {
-                        console.log('change triggered from apiPayloadAce');
-                        apiPayloadSource = 'Ace';
-                        // Always set the textarea
+                    var raw = apiPayloadAce.getValue();
+                    if (raw.length) {
+                        // Always set the textarea.
                         $apiPayload.val(raw);
-                        // Set the value to the JSON Schema editor as well.
-                        if (apiPayloadJSONEditor) {
-                            try {
-                                var obj = mQuery.parseJSON(raw);
-                                if (typeof obj === 'object') {
-                                    apiPayloadJSONEditor.setValue(obj);
-                                }
-                            } catch(e) {
-                                console.warn('Invalid JSON');
-                            }
-                        }
-                        setTimeout(function () {apiPayloadSource = null;}, 200);
                     }
                 });
+
+                // API Payload advanced button.
+                mQuery('#api_payload_advanced .btn')
+                    .click(function () {
+                        var raw = $apiPayload.val(),
+                            error = false;
+                        if (mQuery(this).hasClass('active')) {
+                            // Deactivating Ace.
+                            // Send the value to JSONEditor.
+                            if (apiPayloadJSONEditor) {
+                                if (raw.length) {
+                                    try {
+                                        var obj = mQuery.parseJSON(raw);
+                                        if (typeof obj === 'object') {
+                                            apiPayloadJSONEditor.setValue(obj);
+                                        }
+                                    }
+                                    catch (e) {
+                                        error = true;
+                                        console.warn('Invalid JSON');
+                                    }
+                                }
+                                if (!error) {
+                                    $apiPayloadAce.addClass('hide');
+                                    mQuery('#contactclient_api_payload_jsoneditor').removeClass('hide');
+                                }
+                            }
+                        }
+                        else {
+                            // Activating Ace.
+                            // Send the value from JSONEditor to Ace.
+                            if (apiPayloadAce) {
+                                if (raw.length) {
+                                    try {
+                                        if (raw !== apiPayloadAce.getValue()) {
+                                            apiPayloadAce.setValue(raw, -1);
+                                        }
+                                    }
+                                    catch (e) {
+                                        error = true;
+                                        console.warn('Error setting Ace value.');
+                                    }
+                                }
+                                if (!error) {
+                                    $apiPayloadAce.removeClass('hide');
+                                    mQuery('#contactclient_api_payload_jsoneditor').addClass('hide');
+                                }
+                            }
+                        }
+                    });
+                mQuery('#api_payload_advanced').removeClass('hide');
             });
         }
 
@@ -203,7 +230,8 @@ Mautic.contactclientOnLoad = function () {
                     if (operationTime.length) {
                         try {
                             operationTime = mQuery.parseJSON(operationTime);
-                        } catch(e) {
+                        }
+                        catch (e) {
                             console.warn('Invalid JSON');
                         }
                     }

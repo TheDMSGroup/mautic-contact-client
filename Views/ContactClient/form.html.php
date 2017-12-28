@@ -136,12 +136,17 @@ echo $view['form']->start($form);
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-md-12">
+                                <div id="api_payload_advanced" class="form-group hide">
+                                    <div class="choice-wrapper">
+                                        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            <?php echo $view['translator']->trans('mautic.contactclient.form.advanced'); ?>
+                                        </button>
+                                    </div>
+                                </div>
                                 <?php echo $view['form']->row($form['api_payload']); ?>
                                 <?php echo $view['form']->row($form['file_payload']); ?>
                             </div>
                         </div>
-                        <hr class="mnr-md mnl-md">
-                        Advanced widget to go here.
                     </div>
                 </div>
             </div>
