@@ -33,7 +33,7 @@
             "description": "Optional description of this API operation.",
             "format": "html",
             "options": {
-              "wysiwyg": true
+              "wysiwyg": false
             },
             "default": ""
           },

@@ -23,58 +23,49 @@ $view['slots']->set('headerTitle', $header);
 
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
 
-//echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/themes/default.min.css');
-//echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/themes/modern.min.css');
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css');
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.css');
 echo $view['assets']->includeStylesheet('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/css/query-builder.default.min.css');
-
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/contactclient.css');
 
 echo $view['form']->start($form);
 ?>
 
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/sceditor/2.1.2/sceditor.min.js" data-source="mautic"></script>-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js" data-source="mautic"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/mode-json.js" data-source="mautic"></script>-->
-<script src="https://cdn.rawgit.com/heathdutton/json-editor/v0.7.28/dist/jsoneditor.min.js" data-source="mautic"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" data-source="mautic"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js" data-source="mautic"></script>
 
 <!-- start: box layout -->
 <div class="box-layout">
 
     <!-- tab container -->
-    <div class="col-md-9 bg-white height-auto bdr-l">
+    <div class="col-md-9 bg-white height-auto bdr-l contactclient-left">
         <div class="">
             <ul class="nav nav-tabs pr-md pl-md mt-10">
                 <li class="active">
-                    <a href="#details" role="tab" data-toggle="tab">
+                    <a href="#details" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.details'); ?>
                     </a>
                 </li>
                 <li>
-                    <a href="#exclusive" role="tab" data-toggle="tab">
+                    <a href="#exclusive" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
                     </a>
                 </li>
                 <li>
-                    <a href="#filter" role="tab" data-toggle="tab">
+                    <a href="#filter" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.filter'); ?>
                     </a>
                 </li>
                 <li>
-                    <a href="#limits" role="tab" data-toggle="tab">
+                    <a href="#limits" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.limits'); ?>
                     </a>
                 </li>
                 <li class="hide payload-tab">
-                    <a href="#payload" role="tab" data-toggle="tab">
+                    <a href="#payload" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
                     </a>
                 </li>
                 <li>
-                    <a href="#schedule" role="tab" data-toggle="tab">
+                    <a href="#schedule" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.schedule'); ?>
                     </a>
                 </li>
@@ -146,7 +137,6 @@ echo $view['form']->start($form);
                         <div class="row">
                             <div class="col-md-12">
                                 <?php echo $view['form']->row($form['api_payload']); ?>
-                                <div id="contactclient_api_payload_widget"></div>
                                 <?php echo $view['form']->row($form['file_payload']); ?>
                             </div>
                         </div>
@@ -176,7 +166,7 @@ echo $view['form']->start($form);
     <!--/ tab container -->
 
     <!-- container -->
-    <div class="col-md-3 bg-white height-auto">
+    <div class="col-md-3 bg-white height-auto contactclient-right">
         <div class="pr-lg pl-lg pt-md pb-md">
             <?php
             echo $view['form']->row($form['category']);
