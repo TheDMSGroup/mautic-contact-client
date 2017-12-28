@@ -52,7 +52,7 @@ Mautic.contactclientOnLoad = function () {
         var $apiPayload = mQuery('#contactclient_api_payload');
         if ($apiPayload.length) {
 
-            var apiPayloadAce,
+            var apiPayloadCodeMirror,
                 apiPayloadJSONEditor;
 
             // API Payload JSON Schema.
@@ -63,7 +63,6 @@ Mautic.contactclientOnLoad = function () {
                     url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/js/api_payload.json',
                     success: function (data) {
                         var schema = data;
-                        JSONEditor.plugins.ace.theme = 'github';
                         // Custom theme to add more indication colors.
                         JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
                             getButton: function (text, icon, title) {
@@ -95,8 +94,8 @@ Mautic.contactclientOnLoad = function () {
 
                         // Create our widget container.
                         var $apiPayloadJSONEditor = mQuery('<div>', {
-                                id: 'contactclient_api_payload_jsoneditor'
-                            })
+                            id: 'contactclient_api_payload_jsoneditor'
+                        })
                             .insertBefore($apiPayload);
 
                         // Instantiate the JSON Editor based on our schema.
@@ -141,84 +140,101 @@ Mautic.contactclientOnLoad = function () {
                 });
             });
 
-            // API Payload Raw JSON using Ace.
-            mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js', function () {
-                // Progressive enhancement of the textarea to ace.
-                var $apiPayloadAce = mQuery('<div>', {
-                    id: 'contactclient_api_payload_ace',
-                    class: 'hide well'
-                }).insertBefore($apiPayload);
-                $apiPayload.css({'display': 'none'});
-                apiPayloadAce = ace.edit($apiPayloadAce[0]);
-                apiPayloadAce.setOptions({
-                    maxLines: Infinity
-                });
-                apiPayloadAce.$blockScrolling = Infinity;
-                apiPayloadAce.setTheme('ace/theme/github');
-                apiPayloadAce.getSession().setMode('ace/mode/json');
-                apiPayloadAce.getSession().setTabSize(2);
-                apiPayloadAce.getSession().setUseWrapMode(true);
-                apiPayloadAce.setValue($apiPayload.val(), -1);
-                apiPayloadAce.on('change', function () {
-                    // Set the value to the hidden textarea.
-                    var raw = apiPayloadAce.getValue();
-                    if (raw.length) {
-                        // Always set the textarea.
-                        $apiPayload.val(raw);
-                    }
-                });
+            // API Payload Raw JSON using CodeMirror.
+            if (typeof CodeMirror !== 'undefined') {
+                mQuery.getScriptCached('https://rawgit.com/heathdutton/jsonlint/master/lib/jsonlint.js', function () {
+                    mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/lint.js', function () {
+                        mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/json-lint.min.js', function () {
+                            mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/edit/matchbrackets.min.js', function () {
+                                mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/display/fullscreen.min.js', function () {
+                                    var $apiPayloadCodeMirror = mQuery('<div>', {
+                                        id: 'contactclient_api_payload_codemirror',
+                                        class: 'hide'
+                                    }).insertBefore($apiPayload);
+                                    $apiPayload.css({'display': 'none'});
+                                    apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
+                                        value: $apiPayload.val(),
+                                        mode: {
+                                            name: 'javascript',
+                                            json: true
+                                        },
+                                        theme: 'material',
+                                        gutters: ['CodeMirror-lint-markers'],
+                                        lint: 'json',
+                                        lintOnChange: true,
+                                        matchBrackets: true,
+                                        autoCloseBrackets: true,
+                                        lineNumbers: true,
+                                        extraKeys: {'Ctrl-Space': 'autocomplete'},
+                                        lineWrapping: true
+                                    });
+                                    apiPayloadCodeMirror.on('change', function () {
+                                        // Set the value to the hidden textarea.
+                                        var raw = apiPayloadCodeMirror.getValue();
+                                        if (raw.length) {
+                                            // Always set the textarea.
+                                            $apiPayload.val(raw);
+                                        }
+                                    });
 
-                // API Payload advanced button.
-                mQuery('#api_payload_advanced .btn')
-                    .click(function () {
-                        var raw = $apiPayload.val(),
-                            error = false;
-                        if (mQuery(this).hasClass('active')) {
-                            // Deactivating Ace.
-                            // Send the value to JSONEditor.
-                            if (apiPayloadJSONEditor) {
-                                if (raw.length) {
-                                    try {
-                                        var obj = mQuery.parseJSON(raw);
-                                        if (typeof obj === 'object') {
-                                            apiPayloadJSONEditor.setValue(obj);
-                                        }
-                                    }
-                                    catch (e) {
-                                        error = true;
-                                        console.warn('Invalid JSON');
-                                    }
-                                }
-                                if (!error) {
-                                    $apiPayloadAce.addClass('hide');
-                                    mQuery('#contactclient_api_payload_jsoneditor').removeClass('hide');
-                                }
-                            }
-                        }
-                        else {
-                            // Activating Ace.
-                            // Send the value from JSONEditor to Ace.
-                            if (apiPayloadAce) {
-                                if (raw.length) {
-                                    try {
-                                        if (raw !== apiPayloadAce.getValue()) {
-                                            apiPayloadAce.setValue(raw, -1);
-                                        }
-                                    }
-                                    catch (e) {
-                                        error = true;
-                                        console.warn('Error setting Ace value.');
-                                    }
-                                }
-                                if (!error) {
-                                    $apiPayloadAce.removeClass('hide');
-                                    mQuery('#contactclient_api_payload_jsoneditor').addClass('hide');
-                                }
-                            }
-                        }
+                                    // API Payload advanced button.
+                                    mQuery('#api_payload_advanced .btn')
+                                        .click(function () {
+                                            var raw = $apiPayload.val(),
+                                                error = false;
+                                            if (mQuery(this).hasClass('active')) {
+                                                // Deactivating CodeMirror.
+                                                // Send the value to JSONEditor.
+                                                if (apiPayloadJSONEditor) {
+                                                    if (raw.length) {
+                                                        try {
+                                                            var obj = mQuery.parseJSON(raw);
+                                                            if (typeof obj === 'object') {
+                                                                apiPayloadJSONEditor.setValue(obj);
+                                                            }
+                                                        }
+                                                        catch (e) {
+                                                            error = true;
+                                                            console.warn('Invalid JSON');
+                                                        }
+                                                    }
+                                                    if (!error) {
+                                                        $apiPayloadCodeMirror.addClass('hide');
+                                                        mQuery('#contactclient_api_payload_jsoneditor').removeClass('hide');
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                // Activating CodeMirror.
+                                                // Send the value from
+                                                // JSONEditor to CodeMirror.
+                                                if (apiPayloadCodeMirror) {
+                                                    if (raw.length) {
+                                                        try {
+                                                            if (raw !== apiPayloadCodeMirror.getValue()) {
+                                                                apiPayloadCodeMirror.setValue(raw, -1);
+                                                            }
+                                                        }
+                                                        catch (e) {
+                                                            error = true;
+                                                            console.warn('Error setting CodeMirror value.');
+                                                        }
+                                                    }
+                                                    if (!error) {
+                                                        $apiPayloadCodeMirror.removeClass('hide');
+                                                        mQuery('#contactclient_api_payload_jsoneditor').addClass('hide');
+                                                    }
+                                                    apiPayloadCodeMirror.refresh();
+                                                }
+                                            }
+                                        });
+                                    mQuery('#api_payload_advanced').removeClass('hide');
+                                });
+                            });
+                        });
                     });
-                mQuery('#api_payload_advanced').removeClass('hide');
-            });
+                });
+            }
         }
 
         // Hours of Operation.

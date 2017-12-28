@@ -35,8 +35,8 @@
     box-shadow: none;
 }
 
-/* ContactClient API Payload - Ace Editor */
-#contactclient_api_payload_ace {
+/* ContactClient API Payload - CodeMirror */
+#contactclient_api_payload_codemirror {
     margin-top: 5px;
 }
 

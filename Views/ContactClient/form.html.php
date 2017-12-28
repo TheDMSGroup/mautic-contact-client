@@ -23,6 +23,8 @@ $view['slots']->set('headerTitle', $header);
 
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
 
+echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/theme/material.min.css');
+echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/lint.min.css');
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css');
 echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.css');
 echo $view['assets']->includeStylesheet('https://cdn.rawgit.com/heathdutton/jQuery-QueryBuilder/master/dist/css/query-builder.default.min.css');
