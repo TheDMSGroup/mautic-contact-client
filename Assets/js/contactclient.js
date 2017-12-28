@@ -114,9 +114,13 @@ Mautic.contactclientOnLoad = function () {
                         var raw = $apiPayload.val(),
                             obj;
                         if (raw.length) {
-                            obj = mQuery.parseJSON(raw);
-                            if (typeof obj === 'object') {
-                                apiPayloadJSONEditor.setValue(obj);
+                            try {
+                                obj = mQuery.parseJSON(raw);
+                                if (typeof obj === 'object') {
+                                    apiPayloadJSONEditor.setValue(obj);
+                                }
+                            } catch(e) {
+                                console.warn('Invalid JSON');
                             }
                         }
 
@@ -140,7 +144,7 @@ Mautic.contactclientOnLoad = function () {
                                         // Set the textarea as a fallback.
                                         $apiPayload.val(raw);
                                     }
-                                    apiPayloadSource = null;
+                                    setTimeout(function () {apiPayloadSource = null;}, 200);
                                 }
                             }
                         });
@@ -175,12 +179,16 @@ Mautic.contactclientOnLoad = function () {
                         $apiPayload.val(raw);
                         // Set the value to the JSON Schema editor as well.
                         if (apiPayloadJSONEditor) {
-                            var obj = mQuery.parseJSON(raw);
-                            if (typeof obj === 'object') {
-                                apiPayloadJSONEditor.setValue(obj);
+                            try {
+                                var obj = mQuery.parseJSON(raw);
+                                if (typeof obj === 'object') {
+                                    apiPayloadJSONEditor.setValue(obj);
+                                }
+                            } catch(e) {
+                                console.warn('Invalid JSON');
                             }
                         }
-                        apiPayloadSource = null;
+                        setTimeout(function () {apiPayloadSource = null;}, 200);
                     }
                 });
             });
@@ -193,7 +201,11 @@ Mautic.contactclientOnLoad = function () {
                 mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js', function () {
                     var operationTime = mQuery('#contactclient_schedule_hours').val();
                     if (operationTime.length) {
-                        operationTime = mQuery.parseJSON(operationTime);
+                        try {
+                            operationTime = mQuery.parseJSON(operationTime);
+                        } catch(e) {
+                            console.warn('Invalid JSON');
+                        }
                     }
                     // @todo - More sane defaults.
                     if (typeof operationTime !== 'object') {
