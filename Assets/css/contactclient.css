@@ -93,6 +93,10 @@
 }
 
 /* Table styles */
+#contactclient_api_payload_jsoneditor table.table-bordered {
+    min-width: 100%;
+    border: 0;
+}
 #contactclient_api_payload_jsoneditor table.table-bordered,
 #contactclient_api_payload_jsoneditor table.table-bordered > thead > tr > th,
 #contactclient_api_payload_jsoneditor table.table-bordered > tbody > tr > th,

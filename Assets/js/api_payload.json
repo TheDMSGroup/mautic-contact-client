@@ -19,6 +19,7 @@
         "title": "Operation",
         "headerTemplate": "{{ i1 }}) {{ self.name }}",
         "type": "object",
+        "format": "grid",
         "properties": {
           "name": {
             "propertyOrder": 10,
@@ -44,6 +45,7 @@
             "title": "Request",
             "propertyOrder": 60,
             "type": "object",
+            "format": "grid",
             "options": {
               "collapsed": false,
               "disable_collapse": true
@@ -147,6 +149,7 @@
             "title": "Response",
             "propertyOrder": 70,
             "type": "object",
+            "format": "grid",
             "options": {
               "collapsed": false,
               "disable_collapse": true
