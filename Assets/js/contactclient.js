@@ -68,20 +68,20 @@ Mautic.contactclientOnLoad = function () {
                             getButton: function (text, icon, title) {
                                 var el = this._super(text, icon, title);
                                 if (title.indexOf('Delete') !== -1) {
-                                    el.className = el.className.replace('btn-default', 'btn-danger');
+                                    el.className = el.className.replace('btn-default', 'btn-sm btn-danger');
                                 }
                                 else if (title.indexOf('Add') !== -1) {
-                                    el.className = el.className.replace('btn-default', 'btn-success');
+                                    el.className = el.className.replace('btn-default', 'btn-md btn-primary');
                                 }
                                 else {
-                                    el.className = el.className.replace('btn-default', 'btn-primary');
+                                    el.className = el.className.replace('btn-default', 'btn-sm btn-secondary');
                                 }
                                 return el;
                             },
                             // Pull header nav to the right.
                             getHeaderButtonHolder: function () {
                                 var el = this.getButtonHolder();
-                                el.className = 'btn-group btn-right';
+                                el.className = 'btn-group btn-group-sm btn-right';
                                 return el;
                             },
                             // Pull "new item" buttons to the left.
@@ -89,14 +89,41 @@ Mautic.contactclientOnLoad = function () {
                                 var el = document.createElement('div');
                                 el.className = 'btn-group btn-left';
                                 return el;
+                            },
+                            // Make the h3 elements clickable.
+                            getHeader: function (text) {
+                                var el = document.createElement('h3');
+                                el.onclick = function (e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    var $collapseButton = mQuery(this).find('> div.btn-group > button.json-editor-btn-collapse:first:visible');
+                                    if ($collapseButton.length) {
+                                        var el = $collapseButton[0];
+                                        if (el) {
+                                            var event = new MouseEvent('click', {
+                                                'view': window,
+                                                'bubbles': false,
+                                                'cancelable': true
+                                            });
+                                            el.dispatchEvent(event);
+                                        }
+                                    }
+                                };
+                                el.style.cursor = 'pointer';
+                                if (typeof text === 'string') {
+                                    el.textContent = text;
+                                }
+                                else {
+                                    el.appendChild(text);
+                                }
+                                return el;
                             }
                         });
 
                         // Create our widget container.
                         var $apiPayloadJSONEditor = mQuery('<div>', {
                             id: 'contactclient_api_payload_jsoneditor'
-                        })
-                            .insertBefore($apiPayload);
+                        }).insertBefore($apiPayload);
 
                         // Instantiate the JSON Editor based on our schema.
                         apiPayloadJSONEditor = new JSONEditor($apiPayloadJSONEditor[0], {
@@ -202,6 +229,9 @@ Mautic.contactclientOnLoad = function () {
                                                         $apiPayloadCodeMirror.addClass('hide');
                                                         mQuery('#contactclient_api_payload_jsoneditor').removeClass('hide');
                                                     }
+                                                    else {
+                                                        mQuery(this).toggleClass('active');
+                                                    }
                                                 }
                                             }
                                             else {
@@ -223,8 +253,11 @@ Mautic.contactclientOnLoad = function () {
                                                     if (!error) {
                                                         $apiPayloadCodeMirror.removeClass('hide');
                                                         mQuery('#contactclient_api_payload_jsoneditor').addClass('hide');
+                                                        apiPayloadCodeMirror.refresh();
                                                     }
-                                                    apiPayloadCodeMirror.refresh();
+                                                    else {
+                                                        mQuery(this).toggleClass('active');
+                                                    }
                                                 }
                                             }
                                         });

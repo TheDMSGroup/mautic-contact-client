@@ -1,0 +1,11 @@
+{
+  "title": "Limits",
+  "$schema": "limits.json",
+  "type": "object",
+  "format": "grid",
+  "options": {
+    "disable_collapse": true
+  },
+  "properties": {
+  }
+}

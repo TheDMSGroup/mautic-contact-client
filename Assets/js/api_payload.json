@@ -10,6 +10,7 @@
     "operations": {
       "title": "Operations",
       "type": "array",
+      "propertyOrder": 10,
       "options": {
         "collapsed": false,
         "disable_collapse": true
@@ -192,6 +193,53 @@
               }
             }
           }
+        }
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "propertyOrder": 20,
+      "type": "object",
+      "format": "grid",
+      "options": {
+        "collapsed": true
+      },
+      "properties": {
+        "limit": {
+          "title": "Rate Limit",
+          "description": "Maximum number of requests we will allow per minute, including failures. To prevent disruption of service with the client and reduce errors.",
+          "propertyOrder": 10,
+          "type": "integer",
+          "default": 300,
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "timeout": {
+          "title": "Timeout",
+          "description": "Seconds we will wait for any single API request with this client to complete before we abort.",
+          "propertyOrder": 20,
+          "type": "integer",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 60
+        },
+        "attempts": {
+          "title": "Attempts",
+          "description": "Attempts that will be made to send this payload, before aborting due to critical errors or timeouts. Set to 1 to prevent retries.",
+          "propertyOrder": 30,
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 25
+        },
+        "delay": {
+          "title": "Delay",
+          "description": "Minutes to wait between failed attempts to send the payload.",
+          "propertyOrder": 40,
+          "type": "integer",
+          "default": 15,
+          "minimum": 5,
+          "maximum": 1440
         }
       }
     }
