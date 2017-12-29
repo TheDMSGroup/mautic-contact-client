@@ -114,7 +114,7 @@
     margin-bottom: 0;
 }
 
-#contactclient_api_payload_jsoneditor div[data-schemapath="root.operations.0.response.format"] {
+#contactclient_api_payload_jsoneditor div[data-schemapath*=".response.format"] {
     max-width: 16.66666%;
 }
 

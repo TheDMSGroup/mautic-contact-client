@@ -35,10 +35,8 @@
             "type": "string",
             "title": "Description",
             "options": {
-              "infoText": "Optional description of this API operation.",
-              "wysiwyg": false
+              "infoText": "Optional description of this API operation."
             },
-            "format": "textarea",
             "default": ""
           },
           "request": {
@@ -156,7 +154,7 @@
             "properties": {
               "format": {
                 "propertyOrder": 10,
-                "title": "Format",
+                "title": "Response Format",
                 "type": "string",
                 "options": {
                   "infoText": "The method used to format fields that we will be receiving."
@@ -199,10 +197,13 @@
                 },
                 "items": {
                   "type": "object",
+                  "title": "Temp",
+                  "options": {
+                    "infoText": "Temp"
+                  },
                   "properties": {
-                    "title": "Empty Object",
-                    "options": {
-                      "infoText": "This accepts anything, as long as it is valid JSON."
+                    "temp": {
+                      "type": "string"
                     }
                   }
                 }
