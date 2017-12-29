@@ -7,7 +7,8 @@ Mautic.contactclientOnLoad = function () {
         ) {
             callback();
             return mQuery(this);
-        } else {
+        }
+        else {
             return mQuery.ajax({
                 url: url,
                 dataType: 'script',
@@ -62,6 +63,180 @@ Mautic.contactclientOnLoad = function () {
                 }
             }
         });
+
+        // Filter field.
+        var $filter = mQuery('#contactclient_filter');
+        if ($filter.length) {
+            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,npm/selectize@0.12.4/dist/js/standalone/selectize.min.js,npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js', function () {
+                var $filterQueryBuilder = mQuery('<div>', {
+                    id: 'contactclient_filter_querybuilder'
+                }).insertBefore($filter);
+
+                var rules_widgets = {
+                    condition: 'OR',
+                    rules: [{
+                        id: 'date',
+                        operator: 'equal',
+                        value: '1991/11/17'
+                    }, {
+                        id: 'rate',
+                        operator: 'equal',
+                        value: 22
+                    }, {
+                        id: 'category',
+                        operator: 'equal',
+                        value: '38'
+                    }, {
+                        condition: 'AND',
+                        rules: [{
+                            id: 'coord',
+                            operator: 'equal',
+                            value: 'B.3'
+                        }]
+                    }]
+                };
+                // Fix for Selectize
+                $filterQueryBuilder.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
+                    if (rule.filter.plugin === 'selectize') {
+                        rule.$el.find('.rule-value-container').css('min-width', '200px')
+                            .find('.selectize-control').removeClass('form-control');
+                    }
+                }).queryBuilder({
+                    plugins: ['bt-tooltip-errors'],
+
+                    filters: [{
+                        id: 'date',
+                        label: 'Datepicker',
+                        type: 'date',
+                        validation: {
+                            format: 'YYYY/MM/DD'
+                        },
+                        plugin: 'datepicker',
+                        plugin_config: {
+                            format: 'yyyy/mm/dd',
+                            todayBtn: 'linked',
+                            todayHighlight: true,
+                            autoclose: true
+                        }
+                    }, {
+                        id: 'rate',
+                        label: 'Slider',
+                        type: 'integer',
+                        validation: {
+                            min: 0,
+                            max: 100
+                        },
+                        plugin: 'slider',
+                        plugin_config: {
+                            min: 0,
+                            max: 100,
+                            value: 0
+                        },
+                        valueSetter: function (rule, value) {
+                            if (rule.operator.nb_inputs === 1) {
+                                value = [value];
+                            }
+                            rule.$el.find('.rule-value-container input').each(function (i) {
+                                mQuery(this).slider('setValue', value[i] || 0);
+                            });
+                        },
+                        valueGetter: function (rule) {
+                            var value = [];
+                            rule.$el.find('.rule-value-container input').each(function () {
+                                value.push(mQuery(this).slider('getValue'));
+                            });
+                            return rule.operator.nb_inputs === 1 ? value[0] : value;
+                        }
+                    }, {
+                        id: 'category',
+                        label: 'Selectize',
+                        type: 'string',
+                        plugin: 'selectize',
+                        plugin_config: {
+                            valueField: 'id',
+                            labelField: 'name',
+                            searchField: 'name',
+                            sortField: 'name',
+                            create: true,
+                            maxItems: 1,
+                            plugins: ['remove_button'],
+                            onInitialize: function () {
+                                var that = this;
+
+                                if (localStorage.demoData === undefined) {
+                                    // mQuery.getJSON(baseurl + '/assets/demo-data.json', function (data) {
+                                    //     localStorage.demoData = JSON.stringify(data);
+                                    //     data.forEach(function (item) {
+                                    //         that.addOption(item);
+                                    //     });
+                                    // });
+                                }
+                                else {
+                                    JSON.parse(localStorage.demoData).forEach(function (item) {
+                                        that.addOption(item);
+                                    });
+                                }
+                            }
+                        },
+                        valueSetter: function (rule, value) {
+                            rule.$el.find('.rule-value-container input')[0].selectize.setValue(value);
+                        }
+                    }, {
+                        id: 'coord',
+                        label: 'Coordinates',
+                        type: 'string',
+                        validation: {
+                            format: /^[A-C]{1}.[1-6]{1}$/
+                        },
+                        input: function (rule, name) {
+                            var $container = rule.$el.find('.rule-value-container');
+
+                            $container.on('change', '[name=' + name + '_1]', function () {
+                                var h = '';
+
+                                switch (mQuery(this).val()) {
+                                    case 'A':
+                                        h = '<option value="-1">-</option> <option value="1">1</option> <option value="2">2</option>';
+                                        break;
+                                    case 'B':
+                                        h = '<option value="-1">-</option> <option value="3">3</option> <option value="4">4</option>';
+                                        break;
+                                    case 'C':
+                                        h = '<option value="-1">-</option> <option value="5">5</option> <option value="6">6</option>';
+                                        break;
+                                }
+
+                                $container.find('[name$=_2]')
+                                    .html(h).toggle(!!h)
+                                    .val('-1').trigger('change');
+                            });
+
+                            return '\
+                              <select name="' + name + '_1"> \
+                                <option value="-1">-</option> \
+                                <option value="A">A</option> \
+                                <option value="B">B</option> \
+                                <option value="C">C</option> \
+                              </select> \
+                              <select name="' + name + '_2" style="display:none;"></select>';
+                        },
+                        valueGetter: function (rule) {
+                            return rule.$el.find('.rule-value-container [name$=_1]').val()
+                                + '.' + rule.$el.find('.rule-value-container [name$=_2]').val();
+                        },
+                        valueSetter: function (rule, value) {
+                            if (rule.operator.nb_inputs > 0) {
+                                var val = value.split('.');
+
+                                rule.$el.find('.rule-value-container [name$=_1]').val(val[0]).trigger('change');
+                                rule.$el.find('.rule-value-container [name$=_2]').val(val[1]).trigger('change');
+                            }
+                        }
+                    }],
+                    rules: rules_widgets
+                });
+            });
+        }
 
         // API Payload field.
         var $apiPayload = mQuery('#contactclient_api_payload');
