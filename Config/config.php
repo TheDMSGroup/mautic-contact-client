@@ -116,11 +116,18 @@ return [
 
     'menu' => [
         'main' => [
+//            'mautic.contactclient' => [
+//                'route'    => 'mautic_contactclient_index',
+//                'access'   => 'plugin:contactclient:items:view',
+//                 'parent'  => 'mautic.core.channels',
+//                'priority' => 10,
+//            ],
             'mautic.contactclient' => [
-                'route'    => 'mautic_contactclient_index',
-                'access'   => 'plugin:contactclient:items:view',
-                'parent'   => 'mautic.core.channels',
-                'priority' => 10,
+                'route'     => 'mautic_contactclient_index',
+                'access'    => 'plugin:contactclient:items:view',
+                'id'        => 'mautic_channels_root',
+                'iconClass' => 'fa-cloud-upload',
+                'priority'  => 35,
             ],
         ],
     ],
