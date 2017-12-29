@@ -26,13 +26,16 @@
 #contactclient_api_payload_jsoneditor .btn-group .btn-secondary {
     background: transparent;
 }
+
 #contactclient_api_payload_jsoneditor .btn-group .btn-secondary.active {
     background: transparent;
 }
+
 /* Show the expandable headers as clickable */
 #contactclient_api_payload_jsoneditor > div > h3 span {
     cursor: pointer;
 }
+
 /* Hide the root definition as it'd be a duplicate label in this case. */
 #contactclient_api_payload_jsoneditor > div > h3 {
     display: none;
@@ -54,6 +57,38 @@
     border: 1px solid rgba(45, 45, 45, .1);
     -webkit-box-shadow: none;
     box-shadow: none;
+}
+
+/* Positioning tooltips in tables */
+#contactclient_api_payload_jsoneditor td > div > .glyphicon-info-sign.pull-right {
+    position: absolute !important;
+    top: 63px;
+    margin: 0 0 0 -16px;
+    height: 0;
+    width: 0;
+    opacity: .8;
+}
+
+/* Styling tooltips */
+#contactclient_api_payload_jsoneditor .glyphicon-info-sign.pull-right {
+    float: none !important;
+    margin-left: 5px;
+}
+
+#contactclient_api_payload_jsoneditor .glyphicon-info-sign:before {
+    content: "\f059";
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    opacity: .1;
+}
+
+#contactclient_api_payload_jsoneditor .glyphicon-info-sign span {
+    font-family: "Open Sans", Helvetica, Arial, sans-serif !important;
+    z-index: 1000;
+    transform: translateX(0.5rem) translateY(-0.5rem) !important;
 }
 
 /* ContactClient API Payload - CodeMirror */

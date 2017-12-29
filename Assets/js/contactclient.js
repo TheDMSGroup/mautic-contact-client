@@ -56,14 +56,14 @@ Mautic.contactclientOnLoad = function () {
                 apiPayloadJSONEditor;
 
             // API Payload JSON Schema.
-            mQuery.getScriptCached('https://cdn.rawgit.com/heathdutton/json-editor/v0.7.28/dist/jsoneditor.min.js', function () {
+            mQuery.getScriptCached('https://cdn.rawgit.com/heathdutton/json-editor/7a16825ee4472f6e490b4ea674707e9805fa0a93/dist/jsoneditor.min.js', function () {
                 mQuery.ajax({
                     dataType: 'json',
                     cache: false,
                     url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/js/api_payload.json',
                     success: function (data) {
                         var schema = data;
-                        // Custom theme to add more indication colors.
+                        // Extend the bootstrap3 theme with our own customizations.
                         JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
                             getButton: function (text, icon, title) {
                                 var el = this._super(text, icon, title);
