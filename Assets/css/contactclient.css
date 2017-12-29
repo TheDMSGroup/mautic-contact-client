@@ -62,11 +62,13 @@
 /* Positioning tooltips in tables */
 #contactclient_api_payload_jsoneditor td > div > .glyphicon-info-sign.pull-right {
     position: absolute !important;
-    top: 63px;
+    top: 50px;
     margin: 0 0 0 -16px;
     height: 0;
-    width: 0;
-    opacity: .8;
+}
+#contactclient_api_payload_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
+    opacity: 0;
+    width: 60px;
 }
 
 /* Styling tooltips */
@@ -82,13 +84,27 @@
     font-size: inherit;
     text-rendering: auto;
     -webkit-font-smoothing: antialiased;
-    opacity: .1;
 }
 
 #contactclient_api_payload_jsoneditor .glyphicon-info-sign span {
     font-family: "Open Sans", Helvetica, Arial, sans-serif !important;
     z-index: 1000;
     transform: translateX(0.5rem) translateY(-0.5rem) !important;
+}
+
+/* Table styles */
+#contactclient_api_payload_jsoneditor table.table-bordered,
+#contactclient_api_payload_jsoneditor table.table-bordered > thead > tr > th,
+#contactclient_api_payload_jsoneditor table.table-bordered > tbody > tr > th,
+#contactclient_api_payload_jsoneditor table.table-bordered > tbody > tr > td,
+#contactclient_api_payload_jsoneditor table.table-bordered > tfoot > tr > td,
+#contactclient_api_payload_jsoneditor table.table-bordered > tfoot > tr > th {
+    border-left: 0;
+    border-right: 0;
+    padding: 4px 4px;
+}
+#contactclient_api_payload_jsoneditor table .form-group {
+    margin-bottom: 0;
 }
 
 /* ContactClient API Payload - CodeMirror */

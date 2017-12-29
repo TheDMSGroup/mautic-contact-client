@@ -68,13 +68,13 @@ Mautic.contactclientOnLoad = function () {
                             getButton: function (text, icon, title) {
                                 var el = this._super(text, icon, title);
                                 if (title.indexOf('Delete') !== -1) {
-                                    el.className = el.className.replace('btn-default', 'btn-sm btn-danger');
+                                    el.className = el.className.replace('btn-default', 'btn-sm btn-xs btn-danger');
                                 }
                                 else if (title.indexOf('Add') !== -1) {
                                     el.className = el.className.replace('btn-default', 'btn-md btn-primary');
                                 }
                                 else {
-                                    el.className = el.className.replace('btn-default', 'btn-sm btn-secondary');
+                                    el.className = el.className.replace('btn-default', 'btn-sm btn-xs btn-secondary');
                                 }
                                 return el;
                             },
