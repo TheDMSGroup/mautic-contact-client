@@ -58,8 +58,7 @@
                 "options": {
                   "infoText": "The complete web address we will be communicating with."
                 },
-                "default": "",
-                "required": true
+                "default": ""
               },
               "test_url": {
                 "propertyOrder": 20,
@@ -123,7 +122,7 @@
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": false
+                  "collapsed": true
                 },
                 "items": {
                   "title": "Header",
@@ -190,22 +189,22 @@
                   "title": "Body Field",
                   "$ref": "#/definitions/field"
                 }
-              }
-            }
-          },
-          "success": {
-            "propertyOrder": 80,
-            "title": "Success Definition",
-            "type": "array",
-            "options": {
-              "collapsed": true
-            },
-            "items": {
-              "type": "object",
-              "properties": {
-                "title": "Empty Object",
+              },
+              "success": {
+                "propertyOrder": 40,
+                "title": "Success Definition",
+                "type": "array",
                 "options": {
-                  "infoText": "This accepts anything, as long as it is valid JSON."
+                  "collapsed": true
+                },
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": "Empty Object",
+                    "options": {
+                      "infoText": "This accepts anything, as long as it is valid JSON."
+                    }
+                  }
                 }
               }
             }
@@ -274,6 +273,7 @@
       "type": "string",
       "title": "Format",
       "default": "form",
+      "class": "test",
       "enumSource": [
         {
           "source": [

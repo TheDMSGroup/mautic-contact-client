@@ -150,7 +150,8 @@ Mautic.contactclientOnLoad = function () {
                             disable_edit_json: true,
                             disable_properties: true,
                             disable_array_delete_all_rows: true,
-                            disable_array_delete_last_row: true
+                            disable_array_delete_last_row: true,
+                            required_by_default: true
                         });
 
                         // Load the initial value if applicable.

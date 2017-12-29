@@ -66,6 +66,7 @@
     margin: 0 0 0 -16px;
     height: 0;
 }
+
 #contactclient_api_payload_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
     opacity: 0;
     width: 60px;
@@ -97,6 +98,7 @@
     min-width: 100%;
     border: 0;
 }
+
 #contactclient_api_payload_jsoneditor table.table-bordered,
 #contactclient_api_payload_jsoneditor table.table-bordered > thead > tr > th,
 #contactclient_api_payload_jsoneditor table.table-bordered > tbody > tr > th,
@@ -107,8 +109,13 @@
     border-right: 0;
     padding: 4px 4px;
 }
+
 #contactclient_api_payload_jsoneditor table .form-group {
     margin-bottom: 0;
+}
+
+#contactclient_api_payload_jsoneditor div[data-schemapath="root.operations.0.response.format"] {
+    max-width: 16.66666%;
 }
 
 /* ContactClient API Payload - CodeMirror */
