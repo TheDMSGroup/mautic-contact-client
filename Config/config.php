@@ -125,7 +125,7 @@ return [
             'mautic.contactclient' => [
                 'route'     => 'mautic_contactclient_index',
                 'access'    => 'plugin:contactclient:items:view',
-                'id'        => 'mautic_channels_root',
+                'id'        => 'mautic_contactclient_root',
                 'iconClass' => 'fa-cloud-upload',
                 'priority'  => 35,
             ],
