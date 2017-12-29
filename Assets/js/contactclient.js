@@ -1,12 +1,27 @@
 Mautic.contactclientOnLoad = function () {
-    // getScriptCached for faster page loads in the backend.
-    mQuery.getScriptCached = function (url, callback) {
-        return mQuery.ajax({
-            url: url,
-            dataType: 'script',
-            cache: true
-        }).done(callback);
+    // getScriptCachedOnce for faster page loads in the backend.
+    mQuery.getScriptCachedOnce = function (url, callback) {
+        if (
+            typeof window.getScriptCachedOnce !== 'undefined'
+            && window.getScriptCachedOnce.indexOf(url) !== -1
+        ) {
+            callback();
+            return mQuery(this);
+        } else {
+            return mQuery.ajax({
+                url: url,
+                dataType: 'script',
+                cache: true
+            }).done(function () {
+                if (typeof window.getScriptCachedOnce === 'undefined') {
+                    window.getScriptCachedOnce = [];
+                }
+                window.getScriptCachedOnce.push('url');
+                callback();
+            });
+        }
     };
+
     mQuery(document).ready(function () {
         // Trigger payload tab visibility based on contactClient type.
         mQuery('input[name="contactclient[type]"]').change(function () {
@@ -56,14 +71,15 @@ Mautic.contactclientOnLoad = function () {
                 apiPayloadJSONEditor;
 
             // API Payload JSON Schema.
-            mQuery.getScriptCached('https://cdn.rawgit.com/heathdutton/json-editor/7a16825ee4472f6e490b4ea674707e9805fa0a93/dist/jsoneditor.min.js', function () {
+            mQuery.getScriptCachedOnce('https://cdn.rawgit.com/heathdutton/json-editor/7a16825ee4472f6e490b4ea674707e9805fa0a93/dist/jsoneditor.min.js', function () {
                 mQuery.ajax({
                     dataType: 'json',
                     cache: false,
                     url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/js/api_payload.json',
                     success: function (data) {
                         var schema = data;
-                        // Extend the bootstrap3 theme with our own customizations.
+                        // Extend the bootstrap3 theme with our own
+                        // customizations.
                         JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
                             getButton: function (text, icon, title) {
                                 var el = this._super(text, icon, title);
@@ -169,11 +185,11 @@ Mautic.contactclientOnLoad = function () {
 
             // API Payload Raw JSON using CodeMirror.
             if (typeof CodeMirror !== 'undefined') {
-                mQuery.getScriptCached('https://rawgit.com/heathdutton/jsonlint/master/lib/jsonlint.js', function () {
-                    mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/lint.js', function () {
-                        mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/json-lint.min.js', function () {
-                            mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/edit/matchbrackets.min.js', function () {
-                                mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/display/fullscreen.min.js', function () {
+                mQuery.getScriptCachedOnce('https://rawgit.com/heathdutton/jsonlint/master/lib/jsonlint.js', function () {
+                    mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/lint.js', function () {
+                        mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/json-lint.min.js', function () {
+                            mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/edit/matchbrackets.min.js', function () {
+                                mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/display/fullscreen.min.js', function () {
                                     var $apiPayloadCodeMirror = mQuery('<div>', {
                                         id: 'contactclient_api_payload_codemirror',
                                         class: 'hide'
@@ -273,8 +289,8 @@ Mautic.contactclientOnLoad = function () {
         // Hours of Operation.
         var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget');
         if ($scheduleHoursTarget.length) {
-            mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js', function () {
-                mQuery.getScriptCached('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js', function () {
+            mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js', function () {
+                mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js', function () {
                     var operationTime = mQuery('#contactclient_schedule_hours').val();
                     if (operationTime.length) {
                         try {
