@@ -50,6 +50,7 @@
               "collapsed": false,
               "disable_collapse": true
             },
+            "required": true,
             "properties": {
               "url": {
                 "propertyOrder": 10,
@@ -78,6 +79,7 @@
                   "infoText": "The method used for this API operation."
                 },
                 "default": "post",
+                "required": true,
                 "enumSource": [
                   {
                     "source": [
@@ -125,6 +127,7 @@
                 "options": {
                   "collapsed": false
                 },
+                "required": true,
                 "items": {
                   "title": "Header",
                   "$ref": "#/definitions/field"
@@ -138,6 +141,7 @@
                 "options": {
                   "collapsed": true
                 },
+                "required": true,
                 "items": {
                   "title": "Body Field",
                   "$ref": "#/definitions/field"
@@ -154,6 +158,7 @@
               "collapsed": false,
               "disable_collapse": true
             },
+            "required": true,
             "properties": {
               "format": {
                 "propertyOrder": 10,
@@ -173,6 +178,7 @@
                 "options": {
                   "collapsed": true
                 },
+                "required": true,
                 "items": {
                   "title": "Header",
                   "$ref": "#/definitions/field"
@@ -186,26 +192,28 @@
                 "options": {
                   "collapsed": true
                 },
+                "required": true,
                 "items": {
                   "title": "Body Field",
                   "$ref": "#/definitions/field"
                 }
-              }
-            }
-          },
-          "success": {
-            "propertyOrder": 80,
-            "title": "Success Definition",
-            "type": "array",
-            "options": {
-              "collapsed": true
-            },
-            "items": {
-              "type": "object",
-              "properties": {
-                "title": "Empty Object",
+              },
+              "success": {
+                "propertyOrder": 40,
+                "title": "Success Definition",
+                "type": "array",
                 "options": {
-                  "infoText": "This accepts anything, as long as it is valid JSON."
+                  "collapsed": true
+                },
+                "required": true,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": "Empty Object",
+                    "options": {
+                      "infoText": "This accepts anything, as long as it is valid JSON."
+                    }
+                  }
                 }
               }
             }
@@ -221,6 +229,7 @@
       "options": {
         "collapsed": true
       },
+      "required": true,
       "properties": {
         "limit": {
           "title": "Rate Limit",
@@ -230,6 +239,7 @@
           "propertyOrder": 10,
           "type": "integer",
           "default": 300,
+          "required": true,
           "minimum": 1,
           "maximum": 10000
         },
@@ -241,6 +251,7 @@
           "propertyOrder": 20,
           "type": "integer",
           "default": 30,
+          "required": true,
           "minimum": 1,
           "maximum": 60
         },
@@ -252,6 +263,7 @@
           "propertyOrder": 30,
           "type": "integer",
           "default": 3,
+          "required": true,
           "minimum": 1,
           "maximum": 25
         },
@@ -263,6 +275,7 @@
           "propertyOrder": 40,
           "type": "integer",
           "default": 15,
+          "required": true,
           "minimum": 5,
           "maximum": 1440
         }
@@ -274,6 +287,7 @@
       "type": "string",
       "title": "Format",
       "default": "form",
+      "required": true,
       "enumSource": [
         {
           "source": [
@@ -316,6 +330,7 @@
             "infoText": "The name of the field being sent."
           },
           "default": "",
+          "required": true,
           "minLength": 0,
           "maxLength": 255
         },
