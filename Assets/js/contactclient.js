@@ -67,151 +67,155 @@ Mautic.contactclientOnLoad = function () {
         // Filter field.
         var $filter = mQuery('#contactclient_filter');
         if ($filter.length) {
-            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,npm/selectize@0.12.4/dist/js/standalone/selectize.min.js,npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js', function () {
-                var $filterQueryBuilder = mQuery('<div>', {
-                    id: 'contactclient_filter_querybuilder'
-                }).insertBefore($filter);
+            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
+                'npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,' +
+                'npm/selectize@0.12.4/dist/js/standalone/selectize.min.js,' +
+                'npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js',
+                function () {
+                    var $filterQueryBuilder = mQuery('<div>', {
+                        id: 'contactclient_filter_querybuilder'
+                    }).insertBefore($filter);
 
-                var rules_widgets = {
-                    condition: 'OR',
-                    rules: [{
-                        id: 'date',
-                        operator: 'equal',
-                        value: '1991/11/17'
-                    }, {
-                        id: 'rate',
-                        operator: 'equal',
-                        value: 22
-                    }, {
-                        id: 'category',
-                        operator: 'equal',
-                        value: '38'
-                    }, {
-                        condition: 'AND',
+                    var rules_widgets = {
+                        condition: 'OR',
                         rules: [{
-                            id: 'coord',
+                            id: 'date',
                             operator: 'equal',
-                            value: 'B.3'
+                            value: '1991/11/17'
+                        }, {
+                            id: 'rate',
+                            operator: 'equal',
+                            value: 22
+                        }, {
+                            id: 'category',
+                            operator: 'equal',
+                            value: '38'
+                        }, {
+                            condition: 'AND',
+                            rules: [{
+                                id: 'coord',
+                                operator: 'equal',
+                                value: 'B.3'
+                            }]
                         }]
-                    }]
-                };
-                // Fix for Selectize
-                $filterQueryBuilder.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
-                    if (rule.filter.plugin === 'selectize') {
-                        rule.$el.find('.rule-value-container').css('min-width', '200px')
-                            .find('.selectize-control').removeClass('form-control');
-                    }
-                }).queryBuilder({
-                    plugins: ['bt-tooltip-errors'],
-
-                    filters: [{
-                        id: 'date',
-                        label: 'Datepicker',
-                        type: 'date',
-                        validation: {
-                            format: 'YYYY/MM/DD'
-                        },
-                        plugin: 'datepicker',
-                        plugin_config: {
-                            format: 'yyyy/mm/dd',
-                            todayBtn: 'linked',
-                            todayHighlight: true,
-                            autoclose: true
+                    };
+                    // Fix for Selectize
+                    $filterQueryBuilder.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
+                        if (rule.filter.plugin === 'selectize') {
+                            rule.$el.find('.rule-value-container').css('min-width', '200px')
+                                .find('.selectize-control').removeClass('form-control');
                         }
-                    }, {
-                        id: 'rate',
-                        label: 'Slider',
-                        type: 'integer',
-                        validation: {
-                            min: 0,
-                            max: 100
-                        },
-                        plugin: 'slider',
-                        plugin_config: {
-                            min: 0,
-                            max: 100,
-                            value: 0
-                        },
-                        valueSetter: function (rule, value) {
-                            if (rule.operator.nb_inputs === 1) {
-                                value = [value];
+                    }).queryBuilder({
+                        plugins: ['bt-tooltip-errors'],
+
+                        filters: [{
+                            id: 'date',
+                            label: 'Datepicker',
+                            type: 'date',
+                            validation: {
+                                format: 'YYYY/MM/DD'
+                            },
+                            plugin: 'datepicker',
+                            plugin_config: {
+                                format: 'yyyy/mm/dd',
+                                todayBtn: 'linked',
+                                todayHighlight: true,
+                                autoclose: true
                             }
-                            rule.$el.find('.rule-value-container input').each(function (i) {
-                                mQuery(this).slider('setValue', value[i] || 0);
-                            });
-                        },
-                        valueGetter: function (rule) {
-                            var value = [];
-                            rule.$el.find('.rule-value-container input').each(function () {
-                                value.push(mQuery(this).slider('getValue'));
-                            });
-                            return rule.operator.nb_inputs === 1 ? value[0] : value;
-                        }
-                    }, {
-                        id: 'category',
-                        label: 'Selectize',
-                        type: 'string',
-                        plugin: 'selectize',
-                        plugin_config: {
-                            valueField: 'id',
-                            labelField: 'name',
-                            searchField: 'name',
-                            sortField: 'name',
-                            create: true,
-                            maxItems: 1,
-                            plugins: ['remove_button'],
-                            onInitialize: function () {
-                                var that = this;
-
-                                if (localStorage.demoData === undefined) {
-                                    // mQuery.getJSON(baseurl + '/assets/demo-data.json', function (data) {
-                                    //     localStorage.demoData = JSON.stringify(data);
-                                    //     data.forEach(function (item) {
-                                    //         that.addOption(item);
-                                    //     });
-                                    // });
+                        }, {
+                            id: 'rate',
+                            label: 'Slider',
+                            type: 'integer',
+                            validation: {
+                                min: 0,
+                                max: 100
+                            },
+                            plugin: 'slider',
+                            plugin_config: {
+                                min: 0,
+                                max: 100,
+                                value: 0
+                            },
+                            valueSetter: function (rule, value) {
+                                if (rule.operator.nb_inputs === 1) {
+                                    value = [value];
                                 }
-                                else {
-                                    JSON.parse(localStorage.demoData).forEach(function (item) {
-                                        that.addOption(item);
-                                    });
-                                }
+                                rule.$el.find('.rule-value-container input').each(function (i) {
+                                    mQuery(this).slider('setValue', value[i] || 0);
+                                });
+                            },
+                            valueGetter: function (rule) {
+                                var value = [];
+                                rule.$el.find('.rule-value-container input').each(function () {
+                                    value.push(mQuery(this).slider('getValue'));
+                                });
+                                return rule.operator.nb_inputs === 1 ? value[0] : value;
                             }
-                        },
-                        valueSetter: function (rule, value) {
-                            rule.$el.find('.rule-value-container input')[0].selectize.setValue(value);
-                        }
-                    }, {
-                        id: 'coord',
-                        label: 'Coordinates',
-                        type: 'string',
-                        validation: {
-                            format: /^[A-C]{1}.[1-6]{1}$/
-                        },
-                        input: function (rule, name) {
-                            var $container = rule.$el.find('.rule-value-container');
+                        }, {
+                            id: 'category',
+                            label: 'Selectize',
+                            type: 'string',
+                            plugin: 'selectize',
+                            plugin_config: {
+                                valueField: 'id',
+                                labelField: 'name',
+                                searchField: 'name',
+                                sortField: 'name',
+                                create: true,
+                                maxItems: 1,
+                                plugins: ['remove_button'],
+                                onInitialize: function () {
+                                    var that = this;
 
-                            $container.on('change', '[name=' + name + '_1]', function () {
-                                var h = '';
-
-                                switch (mQuery(this).val()) {
-                                    case 'A':
-                                        h = '<option value="-1">-</option> <option value="1">1</option> <option value="2">2</option>';
-                                        break;
-                                    case 'B':
-                                        h = '<option value="-1">-</option> <option value="3">3</option> <option value="4">4</option>';
-                                        break;
-                                    case 'C':
-                                        h = '<option value="-1">-</option> <option value="5">5</option> <option value="6">6</option>';
-                                        break;
+                                    if (localStorage.demoData === undefined) {
+                                        // mQuery.getJSON(baseurl +
+                                        // '/assets/demo-data.json', function
+                                        // (data) { localStorage.demoData =
+                                        // JSON.stringify(data);
+                                        // data.forEach(function (item) {
+                                        // that.addOption(item); }); });
+                                    }
+                                    else {
+                                        JSON.parse(localStorage.demoData).forEach(function (item) {
+                                            that.addOption(item);
+                                        });
+                                    }
                                 }
+                            },
+                            valueSetter: function (rule, value) {
+                                rule.$el.find('.rule-value-container input')[0].selectize.setValue(value);
+                            }
+                        }, {
+                            id: 'coord',
+                            label: 'Coordinates',
+                            type: 'string',
+                            validation: {
+                                format: /^[A-C]{1}.[1-6]{1}$/
+                            },
+                            input: function (rule, name) {
+                                var $container = rule.$el.find('.rule-value-container');
 
-                                $container.find('[name$=_2]')
-                                    .html(h).toggle(!!h)
-                                    .val('-1').trigger('change');
-                            });
+                                $container.on('change', '[name=' + name + '_1]', function () {
+                                    var h = '';
 
-                            return '\
+                                    switch (mQuery(this).val()) {
+                                        case 'A':
+                                            h = '<option value="-1">-</option> <option value="1">1</option> <option value="2">2</option>';
+                                            break;
+                                        case 'B':
+                                            h = '<option value="-1">-</option> <option value="3">3</option> <option value="4">4</option>';
+                                            break;
+                                        case 'C':
+                                            h = '<option value="-1">-</option> <option value="5">5</option> <option value="6">6</option>';
+                                            break;
+                                    }
+
+                                    $container.find('[name$=_2]')
+                                        .html(h).toggle(!!h)
+                                        .val('-1').trigger('change');
+                                });
+
+                                return '\
                               <select name="' + name + '_1"> \
                                 <option value="-1">-</option> \
                                 <option value="A">A</option> \
@@ -219,23 +223,24 @@ Mautic.contactclientOnLoad = function () {
                                 <option value="C">C</option> \
                               </select> \
                               <select name="' + name + '_2" style="display:none;"></select>';
-                        },
-                        valueGetter: function (rule) {
-                            return rule.$el.find('.rule-value-container [name$=_1]').val()
-                                + '.' + rule.$el.find('.rule-value-container [name$=_2]').val();
-                        },
-                        valueSetter: function (rule, value) {
-                            if (rule.operator.nb_inputs > 0) {
-                                var val = value.split('.');
+                            },
+                            valueGetter: function (rule) {
+                                return rule.$el.find('.rule-value-container [name$=_1]').val()
+                                    + '.' + rule.$el.find('.rule-value-container [name$=_2]').val();
+                            },
+                            valueSetter: function (rule, value) {
+                                if (rule.operator.nb_inputs > 0) {
+                                    var val = value.split('.');
 
-                                rule.$el.find('.rule-value-container [name$=_1]').val(val[0]).trigger('change');
-                                rule.$el.find('.rule-value-container [name$=_2]').val(val[1]).trigger('change');
+                                    rule.$el.find('.rule-value-container [name$=_1]').val(val[0]).trigger('change');
+                                    rule.$el.find('.rule-value-container [name$=_2]').val(val[1]).trigger('change');
+                                }
                             }
-                        }
-                    }],
-                    rules: rules_widgets
-                });
-            });
+                        }],
+                        rules: rules_widgets
+                    });
+                }
+            );
         }
 
         // API Payload field.
@@ -246,7 +251,7 @@ Mautic.contactclientOnLoad = function () {
                 apiPayloadJSONEditor;
 
             // API Payload JSON Schema.
-            mQuery.getScriptCachedOnce('https://cdn.rawgit.com/heathdutton/json-editor/7a16825ee4472f6e490b4ea674707e9805fa0a93/dist/jsoneditor.min.js', function () {
+            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/gh/heathdutton/json-editor/dist/jsoneditor.min.js', function () {
                 mQuery.ajax({
                     dataType: 'json',
                     cache: false,
@@ -360,113 +365,115 @@ Mautic.contactclientOnLoad = function () {
             });
 
             // API Payload Raw JSON using CodeMirror.
+            // Mautic currently ships with CodeMirror 5.15.2.
             if (typeof CodeMirror !== 'undefined') {
-                mQuery.getScriptCachedOnce('https://rawgit.com/heathdutton/jsonlint/master/lib/jsonlint.js', function () {
-                    mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/lint.js', function () {
-                        mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/json-lint.min.js', function () {
-                            mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/edit/matchbrackets.min.js', function () {
-                                mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/display/fullscreen.min.js', function () {
-                                    var $apiPayloadCodeMirror = mQuery('<div>', {
-                                        id: 'contactclient_api_payload_codemirror',
-                                        class: 'hide'
-                                    }).insertBefore($apiPayload);
-                                    $apiPayload.css({'display': 'none'});
-                                    apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
-                                        value: $apiPayload.val(),
-                                        mode: {
-                                            name: 'javascript',
-                                            json: true
-                                        },
-                                        theme: 'material',
-                                        gutters: ['CodeMirror-lint-markers'],
-                                        lint: 'json',
-                                        lintOnChange: true,
-                                        matchBrackets: true,
-                                        autoCloseBrackets: true,
-                                        lineNumbers: true,
-                                        extraKeys: {'Ctrl-Space': 'autocomplete'},
-                                        lineWrapping: true
-                                    });
-                                    apiPayloadCodeMirror.on('change', function () {
-                                        // Set the value to the hidden textarea.
-                                        var raw = apiPayloadCodeMirror.getValue();
-                                        if (raw.length) {
-                                            // Always set the textarea.
-                                            $apiPayload.val(raw);
-                                        }
-                                    });
-
-                                    // API Payload advanced button.
-                                    mQuery('#api_payload_advanced .btn')
-                                        .click(function () {
-                                            var raw = $apiPayload.val(),
-                                                error = false;
-                                            if (mQuery(this).hasClass('active')) {
-                                                // Deactivating CodeMirror.
-                                                // Send the value to JSONEditor.
-                                                if (apiPayloadJSONEditor) {
-                                                    if (raw.length) {
-                                                        try {
-                                                            var obj = mQuery.parseJSON(raw);
-                                                            if (typeof obj === 'object') {
-                                                                apiPayloadJSONEditor.setValue(obj);
-                                                            }
-                                                        }
-                                                        catch (e) {
-                                                            error = true;
-                                                            console.warn('Invalid JSON');
-                                                        }
-                                                    }
-                                                    if (!error) {
-                                                        $apiPayloadCodeMirror.addClass('hide');
-                                                        mQuery('#contactclient_api_payload_jsoneditor').removeClass('hide');
-                                                    }
-                                                    else {
-                                                        mQuery(this).toggleClass('active');
-                                                    }
-                                                }
-                                            }
-                                            else {
-                                                // Activating CodeMirror.
-                                                // Send the value from
-                                                // JSONEditor to CodeMirror.
-                                                if (apiPayloadCodeMirror) {
-                                                    if (raw.length) {
-                                                        try {
-                                                            if (raw !== apiPayloadCodeMirror.getValue()) {
-                                                                apiPayloadCodeMirror.setValue(raw, -1);
-                                                            }
-                                                        }
-                                                        catch (e) {
-                                                            error = true;
-                                                            console.warn('Error setting CodeMirror value.');
-                                                        }
-                                                    }
-                                                    if (!error) {
-                                                        $apiPayloadCodeMirror.removeClass('hide');
-                                                        mQuery('#contactclient_api_payload_jsoneditor').addClass('hide');
-                                                        apiPayloadCodeMirror.refresh();
-                                                    }
-                                                    else {
-                                                        mQuery(this).toggleClass('active');
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    mQuery('#api_payload_advanced').removeClass('hide');
-                                });
-                            });
+                mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
+                    'npm/jsonlint@1.6.2/lib/jsonlint.min.js,' +
+                    'npm/codemirror@5.15.2/addon/lint/lint.js,' +
+                    'npm/codemirror@5.15.2/addon/lint/json-lint.min.js,' +
+                    'npm/codemirror@5.15.2/addon/edit/matchbrackets.min.js,' +
+                    'npm/codemirror@5.15.2/addon/display/fullscreen.min.js',
+                    function () {
+                        var $apiPayloadCodeMirror = mQuery('<div>', {
+                            id: 'contactclient_api_payload_codemirror',
+                            class: 'hide'
+                        }).insertBefore($apiPayload);
+                        $apiPayload.css({'display': 'none'});
+                        apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
+                            value: $apiPayload.val(),
+                            mode: {
+                                name: 'javascript',
+                                json: true
+                            },
+                            theme: 'material',
+                            gutters: ['CodeMirror-lint-markers'],
+                            lint: 'json',
+                            lintOnChange: true,
+                            matchBrackets: true,
+                            autoCloseBrackets: true,
+                            lineNumbers: true,
+                            extraKeys: {'Ctrl-Space': 'autocomplete'},
+                            lineWrapping: true
                         });
-                    });
-                });
+                        apiPayloadCodeMirror.on('change', function () {
+                            // Set the value to the hidden textarea.
+                            var raw = apiPayloadCodeMirror.getValue();
+                            if (raw.length) {
+                                // Always set the textarea.
+                                $apiPayload.val(raw);
+                            }
+                        });
+
+                        // API Payload advanced button.
+                        mQuery('#api_payload_advanced .btn')
+                            .click(function () {
+                                var raw = $apiPayload.val(),
+                                    error = false;
+                                if (mQuery(this).hasClass('active')) {
+                                    // Deactivating CodeMirror.
+                                    // Send the value to JSONEditor.
+                                    if (apiPayloadJSONEditor) {
+                                        if (raw.length) {
+                                            try {
+                                                var obj = mQuery.parseJSON(raw);
+                                                if (typeof obj === 'object') {
+                                                    apiPayloadJSONEditor.setValue(obj);
+                                                }
+                                            }
+                                            catch (e) {
+                                                error = true;
+                                                console.warn('Invalid JSON');
+                                            }
+                                        }
+                                        if (!error) {
+                                            $apiPayloadCodeMirror.addClass('hide');
+                                            mQuery('#contactclient_api_payload_jsoneditor').removeClass('hide');
+                                        }
+                                        else {
+                                            mQuery(this).toggleClass('active');
+                                        }
+                                    }
+                                }
+                                else {
+                                    // Activating CodeMirror.
+                                    // Send the value from JSONEditor to
+                                    // CodeMirror.
+                                    if (apiPayloadCodeMirror) {
+                                        if (raw.length) {
+                                            try {
+                                                if (raw !== apiPayloadCodeMirror.getValue()) {
+                                                    apiPayloadCodeMirror.setValue(raw, -1);
+                                                }
+                                            }
+                                            catch (e) {
+                                                error = true;
+                                                console.warn('Error setting CodeMirror value.');
+                                            }
+                                        }
+                                        if (!error) {
+                                            $apiPayloadCodeMirror.removeClass('hide');
+                                            mQuery('#contactclient_api_payload_jsoneditor').addClass('hide');
+                                            apiPayloadCodeMirror.refresh();
+                                        }
+                                        else {
+                                            mQuery(this).toggleClass('active');
+                                        }
+                                    }
+                                }
+                            });
+                        mQuery('#api_payload_advanced').removeClass('hide');
+                    }
+                );
             }
         }
 
         // Hours of Operation.
         var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget');
         if ($scheduleHoursTarget.length) {
-            mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js', function () {
-                mQuery.getScriptCachedOnce('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.js', function () {
+            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
+                'npm/timepicker@1.11.12/jquery.timepicker.min.js,' +
+                'gh/gEndelf/jquery.businessHours@1.0.1/jquery.businessHours.min.js',
+                function () {
                     var operationTime = mQuery('#contactclient_schedule_hours').val();
                     if (operationTime.length) {
                         try {
@@ -509,8 +516,8 @@ Mautic.contactclientOnLoad = function () {
                     mQuery('#contactclient_schedule_hours_widget .operationState, #contactclient_schedule_hours_widget input').change(function () {
                         mQuery('#contactclient_schedule_hours').val(JSON.stringify(scheduleHours.serialize()));
                     });
-                });
-            });
+                }
+            );
         }
     });
 };
