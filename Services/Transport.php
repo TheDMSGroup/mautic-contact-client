@@ -1,8 +1,8 @@
 <?php
 
 /*
- * @copyright   2016 Mautic Contributors. All rights reserved
- * @author      Mautic
+ * @copyright   2018 Mautic Contributors. All rights reserved
+ * @author      Mautic, Inc
  *
  * @link        http://mautic.org
  *
