@@ -12,7 +12,10 @@
 namespace MauticPlugin\MauticContactClientBundle\Command;
 
 use Mautic\CoreBundle\Command\ModeratedCommand;
-// use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+
+//use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+//use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -20,9 +23,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * CLI Command : Sends a contact to a client.
  *
- * php app/console mautic:contactclient:send [--client=%clientId% [--id=%contactId%]]
+ * php app/console mautic:contactclient:send [--client=%clientId% [--contact=%contactId%]]
  */
-class SendContact extends ModeratedCommand
+class SendCommand extends ModeratedCommand
 {
     /**
      * {@inheritdoc}
@@ -41,10 +44,10 @@ class SendContact extends ModeratedCommand
                 null
             )
             ->addOption(
-                'id',
-                'i',
+                'contact',
+                'l',
                 InputOption::VALUE_REQUIRED,
-                'The id of a contact to send.',
+                'The id of a contact/lead to send.',
                 null
             );
 
@@ -56,15 +59,48 @@ class SendContact extends ModeratedCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $model   = $this->getContainer()->get('mautic.contactclient.model.contactclient');
         $options = $input->getOptions();
-        $client = $options['client'];
-        $contact = $options['id'];
 
         if (!$this->checkRunStatus($input, $output, $options['client'].$options['id'])) {
             return 0;
         }
 
+        if (!$options['client'] || !is_numeric($options['client'])) {
+            $output->writeln('Client is required.');
+
+            return 0;
+        }
+
+        if (!$options['contact'] || !is_numeric($options['contact'])) {
+            $output->writeln('Contact is required.');
+
+            return 0;
+        }
+
+        $clientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
+        $client = $clientModel->getEntity($options['client']);
+        if (!$client) {
+            $output->writeln('Could not load Client.');
+
+            return 0;
+        }
+
+        $contactModel = $this->getContainer()->get('mautic.lead.model.lead');
+        $contact = $contactModel->getEntity($options['contact']);
+        if (!$contact) {
+            $output->writeln('Could not load Contact.');
+
+            return 0;
+        }
+
+        if ($client->getType() == 'api') {
+
+
+        } elseif ($client->getType() == 'file') {
+
+
+        }
+        
         $output->writeln('Contact not sent, this method is still a stub.');
         $output->writeln('<info>Done.</info>');
 
