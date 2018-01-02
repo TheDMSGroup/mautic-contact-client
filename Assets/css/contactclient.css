@@ -1,3 +1,10 @@
+/* ContactClient Filter - QueryBuilder */
+.query-builder .rules-group-container {
+    padding: 10px 10px 6px;
+    border: 1px solid #DCC896;
+    background: rgba(250,240,210,.5);
+}
+
 /* ContactClient API Payload - JSON Editor */
 #contactclient_api_payload_jsoneditor h3 {
     font-size: 16px;

@@ -238,9 +238,18 @@ Mautic.contactclientOnLoad = function () {
                             }
                         }],
                         rules: rules_widgets
+                    }).on('change', function(){
+                        var obj = mQuery(this).queryBuilder('getRules');
+                        if (obj) {
+                            var raw = JSON.stringify(obj);
+                            if (raw.length) {
+                                $filter.val(raw);
+                            }
+                        }
                     });
                 }
             );
+            $filter.addClass('hide');
         }
 
         // API Payload field.
