@@ -83,6 +83,10 @@
                         "title": "GET"
                       },
                       {
+                        "value": "head",
+                        "title": "HEAD"
+                      },
+                      {
                         "value": "post",
                         "title": "POST"
                       },
@@ -105,11 +109,12 @@
                 ]
               },
               "format": {
+                "id": "request_format",
                 "propertyOrder": 40,
                 "type": "string",
                 "title": "Request Format",
                 "options": {
-                  "infoText": "The method used to format fields to be sent to this endpoint."
+                  "infoText": "The method used to format fields to be sent to this endpoint. This specifies standard headers for you, and the format of fields that are sent."
                 },
                 "default": "form",
                 "$ref": "#/definitions/format"
@@ -128,17 +133,37 @@
                 }
               },
               "body": {
-                "propertyOrder": 60,
                 "title": "Request Body",
-                "type": "array",
-                "format": "table",
                 "options": {
-                  "collapsed": true
+                  "collapsed": false,
+                  "disable_collapse": true
                 },
-                "items": {
-                  "title": "Body Field",
-                  "$ref": "#/definitions/field"
-                }
+                "oneOf": [
+                  {
+                    "title": "Fields",
+                    "type": "array",
+                    "format": "table",
+                    "items": {
+                      "title": "Body Field",
+                      "$ref": "#/definitions/field"
+                    },
+                    "options": {
+                      "collapsed": false,
+                      "disable_collapse": true
+                    }
+                  },
+                  {
+                    "title": "Text",
+                    "type": "string",
+                    "format": "textarea",
+                    "options": {
+                      "wysiwyg": true,
+                      "infoText": "Here you can customize the body as a raw string.",
+                      "collapsed": false,
+                      "disable_collapse": true
+                    }
+                  }
+                ]
               }
             }
           },
@@ -177,11 +202,12 @@
               },
               "body": {
                 "propertyOrder": 30,
-                "title": "Response Body",
+                "title": "Response Body Fields",
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true
+                  "collapsed": false,
+                  "disable_collapse": true
                 },
                 "items": {
                   "title": "Body Field",
@@ -240,9 +266,9 @@
           },
           "propertyOrder": 20,
           "type": "integer",
-          "default": 30,
+          "default": 60,
           "minimum": 1,
-          "maximum": 60
+          "maximum": 300
         },
         "attempts": {
           "title": "Attempts",
@@ -280,7 +306,11 @@
           "source": [
             {
               "value": "text",
-              "title": "Raw text"
+              "title": "Text"
+            },
+            {
+              "value": "html",
+              "title": "HTML"
             },
             {
               "value": "json",
