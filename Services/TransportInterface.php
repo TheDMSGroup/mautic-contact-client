@@ -13,11 +13,15 @@ namespace MauticPlugin\MauticContactClientBundle\Services;
 
 interface TransportInterface
 {
+    public function patch($uri, array $options);
+
     public function post($uri, array $options);
 
     public function put($uri, array $options);
 
     public function get($uri, array $options);
+
+    public function head($uri, array $options);
 
     public function delete($uri, array $options);
 
