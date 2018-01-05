@@ -11,73 +11,78 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-use Symfony\Component\Routing\RouterInterface;
+use Mustache_Engine as Engine;
 
 /**
  * Class TokenHelper.
  */
 class TokenHelper
 {
-    private $regex = '{contactclient=(.*?)}';
+    /**
+     * To reduce overhead, fields will be searched for this before attempting token replacement.
+     */
+    const TOKEN_KEY = '{{';
 
     /**
-     * @var ContactClientModel
+     * @var Engine
      */
-    protected $model;
+    private $engine;
 
     /**
-     * @var RouterInterface
+     * @var array Context of tokens for replacement.
      */
-    protected $router;
+    private $context = [];
 
     /**
      * TokenHelper constructor.
-     *
-     * @param FormModel $model
+     * @param array $context
      */
-    public function __construct(ContactClientModel $model, RouterInterface $router)
+    public function __construct($context = [])
     {
-        $this->router = $router;
-        $this->model  = $model;
+        $this->engine = new Engine();
+        $this->setContext($context);
     }
 
     /**
-     * @param $content
-     *
+     * Recursively replaces tokens using an array for context.
+     * @param array $array
      * @return array
      */
-    public function findContactClientTokens($content)
+    public function renderArray($array = [])
     {
-        $regex = '/'.$this->regex.'/i';
-
-        preg_match_all($regex, $content, $matches);
-
-        $tokens = [];
-
-        if (count($matches[0])) {
-            foreach ($matches[1] as $k => $id) {
-                $token = '{contactclient='.$id.'}';
-                $contactclient = $this->model->getEntity($id);
-                if ($contactclient !== null
-                    && (
-                        $contactclient->isPublished()
-                        || $this->security->hasEntityAccess(
-                            'plugin:contactclient:items:viewown',
-                            'plugin:contactclient:items:viewother',
-                            $contactclient->getCreatedBy()
-                        )
-                    )
-                ) {
-                    $script = '<script src="'.$this->router->generate('mautic_contactclient_generate', ['id' => $id], true)
-                        .'" type="text/javascript" charset="utf-8" async="async"></script>';
-                    $tokens[$token] = $script;
-                } else {
-                    $tokens[$token] = '';
-                }
+        $result = [];
+        foreach ($array as $key => $value) {
+            if (strpos($key, self::TOKEN_KEY) !== false) {
+                $key = $this->engine->render($key, $this->context);
             }
+            if (is_string($value)) {
+                if (strpos($value, self::TOKEN_KEY) !== false) {
+                    $value = $this->engine->render($value, $this->context);
+                }
+            } elseif (is_array($value) || is_object($value)) {
+                $value = $this->tokenizeArray($value, $this->context);
+            }
+            $result[$key] = $value;
         }
+        return $result;
+    }
 
-        return $tokens;
+    /**
+     * Replace Tokens in a simple string using an array for context.
+     * @param $string
+     * @return string
+     */
+    public function renderString($string) {
+        if (strpos($string, self::TOKEN_KEY) !== false) {
+            $string = $this->engine->render($string, $this->context);
+        }
+        return $string;
+    }
+
+    /**
+     * @param array $context
+     */
+    public function setContext($context = []) {
+        $this->context = $context;
     }
 }

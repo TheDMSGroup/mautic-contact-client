@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Command\ModeratedCommand;
 //use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 //use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
+use MauticPlugin\MauticSocialBundle\Entity\Lead;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -104,6 +105,7 @@ class SendCommand extends ModeratedCommand
             return 0;
         }
 
+        /** @var Lead $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
         $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {
@@ -116,6 +118,7 @@ class SendCommand extends ModeratedCommand
         if ($clientType == 'api') {
             // Load the integration helper for our general ClientIntegration
             $integrationHelper = $container->get('mautic.helper.integration');
+            /** @var ClientIntegration $integrationObject */
             $integrationObject = $integrationHelper->getIntegrationObject('Client');
             if (!$integrationObject || ($integrationObject->getIntegrationSettings()->getIsPublished() === false && !$options['force'])) {
                 $output->writeln('The Contact Clients plugin is not published.');
@@ -123,7 +126,7 @@ class SendCommand extends ModeratedCommand
                 return 0;
             }
             $integrationObject->setTestMode($options['test']);
-            $integrationObject->sendContact($client->getApiPayload(), $client);
+            $integrationObject->sendContact($client->getApiPayload(), $contact);
 
         } elseif ($clientType == 'file') {
 

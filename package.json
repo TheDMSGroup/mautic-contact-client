@@ -1,0 +1,22 @@
+{
+    "name": "thedmsgroup/mautic-contact-clients",
+    "description": "Send contacts to third party APIs or enhance your contacts without code.",
+    "type": "mautic-plugin",
+    "license": "GPL v3",
+    "authors": [
+        {
+            "name": "heathdutton",
+            "email": "heathdutton@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "mustache/mustache": "^2.12"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/thedmsgroup/mautic-contact-clients"
+        }
+    ]
+}

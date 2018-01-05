@@ -11,13 +11,13 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
-//use Mautic\LeadBundle\Entity\Lead;
-//use Mautic\PluginBundle\Entity\Integration;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
-use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 use DOMDocument;
+
+use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 
 /**
  * Class ContactClientIntegration.
@@ -78,6 +78,11 @@ class ClientIntegration extends AbstractIntegration
     protected $service;
 
     /**
+     * @var TokenHelper
+     */
+    protected $tokenHelper;
+
+    /**
      * {@inheritdoc}
      *
      * @return string
@@ -108,17 +113,16 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
-     *
      * @param string $payload
-     * @param ContactClient $client
-     * @return int
+     * @param Lead $contact
+     * @return bool
      */
-    public function sendContact(string $payload, ContactClient $client)
+    public function sendContact(string $payload, Lead $contact)
     {
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
 
-        if (!$client) {
+        if (!$contact) {
             $this->errors[] = 'Contact appears to not exist.';
 
             return false;
@@ -151,16 +155,14 @@ class ClientIntegration extends AbstractIntegration
      * Run basic validations on the payload. Deep schema validation should be made on save only.
      * @return bool
      */
-    private function setInstancePayload($payload)
+    private function setInstancePayload($payload = '')
     {
-        $this->payload = $payload;
-
-        if (!$this->payload) {
+        if (!$payload) {
             $this->errors[] = 'API instructions payload is blank.';
 
             return false;
         }
-        $this->payload = json_decode($this->payload);
+        $payload = json_decode($payload);
         $jsonError = null;
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
@@ -189,13 +191,13 @@ class ClientIntegration extends AbstractIntegration
 
             return false;
         }
-        if (!$this->payload || !is_object($this->payload)) {
+        if (!$payload || !is_object($payload)) {
             $this->errors[] = 'API instructions payload is invalid.';
 
             return false;
         }
 
-        return true;
+        return $this->payload = $payload;
     }
 
     /**
@@ -265,7 +267,7 @@ class ClientIntegration extends AbstractIntegration
         }
         foreach ($this->operations as $id => $operation) {
             $this->runOperation($id, $operation);
-            if ($this->abort){
+            if ($this->abort) {
                 break;
             }
         }
@@ -373,7 +375,7 @@ class ClientIntegration extends AbstractIntegration
         }
         // Add the raw body if provided as a string.
         if (!empty($request->body) && is_string($request->body)) {
-            $options['body'] = $this->tokenReplace($request->body);
+            $options['body'] = $this->renderTokens($request->body);
         }
 
         // Header Field overrides.
@@ -473,6 +475,7 @@ class ClientIntegration extends AbstractIntegration
                 $result = $this->getResponseArray($body, $responseFormat);
                 break;
         }
+
         return $result;
     }
 
@@ -549,6 +552,7 @@ class ClientIntegration extends AbstractIntegration
         if ($hierarchy) {
             $result = $this->flattenStructure($hierarchy);
         }
+
         return $result;
     }
 
@@ -627,7 +631,7 @@ class ClientIntegration extends AbstractIntegration
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = $this->tokenReplace($field->key ?? null);
+            $key = $this->renderTokens($field->key ?? null);
             if (empty(trim($key))) {
                 // Skip if we have an empty key.
                 continue;
@@ -635,12 +639,12 @@ class ClientIntegration extends AbstractIntegration
             // Loop through value sources till a non-empty tokenized result is found.
             $valueSources = ['value', 'default_value'];
             if ($this->test) {
-                array_unshift($valueSources,  'test_value');
+                array_unshift($valueSources, 'test_value');
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
                 if (!empty($field->{$valueSource})) {
-                    $value = $this->tokenReplace($field->{$valueSource});
+                    $value = $this->renderTokens($field->{$valueSource});
                     if (!empty($value)) {
                         break;
                     }
@@ -656,17 +660,22 @@ class ClientIntegration extends AbstractIntegration
             }
             $result[$key] = $value;
         }
+
         return $result;
     }
 
     /**
-     * @param $text
+     * @param $string
      * @return mixed
      */
-    private function tokenReplace($text)
+    private function renderTokens($string = '')
     {
-        // @todo - Finish this stub.
-        return trim($text);
+        if (!$this->tokenHelper) {
+            $this->tokenHelper = new TokenHelper();
+        }
+        $this->tokenHelper->renderString($string);
+
+        return trim($string);
     }
 
     private function abortOperation()
