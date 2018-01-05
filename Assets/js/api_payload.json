@@ -117,7 +117,7 @@
                   "infoText": "The method used to format fields to be sent to this endpoint. This specifies standard headers for you, and the format of fields that are sent."
                 },
                 "default": "form",
-                "$ref": "#/definitions/format"
+                "$ref": "#/definitions/request_format"
               },
               "headers": {
                 "propertyOrder": 50,
@@ -185,7 +185,7 @@
                   "infoText": "The method used to format fields that we will be receiving."
                 },
                 "default": "json",
-                "$ref": "#/definitions/format"
+                "$ref": "#/definitions/response_format"
               },
               "headers": {
                 "propertyOrder": 20,
@@ -296,7 +296,7 @@
     }
   },
   "definitions": {
-    "format": {
+    "request_format": {
       "type": "string",
       "title": "Format",
       "default": "form",
@@ -305,8 +305,8 @@
         {
           "source": [
             {
-              "value": "text",
-              "title": "Text"
+              "value": "form",
+              "title": "Form"
             },
             {
               "value": "html",
@@ -317,12 +317,54 @@
               "title": "JSON"
             },
             {
+              "value": "text",
+              "title": "Text"
+            },
+            {
               "value": "xml",
               "title": "XML"
             },
             {
-              "value": "form",
-              "title": "Form"
+              "value": "yaml",
+              "title": "YAML"
+            }
+          ],
+          "title": "{{item.title}}",
+          "value": "{{item.value}}"
+        }
+      ]
+    },
+    "response_format": {
+      "type": "string",
+      "title": "Format",
+      "default": "auto",
+      "class": "test",
+      "enumSource": [
+        {
+          "source": [
+            {
+              "value": "auto",
+              "title": "Autodetect"
+            },
+            {
+              "value": "html",
+              "title": "HTML"
+            },
+            {
+              "value": "json",
+              "title": "JSON"
+            },
+            {
+              "value": "text",
+              "title": "Text"
+            },
+            {
+              "value": "xml",
+              "title": "XML"
+            },
+            {
+              "value": "yaml",
+              "title": "YAML"
             }
           ],
           "title": "{{item.title}}",
@@ -366,6 +408,7 @@
           "type": "string",
           "title": "Default Value",
           "options": {
+            "hidden": true,
             "infoText": "An optional value that will be used if the value field renders as blank."
           },
           "default": "",

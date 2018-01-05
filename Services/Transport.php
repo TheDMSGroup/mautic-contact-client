@@ -47,7 +47,7 @@ class Transport implements TransportInterface
             'track_redirects' => true,
         ],
         'connect_timeout' => 10,
-        'cookie' => true,
+        'cookies' => true,
         'http_errors' => false,
         'synchronous' => true,
         'verify' => true,
@@ -113,5 +113,9 @@ class Transport implements TransportInterface
 
     public function getBody() {
         return $this->response->getBody();
+    }
+
+    public function getHeaders() {
+        return $this->response->getHeaders();
     }
 }

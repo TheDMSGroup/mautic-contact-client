@@ -16,6 +16,8 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
+use Symfony\Component\Yaml\Yaml;
+use DOMDocument;
 
 /**
  * Class ContactClientIntegration.
@@ -28,6 +30,7 @@ class ClientIntegration extends AbstractIntegration
     const SETTING_DEF_TIMEOUT = 30;
     const SETTING_DEF_ATTEMPTS = 3;
     const SETTING_DEF_DELAY = 15;
+    const XML_ROOT_ELEM = 'contact';
 
     /**
      * @var bool Flag to indicate a failure, needing abort.
@@ -70,7 +73,7 @@ class ClientIntegration extends AbstractIntegration
     protected $operations = [];
 
     /**
-     * @var object Generic Transport service.
+     * @var Transport Generic Transport service.
      */
     protected $service;
 
@@ -112,11 +115,46 @@ class ClientIntegration extends AbstractIntegration
      */
     public function sendContact(string $payload, ContactClient $client)
     {
-        $this->payload = $payload;
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
 
-        // Run basic validations on the payload. Deep schema validation should be made on save only.
+        if (!$client) {
+            $this->errors[] = 'Contact appears to not exist.';
+
+            return false;
+        }
+
+        if (!$this->setInstancePayload($payload)) {
+            return false;
+        };
+
+        // Load the settings array.
+        $this->setInstanceSettings();
+
+        // Load the operations array.
+        $this->setInstanceOperations();
+
+        // Run operations.
+        $this->runOperations();
+
+        die(
+        var_dump(
+            [
+                'errors' => $this->errors,
+                'log' => $this->log,
+            ]
+        )
+        );
+    }
+
+    /**
+     * Run basic validations on the payload. Deep schema validation should be made on save only.
+     * @return bool
+     */
+    private function setInstancePayload($payload)
+    {
+        $this->payload = $payload;
+
         if (!$this->payload) {
             $this->errors[] = 'API instructions payload is blank.';
 
@@ -157,35 +195,13 @@ class ClientIntegration extends AbstractIntegration
             return false;
         }
 
-        if (!$client) {
-            $this->errors[] = 'Unable to send an empty contact.';
-
-            return false;
-        }
-
-        // Load the settings array.
-        $this->setInstanceSettings();
-
-        // Load the operations array.
-        $this->setInstanceOperations();
-
-        // Run operations.
-        $this->runOperations();
-
-        die(
-        var_dump(
-            [
-                'errors' => $this->errors,
-                'log' => $this->log,
-            ]
-        )
-        );
+        return true;
     }
 
     /**
      * Retrieve API settings from the payload to override defaults.
      */
-    public function setInstanceSettings()
+    private function setInstanceSettings()
     {
         if (isset($this->payload->settings)) {
             foreach ($this->settings as $key => &$value) {
@@ -199,7 +215,7 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Retrieve API operation set from the payload.
      */
-    public function setInstanceOperations()
+    private function setInstanceOperations()
     {
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $key => $operation) {
@@ -214,7 +230,7 @@ class ClientIntegration extends AbstractIntegration
      * @param $id
      * @return bool
      */
-    public function runOperation($id, $operation)
+    private function runOperation($id, $operation)
     {
         $name = $operation->name ?? $id;
         if (empty($operation) || empty($operation->request)) {
@@ -231,87 +247,16 @@ class ClientIntegration extends AbstractIntegration
 
         $this->log[] = 'Running operation in '.($this->test ? 'TEST' : 'PROD').' mode: '.$name;
 
-        // Define the options of the request.
+        $this->sendRequest($uri, $operation->request);
 
+        $this->parseResponse($operation->response);
 
-        /** @var Transport $service */
-        $service = $this->getService();
-
-        $options = [];
-
-        if (!empty($operation->request->headers)) {
-            $headers = $this->fieldValues($operation->request->headers);
-            if (!empty($headers)) {
-                $options['headers'] = $headers;
-            }
-        }
-
-//        $format = $operation->request->format ?? 'form';
-//        switch (strtolower($format)) {
-//            case 'text':
-//                $options['body'] = $operation->request->body;
-//                break;
-//            case 'json':
-//                $service->getBodyJSON();
-//                break;
-//            case 'xml':
-//                $service->getBodyXML();
-//                break;
-//            case 'form':
-//            default:
-//                $service->getBodyForm();
-//                break;
-//        }
-
-        $method = $operation->request->method ?? 'post';
-        switch (strtolower($method)) {
-            case 'patch':
-                $service->patch($uri, $options);
-                break;
-            case 'put':
-                $service->put($uri, $options);
-                break;
-            case 'get':
-                $service->get($uri, $options);
-                break;
-            case 'head':
-                $service->head($uri, $options);
-                break;
-            case 'delete':
-                $service->delete($uri, $options);
-                break;
-            case 'post':
-            default:
-                $service->post($uri, $options);
-                break;
-        }
-        $status = $service->getStatusCode();
-        $size = $service->getBody()->getSize();
-        $body = $service->getBody()->getContents();
-
-        // Response formatting
-//        $format = $operation->response->format ?? 'form';
-//        switch (strtolower($format)) {
-//            case 'text':
-//                $service->getBodyText();
-//                break;
-//            case 'json':
-//                $service->getBodyJSON();
-//                break;
-//            case 'xml':
-//                $service->getBodyXML();
-//                break;
-//            case 'form':
-//            default:
-//                $service->getBodyForm();
-//                break;
-//        }
     }
 
     /**
      * Step through all operations defined.
      */
-    public function runOperations()
+    private function runOperations()
     {
         if (!isset($this->operations) || !count($this->operations)) {
             $this->errors[] = 'API instructions payload has no operations to run.';
@@ -320,6 +265,9 @@ class ClientIntegration extends AbstractIntegration
         }
         foreach ($this->operations as $id => $operation) {
             $this->runOperation($id, $operation);
+            if ($this->abort){
+                break;
+            }
         }
     }
 
@@ -346,11 +294,333 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Given a uri and request object, formulate options and make the request.
+     * @param string $uri
+     * @param object $request
+     */
+    private function sendRequest($uri, $request)
+    {
+        /** @var Transport $service */
+        $service = $this->getService();
+
+        $options = [];
+
+        // Retrieve/filter/tokenize the Request Body Field values if present.
+        $requestFields = [];
+        if (!empty($request->body) && !is_string($request->body)) {
+            $requestFields = $this->requestFieldValues($request->body);
+        }
+        switch (strtolower($request->format ?? 'form')) {
+            case 'form':
+            default:
+                $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+                if ($requestFields) {
+                    $options['form_params'] = $requestFields;
+                }
+                break;
+
+            case 'json':
+                $options['headers']['Content-Type'] = 'application/json; charset=utf-8';
+                if ($requestFields) {
+                    $options['json'] = $requestFields;
+                }
+                break;
+
+            case 'text':
+                $options['headers']['Content-Type'] = 'text/plain; charset=utf-8';
+                if ($requestFields) {
+                    // User specified to send raw text, but used key value pairs.
+                    // We will present this as YAML, since it's the most text-like response.
+                    $yaml = Yaml::dump($requestFields);
+                    if ($yaml) {
+                        $options['body'] = $yaml;
+                    }
+                }
+                break;
+
+            case 'xml':
+                $options['headers']['Content-Type'] = 'application/xml; charset=utf-8';
+                if ($requestFields) {
+                    $doc = new DomDocument('1.0');
+                    $doc->preserveWhiteSpace = false;
+                    $doc->formatOutput = true;
+                    $root = $doc->createElement(self::XML_ROOT_ELEM);
+                    $doc->appendChild($root);
+                    foreach ($requestFields as $key => $value) {
+                        $element = $doc->createElement($key);
+                        $element->appendChild(
+                            $doc->createTextNode($value)
+                        );
+                        $root->appendChild($element);
+                    }
+                    $xml = $doc->saveXML();
+                    if ($xml) {
+                        $options['body'] = $xml;
+                    }
+                }
+                break;
+
+            case 'yaml':
+                $options['headers']['Content-Type'] = 'application/x-yaml; charset=utf-8';
+                if ($requestFields) {
+                    $yaml = Yaml::dump($requestFields);
+                    if ($yaml) {
+                        $options['body'] = $yaml;
+                    }
+                }
+                break;
+
+        }
+        // Add the raw body if provided as a string.
+        if (!empty($request->body) && is_string($request->body)) {
+            $options['body'] = $this->tokenReplace($request->body);
+        }
+
+        // Header Field overrides.
+        if (!empty($request->headers)) {
+            $headers = $this->requestFieldValues($request->headers);
+            if (!empty($headers)) {
+                $options['headers'] = $headers;
+            }
+        }
+
+        $this->log[] = 'Sending request to: '.$uri;
+        $method = trim(strtolower($request->method ?? 'post'));
+        $this->log[] = 'Using method: '.$method;
+        switch ($method) {
+            case 'delete':
+                $this->log[] = 'Using options: '.json_encode($options);
+                $service->delete($uri, $options);
+                break;
+
+            case 'get':
+                if ($requestFields) {
+                    $options['query'] = $requestFields;
+                    // GET will not typically support form params in addition.
+                    unset($options['form_params']);
+                }
+                $this->log[] = 'Using options: '.json_encode($options);
+                $service->get($uri, $options);
+                break;
+
+            case 'head':
+                $this->log[] = 'Using options: '.json_encode($options);
+                $service->head($uri, $options);
+                break;
+
+            case 'patch':
+                $this->log[] = 'Using options: '.json_encode($options);
+                $service->patch($uri, $options);
+                break;
+
+            case 'post':
+            default:
+                $this->log[] = 'Using options: '.json_encode($options);
+                $service->post($uri, $options);
+                break;
+
+            case 'put':
+                $this->log[] = 'Using options: '.json_encode($options);
+                $service->put($uri, $options);
+                break;
+        }
+    }
+
+    private function parseResponse($response)
+    {
+        $result = [];
+
+        /** @var Transport $service */
+        $service = $this->getService();
+
+        $status = $service->getStatusCode();
+        $this->log[] = 'Response status code: '.$status;
+
+        $headers = $service->getHeaders();
+        $this->log[] = 'Response headers: '.$headers;
+
+        $size = $service->getBody()->getSize();
+        $this->log[] = 'Response size: '.$size;
+
+        $body = $service->getBody()->getContents();
+        $this->log[] = 'Response body: '.$body;
+
+        if ($status !== 200) {
+            $this->errors[] = 'Invalid status code received.';
+
+            return $this->abortOperation();
+        }
+
+        if (!$body) {
+            $this->errors[] = 'No body was returned.';
+
+            return $this->abortOperation();
+        }
+
+        // Response formatting.
+        $responseFormat = trim(strtolower($response->format ?? 'auto'));
+        switch ($responseFormat) {
+            default:
+            case 'auto';
+                // @todo - detect format from headers/body and step through parsers till we see success.
+                break;
+
+            case 'html';
+            case 'json';
+            case 'text';
+            case 'xml';
+            case 'yaml';
+                $result = $this->getResponseArray($body, $responseFormat);
+                break;
+        }
+        return $result;
+    }
+
+    /**
+     * Given a body of text and a format, parse to a flat key=value array.
+     * @param $body
+     * @param string $responseFormat
+     * @return array|bool Return false if there is an error or we are unable to parse.
+     */
+    private function getResponseArray($body, $responseFormat = 'xml')
+    {
+        $result = false;
+        $hierarchy = [];
+
+        switch ($responseFormat) {
+            case 'xml':
+            case 'html':
+                $doc = new DOMDocument();
+                $doc->recover = true;
+                // Ensure UTF-8 encoding is handled correctly.
+                if (preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $body, $matches) == true) {
+                    $body = '<?xml version="1.0" encoding="UTF-8"?>'.$body;
+                }
+                if ($responseFormat == 'html') {
+                    $doc->loadHTML($body);
+                } else {
+                    $doc->loadXML($body);
+                }
+                $hierarchy = $this->domDocumentArray($doc);
+                break;
+
+            case 'json':
+                $hierarchy = json_decode($body, true);
+                break;
+
+            case 'text':
+                // Handle the most common patterns of a multi-line delimited expression.
+                foreach (explode("\n", $body) as $line) {
+                    if (!empty($line)) {
+                        foreach ([':', '=', ';'] as $delimiter) {
+                            $elements = explode($delimiter, $line);
+                            if (count($elements) == 2) {
+                                // Strip outer whitespace.
+                                foreach ($elements as &$element) {
+                                    $element = trim($element);
+                                }
+                                // Strip enclosures.
+                                foreach ($elements as &$element) {
+                                    foreach (['"', "'"] as $enclosure) {
+                                        if (
+                                            strpos($element, $enclosure) === 0
+                                            && strrpos($element, $enclosure) === strlen($element) - 1
+                                        ) {
+                                            $element = trim($element, $enclosure);
+                                            continue;
+                                        }
+                                    }
+                                }
+                                list($key, $value) = $elements;
+                                $result[$key] = $value;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+
+            case 'yaml':
+                $hierarchy = Yaml::dump($body);
+                break;
+        }
+
+        // Flatten hierarchical data, if needed.
+        if ($hierarchy) {
+            $result = $this->flattenStructure($hierarchy);
+        }
+        return $result;
+    }
+
+    private function domDocumentArray($root)
+    {
+        $result = [];
+        if ($root->hasAttributes()) {
+            foreach ($root->attributes as $attribute) {
+                $result['@attributes'][$attribute->name] = $attribute->value;
+            }
+        }
+
+        if ($root->hasChildNodes()) {
+            $children = $root->childNodes;
+            if ($children->length == 1) {
+                $child = $children->item(0);
+                if ($child->nodeType == [XML_TEXT_NODE, XML_CDATA_SECTION_‌​NODE]) {
+                    $result['_value'] = $child->nodeValue;
+
+                    return count($result) == 1
+                        ? $result['_value']
+                        : $result;
+                }
+            }
+            $groups = array();
+            foreach ($children as $child) {
+                if (!isset($result[$child->nodeName])) {
+                    $result[$child->nodeName] = $this->domDocumentArray($child);
+                } else {
+                    if (!isset($groups[$child->nodeName])) {
+                        $result[$child->nodeName] = array($result[$child->nodeName]);
+                        $groups[$child->nodeName] = 1;
+                    }
+                    $result[$child->nodeName][] = $this->domDocumentArray($child);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Recursively flatten an structure to an array including only key/value pairs.
+     * @param $subject
+     * @param array $result
+     * @return array
+     */
+    private function flattenStructure($subject, &$result = [])
+    {
+        foreach ($subject as $key => $value) {
+            if (is_array($value) || is_object($value)) {
+                $this->flattenStructure($value, $result);
+            } else {
+                // Do not nullify existing key/value pairs if already present.
+                if (empty($value) && !isset($result[$key])) {
+                    $result[$key] = null;
+                } else {
+                    $result[$key] = $value;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Tokenize/parse fields from the API Payload for transit.
      * @param $fields
      * @return array
      */
-    private function fieldValues($fields) {
+    private function requestFieldValues($fields)
+    {
         $result = [];
         foreach ($fields as $field) {
             if (!$this->test && ($field->test_only ?? false)) {
@@ -362,12 +632,21 @@ class ClientIntegration extends AbstractIntegration
                 // Skip if we have an empty key.
                 continue;
             }
+            // Loop through value sources till a non-empty tokenized result is found.
+            $valueSources = ['value', 'default_value'];
             if ($this->test) {
-                $value = $this->tokenReplace($field->test_value ?? $field->value ?? null);
-            } else {
-                $value = $this->tokenReplace($field->value ?? null);
+                array_unshift($valueSources,  'test_value');
             }
-            if (empty(trim($value))) {
+            $value = null;
+            foreach ($valueSources as $valueSource) {
+                if (!empty($field->{$valueSource})) {
+                    $value = $this->tokenReplace($field->{$valueSource});
+                    if (!empty($value)) {
+                        break;
+                    }
+                }
+            }
+            if (empty($value)) {
                 // The field value is empty.
                 if (($field->required ?? false) === true) {
                     // The field is required. Abort.
@@ -384,11 +663,14 @@ class ClientIntegration extends AbstractIntegration
      * @param $text
      * @return mixed
      */
-    private function tokenReplace($text) {
-        return $text;
+    private function tokenReplace($text)
+    {
+        // @todo - Finish this stub.
+        return trim($text);
     }
 
-    private function abortOperation() {
+    private function abortOperation()
+    {
         $this->abort = true;
     }
 }
