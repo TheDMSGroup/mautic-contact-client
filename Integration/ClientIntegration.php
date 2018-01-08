@@ -240,7 +240,7 @@ class ClientIntegration extends AbstractIntegration
 
             return true;
         }
-        $uri = ($this->test ? $operation->request->url_test : $operation->request->url) ?: $operation->request->url;
+        $uri = ($this->test ? $operation->request->test_url : $operation->request->url) ?: $operation->request->url;
         if (!$uri) {
             $this->errors[] = 'Operation skipped. No URL.';
 
