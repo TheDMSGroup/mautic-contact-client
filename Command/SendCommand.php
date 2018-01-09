@@ -17,6 +17,7 @@ use Mautic\CoreBundle\Command\ModeratedCommand;
 //use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticSocialBundle\Entity\Lead;
+
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -126,7 +127,7 @@ class SendCommand extends ModeratedCommand
                 return 0;
             }
             $integrationObject->setTestMode($options['test']);
-            $integrationObject->sendContact($client->getApiPayload(), $contact);
+            $integrationObject->sendContact($client, $contact);
 
         } elseif ($clientType == 'file') {
 

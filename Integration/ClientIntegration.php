@@ -13,11 +13,11 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 use DOMDocument;
-
-use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 
 /**
  * Class ContactClientIntegration.
@@ -38,6 +38,11 @@ class ClientIntegration extends AbstractIntegration
     protected $abort = false;
 
     /**
+     * @var ContactClient client we are about to send this Contact to.
+     */
+    protected $client;
+
+    /**
      * @var array Errors encountered during processing.
      */
     protected $errors = [];
@@ -51,6 +56,11 @@ class ClientIntegration extends AbstractIntegration
      * @var object API instructions payload defining the API integration.
      */
     protected $payload;
+
+    /**
+     * @var Lead The contact we wish to send and update.
+     */
+    protected $contact;
 
     /**
      * @var bool Test mode.
@@ -113,22 +123,30 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
-     * @param string $payload
+     *
+     * @param ContactClient $client
      * @param Lead $contact
      * @return bool
      */
-    public function sendContact(string $payload, Lead $contact)
+    public function sendContact(ContactClient $client, Lead $contact)
     {
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
+
+        if (!$client) {
+            $this->errors[] = 'Contact Client appears to not exist.';
+            return false;
+        }
+        $this->client = $client;
 
         if (!$contact) {
             $this->errors[] = 'Contact appears to not exist.';
 
             return false;
         }
+        $this->contact = $contact;
 
-        if (!$this->setInstancePayload($payload)) {
+        if (!$this->setInstancePayload()) {
             return false;
         };
 
@@ -153,10 +171,10 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * Run basic validations on the payload. Deep schema validation should be made on save only.
-     * @return bool
      */
-    private function setInstancePayload($payload = '')
+    private function setInstancePayload()
     {
+        $payload = $this->client->getApiPayload();
         if (!$payload) {
             $this->errors[] = 'API instructions payload is blank.';
 
@@ -230,6 +248,7 @@ class ClientIntegration extends AbstractIntegration
      * Run a single API Operation.
      *
      * @param $id
+     * @param $operation
      * @return bool
      */
     private function runOperation($id, $operation)
@@ -251,8 +270,7 @@ class ClientIntegration extends AbstractIntegration
 
         $this->sendRequest($uri, $operation->request);
 
-        $this->parseResponse($operation->response);
-
+        return $this->parseResponse($operation->response);
     }
 
     /**
@@ -271,6 +289,7 @@ class ClientIntegration extends AbstractIntegration
                 break;
             }
         }
+        return true;
     }
 
     /**
@@ -439,7 +458,7 @@ class ClientIntegration extends AbstractIntegration
         $this->log[] = 'Response status code: '.$status;
 
         $headers = $service->getHeaders();
-        $this->log[] = 'Response headers: '.$headers;
+        $this->log[] = 'Response headers: '.json_encode($headers);
 
         $size = $service->getBody()->getSize();
         $this->log[] = 'Response size: '.$size;
@@ -671,9 +690,21 @@ class ClientIntegration extends AbstractIntegration
     private function renderTokens($string = '')
     {
         if (!$this->tokenHelper) {
-            $this->tokenHelper = new TokenHelper();
+
+            // The timezone of our data source.
+            $tza = $this->factory->get('mautic.helper.core_parameters')->getParameter('default_timezone') ?: 'UTC';
+
+            // The timezone of this data client.
+            $tzb = $this->client->getScheduleTimezone() ?: 'UTC';
+
+            $this->tokenHelper = new TokenHelper([], $tza, $tzb);
+            $this->tokenHelper->addContextContact($this->contact);
+
+            // Include the payload as potential context.
+            $this->tokenHelper->addContext(['payload' => $this->payload]);
+
         }
-        $this->tokenHelper->renderString($string);
+        $string = $this->tokenHelper->renderString($string);
 
         return trim($string);
     }
