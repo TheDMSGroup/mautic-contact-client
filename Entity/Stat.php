@@ -13,7 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
-use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
  * Class Stat.
@@ -53,7 +53,7 @@ class Stat
     /**
      * @var
      */
-    private $lead;
+    private $contact;
 
     /**
      * @param ORM\ClassMetadata $metadata
@@ -169,21 +169,21 @@ class Stat
     }
 
     /**
-     * @return Lead
+     * @return Contact
      */
-    public function getLead()
+    public function getContact()
     {
-        return $this->lead;
+        return $this->contact;
     }
 
     /**
-     * @param Lead $lead
+     * @param Contact $lead
      *
      * @return Stat
      */
-    public function setLead(Lead $lead)
+    public function setLead(Contact $contact)
     {
-        $this->lead = $lead;
+        $this->contact = $contact;
 
         return $this;
     }

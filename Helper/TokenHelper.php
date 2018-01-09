@@ -11,7 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
-use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mustache_Engine as Engine;
 use MauticPlugin\MauticContactClientBundle\Helper\DateFormatHelper;
 
@@ -113,10 +113,10 @@ class TokenHelper
 
     /**
      * Given a Contact, flatten the field values a bit into a more user friendly list of token possibilities.
-     * @param Lead $contact
+     * @param Contact $contact
      * @return mixed
      */
-    public function addContextContact(Lead $contact)
+    public function addContextContact(Contact $contact)
     {
         $context = [];
         
@@ -221,7 +221,7 @@ class TokenHelper
             }
         }
 
-        $contacts = $this->context['contacts'] ?: [];
+        $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
         $this->context = $context;

@@ -16,7 +16,7 @@ use Mautic\CoreBundle\Command\ModeratedCommand;
 //use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 //use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
-use MauticPlugin\MauticSocialBundle\Entity\Lead;
+use MauticPlugin\MauticSocialBundle\Entity\Lead as Contact;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -106,7 +106,7 @@ class SendCommand extends ModeratedCommand
             return 0;
         }
 
-        /** @var Lead $contactModel */
+        /** @var Contact $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
         $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {

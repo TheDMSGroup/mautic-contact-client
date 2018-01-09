@@ -11,10 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
-use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
+use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 use DOMDocument;
@@ -125,10 +126,10 @@ class ClientIntegration extends AbstractIntegration
      * Send the lead/contact to the API by following the steps.
      *
      * @param ContactClient $client
-     * @param Lead $contact
+     * @param Contact $contact
      * @return bool
      */
-    public function sendContact(ContactClient $client, Lead $contact)
+    public function sendContact(ContactClient $client, Contact $contact)
     {
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
@@ -159,6 +160,7 @@ class ClientIntegration extends AbstractIntegration
         // Run operations.
         $this->runOperations();
 
+        $this->logResults();
         die(
         var_dump(
             [
@@ -650,8 +652,8 @@ class ClientIntegration extends AbstractIntegration
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = $this->renderTokens($field->key ?? null);
-            if (empty(trim($key))) {
+            $key = trim($this->renderTokens($field->key ?? null));
+            if (empty($key)) {
                 // Skip if we have an empty key.
                 continue;
             }
@@ -663,7 +665,7 @@ class ClientIntegration extends AbstractIntegration
             $value = null;
             foreach ($valueSources as $valueSource) {
                 if (!empty($field->{$valueSource})) {
-                    $value = $this->renderTokens($field->{$valueSource});
+                    $value = trim($this->renderTokens($field->{$valueSource}));
                     if (!empty($value)) {
                         break;
                     }
@@ -691,7 +693,7 @@ class ClientIntegration extends AbstractIntegration
     {
         if (!$this->tokenHelper) {
 
-            // The timezone of our data source.
+            // The timezone of our data source (not of the contact).
             $tza = $this->factory->get('mautic.helper.core_parameters')->getParameter('default_timezone') ?: 'UTC';
 
             // The timezone of this data client.
@@ -704,13 +706,15 @@ class ClientIntegration extends AbstractIntegration
             $this->tokenHelper->addContext(['payload' => $this->payload]);
 
         }
-        $string = $this->tokenHelper->renderString($string);
-
-        return trim($string);
+        return $this->tokenHelper->renderString($string);
     }
 
     private function abortOperation()
     {
         $this->abort = true;
+    }
+
+    private function logResults() {
+
     }
 }

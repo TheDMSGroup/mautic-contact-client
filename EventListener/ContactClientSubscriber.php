@@ -18,7 +18,7 @@ use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
 use Mautic\FormBundle\Helper\TokenHelper as FormTokenHelper;
-use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Helper\TokenHelper;
 use Mautic\PageBundle\Entity\Trackable;
 use Mautic\PageBundle\Helper\TokenHelper as PageTokenHelper;
@@ -190,7 +190,7 @@ class ContactClientSubscriber extends CommonSubscriber
      */
     public function onTokenReplacement(MauticEvents\TokenReplacementEvent $event)
     {
-        /** @var Lead $lead */
+        /** @var Contact $lead */
         $lead         = $event->getLead();
         $content      = '';
         $clickthrough = $event->getClickthrough();
