@@ -40,6 +40,8 @@ $view['slots']->set(
     )
 );
 
+$website = $item->getWebsite();
+
 ?>
 <!-- start: box layout -->
 <div class="box-layout">
@@ -180,19 +182,19 @@ $view['slots']->set(
     <!-- right section -->
     <div class="col-md-3 bg-white bdr-l height-auto">
         <!-- form HTML -->
-        <div class="pa-md">
-            <div class="panel bg-info bg-light-lg bdr-w-0 mb-0">
-                <div class="panel-body">
-                    <h5 class="fw-sb mb-sm"><?php echo $view['translator']->trans('mautic.contactclient.install.header'); ?></h5>
-                    <p class="mb-sm"><?php echo $view['translator']->trans('mautic.contactclient.install.description'); ?></p>
-
-
+        <?php if ($website): ?>
+            <div class="pa-md">
+                <div class="panel bg-info bg-light-lg bdr-w-0 mb-0">
+                    <div class="panel-body">
+                        <h5 class="fw-sb mb-sm"><?php echo $view['translator']->trans('mautic.contactclient.form.website'); ?></h5>
+                        <p class="mb-sm"><a href="<?php echo $website; ?>" target="_blank"><?php echo $website; ?></a></p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!--/ form HTML -->
 
-        <hr class="hr-w-2" style="width:50%">
+            <hr class="hr-w-2" style="width:50%">
+        <? endif; ?>
+        <!--/ form HTML -->
 
         <!--
         we can leverage data from audit_log table
