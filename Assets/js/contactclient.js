@@ -353,6 +353,13 @@ Mautic.contactclientOnLoad = function () {
                                             format: /^.{4}-.{4}-.{4}$/
                                         }
                                     }],
+                                    icons: {
+                                        add_group: 'fa fa-small fa-plus',
+                                        add_rule: 'fa fa-plus',
+                                        remove_group: 'fa fa-times',
+                                        remove_rule: 'fa fa-times',
+                                        sort: 'fa fa-sort'
+                                    },
                                     rules: rules
                                 });
                         }
@@ -421,19 +428,6 @@ Mautic.contactclientOnLoad = function () {
                                     }
                                     return el;
                                 }
-                                // Create a simple field type for query builder.
-                                // getFormInputField: function (type) {
-                                //     var query = false;
-                                //     if (type === 'query') {
-                                //         type = 'textarea';
-                                //         query = true;
-                                //     }
-                                //     var el = this._super(type);
-                                //     if (query) {
-                                //         el.className += ' query-builder';
-                                //     }
-                                //     return el;
-                                // }
                             });
 
                             // Create our widget container.
