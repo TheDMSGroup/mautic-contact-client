@@ -125,6 +125,21 @@
     max-width: 16.66666%;
 }
 
+#contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > label {
+    font-size: 16px;
+    padding-bottom: 5px;
+}
+
+#contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > select {
+    font-size: 16px;
+    font-style: normal !important;
+    background-color: #fff !important;
+}
+
+#contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > div > div > h3 {
+    display: none;
+}
+
 /* ContactClient API Payload - CodeMirror */
 #contactclient_api_payload_codemirror {
     margin-top: 5px;

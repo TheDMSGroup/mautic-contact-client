@@ -171,7 +171,6 @@
             "title": "Response",
             "propertyOrder": 70,
             "type": "object",
-            "format": "grid",
             "options": {
               "collapsed": false,
               "disable_collapse": true
@@ -217,20 +216,16 @@
               "success": {
                 "propertyOrder": 40,
                 "title": "Success Definition",
-                "type": "array",
+                "type": "object",
                 "options": {
                   "collapsed": true
                 },
-                "items": {
-                  "type": "object",
-                  "title": "Temp",
-                  "options": {
-                    "infoText": "Temp"
-                  },
-                  "properties": {
-                    "temp": {
-                      "type": "string"
-                    }
+                "properties": {
+                  "definition": {
+                    "propertyOrder": 10,
+                    "title": " ",
+                    "type": "query",
+                    "format": "textarea"
                   }
                 }
               }
