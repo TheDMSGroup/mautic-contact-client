@@ -260,7 +260,7 @@ Mautic.contactclientOnLoad = function () {
                 apiPayloadJSONEditor;
 
             // API Payload JSON Schema.
-            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/gh/heathdutton/json-editor/dist/jsoneditor.min.js', function () {
+            mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/gh/heathdutton/json-editor@0.7.30/dist/jsoneditor.min.js', function () {
                 mQuery.ajax({
                     dataType: 'json',
                     cache: false,

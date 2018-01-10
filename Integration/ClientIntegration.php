@@ -94,6 +94,11 @@ class ClientIntegration extends AbstractIntegration
     protected $tokenHelper;
 
     /**
+     * @var array $response
+     */
+    protected $response;
+
+    /**
      * {@inheritdoc}
      *
      * @return string
@@ -247,6 +252,21 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Given the recent response, evaluate it for success based on the expected success validator.
+     * @param array $successDefinition
+     * @return bool
+     */
+    private function validateResponse($successDefinition = []){
+        $result = !$this->abort;
+
+        if ($result) {
+            // Evaluate the current response using the success filter.
+        }
+
+        return $result;
+    }
+
+    /**
      * Run a single API Operation.
      *
      * @param $id
@@ -261,7 +281,7 @@ class ClientIntegration extends AbstractIntegration
 
             return true;
         }
-        $uri = ($this->test ? $operation->request->test_url : $operation->request->url) ?: $operation->request->url;
+        $uri = ($this->test ? $operation->request->testUrl : $operation->request->url) ?: $operation->request->url;
         if (!$uri) {
             $this->errors[] = 'Operation skipped. No URL.';
 
@@ -272,7 +292,28 @@ class ClientIntegration extends AbstractIntegration
 
         $this->sendRequest($uri, $operation->request);
 
-        return $this->parseResponse($operation->response);
+        $this->parseResponse($operation->response->format ?? 'auto');
+
+        // @todo - After parsing the response, we may find new keys/values to use in mapping. We can automatically update the payload for the expected response for easier input.
+
+        $this->validateResponse($operation->response->success ?? []);
+
+        $this->updateContact($operation->response);
+    }
+
+    /**
+     * Map the response to contact fields and update the contact, logging the action.
+     *
+     * @param array $responseMapping
+     */
+    private function updateContact($responseMapping = []) {
+        if (!$this->abort) {
+            // @todo - Check the response against the expected response for any field mappings.
+
+            // @todo - If we find field values to map, update the contact and save.
+
+            // @todo - Log an event on the contact to           where this update came from.
+        }
     }
 
     /**
@@ -449,7 +490,13 @@ class ClientIntegration extends AbstractIntegration
         }
     }
 
-    private function parseResponse($response)
+    /**
+     * Parse the response and capture key=value pairs.
+     *
+     * @param string $responseFormat
+     * @return bool
+     */
+    private function parseResponse($responseFormat = 'auto')
     {
         $result = [];
 
@@ -479,9 +526,14 @@ class ClientIntegration extends AbstractIntegration
 
             return $this->abortOperation();
         }
+        
+        // Format the head response.
+        if ($headers) {
+            $result['headers'] = $this->getResponseArray($headers, 'headers');
+        }
 
-        // Response formatting.
-        $responseFormat = trim(strtolower($response->format ?? 'auto'));
+        // Format the body response.
+        $responseFormat = trim(strtolower($responseFormat));
         switch ($responseFormat) {
             default:
             case 'auto';
@@ -493,48 +545,55 @@ class ClientIntegration extends AbstractIntegration
             case 'text';
             case 'xml';
             case 'yaml';
-                $result = $this->getResponseArray($body, $responseFormat);
+                $result['body'] = $this->getResponseArray($body, $responseFormat);
                 break;
         }
 
-        return $result;
+        $this->response = $result;
+        return true;
     }
 
     /**
-     * Given a body of text and a format, parse to a flat key=value array.
-     * @param $body
+     * Given a headers array or body of text and a format, parse to a flat key=value array.
+     * @param mixed $data
      * @param string $responseFormat
      * @return array|bool Return false if there is an error or we are unable to parse.
      */
-    private function getResponseArray($body, $responseFormat = 'xml')
+    private function getResponseArray($data, $responseFormat = 'json')
     {
         $result = false;
         $hierarchy = [];
 
         switch ($responseFormat) {
+            case 'headers':
+                foreach ($data as $key => $array) {
+                    $result[$key] = implode(',', $array);
+                }
+                break;
+
             case 'xml':
             case 'html':
                 $doc = new DOMDocument();
                 $doc->recover = true;
                 // Ensure UTF-8 encoding is handled correctly.
-                if (preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $body, $matches) == true) {
-                    $body = '<?xml version="1.0" encoding="UTF-8"?>'.$body;
+                if (preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches) == true) {
+                    $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
                 }
                 if ($responseFormat == 'html') {
-                    $doc->loadHTML($body);
+                    $doc->loadHTML($data);
                 } else {
-                    $doc->loadXML($body);
+                    $doc->loadXML($data);
                 }
                 $hierarchy = $this->domDocumentArray($doc);
                 break;
 
             case 'json':
-                $hierarchy = json_decode($body, true);
+                $hierarchy = json_decode($data, true);
                 break;
 
             case 'text':
                 // Handle the most common patterns of a multi-line delimited expression.
-                foreach (explode("\n", $body) as $line) {
+                foreach (explode("\n", $data) as $line) {
                     if (!empty($line)) {
                         foreach ([':', '=', ';'] as $delimiter) {
                             $elements = explode($delimiter, $line);
@@ -565,7 +624,7 @@ class ClientIntegration extends AbstractIntegration
                 break;
 
             case 'yaml':
-                $hierarchy = Yaml::dump($body);
+                $hierarchy = Yaml::dump($data);
                 break;
         }
 

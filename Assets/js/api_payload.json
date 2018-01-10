@@ -58,7 +58,7 @@
                 },
                 "default": ""
               },
-              "test_url": {
+              "testUrl": {
                 "propertyOrder": 20,
                 "type": "string",
                 "title": "Test URL",
@@ -109,7 +109,7 @@
                 ]
               },
               "format": {
-                "id": "request_format",
+                "id": "requestFormat",
                 "propertyOrder": 40,
                 "type": "string",
                 "title": "Request Format",
@@ -117,7 +117,7 @@
                   "infoText": "The method used to format fields to be sent to this endpoint. This specifies standard headers for you, and the format of fields that are sent."
                 },
                 "default": "form",
-                "$ref": "#/definitions/request_format"
+                "$ref": "#/definitions/requestFormat"
               },
               "headers": {
                 "propertyOrder": 50,
@@ -185,7 +185,7 @@
                   "infoText": "The method used to format fields that we will be receiving."
                 },
                 "default": "json",
-                "$ref": "#/definitions/response_format"
+                "$ref": "#/definitions/responseFormat"
               },
               "headers": {
                 "propertyOrder": 20,
@@ -296,7 +296,7 @@
     }
   },
   "definitions": {
-    "request_format": {
+    "requestFormat": {
       "type": "string",
       "title": "Format",
       "default": "form",
@@ -334,7 +334,7 @@
         }
       ]
     },
-    "response_format": {
+    "responseFormat": {
       "type": "string",
       "title": "Format",
       "default": "auto",
