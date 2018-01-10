@@ -273,32 +273,87 @@ Mautic.contactclientOnLoad = function () {
                         //     return this.value;
                         // },
                         postBuild: function () {
-                            this.container.className += ' query-builder';
-                            console.log(this);
-                            console.log('postbuild');
+                            // Default rules.
                             var rules = {
-                                condition: 'AND',
-                                rules: [{
-                                    id: 'price',
-                                    operator: 'less',
-                                    value: 10.25
-                                }, {
-                                    condition: 'OR',
+                                    condition: 'AND',
                                     rules: [{
-                                        id: 'category',
-                                        operator: 'equal',
-                                        value: 2
+                                        id: 'price',
+                                        operator: 'less',
+                                        value: 10.25
                                     }, {
-                                        id: 'category',
-                                        operator: 'equal',
-                                        value: 1
+                                        condition: 'OR',
+                                        rules: [{
+                                            id: 'category',
+                                            operator: 'equal',
+                                            value: 2
+                                        }, {
+                                            id: 'category',
+                                            operator: 'equal',
+                                            value: 1
+                                        }]
                                     }]
-                                }]
-                            };
-                            var $builder = mQuery('<div>', {class: 'query-builder'})
-                                .insertAfter(this.input);
-
-                            $builder
+                                },
+                                // Default filters.
+                                filters = [{
+                                    id: 'name',
+                                    label: 'Name',
+                                    type: 'string'
+                                }, {
+                                    id: 'category',
+                                    label: 'Category',
+                                    type: 'integer',
+                                    input: 'select',
+                                    values: {
+                                        1: 'Books',
+                                        2: 'Movies',
+                                        3: 'Music',
+                                        4: 'Tools',
+                                        5: 'Goodies',
+                                        6: 'Clothes'
+                                    },
+                                    operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
+                                }, {
+                                    id: 'in_stock',
+                                    label: 'In stock',
+                                    type: 'integer',
+                                    input: 'radio',
+                                    values: {
+                                        1: 'Yes',
+                                        0: 'No'
+                                    },
+                                    operators: ['equal']
+                                }, {
+                                    id: 'price',
+                                    label: 'Price',
+                                    type: 'double',
+                                    validation: {
+                                        min: 0,
+                                        step: 0.01
+                                    }
+                                }, {
+                                    id: 'id',
+                                    label: 'Identifier',
+                                    type: 'string',
+                                    placeholder: '____-____-____',
+                                    operators: ['equal', 'not_equal'],
+                                    validation: {
+                                        format: /^.{4}-.{4}-.{4}$/
+                                    }
+                                }];
+                            // Load a saved value if relevant.
+                            if (this.input.value.length > 0) {
+                                try {
+                                    var obj = mQuery.parseJSON(this.input.value);
+                                }
+                                catch (e) {
+                                    console.warn('Invalid JSON in success definition');
+                                }
+                                if (typeof obj === 'object' && obj.length > 0) {
+                                    rules = obj;
+                                }
+                            }
+                            mQuery('<div>', {class: 'query-builder'})
+                                .insertAfter(this.input)
                                 .on('afterCreateRuleInput.queryBuilder', function (e, rule) {
                                     if (rule.filter.plugin === 'selectize') {
                                         rule.$el.find('.rule-value-container').css('min-width', '200px')
@@ -307,61 +362,27 @@ Mautic.contactclientOnLoad = function () {
                                 })
                                 .queryBuilder({
                                     plugins: ['bt-tooltip-errors'],
-                                    filters: [{
-                                        id: 'name',
-                                        label: 'Name',
-                                        type: 'string'
-                                    }, {
-                                        id: 'category',
-                                        label: 'Category',
-                                        type: 'integer',
-                                        input: 'select',
-                                        values: {
-                                            1: 'Books',
-                                            2: 'Movies',
-                                            3: 'Music',
-                                            4: 'Tools',
-                                            5: 'Goodies',
-                                            6: 'Clothes'
-                                        },
-                                        operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
-                                    }, {
-                                        id: 'in_stock',
-                                        label: 'In stock',
-                                        type: 'integer',
-                                        input: 'radio',
-                                        values: {
-                                            1: 'Yes',
-                                            0: 'No'
-                                        },
-                                        operators: ['equal']
-                                    }, {
-                                        id: 'price',
-                                        label: 'Price',
-                                        type: 'double',
-                                        validation: {
-                                            min: 0,
-                                            step: 0.01
-                                        }
-                                    }, {
-                                        id: 'id',
-                                        label: 'Identifier',
-                                        type: 'string',
-                                        placeholder: '____-____-____',
-                                        operators: ['equal', 'not_equal'],
-                                        validation: {
-                                            format: /^.{4}-.{4}-.{4}$/
-                                        }
-                                    }],
+                                    filters: filters,
                                     icons: {
-                                        add_group: 'fa fa-small fa-plus',
+                                        add_group: 'fa fa-plus',
                                         add_rule: 'fa fa-plus',
                                         remove_group: 'fa fa-times',
                                         remove_rule: 'fa fa-times',
-                                        sort: 'fa fa-sort'
+                                        sort: 'fa fa-sort',
+                                        error: 'fa fa-exclamation-triangle'
                                     },
                                     rules: rules
-                                });
+                                })
+                                .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
+                                    var $this = mQuery(this),
+                                        rules = $this.queryBuilder('getRules', {get_flags: true}),
+                                        raw = JSON.stringify(rules),
+                                        $input = $this.parent().find('textarea');
+                                    if (rules && $input.length && $input.val() !== raw) {
+                                        $input.val(raw);
+                                    }
+                                })
+                                .parent().find('textarea').addClass('hide');
                         }
 
                     });
