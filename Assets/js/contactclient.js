@@ -64,193 +64,25 @@ Mautic.contactclientOnLoad = function () {
             }
         });
 
-        // Filter field.
+        // @todo - Exclusivity field.
+
+        // @todo - Filtering field.
         // var $filter = mQuery('#contactclient_filter');
         // if ($filter.length) {
         //     mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
         //         'npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,' +
-        //         'npm/selectize@0.12.4/dist/js/standalone/selectize.min.js,' +
         //         'npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js',
         //         function () {
         //             var $filterQueryBuilder = mQuery('<div>', {
         //                 id: 'contactclient_filter_querybuilder'
         //             }).insertBefore($filter);
         //
-        //             var rules_widgets = {
-        //                 condition: 'OR',
-        //                 rules: [{
-        //                     id: 'date',
-        //                     operator: 'equal',
-        //                     value: '1991/11/17'
-        //                 }, {
-        //                     id: 'rate',
-        //                     operator: 'equal',
-        //                     value: 22
-        //                 }, {
-        //                     id: 'category',
-        //                     operator: 'equal',
-        //                     value: '38'
-        //                 }, {
-        //                     condition: 'AND',
-        //                     rules: [{
-        //                         id: 'coord',
-        //                         operator: 'equal',
-        //                         value: 'B.3'
-        //                     }]
-        //                 }]
-        //             };
-        //             // Fix for Selectize
-        //             $filterQueryBuilder.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
-        //                 if (rule.filter.plugin === 'selectize') {
-        //                     rule.$el.find('.rule-value-container').css('min-width', '200px')
-        //                         .find('.selectize-control').removeClass('form-control');
-        //                 }
-        //             }).queryBuilder({
-        //                 plugins: ['bt-tooltip-errors'],
-        //
-        //                 filters: [{
-        //                     id: 'date',
-        //                     label: 'Datepicker',
-        //                     type: 'date',
-        //                     validation: {
-        //                         format: 'YYYY/MM/DD'
-        //                     },
-        //                     plugin: 'datepicker',
-        //                     plugin_config: {
-        //                         format: 'yyyy/mm/dd',
-        //                         todayBtn: 'linked',
-        //                         todayHighlight: true,
-        //                         autoclose: true
-        //                     }
-        //                 }, {
-        //                     id: 'rate',
-        //                     label: 'Slider',
-        //                     type: 'integer',
-        //                     validation: {
-        //                         min: 0,
-        //                         max: 100
-        //                     },
-        //                     plugin: 'slider',
-        //                     plugin_config: {
-        //                         min: 0,
-        //                         max: 100,
-        //                         value: 0
-        //                     },
-        //                     valueSetter: function (rule, value) {
-        //                         if (rule.operator.nb_inputs === 1) {
-        //                             value = [value];
-        //                         }
-        //                         rule.$el.find('.rule-value-container input').each(function (i) {
-        //                             mQuery(this).slider('setValue', value[i] || 0);
-        //                         });
-        //                     },
-        //                     valueGetter: function (rule) {
-        //                         var value = [];
-        //                         rule.$el.find('.rule-value-container input').each(function () {
-        //                             value.push(mQuery(this).slider('getValue'));
-        //                         });
-        //                         return rule.operator.nb_inputs === 1 ? value[0] : value;
-        //                     }
-        //                 }, {
-        //                     id: 'category',
-        //                     label: 'Selectize',
-        //                     type: 'string',
-        //                     plugin: 'selectize',
-        //                     plugin_config: {
-        //                         valueField: 'id',
-        //                         labelField: 'name',
-        //                         searchField: 'name',
-        //                         sortField: 'name',
-        //                         create: true,
-        //                         maxItems: 1,
-        //                         plugins: ['remove_button'],
-        //                         onInitialize: function () {
-        //                             var that = this;
-        //
-        //                             if (localStorage.demoData === undefined) {
-        //                                 // mQuery.getJSON(baseurl +
-        //                                 // '/assets/demo-data.json', function
-        //                                 // (data) { localStorage.demoData =
-        //                                 // JSON.stringify(data);
-        //                                 // data.forEach(function (item) {
-        //                                 // that.addOption(item); }); });
-        //                             }
-        //                             else {
-        //                                 JSON.parse(localStorage.demoData).forEach(function (item) {
-        //                                     that.addOption(item);
-        //                                 });
-        //                             }
-        //                         }
-        //                     },
-        //                     valueSetter: function (rule, value) {
-        //                         rule.$el.find('.rule-value-container input')[0].selectize.setValue(value);
-        //                     }
-        //                 }, {
-        //                     id: 'coord',
-        //                     label: 'Coordinates',
-        //                     type: 'string',
-        //                     validation: {
-        //                         format: /^[A-C]{1}.[1-6]{1}$/
-        //                     },
-        //                     input: function (rule, name) {
-        //                         var $container = rule.$el.find('.rule-value-container');
-        //
-        //                         $container.on('change', '[name=' + name + '_1]', function () {
-        //                             var h = '';
-        //
-        //                             switch (mQuery(this).val()) {
-        //                                 case 'A':
-        //                                     h = '<option value="-1">-</option> <option value="1">1</option> <option value="2">2</option>';
-        //                                     break;
-        //                                 case 'B':
-        //                                     h = '<option value="-1">-</option> <option value="3">3</option> <option value="4">4</option>';
-        //                                     break;
-        //                                 case 'C':
-        //                                     h = '<option value="-1">-</option> <option value="5">5</option> <option value="6">6</option>';
-        //                                     break;
-        //                             }
-        //
-        //                             $container.find('[name$=_2]')
-        //                                 .html(h).toggle(!!h)
-        //                                 .val('-1').trigger('change');
-        //                         });
-        //
-        //                         return '\
-        //                       <select name="' + name + '_1"> \
-        //                         <option value="-1">-</option> \
-        //                         <option value="A">A</option> \
-        //                         <option value="B">B</option> \
-        //                         <option value="C">C</option> \
-        //                       </select> \
-        //                       <select name="' + name + '_2" style="display:none;"></select>';
-        //                     },
-        //                     valueGetter: function (rule) {
-        //                         return rule.$el.find('.rule-value-container [name$=_1]').val()
-        //                             + '.' + rule.$el.find('.rule-value-container [name$=_2]').val();
-        //                     },
-        //                     valueSetter: function (rule, value) {
-        //                         if (rule.operator.nb_inputs > 0) {
-        //                             var val = value.split('.');
-        //
-        //                             rule.$el.find('.rule-value-container [name$=_1]').val(val[0]).trigger('change');
-        //                             rule.$el.find('.rule-value-container [name$=_2]').val(val[1]).trigger('change');
-        //                         }
-        //                     }
-        //                 }],
-        //                 rules: rules_widgets
-        //             }).on('change', function () {
-        //                 var obj = mQuery(this).queryBuilder('getRules');
-        //                 if (obj) {
-        //                     var raw = JSON.stringify(obj);
-        //                     if (raw.length) {
-        //                         $filter.val(raw);
-        //                     }
-        //                 }
-        //             });
+        //             $filter.addClass('hide');
         //         }
         //     );
-        //     $filter.addClass('hide');
         // }
+
+        // @todo - Limits field.
 
         // API Payload field.
         var $apiPayload = mQuery('#contactclient_api_payload');
@@ -262,178 +94,10 @@ Mautic.contactclientOnLoad = function () {
             // API Payload JSON Schema.
             mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
                 'npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,' +
-                // @todo - replace selectize with bootstrap-select where appropriate.
-                'npm/selectize@0.12.4/dist/js/standalone/selectize.min.js,' +
                 'npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js,' +
                 'gh/heathdutton/json-editor@0.7.30/dist/jsoneditor.min.js',
                 function () {
-
-                    JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
-                        // getValue: function() {
-                        //     // Convert to object for better JSON, or leave as string for better failover?
-                        //     return this.value;
-                        // },
-                        postBuild: function () {
-                            // Default rules.
-                            var rules = {
-                                    condition: 'AND',
-                                    rules: [{
-                                        id: 'status',
-                                        operator: 'equal',
-                                        value: '200'
-                                    }]
-                                },
-                                // Default filters.
-                                filters = [{
-                                    id: 'status',
-                                    label: 'Status Code',
-                                    type: 'string',
-                                    input: 'select',
-                                    values: {
-                                        '1xx': '1xx: Informational',
-                                        '100': '100: Continue',
-                                        '101': '101: Switching Protocols',
-                                        '2xx': '2xx: Successful',
-                                        '200': '200: OK',
-                                        '201': '201: Created',
-                                        '202': '202: Accepted',
-                                        '203': '203: Non-Authoritative Information',
-                                        '204': '204: No Content',
-                                        '205': '205: Reset Content',
-                                        '206': '206: Partial Content',
-                                        '3xx': '3xx: Redirection',
-                                        '300': '300: Multiple Choices',
-                                        '301': '301: Moved Permanently',
-                                        '302': '302: Found',
-                                        '303': '303: See Other',
-                                        '304': '304: Not Modified',
-                                        '305': '305: Use Proxy',
-                                        '307': '307: Temporary Redirect',
-                                        '4xx': '4xx: Client Error',
-                                        '400': '400: Bad Request',
-                                        '401': '401: Unauthorized',
-                                        '402': '402: Payment Required',
-                                        '403': '403: Forbidden',
-                                        '404': '404: Not Found',
-                                        '405': '405: Method Not Allowed',
-                                        '406': '406: Not Acceptable',
-                                        '407': '407: Proxy Authentication Required',
-                                        '408': '408: Request Timeout',
-                                        '409': '409: Conflict',
-                                        '410': '410: Gone',
-                                        '411': '411: Length Required',
-                                        '412': '412: Precondition Failed',
-                                        '413': '413: Payload Too Large',
-                                        '414': '414: URI Too Long',
-                                        '415': '415: Unsupported Media Type',
-                                        '416': '416: Range Not Satisfiable',
-                                        '417': '417: Expectation Failed',
-                                        '418': '418: I\'m a teapot',
-                                        '426': '426: Upgrade Required',
-                                        '5xx': '5xx: Server Error',
-                                        '500': '500: Internal Server Error',
-                                        '501': '501: Not Implemented',
-                                        '502': '502: Bad Gateway',
-                                        '503': '503: Service Unavailable',
-                                        '504': '504: Gateway Time-out',
-                                        '505': '505: HTTP Version Not Supported',
-                                        '102': '102: Processing',
-                                        '207': '207: Multi-Status',
-                                        '226': '226: IM Used',
-                                        '308': '308: Permanent Redirect',
-                                        '422': '422: Unprocessable Entity',
-                                        '423': '423: Locked',
-                                        '424': '424: Failed Dependency',
-                                        '428': '428: Precondition Required',
-                                        '429': '429: Too Many Requests',
-                                        '431': '431: Request Header Fields Too Large',
-                                        '451': '451: Unavailable For Legal Reasons',
-                                        '506': '506: Variant Also Negotiates',
-                                        '507': '507: Insufficient Storage',
-                                        '511': '511: Network Authentication Required',
-                                        '7xx': '7xx: Developer Error'
-                                    },
-                                    operators: ['equal', 'not_equal']
-                                }, {
-                                    id: 'in_stock',
-                                    label: 'In stock',
-                                    type: 'integer',
-                                    input: 'radio',
-                                    values: {
-                                        1: 'Yes',
-                                        0: 'No'
-                                    },
-                                    operators: ['equal']
-                                }, {
-                                    id: 'price',
-                                    label: 'Price',
-                                    type: 'double',
-                                    validation: {
-                                        min: 0,
-                                        step: 0.01
-                                    }
-                                }, {
-                                    id: 'id',
-                                    label: 'Identifier',
-                                    type: 'string',
-                                    placeholder: '____-____-____',
-                                    operators: ['equal', 'not_equal'],
-                                    validation: {
-                                        format: /^.{4}-.{4}-.{4}$/
-                                    }
-                                }];
-                            // Load a saved value if relevant.
-                            if (this.input.value.length > 0) {
-                                try {
-                                    var obj = mQuery.parseJSON(this.input.value);
-                                }
-                                catch (e) {
-                                    console.warn('Invalid JSON in success definition');
-                                }
-                                if (typeof obj === 'object' && obj.length > 0) {
-                                    rules = obj;
-                                }
-                            }
-                            mQuery('<div>', {class: 'query-builder'})
-                                .insertAfter(this.input)
-                                .on('afterCreateRuleInput.queryBuilder', function (e, rule) {
-                                    if (rule.filter.plugin === 'selectize') {
-                                        rule.$el.find('.rule-value-container').css('min-width', '200px')
-                                            .find('.selectize-control').removeClass('form-control');
-
-                                    }
-                                })
-                                .queryBuilder({
-                                    plugins: ['bt-tooltip-errors'],
-                                    filters: filters,
-                                    icons: {
-                                        add_group: 'fa fa-plus',
-                                        add_rule: 'fa fa-plus',
-                                        remove_group: 'fa fa-times',
-                                        remove_rule: 'fa fa-times',
-                                        sort: 'fa fa-sort',
-                                        error: 'fa fa-exclamation-triangle'
-                                    },
-                                    rules: rules
-                                })
-                                .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
-                                    var $this = mQuery(this),
-                                        rules = $this.queryBuilder('getRules', {
-                                            get_flags: true,
-                                            skip_empty: true,
-                                            allow_invalid: true
-                                        }),
-                                        raw = JSON.stringify(rules),
-                                        $input = $this.parent().find('textarea');
-                                    if ($input.length && $input.val() !== raw) {
-                                        $input.val(raw).trigger('change');
-                                    }
-                                })
-                                .parent().find('textarea').addClass('hide');
-                        }
-
-                    });
-
+                    // Grab the JSON Schema to begin rendering the form with JSONEditor.
                     mQuery.ajax({
                         dataType: 'json',
                         cache: false,
@@ -498,7 +162,147 @@ Mautic.contactclientOnLoad = function () {
                                 }
                             });
 
-                            // Create our widget container.
+                            // Establish default success definition filters.
+                            var successDefinitionFiltersDefault = [{
+                                id: 'status',
+                                label: 'Status Code',
+                                type: 'string',
+                                input: 'select',
+                                values: {
+                                    '1xx': '1xx: Informational',
+                                    '100': '100: Continue',
+                                    '101': '101: Switching Protocols',
+                                    '2xx': '2xx: Successful',
+                                    '200': '200: OK',
+                                    '201': '201: Created',
+                                    '202': '202: Accepted',
+                                    '203': '203: Non-Authoritative Information',
+                                    '204': '204: No Content',
+                                    '205': '205: Reset Content',
+                                    '206': '206: Partial Content',
+                                    '3xx': '3xx: Redirection',
+                                    '300': '300: Multiple Choices',
+                                    '301': '301: Moved Permanently',
+                                    '302': '302: Found',
+                                    '303': '303: See Other',
+                                    '304': '304: Not Modified',
+                                    '305': '305: Use Proxy',
+                                    '307': '307: Temporary Redirect',
+                                    '4xx': '4xx: Client Error',
+                                    '400': '400: Bad Request',
+                                    '401': '401: Unauthorized',
+                                    '402': '402: Payment Required',
+                                    '403': '403: Forbidden',
+                                    '404': '404: Not Found',
+                                    '405': '405: Method Not Allowed',
+                                    '406': '406: Not Acceptable',
+                                    '407': '407: Proxy Authentication Required',
+                                    '408': '408: Request Timeout',
+                                    '409': '409: Conflict',
+                                    '410': '410: Gone',
+                                    '411': '411: Length Required',
+                                    '412': '412: Precondition Failed',
+                                    '413': '413: Payload Too Large',
+                                    '414': '414: URI Too Long',
+                                    '415': '415: Unsupported Media Type',
+                                    '416': '416: Range Not Satisfiable',
+                                    '417': '417: Expectation Failed',
+                                    '418': '418: I\'m a teapot',
+                                    '426': '426: Upgrade Required',
+                                    '5xx': '5xx: Server Error',
+                                    '500': '500: Internal Server Error',
+                                    '501': '501: Not Implemented',
+                                    '502': '502: Bad Gateway',
+                                    '503': '503: Service Unavailable',
+                                    '504': '504: Gateway Time-out',
+                                    '505': '505: HTTP Version Not Supported',
+                                    '102': '102: Processing',
+                                    '207': '207: Multi-Status',
+                                    '226': '226: IM Used',
+                                    '308': '308: Permanent Redirect',
+                                    '422': '422: Unprocessable Entity',
+                                    '423': '423: Locked',
+                                    '424': '424: Failed Dependency',
+                                    '428': '428: Precondition Required',
+                                    '429': '429: Too Many Requests',
+                                    '431': '431: Request Header Fields Too Large',
+                                    '451': '451: Unavailable For Legal Reasons',
+                                    '506': '506: Variant Also Negotiates',
+                                    '507': '507: Insufficient Storage',
+                                    '511': '511: Network Authentication Required',
+                                    '7xx': '7xx: Developer Error'
+                                },
+                                operators: ['equal', 'not_equal']
+                            }, {
+                                id: 'header',
+                                label: 'Header Text',
+                                type: 'string'
+                            }, {
+                                id: 'body',
+                                label: 'Body Text',
+                                type: 'string'
+                            }];
+
+                            // Add a "query" field type using the Query Builder.
+                            JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
+                                postBuild: function () {
+                                    // Default success rules (if the status code is 200).
+                                    var element = this,
+                                        successDefinitionRules = {
+                                        condition: 'AND',
+                                        rules: [{
+                                            id: 'status',
+                                            operator: 'equal',
+                                            value: '200'
+                                        }]
+                                    };
+                                    // Load a saved value if relevant.
+                                    if (this.input.value) {
+                                        if (typeof this.input.value === 'object') {
+                                            successDefinitionRules = this.input.value;
+                                        } else {
+                                            try {
+                                                var obj = mQuery.parseJSON(this.input.value);
+                                            }
+                                            catch (e) {
+                                                console.warn('Invalid JSON in success definition');
+                                            }
+                                            if (typeof obj === 'object' && obj.length > 0) {
+                                                successDefinitionRules = obj;
+                                            }
+                                        }
+                                    }
+                                    // Progressively Enhance the textarea into a Query Builder.
+                                    mQuery('<div>', {class: 'query-builder'})
+                                        .insertAfter(element.input)
+                                        .queryBuilder({
+                                            plugins: ['bt-tooltip-errors'],
+                                            filters: successDefinitionFiltersDefault,
+                                            icons: {
+                                                add_group: 'fa fa-plus',
+                                                add_rule: 'fa fa-plus',
+                                                remove_group: 'fa fa-times',
+                                                remove_rule: 'fa fa-times',
+                                                sort: 'fa fa-sort',
+                                                error: 'fa fa-exclamation-triangle'
+                                            },
+                                            rules: successDefinitionRules
+                                        })
+                                        // On any change to Success Definition:
+                                        .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
+                                            // Save the value to the hidden textarea.
+                                            var rules = mQuery(this).queryBuilder('getRules', {
+                                                    get_flags: true,
+                                                    skip_empty: true,
+                                                    allow_invalid: true
+                                                });
+                                            element.setValue(rules);
+                                        })
+                                        .parent().find('textarea').addClass('hide');
+                                }
+                            });
+
+                            // Create our widget container for the JSON Editor.
                             var $apiPayloadJSONEditor = mQuery('<div>', {
                                 id: 'contactclient_api_payload_jsoneditor'
                             }).insertBefore($apiPayload);
@@ -531,7 +335,7 @@ Mautic.contactclientOnLoad = function () {
                                 }
                             }
 
-                            // Persist the value to the field to be saved.
+                            // Persist the value to the JSON Editor.
                             apiPayloadJSONEditor.on('change', function () {
                                 var obj = apiPayloadJSONEditor.getValue();
                                 if (typeof obj === 'object') {
