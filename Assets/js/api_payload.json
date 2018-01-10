@@ -218,12 +218,13 @@
                 "title": "Success Definition",
                 "type": "object",
                 "options": {
-                  "collapsed": true
+                  "collapsed": true,
+                  "infoText": "Use simple logic to define a successful operation below. Leave blank to consider all operations sucesful. If the operation is deemed unsuccessful the operation will be aborted and no changes will be made to your contacts."
                 },
                 "properties": {
                   "definition": {
                     "propertyOrder": 10,
-                    "title": " ",
+                    "title": "Success Definition",
                     "type": "query",
                     "format": "textarea"
                   }

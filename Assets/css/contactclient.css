@@ -1,8 +1,41 @@
-/* ContactClient Filter - QueryBuilder */
+/* ContactClient API Payload / Filter - QueryBuilder */
 .query-builder .rules-group-container {
-    padding: 10px 10px 6px;
-    border: 1px solid #DCC896;
-    background: rgba(250,240,210,.5);
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.query-builder .rules-group-header {
+    margin-bottom: 11px;
+}
+
+.query-builder .rule-container {
+    border: 1px solid transparent;
+    background-color: rgba(0, 0, 0, .04);
+}
+
+.query-builder .rule-value-container {
+    border-left: 0;
+    padding-left: 0;
+}
+
+.query-builder .rule-value-container .selectize-input .item {
+    display: inline-block;
+    margin: -5px 7px -4px -7px;
+    font-weight: 600;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: #ffffff;
+    background-color: #2a84c5;
+    border-color: #2a84c5;
+    padding: 3px 5px;
+    font-size: 13px;
+    line-height: 1.356;
+    border-radius: 4px;
 }
 
 /* ContactClient API Payload - JSON Editor */
@@ -14,6 +47,11 @@
 
 #contactclient_api_payload_jsoneditor .btn-md i.fa {
     font-size: 15px;
+}
+
+#contactclient_api_payload_jsoneditor i.fa-caret-square-o-right,
+#contactclient_api_payload_jsoneditor i.fa-caret-square-o-down {
+    font-size: 16px;
 }
 
 #contactclient_api_payload_jsoneditor .btn-group.btn-left {
@@ -137,6 +175,10 @@
 }
 
 #contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > div > div > h3 {
+    display: none;
+}
+
+#contactclient_api_payload_jsoneditor div[data-schemapath*=".response.success.definition"] > div > label {
     display: none;
 }
 
