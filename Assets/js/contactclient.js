@@ -157,8 +157,30 @@ Mautic.contactclientOnLoad = function () {
                                 }
                             });
 
-                            // Establish default success definition filters.
-                            var successDefinitionFiltersDefault = [{
+                            // Establish default success definition settings.
+                            // Note: Some operators are not going to be directly useful.
+                            var defaultOperators = [
+                                    'equal',
+                                    'not_equal',
+                                    // 'in',
+                                    // 'not_in',
+                                    'less',
+                                    'less_or_equal',
+                                    'greater',
+                                    'greater_or_equal',
+                                    // 'between',
+                                    // 'not_between',
+                                    'begins_with',
+                                    'not_begins_with',
+                                    'contains',
+                                    'not_contains',
+                                    'ends_with',
+                                    'not_ends_with',
+                                    'is_empty',
+                                    'is_not_empty'
+                                    // 'is_null'
+                                ],
+                                successDefinitionFiltersDefault = [{
                                 id: 'status',
                                 label: 'Status Code',
                                 type: 'string',
@@ -231,11 +253,13 @@ Mautic.contactclientOnLoad = function () {
                             }, {
                                 id: 'header',
                                 label: 'Header Text (raw)',
-                                type: 'string'
+                                type: 'string',
+                                operators: defaultOperators
                             }, {
                                 id: 'body',
                                 label: 'Body Text (raw)',
-                                type: 'string'
+                                type: 'string',
+                                operators: defaultOperators
                             }];
 
                             // Add a "query" field type using the Query Builder.
@@ -363,7 +387,8 @@ Mautic.contactclientOnLoad = function () {
                                                             additionalFilters.push({
                                                                 id: 'header.' + obj.operations[i].response.headers[j].key,
                                                                 label: 'Header Field: ' + obj.operations[i].response.headers[j].key,
-                                                                type: 'string'
+                                                                type: 'string',
+                                                                operators: defaultOperators
                                                             });
                                                         }
                                                     }
@@ -377,7 +402,8 @@ Mautic.contactclientOnLoad = function () {
                                                             additionalFilters.push({
                                                                 id: 'body.' + obj.operations[i].response.body[k].key,
                                                                 label: 'Body Field: ' + obj.operations[i].response.body[k].key,
-                                                                type: 'string'
+                                                                type: 'string',
+                                                                operators: defaultOperators
                                                             });
                                                         }
                                                     }
