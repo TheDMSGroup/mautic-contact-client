@@ -546,17 +546,18 @@ class ClientIntegration extends AbstractIntegration
         $result['bodySize'] = $service->getBody()->getSize();
         $this->log[] = 'Response size: '.$result['bodySize'];
 
-        $result['body'] = $service->getBody()->getContents();
+        $result['bodyRaw'] = $service->getBody()->getContents();
         $this->log[] = 'Response body: '.$result['body'];
 
         // Format the head response.
         if ($result['headers']) {
             $result['headers'] = $this->getResponseArray($result['headers'], 'headers');
         }
+        $result['headersRaw'] = implode('; ', $result['headers']);
 
         // Format the body response.
         $responseFormat = trim(strtolower($responseFormat));
-        $result['bodyFields'] = [];
+        $result['body'] = [];
         switch ($responseFormat) {
             default:
             case 'auto';
@@ -568,7 +569,7 @@ class ClientIntegration extends AbstractIntegration
             case 'text';
             case 'xml';
             case 'yaml';
-                $result['bodyFields'] = $this->getResponseArray($result['body'], $responseFormat);
+                $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseFormat);
                 break;
         }
 

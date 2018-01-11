@@ -255,15 +255,27 @@ Mautic.contactclientOnLoad = function () {
                                 },
                                 operators: ['equal', 'not_equal']
                             }, {
-                                id: 'header',
+                                id: 'headersRaw',
                                 label: 'Header Text (raw)',
                                 type: 'string',
                                 operators: defaultOperators
                             }, {
-                                id: 'body',
+                                id: 'bodyRaw',
                                 label: 'Body Text (raw)',
                                 type: 'string',
                                 operators: defaultOperators
+                            },{
+                                id: 'bodySize',
+                                label: 'Body Size',
+                                type: 'integer',
+                                operators: [
+                                    'equal',
+                                    'not_equal',
+                                    'less',
+                                    'less_or_equal',
+                                    'greater',
+                                    'greater_or_equal'
+                                ]
                             }];
 
                             // Add a "query" field type using the Query Builder.
@@ -394,7 +406,7 @@ Mautic.contactclientOnLoad = function () {
                                                         // Grab the keys from each Header.
                                                         if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length){
                                                             additionalFilters.push({
-                                                                id: 'header.' + obj.operations[i].response.headers[j].key,
+                                                                id: 'headers.' + obj.operations[i].response.headers[j].key,
                                                                 label: 'Header Field: ' + obj.operations[i].response.headers[j].key,
                                                                 type: 'string',
                                                                 operators: defaultOperators
