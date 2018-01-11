@@ -16,6 +16,7 @@ use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
+use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 use DOMDocument;
@@ -253,17 +254,47 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * Given the recent response, evaluate it for success based on the expected success validator.
-     * @param array $successDefinition
-     * @return bool
+     *
+     * @param string|null $successDefinition
+     * @return bool|void
+     * @throws \Exception
+     * @throws \MauticPlugin\MauticContactClientBundle\Helper\QBParseException
      */
-    private function validateResponse($successDefinition = []){
+    private function validateResponse(string $successDefinition = null){
         $result = !$this->abort;
 
         if ($result) {
             // @todo - Evaluate the current response using the success filter.
+            if (!$this->response) {
+                $this->errors[] = 'There was no response to parse.';
+                return $this->abortOperation();
+            }
+
+            // If there is no success definition, than do the default test of a 200 ok status check.
+            if (!$successDefinition) {
+                if (!$this->response['status'] || $this->response['status'] != 200) {
+                    $this->errors[] = 'Status code is not 200. Default validation failure.';
+                    return $this->abortOperation();
+                }
+            }
+
+            // Standard success definition validation.
+            $filter = new FilterHelper();
+            $result = $filter->filter($successDefinition, $this->response);
+
+            if (!$result) {
+                foreach ($filter->getErrors() as $error){
+                    $this->setError('Failed operation based on success definition: ' . $error);
+                }
+                return $this->abortOperation();
+            }
         }
 
         return $result;
+    }
+
+    private function setError($string) {
+        $this->errors[] = $string;
     }
 
     /**
@@ -296,7 +327,7 @@ class ClientIntegration extends AbstractIntegration
 
         // @todo - After parsing the response, we may find new keys/values to use in mapping. We can automatically update the payload for the expected response for easier input.
 
-        $this->validateResponse($operation->response->success ?? []);
+        $this->validateResponse($operation->response->success->definition ?? null);
 
         $this->updateContact($operation->response);
     }
@@ -503,37 +534,26 @@ class ClientIntegration extends AbstractIntegration
         /** @var Transport $service */
         $service = $this->getService();
 
-        $status = $service->getStatusCode();
-        $this->log[] = 'Response status code: '.$status;
+        $result['status'] = $service->getStatusCode();
+        $this->log[] = 'Response status code: '.$result['status'];
 
-        $headers = $service->getHeaders();
-        $this->log[] = 'Response headers: '.json_encode($headers);
+        $result['headers'] = $service->getHeaders();
+        $this->log[] = 'Response headers: '.json_encode($result['headers']);
 
-        $size = $service->getBody()->getSize();
-        $this->log[] = 'Response size: '.$size;
+        $result['bodySize'] = $service->getBody()->getSize();
+        $this->log[] = 'Response size: '.$result['bodySize'];
 
-        $body = $service->getBody()->getContents();
-        $this->log[] = 'Response body: '.$body;
+        $result['body'] = $service->getBody()->getContents();
+        $this->log[] = 'Response body: '.$result['body'];
 
-        if ($status !== 200) {
-            $this->errors[] = 'Invalid status code received.';
-
-            return $this->abortOperation();
-        }
-
-        if (!$body) {
-            $this->errors[] = 'No body was returned.';
-
-            return $this->abortOperation();
-        }
-        
         // Format the head response.
-        if ($headers) {
-            $result['headers'] = $this->getResponseArray($headers, 'headers');
+        if ($result['headers']) {
+            $result['headers'] = $this->getResponseArray($result['headers'], 'headers');
         }
 
         // Format the body response.
         $responseFormat = trim(strtolower($responseFormat));
+        $result['bodyFields'] = [];
         switch ($responseFormat) {
             default:
             case 'auto';
@@ -545,7 +565,7 @@ class ClientIntegration extends AbstractIntegration
             case 'text';
             case 'xml';
             case 'yaml';
-                $result['body'] = $this->getResponseArray($body, $responseFormat);
+                $result['bodyFields'] = $this->getResponseArray($result['body'], $responseFormat);
                 break;
         }
 
@@ -561,13 +581,12 @@ class ClientIntegration extends AbstractIntegration
      */
     private function getResponseArray($data, $responseFormat = 'json')
     {
-        $result = false;
-        $hierarchy = [];
+        $result = $hierarchy = [];
 
         switch ($responseFormat) {
             case 'headers':
                 foreach ($data as $key => $array) {
-                    $result[$key] = implode(',', $array);
+                    $result[$key] = implode( '; ', $array);
                 }
                 break;
 
