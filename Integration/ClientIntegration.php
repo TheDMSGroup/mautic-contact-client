@@ -11,6 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
+use DOMDocument;
+use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -19,7 +21,6 @@ use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
-use DOMDocument;
 
 /**
  * Class ContactClientIntegration.
@@ -141,15 +142,12 @@ class ClientIntegration extends AbstractIntegration
         // $translator = $container->get('translator');
 
         if (!$client) {
-            $this->errors[] = 'Contact Client appears to not exist.';
-            return false;
+            return $this->abortOperation('Contact Client appears to not exist.');;
         }
         $this->client = $client;
 
         if (!$contact) {
-            $this->errors[] = 'Contact appears to not exist.';
-
-            return false;
+            return $this->abortOperation('Contact appears to not exist.');;
         }
         $this->contact = $contact;
 
@@ -184,9 +182,7 @@ class ClientIntegration extends AbstractIntegration
     {
         $payload = $this->client->getApiPayload();
         if (!$payload) {
-            $this->errors[] = 'API instructions payload is blank.';
-
-            return false;
+            return $this->abortOperation('API instructions payload is blank.');
         }
         $payload = json_decode($payload);
         $jsonError = null;
@@ -213,14 +209,10 @@ class ClientIntegration extends AbstractIntegration
                 break;
         }
         if ($jsonError) {
-            $this->errors[] = 'API instructions payload JSON is invalid: '.$jsonError;
-
-            return false;
+            return $this->abortOperation('API instructions payload JSON is invalid: '.$jsonError);
         }
         if (!$payload || !is_object($payload)) {
-            $this->errors[] = 'API instructions payload is invalid.';
-
-            return false;
+            return $this->abortOperation('API instructions payload is invalid.');
         }
 
         return $this->payload = $payload;
@@ -253,48 +245,22 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Given the recent response, evaluate it for success based on the expected success validator.
+     * Step through all operations defined.
      *
-     * @param string|null $successDefinition
-     * @return bool|void
-     * @throws \Exception
-     * @throws \MauticPlugin\MauticContactClientBundle\Helper\QBParseException
+     * @return bool Returns true if all operations succeeded.
      */
-    private function validateResponse(string $successDefinition = null){
-        $result = !$this->abort;
-
-        if ($result) {
-            // @todo - Evaluate the current response using the success filter.
-            if (!$this->response) {
-                $this->errors[] = 'There was no response to parse.';
-                return $this->abortOperation();
-            }
-
-            // If there is no success definition, than do the default test of a 200 ok status check.
-            if (!$successDefinition) {
-                if (!$this->response['status'] || $this->response['status'] != 200) {
-                    $this->errors[] = 'Status code is not 200. Default validation failure.';
-                    return $this->abortOperation();
-                }
-            }
-
-            // Standard success definition validation.
-            $filter = new FilterHelper();
-            $result = $filter->filter($successDefinition, $this->response);
-
-            if (!$result) {
-                foreach ($filter->getErrors() as $error){
-                    $this->setError('Failed operation based on success definition: ' . $error);
-                }
-                return $this->abortOperation();
+    private function runOperations()
+    {
+        if (!isset($this->operations) || !count($this->operations)) {
+            return $this->abortOperation('API instructions payload has no operations to run.');
+        }
+        foreach ($this->operations as $id => $operation) {
+            $this->runOperation($id, $operation);
+            if ($this->isAborted()) {
+                return false;
             }
         }
-
-        return $result;
-    }
-
-    private function setError($string) {
-        $this->errors[] = $string;
+        return true;
     }
 
     /**
@@ -308,14 +274,12 @@ class ClientIntegration extends AbstractIntegration
     {
         $name = $operation->name ?? $id;
         if (empty($operation) || empty($operation->request)) {
-            $this->errors[] = 'Skipping empty operation';
-
+            $this->setError('Skipping empty operation');
             return true;
         }
         $uri = ($this->test ? $operation->request->testUrl : $operation->request->url) ?: $operation->request->url;
         if (!$uri) {
-            $this->errors[] = 'Operation skipped. No URL.';
-
+            $this->setError('Operation skipped. No URL.');
             return true;
         }
 
@@ -325,67 +289,9 @@ class ClientIntegration extends AbstractIntegration
 
         $this->parseResponse($operation->response->format ?? 'auto');
 
-        // @todo - After parsing the response, we may find new keys/values to use in mapping. We can automatically update the payload for the expected response for easier input.
-
         $this->validateResponse($operation->response->success->definition ?? null);
 
         $this->updateContact($operation->response);
-    }
-
-    /**
-     * Map the response to contact fields and update the contact, logging the action.
-     *
-     * @param array $responseMapping
-     */
-    private function updateContact($responseMapping = []) {
-        if (!$this->abort) {
-            // @todo - Check the response against the expected response for any field mappings.
-
-            // @todo - If we find field values to map, update the contact and save.
-
-            // @todo - Log an event on the contact to           where this update came from.
-        }
-    }
-
-    /**
-     * Step through all operations defined.
-     */
-    private function runOperations()
-    {
-        if (!isset($this->operations) || !count($this->operations)) {
-            $this->errors[] = 'API instructions payload has no operations to run.';
-
-            return false;
-        }
-        foreach ($this->operations as $id => $operation) {
-            $this->runOperation($id, $operation);
-            if ($this->abort) {
-                break;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Set test mode on/off.
-     *
-     * @param bool $test
-     */
-    public function setTestMode($test)
-    {
-        $this->test = $test;
-    }
-
-    /**
-     * Retrieve the transport service for API interaction.
-     */
-    private function getService()
-    {
-        if (!$this->service) {
-            $this->service = $this->factory->get('mautic.contactclient.service.transport');
-        }
-
-        return $this->service;
     }
 
     /**
@@ -522,6 +428,103 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Retrieve the transport service for API interaction.
+     */
+    private function getService()
+    {
+        if (!$this->service) {
+            $this->service = $this->factory->get('mautic.contactclient.service.transport');
+        }
+
+        return $this->service;
+    }
+
+    /**
+     * Tokenize/parse fields from the API Payload for transit.
+     * @param $fields
+     * @return array
+     */
+    private function requestFieldValues($fields)
+    {
+        $result = [];
+        foreach ($fields as $field) {
+            if (!$this->test && ($field->test_only ?? false)) {
+                // Skip this field as it is for test mode only.
+                continue;
+            }
+            $key = trim($this->renderTokens($field->key ?? null));
+            if (empty($key)) {
+                // Skip if we have an empty key.
+                continue;
+            }
+            // Loop through value sources till a non-empty tokenized result is found.
+            $valueSources = ['value', 'default_value'];
+            if ($this->test) {
+                array_unshift($valueSources, 'test_value');
+            }
+            $value = null;
+            foreach ($valueSources as $valueSource) {
+                if (!empty($field->{$valueSource})) {
+                    $value = trim($this->renderTokens($field->{$valueSource}));
+                    if (!empty($value)) {
+                        break;
+                    }
+                }
+            }
+            if (empty($value)) {
+                // The field value is empty.
+                if (($field->required ?? false) === true) {
+                    // The field is required. Abort.
+                    $this->abortOperation('A required field is missing/empty: ' . $key);
+                    break;
+                }
+            }
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param $string
+     * @return mixed
+     */
+    private function renderTokens($string = '')
+    {
+        if (!$this->tokenHelper) {
+
+            // The timezone of our data source (not of the contact).
+            $tza = $this->factory->get('mautic.helper.core_parameters')->getParameter('default_timezone') ?: 'UTC';
+
+            // The timezone of this data client.
+            $tzb = $this->client->getScheduleTimezone() ?: 'UTC';
+
+            $this->tokenHelper = new TokenHelper([], $tza, $tzb);
+            $this->tokenHelper->addContextContact($this->contact);
+
+            // Include the payload as potential context.
+            $this->tokenHelper->addContext(['payload' => $this->payload]);
+
+        }
+
+        return $this->tokenHelper->renderString($string);
+    }
+
+    /**
+     * Trigger a complete abort of the current API operation due to an error.
+     * @param string $error
+     * @return bool
+     */
+    private function abortOperation($error = '')
+    {
+        if ($error) {
+            $this->setError($error);
+        }
+        $this->abort = true;
+        return false;
+    }
+
+    /**
      * Parse the response and capture key=value pairs.
      *
      * @param string $responseFormat
@@ -570,6 +573,7 @@ class ClientIntegration extends AbstractIntegration
         }
 
         $this->response = $result;
+
         return true;
     }
 
@@ -586,7 +590,7 @@ class ClientIntegration extends AbstractIntegration
         switch ($responseFormat) {
             case 'headers':
                 foreach ($data as $key => $array) {
-                    $result[$key] = implode( '; ', $array);
+                    $result[$key] = implode('; ', $array);
                 }
                 break;
 
@@ -718,81 +722,86 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Tokenize/parse fields from the API Payload for transit.
-     * @param $fields
-     * @return array
+     * Given the recent response, evaluate it for success based on the expected success validator.
+     *
+     * @param string|null $successDefinition
+     * @return bool
      */
-    private function requestFieldValues($fields)
+    private function validateResponse(string $successDefinition = null)
     {
-        $result = [];
-        foreach ($fields as $field) {
-            if (!$this->test && ($field->test_only ?? false)) {
-                // Skip this field as it is for test mode only.
-                continue;
+        $result = !$this->isAborted();
+
+        if ($result) {
+            if (!$this->response) {
+                return $this->abortOperation('There was no response to parse.');
             }
-            $key = trim($this->renderTokens($field->key ?? null));
-            if (empty($key)) {
-                // Skip if we have an empty key.
-                continue;
-            }
-            // Loop through value sources till a non-empty tokenized result is found.
-            $valueSources = ['value', 'default_value'];
-            if ($this->test) {
-                array_unshift($valueSources, 'test_value');
-            }
-            $value = null;
-            foreach ($valueSources as $valueSource) {
-                if (!empty($field->{$valueSource})) {
-                    $value = trim($this->renderTokens($field->{$valueSource}));
-                    if (!empty($value)) {
-                        break;
-                    }
+
+            // If there is no success definition, than do the default test of a 200 ok status check.
+            if (!$successDefinition) {
+                if (!$this->response['status'] || $this->response['status'] != 200) {
+                    return $this->abortOperation('Status code is not 200. Default validation failure.');
                 }
             }
-            if (empty($value)) {
-                // The field value is empty.
-                if (($field->required ?? false) === true) {
-                    // The field is required. Abort.
-                    $this->abortOperation();
-                    break;
+
+            // Standard success definition validation.
+            try {
+                $filter = new FilterHelper();
+                $result = $filter->filter($successDefinition, $this->response);
+                if (!$result) {
+                    return $this->abortOperation('Failed operation based on success definition: '.implode(', ', $filter->getErrors()));
                 }
+            } catch (\Exception $e) {
+                return $this->abortOperation('Exception occurred while filtering based on success definition: '.implode(', ', $filter->getErrors()));
             }
-            $result[$key] = $value;
         }
 
         return $result;
     }
 
     /**
-     * @param $string
-     * @return mixed
+     * @return bool
      */
-    private function renderTokens($string = '')
+    private function isAborted()
     {
-        if (!$this->tokenHelper) {
+        return $this->abort;
+    }
 
-            // The timezone of our data source (not of the contact).
-            $tza = $this->factory->get('mautic.helper.core_parameters')->getParameter('default_timezone') ?: 'UTC';
+    /**
+     * @param $string
+     */
+    private function setError($string)
+    {
+        $this->errors[] = $string;
+    }
 
-            // The timezone of this data client.
-            $tzb = $this->client->getScheduleTimezone() ?: 'UTC';
+    /**
+     * Map the response to contact fields and update the contact, logging the action.
+     *
+     * @param array $responseMapping
+     */
+    private function updateContact($responseMapping = [])
+    {
+        if (!$this->isAborted()) {
+            // @todo - Check the response against the expected response for any field mappings.
 
-            $this->tokenHelper = new TokenHelper([], $tza, $tzb);
-            $this->tokenHelper->addContextContact($this->contact);
+            // @todo - If we find field values to map, update the contact and save.
 
-            // Include the payload as potential context.
-            $this->tokenHelper->addContext(['payload' => $this->payload]);
-
+            // @todo - Log an event on the contact to           where this update came from.
         }
-        return $this->tokenHelper->renderString($string);
     }
 
-    private function abortOperation()
+    private function logResults()
     {
-        $this->abort = true;
+
     }
 
-    private function logResults() {
-
+    /**
+     * Set test mode on/off.
+     *
+     * @param bool $test
+     */
+    public function setTestMode($test)
+    {
+        $this->test = $test;
     }
 }
