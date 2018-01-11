@@ -87,7 +87,11 @@ Mautic.contactclientOnLoad = function () {
 
             // API Payload JSON Schema.
             mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
-                'npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,' +
+                // For jQuery Query builder plugins (Not yet used).
+                'npm/bootstrap-slider@10,'+
+                'npm/bootstrap-datepicker@1,' +
+                // For jQuery Query builder sorting capability.
+                'npm/interact.js@1.2.8/interact.min.js,' +
                 'npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js,' +
                 'gh/heathdutton/json-editor@0.7.30/dist/jsoneditor.min.js',
                 function () {
@@ -303,7 +307,12 @@ Mautic.contactclientOnLoad = function () {
                                             class: 'query-builder'
                                         }).insertAfter(element.input)
                                         .queryBuilder({
-                                            plugins: ['bt-tooltip-errors'],
+                                            plugins: {
+                                                'sortable': {
+                                                    icon: 'fa fa-sort'
+                                                },
+                                                'bt-tooltip-errors': null
+                                            },
                                             filters: successDefinitionFiltersDefault,
                                             icons: {
                                                 add_group: 'fa fa-plus',
