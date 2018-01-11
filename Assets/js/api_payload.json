@@ -519,16 +519,6 @@
           "default": "",
           "minLength": 0,
           "maxLength": 255
-        },
-        "required": {
-          "propertyOrder": 80,
-          "type": "boolean",
-          "format": "checkbox",
-          "title": "Required",
-          "options": {
-            "infoText": "Set to true if this field is required to accept the operation as successful."
-          },
-          "default": false
         }
       }
     }
