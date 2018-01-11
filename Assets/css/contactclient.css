@@ -20,6 +20,10 @@
     padding-left: 0;
 }
 
+.query-builder .rule-value-container input[type=text] {
+    padding: 6px 12px;
+}
+
 .query-builder .rule-value-container .selectize-input .item {
     display: inline-block;
     margin: -5px 7px -4px -7px;

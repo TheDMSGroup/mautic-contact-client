@@ -260,7 +260,7 @@ class ClientIntegration extends AbstractIntegration
         $result = !$this->abort;
 
         if ($result) {
-            // Evaluate the current response using the success filter.
+            // @todo - Evaluate the current response using the success filter.
         }
 
         return $result;

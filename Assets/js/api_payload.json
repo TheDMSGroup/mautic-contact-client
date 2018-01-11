@@ -129,7 +129,7 @@
                 },
                 "items": {
                   "title": "Header",
-                  "$ref": "#/definitions/field"
+                  "$ref": "#/definitions/requestField"
                 }
               },
               "body": {
@@ -145,7 +145,7 @@
                     "format": "table",
                     "items": {
                       "title": "Body Field",
-                      "$ref": "#/definitions/field"
+                      "$ref": "#/definitions/requestField"
                     },
                     "options": {
                       "collapsed": false,
@@ -196,7 +196,7 @@
                 },
                 "items": {
                   "title": "Header",
-                  "$ref": "#/definitions/field"
+                  "$ref": "#/definitions/responseField"
                 }
               },
               "body": {
@@ -210,7 +210,7 @@
                 },
                 "items": {
                   "title": "Body Field",
-                  "$ref": "#/definitions/field"
+                  "$ref": "#/definitions/responseField"
                 }
               },
               "success": {
@@ -368,7 +368,7 @@
         }
       ]
     },
-    "field": {
+    "requestField": {
       "title": "Field",
       "headerTemplate": "{{ self.key }}",
       "type": "object",
@@ -433,7 +433,7 @@
           "default": false
         },
         "description": {
-          "propertyOrder": 60,
+          "propertyOrder": 70,
           "type": "string",
           "title": "Description",
           "options": {
@@ -444,12 +444,89 @@
           "maxLength": 255
         },
         "required": {
-          "propertyOrder": 70,
+          "propertyOrder": 80,
           "type": "boolean",
           "format": "checkbox",
           "title": "Required",
           "options": {
             "infoText": "Set to true to prevent sending contacts to this client if this field is empty."
+          },
+          "default": false
+        }
+      }
+    },
+    "responseField": {
+      "title": "Field",
+      "headerTemplate": "{{ self.key }}",
+      "type": "object",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": false
+      },
+      "properties": {
+        "key": {
+          "propertyOrder": 10,
+          "type": "string",
+          "title": "Key",
+          "options": {
+            "infoText": "The name of the field being received."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "destination": {
+          "propertyOrder": 20,
+          "type": "string",
+          "title": "Destination",
+          "options": {
+            "infoText": "The internal fields to which we should save the value."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "default_value": {
+          "propertyOrder": 30,
+          "type": "string",
+          "title": "Default Value",
+          "options": {
+            "hidden": true,
+            "infoText": "An optional value that will be saved if the value field renders as blank."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "example": {
+          "propertyOrder": 60,
+          "type": "string",
+          "title": "Example",
+          "options": {
+            "infoText": "An example of what is typically contained in this field (response only)."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 1024
+        },
+        "description": {
+          "propertyOrder": 70,
+          "type": "string",
+          "title": "Description",
+          "options": {
+            "infoText": ""
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "required": {
+          "propertyOrder": 80,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Required",
+          "options": {
+            "infoText": "Set to true if this field is required to accept the operation as successful."
           },
           "default": false
         }

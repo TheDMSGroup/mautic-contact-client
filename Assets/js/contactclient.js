@@ -72,15 +72,9 @@ Mautic.contactclientOnLoad = function () {
         //     mQuery.getScriptCachedOnce('https://cdn.jsdelivr.net/combine/' +
         //         'npm/bootstrap-slider@10,npm/bootstrap-datepicker@1,' +
         //         'npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js',
-        //         function () {
-        //             var $filterQueryBuilder = mQuery('<div>', {
-        //                 id: 'contactclient_filter_querybuilder'
-        //             }).insertBefore($filter);
-        //
-        //             $filter.addClass('hide');
-        //         }
-        //     );
-        // }
+        // function () { var $filterQueryBuilder = mQuery('<div>', { id:
+        // 'contactclient_filter_querybuilder' }).insertBefore($filter);
+        // $filter.addClass('hide'); } ); }
 
         // @todo - Limits field.
 
@@ -97,7 +91,8 @@ Mautic.contactclientOnLoad = function () {
                 'npm/jQuery-QueryBuilder@2/dist/js/query-builder.standalone.min.js,' +
                 'gh/heathdutton/json-editor@0.7.30/dist/jsoneditor.min.js',
                 function () {
-                    // Grab the JSON Schema to begin rendering the form with JSONEditor.
+                    // Grab the JSON Schema to begin rendering the form with
+                    // JSONEditor.
                     mQuery.ajax({
                         dataType: 'json',
                         cache: false,
@@ -235,32 +230,37 @@ Mautic.contactclientOnLoad = function () {
                                 operators: ['equal', 'not_equal']
                             }, {
                                 id: 'header',
-                                label: 'Header Text',
+                                label: 'Header Text (raw)',
                                 type: 'string'
                             }, {
                                 id: 'body',
-                                label: 'Body Text',
+                                label: 'Body Text (raw)',
                                 type: 'string'
                             }];
 
                             // Add a "query" field type using the Query Builder.
                             JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
                                 postBuild: function () {
-                                    // Default success rules (if the status code is 200).
+                                    // Default success rules (if the status
+                                    // code is 200).
                                     var element = this,
                                         successDefinitionRules = {
-                                        condition: 'AND',
-                                        rules: [{
-                                            id: 'status',
-                                            operator: 'equal',
-                                            value: '200'
-                                        }]
-                                    };
+                                            condition: 'AND',
+                                            rules: [{
+                                                id: 'status',
+                                                operator: 'equal',
+                                                value: '200'
+                                            }]
+                                        };
+
+                                    // @todo - get the index of the operation.
+
                                     // Load a saved value if relevant.
                                     if (this.input.value) {
                                         if (typeof this.input.value === 'object') {
                                             successDefinitionRules = this.input.value;
-                                        } else {
+                                        }
+                                        else {
                                             try {
                                                 var obj = mQuery.parseJSON(this.input.value);
                                             }
@@ -272,9 +272,12 @@ Mautic.contactclientOnLoad = function () {
                                             }
                                         }
                                     }
-                                    // Progressively Enhance the textarea into a Query Builder.
-                                    mQuery('<div>', {class: 'query-builder'})
-                                        .insertAfter(element.input)
+                                    // Progressively Enhance the textarea into
+                                    // a Query Builder.
+                                    mQuery('<div>', {
+                                            id: 'success-definition-' + this.parent.parent.parent.key,
+                                            class: 'query-builder'
+                                        }).insertAfter(element.input)
                                         .queryBuilder({
                                             plugins: ['bt-tooltip-errors'],
                                             filters: successDefinitionFiltersDefault,
@@ -290,12 +293,13 @@ Mautic.contactclientOnLoad = function () {
                                         })
                                         // On any change to Success Definition:
                                         .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
-                                            // Save the value to the hidden textarea.
+                                            // Save the value to the hidden
+                                            // textarea.
                                             var rules = mQuery(this).queryBuilder('getRules', {
-                                                    get_flags: true,
-                                                    skip_empty: true,
-                                                    allow_invalid: true
-                                                });
+                                                get_flags: true,
+                                                skip_empty: true,
+                                                allow_invalid: true
+                                            });
                                             element.setValue(rules);
                                         })
                                         .parent().find('textarea').addClass('hide');
@@ -343,6 +347,51 @@ Mautic.contactclientOnLoad = function () {
                                     if (raw.length) {
                                         // Set the textarea.
                                         $apiPayload.val(raw);
+                                    }
+                                    // Loop through operations to update success filters.
+                                    if (typeof obj.operations === 'object') {
+                                        for (var i = 0, leni = obj.operations.length; i < leni; i++) {
+                                            // If there's a response object.
+                                            if (typeof obj.operations[i].response === 'object') {
+                                                var additionalFilters = [];
+
+                                                // If there is a header array...
+                                                if (typeof obj.operations[i].response.headers === 'object') {
+                                                    for (var j = 0, lenj = obj.operations[i].response.headers.length; j < lenj; j++) {
+                                                        // Grab the keys from each Header.
+                                                        if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length){
+                                                            additionalFilters.push({
+                                                                id: 'header.' + obj.operations[i].response.headers[j].key,
+                                                                label: 'Header Field: ' + obj.operations[i].response.headers[j].key,
+                                                                type: 'string'
+                                                            });
+                                                        }
+                                                    }
+                                                }
+
+                                                // If there is a body array...
+                                                if (typeof obj.operations[i].response.body === 'object') {
+                                                    for (var k = 0, lenk = obj.operations[k].response.body.length; k < lenk; k++) {
+                                                        // Grab the keys from each Header.
+                                                        if (typeof obj.operations[i].response.body[k].key !== 'undefined' && obj.operations[i].response.body[k].key.length){
+                                                            additionalFilters.push({
+                                                                id: 'body.' + obj.operations[i].response.body[k].key,
+                                                                label: 'Body Field: ' + obj.operations[i].response.body[k].key,
+                                                                type: 'string'
+                                                            });
+                                                        }
+                                                    }
+                                                }
+
+                                                // If filters were found update the query builder.
+                                                if (additionalFilters.length) {
+                                                    var $queryBuilder = mQuery('#success-definition-' + i);
+                                                    if ($queryBuilder.length) {
+                                                        $queryBuilder.queryBuilder('setFilters', true, successDefinitionFiltersDefault.concat(additionalFilters));
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             });
