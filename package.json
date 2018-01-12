@@ -1,22 +1,31 @@
 {
-    "name": "thedmsgroup/mautic-contact-clients",
+    "name": "MauticContactClientBundle",
     "description": "Send contacts to third party APIs or enhance your contacts without code.",
-    "type": "mautic-plugin",
-    "license": "GPL v3",
+    "license": "GPL-3.0",
     "authors": [
         {
             "name": "heathdutton",
             "email": "heathdutton@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
-    "require": {
-        "mustache/mustache": "^2.12"
-    },
-    "repositories": [
+    "repository": [
         {
             "type": "vcs",
             "url": "https://github.com/thedmsgroup/mautic-contact-clients"
         }
-    ]
+    ],
+    "devDependencies": {
+        "grunt": "^0.4.5",
+        "grunt-autoprefixer": "^1.0.1",
+        "grunt-contrib-copy": "^0.5.0",
+        "grunt-contrib-cssmin": "^0.10.0",
+        "grunt-contrib-uglify": "^3.3.0",
+        "grunt-contrib-watch": "^0.6.1",
+        "grunt-remove": "^0.1.0",
+        "load-grunt-tasks": "^0.6.0",
+        "time-grunt": "^1.0.0"
+    },
+    "dependencies": {
+        "grunt-cli": "^1.2.0"
+    }
 }

@@ -292,6 +292,9 @@ class ClientIntegration extends AbstractIntegration
         $this->validateResponse($operation->response->success->definition ?? null);
 
         $this->updateContact($operation->response);
+
+        // @todo - Automatically update format (if auto), headers and body fields with the result (append only), including examples.
+        // $this->updatePayload($operation->response);
     }
 
     /**

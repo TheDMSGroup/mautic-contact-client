@@ -21,14 +21,8 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
-
-echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/theme/material.min.css');
-echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.15.2/addon/lint/lint.min.css');
-echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css');
-echo $view['assets']->includeStylesheet('https://cdnjs.cloudflare.com/ajax/libs/jquery.businessHours/1.0.1/jquery.businessHours.min.css');
-echo $view['assets']->includeStylesheet('https://cdn.jsdelivr.net/combine/npm/bootstrap-slider@10/dist/css/bootstrap-slider.min.css,npm/bootstrap-datepicker@1/dist/css/bootstrap-datepicker3.min.css,npm/selectize@0.12.4/dist/css/selectize.bootstrap3.min.css,npm/jQuery-QueryBuilder@2/dist/css/query-builder.default.min.css');
-echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/css/contactclient.css');
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js');
+echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
 
 echo $view['form']->start($form);
 ?>
