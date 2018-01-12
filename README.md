@@ -1,4 +1,4 @@
-# Mautic Contact Clients
+# Mautic Contact Client ![](./Assets/img/client.png =32px)
 
 *Note: This project is still an active work in progress and not yet ready for production.*
 
