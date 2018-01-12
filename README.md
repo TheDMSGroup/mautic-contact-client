@@ -18,29 +18,15 @@ Features:
 * Update the contact based on response (via API).
 * Log the transactions for a complete audit trail.
 
+Uses these fine libraries:
 
-This plugin includes works under other copyright notices and distributed
-according to the terms of the GNU General Public License or a compatible
-license, including:
-
-Javascript:
-
-  [Bootstrap Datepicker](https://github.com/uxsolutions/bootstrap-datepicker) - Apache License, Version 2.0 Copyright January 2004 by contributors
-
-  [Bootstrap Slider](https://github.com/seiyria/bootstrap-slider) - MIT License Copyright (c) 2017 Kyle Kemp, Rohit Kalkur, and contributors
-
-  [CodeMirror](https://github.com/codemirror/CodeMirror) - MIT License Copyright (C) 2017 by Marijn Haverbeke <marijnh@gmail.com> and others
-
-  [Interact.js](https://github.com/taye/interact.js) - MIT License Copyright (c) 2012-2017 Taye Adeyemi <dev@taye.me>
-
-  [jQuery QueryBuilder](https://github.com/mistic100/jQuery-QueryBuilder) - MIT License Copyright 2014-2017 Damien "Mistic" Sorel (http://www.strangeplanet.fr)
-
-  [jQuery Timepicker](https://github.com/jonthornton/jquery-timepicker) - MIT License Copyright (C) 2014 Jon Thornton and contributors
-
-  [jQuery BusinessHours](https://github.com/gEndelf/jquery.businessHours) - Apache License, Version 2.0 Copyright January 2004 by contributors
-
-  [JSON Editor](https://github.com/json-editor/json-editor) - MIT License Copyright (c) 2013 Jeremy Dorn
-
-  [JSON Lint](https://github.com/zaach/jsonlint) - MIT License Copyright (C) 2012 Zachary Carter
-
-  [Selectize.js](https://github.com/selectize/selectize.js) - Apache License, Version 2.0 - Copyright 2013–2016 Brian Reavis & Contributors
+* [Bootstrap Datepicker](https://github.com/uxsolutions/bootstrap-datepicker)
+* [Bootstrap Slider](https://github.com/seiyria/bootstrap-slider)
+* [CodeMirror](https://github.com/codemirror/CodeMirror)
+* [Interact.js](https://github.com/taye/interact.js)
+* [jQuery QueryBuilder](https://github.com/mistic100/jQuery-QueryBuilder)
+* [jQuery Timepicker](https://github.com/jonthornton/jquery-timepicker)
+* [jQuery BusinessHours](https://github.com/gEndelf/jquery.businessHours)
+* [JSON Editor](https://github.com/json-editor/json-editor)
+* [JSON Lint](https://github.com/zaach/jsonlint)
+* [Selectize.js](https://github.com/selectize/selectize.js)
