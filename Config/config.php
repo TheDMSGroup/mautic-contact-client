@@ -93,6 +93,12 @@ return [
                     'mautic.lead.model.lead',
                 ],
             ],
+            'mautic.contactclient.model.apipayload' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ApiPayload',
+                'arguments' => [
+                    'mautic.lead.model.lead',
+                ],
+            ],
         ],
         'other' => [
             'mautic.contactclient.helper.token' => [

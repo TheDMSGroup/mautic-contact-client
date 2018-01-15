@@ -39,15 +39,10 @@ class TokenHelper
 
     /**
      * TokenHelper constructor.
-     * @param array $context
-     * @param string $tza Source timezone
-     * @param string $tzb Destination timezone
      */
-    public function __construct($context = [], $tza = 'UTC', $tzb = 'UTC')
+    public function __construct()
     {
         $this->engine = new Engine();
-        $this->setTimezones($tza, $tzb);
-        $this->setContext($context);
     }
 
     /**

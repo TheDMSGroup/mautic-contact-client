@@ -35,7 +35,6 @@ class Transport implements TransportInterface
      *    multipart
      *    query
      *  proxy
-     * @todo - Allow only pertinent options to be overridden by the API Payload.
      * @var array Default options for transportation.
      */
     private $settings = [
@@ -51,7 +50,7 @@ class Transport implements TransportInterface
         'http_errors' => false,
         'synchronous' => true,
         'verify' => true,
-        'timeout' => 60,
+        'timeout' => 30,
         'version' => 1.1,
         'headers' => null,
     ];

@@ -126,8 +126,7 @@ class SendCommand extends ModeratedCommand
 
                 return 0;
             }
-            $integrationObject->setTestMode($options['test']);
-            $integrationObject->sendContact($client, $contact);
+            $integrationObject->sendContact($client, $contact, $container, $options['test']);
 
         } elseif ($clientType == 'file') {
 
