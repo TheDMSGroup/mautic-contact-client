@@ -31,8 +31,10 @@ class ClientIntegration extends AbstractIntegration
 {
     const SETTING_DEF_LIMIT = 300;
     const SETTING_DEF_TIMEOUT = 30;
+    const SETTING_DEF_CONNECT_TIMEOUT = 10;
     const SETTING_DEF_ATTEMPTS = 3;
     const SETTING_DEF_DELAY = 15;
+    const SETTING_DEF_AUTOUPDATE = true;
     const XML_ROOT_ELEM = 'contact';
 
     /**
@@ -73,11 +75,13 @@ class ClientIntegration extends AbstractIntegration
     /**
      * @var array Simple settings for this integration instance from the payload.
      */
-    protected $settings = [
+    protected $transportSettings = [
         'limit' => self::SETTING_DEF_LIMIT,
         'timeout' => self::SETTING_DEF_TIMEOUT,
+        'connect_timeout' => self::SETTING_DEF_CONNECT_TIMEOUT,
         'attempts' => self::SETTING_DEF_ATTEMPTS,
         'delay' => self::SETTING_DEF_DELAY,
+        'autoUpdate' => self::SETTING_DEF_AUTOUPDATE,
     ];
 
     /**
@@ -156,7 +160,7 @@ class ClientIntegration extends AbstractIntegration
         };
 
         // Load the settings array.
-        $this->setInstanceSettings();
+        $this->setTransportSettings();
 
         // Load the operations array.
         $this->setInstanceOperations();
@@ -173,6 +177,29 @@ class ClientIntegration extends AbstractIntegration
             ]
         )
         );
+    }
+
+    /**
+     * Trigger a complete abort of the current API operation due to an error.
+     * @param string $error
+     * @return bool
+     */
+    private function abortOperation($error = '')
+    {
+        if ($error) {
+            $this->setError($error);
+        }
+        $this->abort = true;
+
+        return false;
+    }
+
+    /**
+     * @param $string
+     */
+    private function setError($string)
+    {
+        $this->errors[] = $string;
     }
 
     /**
@@ -221,15 +248,19 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Retrieve API settings from the payload to override defaults.
      */
-    private function setInstanceSettings()
+    private function setTransportSettings()
     {
-        if (isset($this->payload->settings)) {
-            foreach ($this->settings as $key => &$value) {
-                if (!empty($this->payload->settings->{$key}) && $this->payload->settings->{$key}) {
-                    $value = $this->payload->settings->{$key};
+        if (isset($this->payload->transportSettings)) {
+            foreach ($this->transportSettings as $key => &$value) {
+                if (!empty($this->payload->transportSettings->{$key}) && $this->payload->transportSettings->{$key}) {
+                    $value = $this->payload->transportSettings->{$key};
                 }
             }
         }
+    }
+
+    private function getTransportSettings() {
+        return $this->transportSettings;
     }
 
     /**
@@ -260,6 +291,7 @@ class ClientIntegration extends AbstractIntegration
                 return false;
             }
         }
+
         return true;
     }
 
@@ -275,11 +307,13 @@ class ClientIntegration extends AbstractIntegration
         $name = $operation->name ?? $id;
         if (empty($operation) || empty($operation->request)) {
             $this->setError('Skipping empty operation');
+
             return true;
         }
         $uri = ($this->test ? $operation->request->testUrl : $operation->request->url) ?: $operation->request->url;
         if (!$uri) {
             $this->setError('Operation skipped. No URL.');
+
             return true;
         }
 
@@ -291,10 +325,10 @@ class ClientIntegration extends AbstractIntegration
 
         $this->validateResponse($operation->response->success->definition ?? null);
 
+        $this->updatePayload($operation->response);
+
         $this->updateContact($operation->response);
 
-        // @todo - Automatically update format (if auto), headers and body fields with the result (append only), including examples.
-        // $this->updatePayload($operation->response);
     }
 
     /**
@@ -437,6 +471,9 @@ class ClientIntegration extends AbstractIntegration
     {
         if (!$this->service) {
             $this->service = $this->factory->get('mautic.contactclient.service.transport');
+
+            // Set our internal settings that are pertinent.
+            $this->service->setSettings($this->getTransportSettings());
         }
 
         return $this->service;
@@ -478,7 +515,7 @@ class ClientIntegration extends AbstractIntegration
                 // The field value is empty.
                 if (($field->required ?? false) === true) {
                     // The field is required. Abort.
-                    $this->abortOperation('A required field is missing/empty: ' . $key);
+                    $this->abortOperation('A required field is missing/empty: '.$key);
                     break;
                 }
             }
@@ -514,20 +551,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Trigger a complete abort of the current API operation due to an error.
-     * @param string $error
-     * @return bool
-     */
-    private function abortOperation($error = '')
-    {
-        if ($error) {
-            $this->setError($error);
-        }
-        $this->abort = true;
-        return false;
-    }
-
-    /**
      * Parse the response and capture key=value pairs.
      *
      * @param string $responseFormat
@@ -550,7 +573,7 @@ class ClientIntegration extends AbstractIntegration
         $this->log[] = 'Response size: '.$result['bodySize'];
 
         $result['bodyRaw'] = $service->getBody()->getContents();
-        $this->log[] = 'Response body: '.$result['body'];
+        $this->log[] = 'Response body: '.$result['bodyRaw'];
 
         // Format the head response.
         if ($result['headers']) {
@@ -752,14 +775,39 @@ class ClientIntegration extends AbstractIntegration
                 $filter = new FilterHelper();
                 $result = $filter->filter($successDefinition, $this->response);
                 if (!$result) {
-                    return $this->abortOperation('Failed operation based on success definition: '.implode(', ', $filter->getErrors()));
+                    return $this->abortOperation(
+                        'Failed operation based on success definition: '.implode(', ', $filter->getErrors())
+                    );
                 }
             } catch (\Exception $e) {
-                return $this->abortOperation('Exception occurred while filtering based on success definition: '.implode(', ', $filter->getErrors()));
+                return $this->abortOperation(
+                    'Exception occurred while filtering based on success definition: '.implode(
+                        ', ',
+                        $filter->getErrors()
+                    )
+                );
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Automatically update format (if auto), headers and body fields with the result (append only), including examples.
+     */
+    private function updatePayload() {
+       if (isset($this->transportSettings['autoUpdate']) && $this->transportSettings['autoUpdate']) {
+           foreach (['headers', 'body'] as $type) {
+               if (
+                   isset($this->response[$type])
+                   && is_array($this->response[$type])
+                   && count($this->response[$type])
+               ) {
+                   // We have found an input type with a result that was expected.
+                   // @todo - update the payload of new fields/context.
+               }
+           }
+       }
     }
 
     /**
@@ -771,22 +819,28 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param $string
-     */
-    private function setError($string)
-    {
-        $this->errors[] = $string;
-    }
-
-    /**
      * Map the response to contact fields and update the contact, logging the action.
      *
-     * @param array $responseMapping
+     * @param array $response Expected response mapping.
      */
-    private function updateContact($responseMapping = [])
+    private function updateContact($response = [])
     {
         if (!$this->isAborted()) {
-            // @todo - Check the response against the expected response for any field mappings.
+
+            // Check the response against the expected response for any field mappings.
+            foreach (['headers', 'body'] as $type) {
+                if (
+                    isset($this->response[$type])
+                    && is_array($this->response[$type])
+                    && count($this->response[$type])
+                    && isset($response[$type])
+                    && is_array($response[$type])
+                    && count($response[$type])
+                ) {
+                    // We have found an input type with a result that was expected.
+                    // @todo - Update the values on the contact.
+                }
+            }
 
             // @todo - If we find field values to map, update the contact and save.
 

@@ -244,12 +244,22 @@
         "collapsed": true
       },
       "properties": {
+        "autoUpdate": {
+          "title": "Auto-Update",
+          "options": {
+            "infoText": "Automatically update the Payload response headers and fields when new ones are discovered."
+          },
+          "propertyOrder": 10,
+          "type": "boolean",
+          "format": "checkbox",
+          "default": true
+        },
         "limit": {
           "title": "Rate Limit",
           "options": {
             "infoText": "Maximum number of requests we will allow per minute, including failures. To prevent disruption of service with the client and reduce errors."
           },
-          "propertyOrder": 10,
+          "propertyOrder": 20,
           "type": "integer",
           "default": 300,
           "minimum": 1,
@@ -260,29 +270,40 @@
           "options": {
             "infoText": "Seconds we will wait for any single API request with this client to complete before we abort."
           },
-          "propertyOrder": 20,
+          "propertyOrder": 30,
           "type": "integer",
           "default": 60,
           "minimum": 1,
           "maximum": 300
+        },
+        "connect_timeout": {
+          "title": "Connect Timeout",
+          "options": {
+            "infoText": "Seconds we will wait for any single API server to respond to a request."
+          },
+          "propertyOrder": 40,
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 30
         },
         "attempts": {
           "title": "Attempts",
           "options": {
             "infoText": "Attempts that will be made to send this payload, before aborting due to critical errors or timeouts. Set to 1 to prevent retries."
           },
-          "propertyOrder": 30,
+          "propertyOrder": 50,
           "type": "integer",
           "default": 3,
           "minimum": 1,
           "maximum": 25
         },
         "delay": {
-          "title": "Delay",
+          "title": "Attempt Delay",
           "options": {
             "infoText": "Minutes to wait between failed attempts to send the payload."
           },
-          "propertyOrder": 40,
+          "propertyOrder": 60,
           "type": "integer",
           "default": 15,
           "minimum": 5,
