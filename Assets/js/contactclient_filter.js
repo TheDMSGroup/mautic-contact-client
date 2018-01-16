@@ -7,3 +7,8 @@
 // function () { var $filterQueryBuilder = mQuery('<div>', { id:
 // 'contactclient_filter_querybuilder' }).insertBefore($filter);
 // $filter.addClass('hide'); } ); }
+Mautic.contactclientFilter = function () {
+    mQuery(document).ready(function () {
+
+    });
+};
