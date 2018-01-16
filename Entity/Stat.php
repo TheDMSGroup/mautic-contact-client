@@ -33,7 +33,7 @@ class Stat
     /**
      * @var ContactClient
      */
-    private $contactclient;
+    private $contactClient;
 
     /**
      * @var string
@@ -69,7 +69,7 @@ class Stat
 
         $builder->addId();
 
-        $builder->createManyToOne('contactclient', 'ContactClient')
+        $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', false, false, 'CASCADE')
             ->build();
 
@@ -77,7 +77,7 @@ class Stat
 
         $builder->addNamedField('dateAdded', 'datetime', 'date_added');
 
-        $builder->addLead(true, 'SET NULL');
+        $builder->addContact(true, 'SET NULL');
     }
 
     /**
@@ -93,17 +93,17 @@ class Stat
      */
     public function getContactClient()
     {
-        return $this->contactclient;
+        return $this->contactClient;
     }
 
     /**
-     * @param mixed $contactclient
+     * @param mixed $contactClient
      *
      * @return Stat
      */
-    public function setContactClient($contactclient)
+    public function setContactClient($contactClient)
     {
-        $this->contactclient = $contactclient;
+        $this->contactClient = $contactClient;
 
         return $this;
     }
@@ -177,7 +177,7 @@ class Stat
     }
 
     /**
-     * @param Contact $lead
+     * @param Contact $contact
      *
      * @return Stat
      */

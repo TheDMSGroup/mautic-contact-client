@@ -227,7 +227,7 @@ class Event
             ->nullable()
             ->build();
 
-        $builder->createOneToMany('log', 'LeadEventLog')
+        $builder->createOneToMany('log', 'ContactEventLog')
             ->mappedBy('event')
             ->cascadePersist()
             ->cascadeRemove()
@@ -535,11 +535,11 @@ class Event
     /**
      * Add log.
      *
-     * @param LeadEventLog $log
+     * @param ContactEventLog $log
      *
      * @return Event
      */
-    public function addLog(LeadEventLog $log)
+    public function addLog(ContactEventLog $log)
     {
         $this->log[] = $log;
 
@@ -549,9 +549,9 @@ class Event
     /**
      * Remove log.
      *
-     * @param LeadEventLog $log
+     * @param ContactEventLog $log
      */
-    public function removeLog(LeadEventLog $log)
+    public function removeLog(ContactEventLog $log)
     {
         $this->log->removeElement($log);
     }
@@ -786,7 +786,7 @@ class Event
      *
      * @param Contact|null $contact
      *
-     * @return LeadEventLog[]|\Doctrine\Common\Collections\Collection|static
+     * @return ContactEventLog[]|\Doctrine\Common\Collections\Collection|static
      */
     public function getContactLog(Contact $contact = null)
     {

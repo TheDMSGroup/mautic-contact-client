@@ -14,8 +14,8 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use Mautic\LeadBundle\Entity\LeadEventLog;
-use Mautic\LeadBundle\Entity\LeadEventLogRepository;
+use Mautic\LeadBundle\Entity\ContactEventLog;
+use Mautic\LeadBundle\Entity\ContactEventLogRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
@@ -30,41 +30,41 @@ class ContactEventLogHelper
     protected $leadModel;
 
     /**
-     * @var LeadEventLogRepository
+     * @var ContactEventLogRepository
      */
-    protected $leadEventLogRepo;
+    protected $ContactEventLogRepo;
 
     public function __construct(LeadModel $leadModel)
     {
         $this->leadModel = $leadModel;
-        $this->leadEventLogRepo = $leadModel->getEventLogRepository();
+        $this->ContactEventLogRepo = $leadModel->getEventLogRepository();
     }
 
     /**
      * Save log about errored line.
      *
-     * @param LeadEventLog $eventLog
+     * @param ContactEventLog $eventLog
      * @param string $errorMessage
      */
-    public function logError(LeadEventLog $eventLog, $errorMessage)
+    public function logError(ContactEventLog $eventLog, $errorMessage)
     {
         $eventLog->addProperty('error', $this->translator->trans($errorMessage))
             ->setAction('failed');
-        $this->leadEventLogRepo->saveEntity($eventLog);
+        $this->ContactEventLogRepo->saveEntity($eventLog);
         $this->logDebug('Line '. 1 .' error: '.'err', []);
     }
 
     /**
-     * Initialize LeadEventLog object and configure it as the import event.
+     * Initialize ContactEventLog object and configure it as the import event.
      *
      * @param ContactClient $client
      * @param Contact $contact
      * @param $lineNumber
-     * @return LeadEventLog
+     * @return ContactEventLog
      */
     public function initEventLog(ContactClient $client, Contact $contact, $lineNumber)
     {
-        $eventLog = new LeadEventLog();
+        $eventLog = new ContactEventLog();
         $eventLog->setUserId($client->getCreatedBy())
             ->setUserName($client->getCreatedByUser())
             ->setBundle('lead')

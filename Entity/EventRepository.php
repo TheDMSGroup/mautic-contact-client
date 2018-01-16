@@ -90,7 +90,7 @@ class EventRepository extends CommonRepository
             // Events that aren't fired yet
             $dq = $this->getEntityManager()->createQueryBuilder();
             $dq->select('ellev.id')
-                ->from('MauticContactClientBundle:LeadEventLog', 'ell')
+                ->from('MauticContactClientBundle:ContactEventLog', 'ell')
                 ->leftJoin('ell.event', 'ellev')
                 ->leftJoin('ell.lead', 'el')
                 ->where('ellev.id = e.id')
@@ -272,7 +272,7 @@ class EventRepository extends CommonRepository
         $date = new \Datetime();
 
         $q = $this->getEntityManager()->createQueryBuilder()
-            ->from('MauticContactClientBundle:LeadEventLog', 'o');
+            ->from('MauticContactClientBundle:ContactEventLog', 'o');
 
         $q->where(
             $q->expr()->andX(
