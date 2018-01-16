@@ -11,7 +11,6 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
-use DOMDocument;
 use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;

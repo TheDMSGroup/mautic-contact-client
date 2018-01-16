@@ -13,16 +13,14 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;
+use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
+use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
-//use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-//use MauticPlugin\MauticSocialBundle\Entity\Lead;
-//use MauticPlugin\MauticContactClientBundle\Model\ApiRequest;
-
 /**
- * Class ApiOperation.
+ * Class ApiPayloadOperation.
  */
-class ApiOperation
+class ApiPayloadOperation
 {
 
     protected $operation;

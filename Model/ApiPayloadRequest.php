@@ -11,14 +11,15 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Symfony\Component\Yaml\Yaml;
+use DOMDocument;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
+use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiRequest.
+ * Class ApiPayloadRequest.
  */
-class ApiRequest
+class ApiPayloadRequest
 {
 
     const XML_ROOT_ELEM = 'contact';

@@ -11,15 +11,16 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use DOMDocument;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
-use Symfony\Component\Yaml\Yaml;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
+use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiResponse.
+ * Class ApiPayloadResponse.
  */
-class ApiResponse
+class ApiPayloadResponse
 {
 
     protected $responseExpected;

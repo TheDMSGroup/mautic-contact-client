@@ -14,13 +14,9 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-
-//use MauticPlugin\MauticContactClientBundle\Model\ApiOperation;
-//use MauticPlugin\MauticSocialBundle\Entity\Lead;
-use MauticPlugin\MauticContactClientBundle\Services\Transport;
-use Symfony\Component\DependencyInjection\Container;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
-
+use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class ApiPayload.
