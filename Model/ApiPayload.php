@@ -164,10 +164,17 @@ class ApiPayload
         $updating = (bool)$this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
+            $logs = [];
             $apiOperation = new ApiOperation($id, $operation, $service, $tokenHelper, $this->test, $updating);
-            $apiOperation->run();
-            $this->valid = $apiOperation->getValid();
-            $this->logs[$id] = $apiOperation->getLogs();
+            try {
+                $apiOperation->run();
+                $this->valid = $apiOperation->getValid();
+            } catch (ApiErrorException $e) {
+                $logs[] = $e->getMessage();
+                $this->valid = false;
+            }
+            $logs = array_merge($apiOperation->getLogs(), $logs);
+            $this->logs[$id] = $logs;
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;

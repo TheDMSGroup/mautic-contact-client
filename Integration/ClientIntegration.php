@@ -50,6 +50,7 @@ class ClientIntegration extends AbstractIntegration
 
     protected $payload;
 
+    protected $valid = true;
 
     /**
      * {@inheritdoc}
@@ -108,11 +109,12 @@ class ClientIntegration extends AbstractIntegration
 
         $this->payload = new ApiPayload($client, $contact, $container, $test);
         try {
-            $this->payload->run();
+            $this->valid = $this->payload->run();
         } catch (ApiErrorException $e) {
+            $this->valid = false;
             $this->logs[] = $e->getMessage();
         }
-        $this->logs['payload'] = $this->payload->getLogs();
+        $this->logs = array_merge($this->payload->getLogs(), $this->logs);
 
         $this->logResults();
         die(var_dump($this->logs));
