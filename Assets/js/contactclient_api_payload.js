@@ -322,7 +322,7 @@ mQuery(document).ready(function () {
                                             // Header.
                                             if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length) {
                                                 additionalFilters.push({
-                                                    id: 'headers.' + obj.operations[i].response.headers[j].key,
+                                                    id: 'operation.' + i + '.headers.' + obj.operations[i].response.headers[j].key,
                                                     label: 'Header Field: ' + obj.operations[i].response.headers[j].key,
                                                     type: 'string',
                                                     operators: defaultOperators
@@ -338,7 +338,7 @@ mQuery(document).ready(function () {
                                             // Header.
                                             if (typeof obj.operations[i].response.body[k].key !== 'undefined' && obj.operations[i].response.body[k].key.length) {
                                                 additionalFilters.push({
-                                                    id: 'body.' + obj.operations[i].response.body[k].key,
+                                                    id: 'operation.' + i + '.body.' + obj.operations[i].response.body[k].key,
                                                     label: 'Body Field: ' + obj.operations[i].response.body[k].key,
                                                     type: 'string',
                                                     operators: defaultOperators

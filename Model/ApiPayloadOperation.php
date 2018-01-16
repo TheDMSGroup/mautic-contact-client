@@ -105,9 +105,6 @@ class ApiPayloadOperation
         // @todo Update our Contact with the relevant field mapping. (to be handled in ClientIntegration)
         // @todo - $this->getResponseUpdated();
 
-        // @todo Update our payload (to be handled in ApiPayload)
-        // @todo - $this->updatePayload($this->responseActual);
-
         if ($this->updating) {
             $this->updateResponse();
         }
@@ -121,6 +118,7 @@ class ApiPayloadOperation
     public function updateResponse()
     {
         $result = $this->responseExpected;
+        $updates = false;
         foreach (['headers', 'body'] as $type) {
             if (isset($this->responseActual[$type])) {
                 $fieldKeys = [];
@@ -142,19 +140,22 @@ class ApiPayloadOperation
                         $newField->key = $key;
                         $newField->example = $value;
                         $result->{$type}[] = $newField;
+                        $this->logs[] = 'New '.$type.' field "'.$key.'" added with example: '.$value;
+                        $updates = true;
                     } else {
-                        if (empty($result->{$type}[$fieldId]->example)) {
+                        if (!empty($value) && empty($result->{$type}[$fieldId]->example)) {
                             // This is an existing field, but requires an updated example.
                             $result->{$type}[$fieldId]->example = $value;
+                            $updates = true;
+                            $this->logs[] = 'Existing '.$type.' field "'.$key.'" now has an example: '.$value;
                         }
                     }
                 }
             }
         }
-        if ($this->operation->response != $result) {
-            $this->logs[] = 'Updates to the response were found.';
+        if ($updates) {
+            $this->operation->response = $result;
         }
-        $this->operation->response = $result;
     }
 
     public function getValid()
