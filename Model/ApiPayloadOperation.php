@@ -11,7 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Mautic\LeadBundle\Entity\Lead as Contact;
+use stdClass;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
@@ -41,8 +41,6 @@ class ApiPayloadOperation
 
     protected $service;
 
-    protected $contact;
-
     protected $updating;
 
     protected $valid = false;
@@ -66,7 +64,6 @@ class ApiPayloadOperation
      * Run this single API Operation.
      *
      * @return $this|bool
-     * @throws ApiErrorException
      */
     public function run()
     {
@@ -98,7 +95,12 @@ class ApiPayloadOperation
         $this->logs['response'] = $apiResponse->getLogs();
 
         // Validate the API response with the given success definition.
-        $this->valid = $apiResponse->validate();
+        try {
+            $this->valid = $apiResponse->validate();
+        } catch (ApiErrorException $e) {
+            $this->logs['response'][] = $e->getMessage();
+            $this->valid = false;
+        }
 
         // @todo Update our Contact with the relevant field mapping. (to be handled in ClientIntegration)
         // @todo - $this->getResponseUpdated();
@@ -121,18 +123,30 @@ class ApiPayloadOperation
         $result = $this->responseExpected;
         foreach (['headers', 'body'] as $type) {
             if (isset($this->responseActual[$type])) {
+                $fieldKeys = [];
+                foreach ($result->{$type} as $id => $value) {
+                    if (!empty($value->key) && is_numeric($id)) {
+                        $fieldKeys[$value->key] = intval($id);
+                    }
+                }
                 foreach ($this->responseActual[$type] as $key => $value) {
-                    if (!isset($result[$type])) {
-                        $result[$type] = [];
+                    // Check if this type of response was not expected (headers / body).
+                    if (!isset($result->{$type})) {
+                        $result->{$type} = [];
                     }
-                    if (!isset($result[$type][$key])) {
-                        $result[$type][$key] = [];
-                    }
-                    if (!isset($result[$type][$key]['key'])) {
-                        $result[$type][$key]['key'] = $key;
-                    }
-                    if (empty($result[$type][$key]['example'])) {
-                        $result[$type][$key]['example'] = $value;
+                    // Check if header/body field is unexpected.
+                    $fieldId = $fieldKeys[$key] ?? -1;
+                    if ($fieldId == -1) {
+                        // This is a new field.
+                        $newField = new stdClass();
+                        $newField->key = $key;
+                        $newField->example = $value;
+                        $result->{$type}[] = $newField;
+                    } else {
+                        if (empty($result->{$type}[$fieldId]->example)) {
+                            // This is an existing field, but requires an updated example.
+                            $result->{$type}[$fieldId]->example = $value;
+                        }
                     }
                 }
             }

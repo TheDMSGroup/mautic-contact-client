@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
 use Symfony\Component\DependencyInjection\Container;
@@ -43,6 +44,7 @@ class ApiPayload
         'autoUpdate' => self::SETTING_DEF_AUTOUPDATE,
     ];
 
+    /** @var ContactClient */
     protected $contactClient;
 
     protected $contact;
@@ -160,7 +162,6 @@ class ApiPayload
         // We will create and reuse the same Transport session throughout our operations.
         $service = $this->getService();
         $tokenHelper = $this->getTokenHelper();
-        $original = $this->payload->operations;
         $updating = (bool)$this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
@@ -169,7 +170,7 @@ class ApiPayload
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
-            } catch (ApiErrorException $e) {
+            } catch (Exception $e) {
                 $logs[] = $e->getMessage();
                 $this->valid = false;
             }
@@ -180,11 +181,34 @@ class ApiPayload
                 break;
             }
         }
-        // if ($updating && $this->payload->operations !== $original) {
-        // @todo Update the payload with the parent ContactClient because we've updated the response expectation.
-        // }
+        if ($updating) {
+            $this->update();
+        }
 
         return $this->valid;
+    }
+
+    /**
+     * Update the payload with the parent ContactClient because we've updated the response expectation.
+     */
+    private function update(){
+        if ($this->contactClient) {
+            $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
+                $this->contactClient->setAPIPayload($payloadJSON);
+
+                try {
+                    /** @var contactClientModel $contactClientModel */
+                    $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
+                    $contactClientModel->saveEntity($this->contactClient);
+                    $this->logs[] = 'Updated our response payload expectations.';
+                } catch (Exception $e) {
+                    $this->logs[] = 'Unable to save updates to the Contact Client. ' . $e->getMessage();
+                }
+            } else {
+                $this->logs[] = 'Payload responses matched expectations, no updates necessary.';
+            }
+        }
     }
 
     /**
@@ -234,7 +258,6 @@ class ApiPayload
 
         return $this->tokenHelper;
     }
-
 
     public function getLogs() {
         return $this->logs;

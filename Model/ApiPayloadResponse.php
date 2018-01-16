@@ -177,6 +177,16 @@ class ApiPayloadResponse
             $result = $this->flattenStructure($hierarchy);
         }
 
+        // Stringify all values.
+        foreach ($result as $key => &$value) {
+            if ($value === true) {
+                $value = 'true';
+            } elseif ($value === false) {
+                $value = 'false';
+            }
+            $value = (string) $value;
+        }
+
         return $result;
     }
 
