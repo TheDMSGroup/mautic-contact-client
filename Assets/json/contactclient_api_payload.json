@@ -524,6 +524,7 @@
           "type": "string",
           "title": "Example",
           "options": {
+            "readOnly": true,
             "infoText": "An example of what is typically contained in this field (response only)."
           },
           "default": "",
