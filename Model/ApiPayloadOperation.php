@@ -41,14 +41,20 @@ class ApiPayloadOperation
 
     protected $service;
 
-    protected $updating;
+    protected $updatePayload;
 
     protected $valid = false;
 
     protected $tokenHelper;
 
-    public function __construct($id, &$operation, Transport $service, $tokenHelper, $test = false, $updating = true)
-    {
+    public function __construct(
+        $id,
+        &$operation,
+        Transport $service,
+        $tokenHelper,
+        $test = false,
+        $updatePayload = true
+    ) {
         $this->operation = &$operation;
         $this->service = $service;
         $this->name = $operation->name ?? $operation->id ?? 'Unknown';
@@ -57,7 +63,7 @@ class ApiPayloadOperation
         $this->successDefinition = $operation->response->success->definition ?? [];
         $this->tokenHelper = $tokenHelper;
         $this->test = $test;
-        $this->updating = $updating;
+        $this->updatePayload = $updatePayload;
     }
 
     /**
@@ -105,8 +111,8 @@ class ApiPayloadOperation
         // @todo Update our Contact with the relevant field mapping. (to be handled in ClientIntegration)
         // @todo - $this->getResponseUpdated();
 
-        if ($this->updating) {
-            $this->updateResponse();
+        if ($this->updatePayload) {
+            $this->updatePayloadResponse();
         }
 
         return $this;
@@ -115,7 +121,7 @@ class ApiPayloadOperation
     /**
      * Automatically updates a response with filled in data from the parsed response object from the API.
      */
-    public function updateResponse()
+    public function updatePayloadResponse()
     {
         $result = $this->responseExpected;
         $updates = false;
@@ -168,5 +174,30 @@ class ApiPayloadOperation
         return $this->logs;
     }
 
+    public function getResponseActual()
+    {
+        return $this->responseActual;
+    }
+
+    /**
+     * Get filled responses that have Contact destinations defined.
+     * @return array
+     */
+    public function getResponseMap()
+    {
+        $mappedFields = [];
+        foreach (['headers', 'body'] as $type) {
+            if (isset($this->responseExpected->{$type}) && isset($this->responseActual[$type])) {
+                foreach ($this->responseExpected->{$type} as $value) {
+                    if (!empty($value->destination) && !empty($value->key) && !empty($this->responseActual[$type][$value->key])) {
+                        // We have a non-empty value with a mapped destination.
+                        $mappedFields[$value->destination] = $this->responseActual[$type][$value->key];
+                    }
+                }
+            }
+        }
+
+        return $mappedFields;
+    }
 
 }

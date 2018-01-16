@@ -63,6 +63,8 @@ class ApiPayload
 
     protected $tokenHelper;
 
+    protected $responseMap = [];
+
     /**
      * @var Container $container
      */
@@ -162,11 +164,11 @@ class ApiPayload
         // We will create and reuse the same Transport session throughout our operations.
         $service = $this->getService();
         $tokenHelper = $this->getTokenHelper();
-        $updating = (bool)$this->settings['autoUpdate'];
+        $updatePayload = (bool)$this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
             $logs = [];
-            $apiOperation = new ApiOperation($id, $operation, $service, $tokenHelper, $this->test, $updating);
+            $apiOperation = new ApiOperation($id, $operation, $service, $tokenHelper, $this->test, $updatePayload);
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
@@ -179,10 +181,15 @@ class ApiPayload
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;
+            } else {
+                // Aggregate succesful responses that are mapped to Contact fields.
+                $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
             }
         }
-        if ($updating) {
-            $this->update();
+
+        // Update the payload if enabled.
+        if ($updatePayload) {
+            $this->updatePayload();
         }
 
         return $this->valid;
@@ -191,7 +198,7 @@ class ApiPayload
     /**
      * Update the payload with the parent ContactClient because we've updated the response expectation.
      */
-    private function update(){
+    private function updatePayload(){
         if ($this->contactClient) {
             $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
@@ -261,5 +268,14 @@ class ApiPayload
 
     public function getLogs() {
         return $this->logs;
+    }
+
+    /**
+     * Return the aggregate responsemap of all valid operations.
+     * @return array
+     */
+    public function getResponseMap()
+    {
+        return $this->responseMap;
     }
 }

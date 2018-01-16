@@ -18,6 +18,7 @@ use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use Symfony\Component\DependencyInjection\Container;
+
 //use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
 
 /**
@@ -39,7 +40,7 @@ class ClientIntegration extends AbstractIntegration
     protected $logs = [];
 
     /**
-     * @var Lead The contact we wish to send and update.
+     * @var Contact The contact we wish to send and update.
      */
     protected $contact;
 
@@ -93,9 +94,11 @@ class ClientIntegration extends AbstractIntegration
      */
     public function sendContact(ContactClient $client, Contact $contact, Container $container, $test = false)
     {
-        $this->test = $test;
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
+
+        $this->container = $container;
+        $this->test = $test;
 
         if (!$client) {
             throw new ApiErrorException('Contact Client appears to not exist.');
@@ -116,6 +119,8 @@ class ClientIntegration extends AbstractIntegration
         }
         $this->logs = array_merge($this->payload->getLogs(), $this->logs);
 
+        $this->updateContact();
+
         $this->logResults();
         die(var_dump($this->logs));
     }
@@ -125,35 +130,42 @@ class ClientIntegration extends AbstractIntegration
      *
      * @param array $response Expected response mapping.
      */
-    private function updateContact($response = [])
+    /**
+     * Loop through the API Operation responses and find valid field mappings.
+     * Set the new values to the contact and log the changes thereof.
+     */
+    private function updateContact()
     {
-//        if (!$this->isAborted()) {
-//
-//            // Check the response against the expected response for any field mappings.
-//            foreach (['headers', 'body'] as $type) {
-//                if (
-//                    isset($this->response[$type])
-//                    && is_array($this->response[$type])
-//                    && count($this->response[$type])
-//                    && isset($response[$type])
-//                    && is_array($response[$type])
-//                    && count($response[$type])
-//                ) {
-//                    // We have found an input type with a result that was expected.
-//                    // @todo - Update the values on the contact.
-//                }
-//            }
-//
-//            // @todo - If we find field values to map, update the contact and save.
-//
-//            // @todo - Log an event on the contact to           where this update came from.
-//        }
+        $responseMap = $this->payload->getResponseMap();
+        if ($this->valid) {
+            $updated = false;
+            if (count($responseMap)) {
+                foreach ($responseMap as $alias => $value) {
+                    $oldValue = $this->contact->getFieldValue($alias);
+                    if ($oldValue !== $value) {
+                        $this->contact->addUpdatedField($alias, $value, $oldValue);
+                        $this->logs[] = 'Updating Contact: '.$alias.' = '.$value;
+                        $updated = true;
+                    }
+                }
+            }
+            if ($updated) {
+                try {
+                    $contactModel = $this->container->get('mautic.lead.model.lead');
+                    $contactModel->saveEntity($this->contact);
+                    $this->logs[] = 'Operation successful. The Contact was updated.';
+                } catch (Exception $e) {
+                    $this->logs[] = 'Failure to update our Contact. '.$e->getMessage();
+                    $this->valid = false;
+                }
+            } else {
+                $this->logs[] = 'Operation successful, but no fields on the Contact needed updating.';
+            }
+        }
     }
 
     private function logResults()
     {
 
     }
-
-
 }
