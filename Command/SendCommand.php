@@ -127,8 +127,16 @@ class SendCommand extends ModeratedCommand
                 return 0;
             }
             $integrationObject->sendContact($client, $contact, $container, $options['test']);
+            if ($integrationObject->getValid()) {
+                $output->writeln('Contact sent.');
+            } else {
+                $output->writeln('Contact not sent or not accepted.');
+                $output->writeIn('Logs: ' . print_r($integrationObject->getLogs(), true));
+            }
 
         } elseif ($clientType == 'file') {
+
+            // @todo - Support file payloads.
 
         } else {
             $output->writeln('Client type is not recognized.');
@@ -136,7 +144,6 @@ class SendCommand extends ModeratedCommand
             return 0;
         }
 
-        $output->writeln('Contact not sent, this method is still a stub.');
         $output->writeln('<info>Done.</info>');
 
         $this->completeRun();

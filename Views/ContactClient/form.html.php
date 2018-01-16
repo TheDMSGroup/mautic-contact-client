@@ -55,7 +55,7 @@ echo $view['form']->start($form);
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.limits'); ?>
                     </a>
                 </li>
-                <li class="hide payload-tab">
+                <li id="payload-tab" class="hide">
                     <a href="#payload" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
                     </a>

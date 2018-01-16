@@ -5,21 +5,17 @@ Mautic.contactclientOnLoad = function () {
         mQuery('input[name="contactclient[type]"]').change(function () {
             var val = mQuery(this).val();
             if (val === 'api') {
-                mQuery('.api-payload').removeClass('hide');
-                mQuery('.file-payload').addClass('hide');
-                mQuery('.payload-tab').removeClass('hide');
+                mQuery('#payload-tab, #contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_api_payload_jsoneditor').removeClass('hide');
+                mQuery('#contactclient_file_payload').addClass('hide');
                 Mautic.contactclientApiPayload();
             }
             else if (val === 'file') {
-                mQuery('.api-payload').addClass('hide');
-                mQuery('.file-payload').removeClass('hide');
-                mQuery('.payload-tab').removeClass('hide');
+                mQuery('#contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_api_payload_jsoneditor').addClass('hide');
+                mQuery('#payload-tab, #contactclient_file_payload').removeClass('hide');
                 Mautic.contactclientFilePayload();
             }
             else {
-                mQuery('.api-payload').addClass('hide');
-                mQuery('.file-payload').addClass('hide');
-                mQuery('.payload-tab').addClass('hide');
+                mQuery('#contactclient_api_payload, #contactclient_file_payload, #payload-tab').addClass('hide');
             }
         }).first().parent().parent().find('label.active input:first').trigger('change');
 

@@ -53,6 +53,8 @@ class ClientIntegration extends AbstractIntegration
 
     protected $valid = true;
 
+    protected $container;
+
     /**
      * {@inheritdoc}
      *
@@ -167,5 +169,15 @@ class ClientIntegration extends AbstractIntegration
     private function logResults()
     {
 
+    }
+
+    public function getValid()
+    {
+        return $this->valid;
+    }
+
+    public function getLogs()
+    {
+        return $this->logs;
     }
 }
