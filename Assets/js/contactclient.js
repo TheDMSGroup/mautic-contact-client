@@ -1,47 +1,31 @@
-// General helpers for the Contact Client editor form.
-Mautic.contactclientOnLoad = function () {
-    mQuery(document).ready(function () {
-        // Trigger payload tab visibility based on contactClient type.
-        mQuery('input[name="contactclient[type]"]').change(function () {
-            var val = mQuery(this).val();
-            if (val === 'api') {
-                mQuery('#payload-tab, #contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_api_payload_jsoneditor').removeClass('hide');
-                mQuery('#contactclient_file_payload').addClass('hide');
-                Mautic.contactclientApiPayload();
-            }
-            else if (val === 'file') {
-                mQuery('#contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_api_payload_jsoneditor').addClass('hide');
-                mQuery('#payload-tab, #contactclient_file_payload').removeClass('hide');
-                Mautic.contactclientFilePayload();
-            }
-            else {
-                mQuery('#contactclient_api_payload, #contactclient_file_payload, #payload-tab').addClass('hide');
-            }
-        }).first().parent().parent().find('label.active input:first').trigger('change');
+Mautic.contactclientgetIntegrationConfig = function (el, settings) {
 
-        // Hide the right column when Payload tab is open to give more room for
-        // table entry.
-        var activeTab = '#details';
-        mQuery('.contactclient-tab').click(function () {
-            var thisTab = mQuery(this).attr('href');
-            if (thisTab !== activeTab) {
-                activeTab = thisTab;
-                if (activeTab === '#payload') {
-                    // Expanded view.
-                    mQuery('.contactclient-left').addClass('col-md-12').removeClass('col-md-9');
-                    mQuery('.contactclient-right').addClass('hide');
-                }
-                else {
-                    // Standard view.
-                    mQuery('.contactclient-left').removeClass('col-md-12').addClass('col-md-9');
-                    mQuery('.contactclient-right').removeClass('hide');
-                }
-            }
-        });
+    // @todo - trigger a lookup of the active destination campaigns on this custom client integration.
+    if (mQuery(el).val()) {
+        mQuery('#campaignevent_name').val('Push to ' + mQuery(el).parent().find('select option:selected').text());
+    }
 
-        Mautic.contactclientExclusivity();
-        Mautic.contactclientFilter();
-        Mautic.contactclientLimits();
-        Mautic.contactclientSchedule();
-    });
+    Mautic.activateLabelLoadingIndicator(mQuery(el).attr('id'));
+
+    if (typeof settings == 'undefined') {
+        settings = {};
+    }
+
+    settings.name = mQuery(el).attr('name');
+    var data = {integration: mQuery(el).val(), settings: settings};
+    mQuery('.integration-campaigns-status').html('');
+    mQuery('.integration-config-container').html('');
+
+    Mautic.ajaxActionRequest('plugin:getIntegrationConfig', data,
+        function (response) {
+            if (response.success) {
+                mQuery('.integration-config-container').html(response.html);
+                Mautic.onPageLoad('.integration-config-container', response);
+            }
+
+            Mautic.integrationConfigOnLoad('.integration-config-container');
+            Mautic.removeLabelLoadingIndicator();
+        }
+    );
 };
+alert('the contactclient.js file is being triggered globally.');

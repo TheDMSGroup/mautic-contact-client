@@ -55,15 +55,6 @@ return [
                     'doctrine.orm.entity_manager',
                 ],
             ],
-            'mautic.contactclient.campaignbundle.subscriber' => [
-                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\CampaignSubscriber',
-                'arguments' => [
-                    'mautic.campaign.model.event',
-                    'mautic.contactclient.model.contactclient',
-                    'mautic.page.helper.tracking',
-                    'router',
-                ],
-            ],
         ],
         'forms' => [
             'mautic.contactclient.form.type.contactclientshow_list' => [

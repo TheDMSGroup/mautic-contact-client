@@ -126,7 +126,7 @@ class SendCommand extends ModeratedCommand
 
                 return 0;
             }
-            $integrationObject->sendContact($client, $contact, $container, $options['test']);
+            $integrationObject->sendContact($client, $contact, $options['test']);
             if ($integrationObject->getValid()) {
                 $output->writeln('Contact sent.');
             } else {

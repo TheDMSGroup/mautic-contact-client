@@ -16,7 +16,7 @@ Mautic.contactclientApiPayload = function () {
             mQuery.ajax({
                 dataType: 'json',
                 cache: false,
-                url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/contactclient_api_payload.json',
+                url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/api_payload.json',
                 success: function (data) {
                     var schema = data;
                     // Extend the bootstrap3 theme with our own

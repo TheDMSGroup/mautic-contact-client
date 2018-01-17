@@ -12,14 +12,19 @@
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
+use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Validator\Constraints\NotBlank;
+// use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
 
-//use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
 
 /**
  * Class ContactClientIntegration.
@@ -65,12 +70,18 @@ class ClientIntegration extends AbstractIntegration
         return 'Client';
     }
 
+
+    public function getDisplayName()
+    {
+        return 'Integration';
+    }
+
     /**
      * @return array
      */
     public function getSupportedFeatures()
     {
-        return [];
+        return ['push_lead', 'push_leads'];
     }
 
     /**
@@ -81,6 +92,74 @@ class ClientIntegration extends AbstractIntegration
     public function getAuthenticationType()
     {
         return 'none';
+    }
+
+    /**
+     * @param \Mautic\LeadBundle\Entity\Lead $lead
+     * @param array $config
+     *
+     * @return array|bool
+     */
+    public function pushLead($lead, $config = [])
+    {
+        $config = $this->mergeConfigToFeatureSettings($config);
+        // @todo - Push a single contact by Campaign Action.
+//
+//        if (empty($config['leadFields'])) {
+//            return [];
+//        }
+//
+//        $mappedData = $this->mapContactDataForPush($lead, $config);
+//
+//        // No fields are mapped so bail
+//        if (empty($mappedData)) {
+//            return false;
+//        }
+        return false;
+    }
+
+    /**
+     * Merges a config from integration_list with feature settings.
+     *
+     * @param array $config
+     *
+     * @return array|mixed
+     */
+    public function mergeConfigToFeatureSettings($config = [])
+    {
+        $featureSettings = $this->settings->getFeatureSettings();
+
+        if (isset($config['config'])
+            && (empty($config['integration'])
+                || (!empty($config['integration'])
+                    && $config['integration'] == $this->getName()))
+        ) {
+            $featureSettings = array_merge($featureSettings, $config['config']);
+        }
+
+        return $featureSettings;
+    }
+
+    /**
+     * @param array $params
+     *
+     * @return mixed
+     */
+    public function pushLeads($params = [])
+    {
+        $limit = (isset($params['limit'])) ? $params['limit'] : 100;
+
+        // @todo - Push multiple contacts by Campaign Action.
+
+//        list($fromDate, $toDate) = $this->getSyncTimeframeDates($params);
+//        $config                  = $this->mergeConfigToFeatureSettings($params);
+//        $integrationEntityRepo   = $this->getIntegrationEntityRepository();
+        $totalUpdated = 0;
+        $totalCreated = 0;
+        $totalErrors = 0;
+        $totalIgnored = 0;
+
+        return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
     }
 
     /**
@@ -96,6 +175,9 @@ class ClientIntegration extends AbstractIntegration
      */
     public function sendContact(ContactClient $client, Contact $contact, Container $container, $test = false)
     {
+
+        // @todo - Convert/integrate method ino sendLead and update the console command as needed.
+
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
 
@@ -116,8 +198,10 @@ class ClientIntegration extends AbstractIntegration
         try {
             $this->valid = $this->payload->run();
         } catch (ApiErrorException $e) {
+            // Failure to validate one or more API operations in the payload.
             $this->valid = false;
             $this->logs[] = $e->getMessage();
+            $this->logIntegrationError($e, $this->contact);
         }
         $this->logs = array_merge($this->payload->getLogs(), $this->logs);
 
@@ -159,6 +243,7 @@ class ClientIntegration extends AbstractIntegration
                 } catch (Exception $e) {
                     $this->logs[] = 'Failure to update our Contact. '.$e->getMessage();
                     $this->valid = false;
+                    $this->logIntegrationError($e, $this->contact);
                 }
             } else {
                 $this->logs[] = 'Operation successful, but no fields on the Contact needed updating.';
@@ -168,7 +253,7 @@ class ClientIntegration extends AbstractIntegration
 
     private function logResults()
     {
-
+        // @todo - Ensure audit log, stats log, and lead logs on success.
     }
 
     public function getValid()
@@ -179,5 +264,90 @@ class ClientIntegration extends AbstractIntegration
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    /**
+     * @param Form|FormBuilder $builder
+     * @param array $data
+     * @param string $formArea
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function appendToForm(&$builder, $data, $formArea)
+    {
+        if ($formArea == 'integration') {
+            if ($this->isAuthorized()) {
+
+                // @todo - Remove use of deprecated factory when a better way to get the container exists.
+                $clientModel = $this->factory->get('mautic.contactclient.model.contactclient');
+                // $clientModel = $this->container->get('mautic.contactclient.model.contactclient');
+                /** @var contactClientRepository $contactClientRepo */
+                $contactClientRepo = $clientModel->getRepository();
+                $contactClientEntities = $contactClientRepo->getEntities();
+                $clients = ['', ''];
+                foreach ($contactClientEntities as $contactClientEntity) {
+                    if ($contactClientEntity->getIsPublished()) {
+                        $clients[$contactClientEntity->getId()] = $contactClientEntity->getName();
+                    }
+                }
+                if (count($clients) === 1) {
+                    $clients = ['', '-- No Clients have been created and published --'];
+                }
+                $builder->add(
+                    'contactclient',
+                    'choice',
+                    [
+                        'choices'      => $clients,
+                        'expanded'     => false,
+                        'label_attr'   => ['class' => 'control-label'],
+                        'multiple'     => false,
+                        'label'        => 'mautic.contactclient.integration.client',
+                        'attr'         => [
+                            'class'    => 'form-control',
+                            'tooltip'  => 'mautic.contactclient.integration.client.tooltip',
+                            'onchange' => 'Mautic.contactclientgetIntegrationConfig(this);',
+                        ],
+                        'required'     => true,
+                        'constraints'  => [
+                            new NotBlank(
+                                ['message' => 'mautic.core.value.required']
+                            ),
+                        ],
+                    ]
+                );
+                // @todo - Update the form with dynamic destination campaigns if available for the current client.
+                $contactClient = null;
+                $builder->addEventListener(
+                    FormEvents::PRE_SET_DATA,
+                    function (FormEvent $event) use ($contactClient) {
+                        $data = $event->getData();
+                        if (isset($data['contactclient'])) {
+                            $form = $event->getForm();
+                            $form->add(
+                                'contactclient_destination_campaign',
+                                'choice',
+                                [
+                                    'choices'     => ['' => ''],
+                                    'expanded'    => false,
+                                    'label_attr'  => ['class' => 'control-label'],
+                                    'multiple'    => false,
+                                    'label'       => 'mautic.contactclient.integration.campaign',
+                                    'attr'        => [
+                                        'class'   => 'form-control',
+                                        'tooltip' => 'mautic.contactclient.integration.campaign.tooltip',
+                                    ],
+                                    'required'    => true,
+                                    'constraints' => [
+                                        new NotBlank(
+                                            ['message' => 'mautic.core.value.required']
+                                        ),
+                                    ],
+                                ]
+                            );
+                        }
+                    }
+                );
+            }
+        }
     }
 }
