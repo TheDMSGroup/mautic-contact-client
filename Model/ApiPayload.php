@@ -73,12 +73,12 @@ class ApiPayload
     /**
      * ApiPayload constructor.
      * @param ContactClient $contactClient
-     * @param Contact $contact
+     * @param Contact|null $contact
      * @param Container $container
      * @param bool $test
      * @throws ApiErrorException
      */
-    public function __construct(ContactClient $contactClient, Contact $contact, Container $container, $test = false)
+    public function __construct(ContactClient $contactClient, $contact = null, $container = null, $test = false)
     {
         $this->contactClient = $contactClient;
         $this->container = $container;
@@ -196,29 +196,6 @@ class ApiPayload
     }
 
     /**
-     * Update the payload with the parent ContactClient because we've updated the response expectation.
-     */
-    private function updatePayload(){
-        if ($this->contactClient) {
-            $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
-            if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
-                $this->contactClient->setAPIPayload($payloadJSON);
-
-                try {
-                    /** @var contactClientModel $contactClientModel */
-                    $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
-                    $contactClientModel->saveEntity($this->contactClient);
-                    $this->logs[] = 'Updated our response payload expectations.';
-                } catch (Exception $e) {
-                    $this->logs[] = 'Unable to save updates to the Contact Client. ' . $e->getMessage();
-                }
-            } else {
-                $this->logs[] = 'Payload responses matched expectations, no updates necessary.';
-            }
-        }
-    }
-
-    /**
      * Retrieve the transport service for API interaction.
      */
     private function getService()
@@ -248,7 +225,9 @@ class ApiPayload
                 $this->tokenHelper = $this->container->get('mautic.contactclient.helper.token');
 
                 // Set the timezones for date/time conversion.
-                $tza = $this->container->get('mautic.helper.core_parameters')->getParameter('default_timezone') ?: 'UTC';
+                $tza = $this->container->get('mautic.helper.core_parameters')->getParameter(
+                    'default_timezone'
+                ) ?: 'UTC';
                 $tzb = $this->contactClient->getScheduleTimezone() ?: 'UTC';
                 $this->tokenHelper->setTimezones($tza, $tzb);
 
@@ -266,7 +245,32 @@ class ApiPayload
         return $this->tokenHelper;
     }
 
-    public function getLogs() {
+    /**
+     * Update the payload with the parent ContactClient because we've updated the response expectation.
+     */
+    private function updatePayload()
+    {
+        if ($this->contactClient) {
+            $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
+                $this->contactClient->setAPIPayload($payloadJSON);
+
+                try {
+                    /** @var contactClientModel $contactClientModel */
+                    $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
+                    $contactClientModel->saveEntity($this->contactClient);
+                    $this->logs[] = 'Updated our response payload expectations.';
+                } catch (Exception $e) {
+                    $this->logs[] = 'Unable to save updates to the Contact Client. '.$e->getMessage();
+                }
+            } else {
+                $this->logs[] = 'Payload responses matched expectations, no updates necessary.';
+            }
+        }
+    }
+
+    public function getLogs()
+    {
         return $this->logs;
     }
 
@@ -277,5 +281,37 @@ class ApiPayload
     public function getResponseMap()
     {
         return $this->responseMap;
+    }
+
+    /**
+     * Retrieve from the payload all outgoing fields that are set to overridable.
+     *
+     * @return array
+     */
+    public function getOverridableFields()
+    {
+        $result = [];
+        if (isset($this->payload->operations)) {
+            foreach ($this->payload->operations as $id => $operation) {
+                if (isset($operation->request)) {
+                    foreach (['headers', 'body'] as $type) {
+                        if (isset($operation->request->{$type})) {
+                            foreach ($operation->request->{$type} as $field) {
+                                if (isset($field->overridable) && $field->overridable === true) {
+                                    // Remove irrelevant data, since this result will need to be light-weight.
+                                    unset($field->default_value);
+                                    unset($field->test_value);
+                                    unset($field->test_only);
+                                    unset($field->overridable);
+                                    unset($field->required);
+                                    $result[(string) $field->key] = $field;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
     }
 }

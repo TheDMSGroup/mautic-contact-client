@@ -1,0 +1,63 @@
+{
+  "title": "Field Overrides",
+  "$schema": "overrides.json",
+  "type": "array",
+  "format": "table",
+  "options": {
+    "disable_collapse": true
+  },
+  "items": {
+    "title": "Field",
+    "$ref": "#/definitions/requestField"
+  },
+  "definitions": {
+    "requestField": {
+      "title": "Field",
+      "headerTemplate": "{{ self.key }}",
+      "type": "object",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": false,
+        "disable_delete": true,
+        "disable_new": true
+      },
+      "properties": {
+        "key": {
+          "propertyOrder": 10,
+          "type": "string",
+          "title": "Key",
+          "options": {
+            "disabled": true,
+            "infoText": "The name of the field being sent."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "value": {
+          "propertyOrder": 20,
+          "type": "string",
+          "title": "Value",
+          "options": {
+            "infoText": "The value of the field being sent."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "description": {
+          "propertyOrder": 30,
+          "type": "string",
+          "title": "Description",
+          "options": {
+            "disabled": true,
+            "infoText": ""
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        }
+      }
+    }
+  }
+}

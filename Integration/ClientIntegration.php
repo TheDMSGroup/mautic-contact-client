@@ -23,6 +23,7 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Validator\Constraints\NotBlank;
+
 // use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
 
 
@@ -60,20 +61,9 @@ class ClientIntegration extends AbstractIntegration
 
     protected $container;
 
-    /**
-     * {@inheritdoc}
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return 'Client';
-    }
-
-
     public function getDisplayName()
     {
-        return 'Integration';
+        return 'Choose Client';
     }
 
     /**
@@ -138,6 +128,16 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $featureSettings;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return 'Client';
     }
 
     /**
@@ -284,68 +284,80 @@ class ClientIntegration extends AbstractIntegration
                 /** @var contactClientRepository $contactClientRepo */
                 $contactClientRepo = $clientModel->getRepository();
                 $contactClientEntities = $contactClientRepo->getEntities();
-                $clients = ['', ''];
+                $clients = ['' => ''];
+                $overridableFields = [];
                 foreach ($contactClientEntities as $contactClientEntity) {
                     if ($contactClientEntity->getIsPublished()) {
-                        $clients[$contactClientEntity->getId()] = $contactClientEntity->getName();
+                        $id = $contactClientEntity->getId();
+                        $clients[$id] = $contactClientEntity->getName();
+
+                        // Get overridable fields from the payload of the type needed.
+                        if ($contactClientEntity->getType() == 'api') {
+                            $payload = new ApiPayload($contactClientEntity);
+                            $overridableFields[$id] = $payload->getOverridableFields();
+                        } else {
+                            // @todo - File based payload.
+                        }
                     }
                 }
                 if (count($clients) === 1) {
                     $clients = ['', '-- No Clients have been created and published --'];
                 }
+                // Shim to get our javascript over the border and into Integration land.
+                $onchange = "if (typeof Mautic.contactclientIntegration === 'undefined') {" .
+                            "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){" .
+                            "        Mautic.contactclientIntegration();" .
+                            "    });" .
+                            "} else {" .
+                            "    Mautic.contactclientIntegration();" .
+                            "}";
+
                 $builder->add(
                     'contactclient',
                     'choice',
                     [
-                        'choices'      => $clients,
-                        'expanded'     => false,
-                        'label_attr'   => ['class' => 'control-label'],
-                        'multiple'     => false,
-                        'label'        => 'mautic.contactclient.integration.client',
-                        'attr'         => [
-                            'class'    => 'form-control',
-                            'tooltip'  => 'mautic.contactclient.integration.client.tooltip',
-                            'onchange' => 'Mautic.contactclientgetIntegrationConfig(this);',
+                        'choices' => $clients,
+                        'expanded' => false,
+                        'label_attr' => ['class' => 'control-label'],
+                        'multiple' => false,
+                        'label' => 'mautic.contactclient.integration.client',
+                        'attr' => [
+                            'class' => 'form-control',
+                            'tooltip' => 'mautic.contactclient.integration.client.tooltip',
+                            'onchange' => preg_replace('/\s+/', ' ', $onchange),
                         ],
-                        'required'     => true,
-                        'constraints'  => [
+                        'required' => true,
+                        'constraints' => [
                             new NotBlank(
                                 ['message' => 'mautic.core.value.required']
                             ),
                         ],
+                        'choice_attr' => function ($val, $key, $index) use ($overridableFields) {
+                            $results = [];
+                            // adds a class like attending_yes, attending_no, etc
+                            if ($val && isset($overridableFields[$val])) {
+                                $results['class'] = 'contact-client-'.$val;
+                                // Change format to match json schema.
+                                $results['data-overridable-fields'] = json_encode($overridableFields[$val]);
+                            }
+                            return $results;
+                        },
                     ]
                 );
-                // @todo - Update the form with dynamic destination campaigns if available for the current client.
-                $contactClient = null;
-                $builder->addEventListener(
-                    FormEvents::PRE_SET_DATA,
-                    function (FormEvent $event) use ($contactClient) {
-                        $data = $event->getData();
-                        if (isset($data['contactclient'])) {
-                            $form = $event->getForm();
-                            $form->add(
-                                'contactclient_destination_campaign',
-                                'choice',
-                                [
-                                    'choices'     => ['' => ''],
-                                    'expanded'    => false,
-                                    'label_attr'  => ['class' => 'control-label'],
-                                    'multiple'    => false,
-                                    'label'       => 'mautic.contactclient.integration.campaign',
-                                    'attr'        => [
-                                        'class'   => 'form-control',
-                                        'tooltip' => 'mautic.contactclient.integration.campaign.tooltip',
-                                    ],
-                                    'required'    => true,
-                                    'constraints' => [
-                                        new NotBlank(
-                                            ['message' => 'mautic.core.value.required']
-                                        ),
-                                    ],
-                                ]
-                            );
-                        }
-                    }
+
+                $builder->add(
+                    'contactclient_overrides',
+                    'textarea',
+                    [
+                        'label'      => 'mautic.contactclient.integration.overrides',
+                        'label_attr' => ['class' => 'control-label hide'],
+                        'attr'       => [
+                            'class' => 'form-control hide',
+                            'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
+                        ],
+                        'required'   => false,
+                        'data'       => ''
+                    ]
                 );
             }
         }
