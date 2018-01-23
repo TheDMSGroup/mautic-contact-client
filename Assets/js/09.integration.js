@@ -31,7 +31,7 @@ Mautic.contactclientIntegration = function () {
 
                 // Create our widget container for the JSON Editor.
                 var $overridesJSONEditor = mQuery('<div>', {
-                    id: 'campaignevent_properties_config_contactclient_overrides_jsoneditor'
+                    class: 'contactclient_jsoneditor'
                 }).insertBefore($overrides);
 
                 // Instantiate the JSON Editor based on our schema.

@@ -308,6 +308,7 @@ class ClientIntegration extends AbstractIntegration
                             "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){" .
                             "        Mautic.contactclientIntegration();" .
                             "    });" .
+                            "    mQuery('head').append('<link rel=\'stylesheet\' href=\'' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css\' type=\'text/css\' />');" .
                             "} else {" .
                             "    Mautic.contactclientIntegration();" .
                             "}";
