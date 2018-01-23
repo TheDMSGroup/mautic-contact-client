@@ -9,12 +9,12 @@ Mautic.contactclientOnLoad = function () {
             mQuery('input[name="contactclient[type]"]').change(function () {
                 var val = mQuery(this).val();
                 if (val === 'api') {
-                    mQuery('#payload-tab, #contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_api_payload_jsoneditor').removeClass('hide');
+                    mQuery('#payload-tab, #contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_jsoneditor').removeClass('hide');
                     mQuery('#contactclient_file_payload').addClass('hide');
                     Mautic.contactclientApiPayload();
                 }
                 else if (val === 'file') {
-                    mQuery('#contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_api_payload_jsoneditor').addClass('hide');
+                    mQuery('#contactclient_api_payload, #api_payload_advanced, #contactclient_api_payload_codemirror, #contactclient_jsoneditor').addClass('hide');
                     mQuery('#payload-tab, #contactclient_file_payload').removeClass('hide');
                     Mautic.contactclientFilePayload();
                 }

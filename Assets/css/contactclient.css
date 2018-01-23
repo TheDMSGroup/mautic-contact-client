@@ -45,54 +45,56 @@
 }
 
 /* ContactClient API Payload - JSON Editor */
-#contactclient_api_payload_jsoneditor h3 {
+.contactclient_jsoneditor h3 {
     font-size: 16px;
     font-weight: 600;
     padding: 0 0 5px 0;
 }
 
-#contactclient_api_payload_jsoneditor .btn-md i.fa {
+.contactclient_jsoneditor .btn-md i.fa {
     font-size: 15px;
 }
 
-#contactclient_api_payload_jsoneditor i.fa-caret-square-o-right,
-#contactclient_api_payload_jsoneditor i.fa-caret-square-o-down {
+.contactclient_jsoneditor i.fa-caret-square-o-right,
+.contactclient_jsoneditor i.fa-caret-square-o-down {
     font-size: 16px;
 }
 
-#contactclient_api_payload_jsoneditor .btn-group.btn-left {
+.contactclient_jsoneditor .btn-group.btn-left {
     margin-bottom: 8px;
 }
 
 /* Hidden nav items in this group cause border radius to look strange */
-#contactclient_api_payload_jsoneditor .btn-group.btn-left .btn {
+.contactclient_jsoneditor .btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle),
+.contactclient_jsoneditor .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle),
+.contactclient_jsoneditor .btn-group.btn-left .btn {
     border-radius: 3px;
 }
 
-#contactclient_api_payload_jsoneditor .btn-group.btn-right .btn {
+.contactclient_jsoneditor .btn-group.btn-right .btn {
     margin-left: 8px;
     border-radius: 3px;
 }
 
-#contactclient_api_payload_jsoneditor .btn-group .btn-secondary {
+.contactclient_jsoneditor .btn-group .btn-secondary {
     background: transparent;
 }
 
-#contactclient_api_payload_jsoneditor .btn-group .btn-secondary.active {
+.contactclient_jsoneditor .btn-group .btn-secondary.active {
     background: transparent;
 }
 
 /* Show the expandable headers as clickable */
-#contactclient_api_payload_jsoneditor > div > h3 span {
+.contactclient_jsoneditor > div > h3 span {
     cursor: pointer;
 }
 
 /* Hide the root definition as it'd be a duplicate label in this case. */
-#contactclient_api_payload_jsoneditor > div > h3 {
+.contactclient_jsoneditor > div > h3 {
     display: none;
 }
 
-#contactclient_api_payload_jsoneditor > div > .well {
+.contactclient_jsoneditor > div > .well {
     min-height: 0;
     padding: 0;
     margin: 0;
@@ -103,33 +105,38 @@
     box-shadow: none;
 }
 
-#contactclient_api_payload_jsoneditor .well {
+.contactclient_jsoneditor .well {
     background: rgba(145, 145, 145, .1);
     border: 1px solid rgba(45, 45, 45, .1);
     -webkit-box-shadow: none;
     box-shadow: none;
 }
 
+/* Prevent faulty glyphicon load */
+.contactclient_jsoneditor .glyphicon {
+    font-family: "Courier New", monospace;
+}
+
 /* Positioning tooltips in tables */
-#contactclient_api_payload_jsoneditor td > div > .glyphicon-info-sign.pull-right {
+.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right {
     position: absolute !important;
     top: 50px;
     margin: 0 0 0 -16px;
     height: 0;
 }
 
-#contactclient_api_payload_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
+.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
     opacity: 0;
     width: 60px;
 }
 
 /* Styling tooltips */
-#contactclient_api_payload_jsoneditor .glyphicon-info-sign.pull-right {
+.contactclient_jsoneditor .glyphicon-info-sign.pull-right {
     float: none !important;
     margin-left: 5px;
 }
 
-#contactclient_api_payload_jsoneditor .glyphicon-info-sign:before {
+.contactclient_jsoneditor .glyphicon-info-sign:before {
     content: "\f059";
     display: inline-block;
     font: normal normal normal 14px/1 FontAwesome;
@@ -138,53 +145,53 @@
     -webkit-font-smoothing: antialiased;
 }
 
-#contactclient_api_payload_jsoneditor .glyphicon-info-sign span {
+.contactclient_jsoneditor .glyphicon-info-sign span {
     font-family: "Open Sans", Helvetica, Arial, sans-serif !important;
     z-index: 1000;
     transform: translateX(0.5rem) translateY(-0.5rem) !important;
 }
 
 /* Table styles */
-#contactclient_api_payload_jsoneditor table.table-bordered {
+.contactclient_jsoneditor table.table-bordered {
     min-width: 100%;
     border: 0;
 }
 
-#contactclient_api_payload_jsoneditor table.table-bordered,
-#contactclient_api_payload_jsoneditor table.table-bordered > thead > tr > th,
-#contactclient_api_payload_jsoneditor table.table-bordered > tbody > tr > th,
-#contactclient_api_payload_jsoneditor table.table-bordered > tbody > tr > td,
-#contactclient_api_payload_jsoneditor table.table-bordered > tfoot > tr > td,
-#contactclient_api_payload_jsoneditor table.table-bordered > tfoot > tr > th {
+.contactclient_jsoneditor table.table-bordered,
+.contactclient_jsoneditor table.table-bordered > thead > tr > th,
+.contactclient_jsoneditor table.table-bordered > tbody > tr > th,
+.contactclient_jsoneditor table.table-bordered > tbody > tr > td,
+.contactclient_jsoneditor table.table-bordered > tfoot > tr > td,
+.contactclient_jsoneditor table.table-bordered > tfoot > tr > th {
     border-left: 0;
     border-right: 0;
     padding: 4px 4px;
 }
 
-#contactclient_api_payload_jsoneditor table .form-group {
+.contactclient_jsoneditor table .form-group {
     margin-bottom: 0;
 }
 
-#contactclient_api_payload_jsoneditor div[data-schemapath*=".response.format"] {
+.contactclient_jsoneditor div[data-schemapath*=".response.format"] {
     max-width: 16.66666%;
 }
 
-#contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > label {
+.contactclient_jsoneditor div[data-schemapath*=".request.body"] > label {
     font-size: 16px;
     padding-bottom: 5px;
 }
 
-#contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > select {
+.contactclient_jsoneditor div[data-schemapath*=".request.body"] > select {
     font-size: 16px;
     font-style: normal !important;
     background-color: #fff !important;
 }
 
-#contactclient_api_payload_jsoneditor div[data-schemapath*=".request.body"] > div > div > h3 {
+.contactclient_jsoneditor div[data-schemapath*=".request.body"] > div > div > h3 {
     display: none;
 }
 
-#contactclient_api_payload_jsoneditor div[data-schemapath*=".response.success.definition"] > div > label {
+.contactclient_jsoneditor div[data-schemapath*=".response.success.definition"] > div > label {
     display: none;
 }
 
