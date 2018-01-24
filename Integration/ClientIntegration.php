@@ -79,27 +79,55 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param \Mautic\LeadBundle\Entity\Lead $lead
-     * @param array $config
+     * Push a contact to a preconfigured Contact Client.
      *
-     * @return array|bool
+     * @param Contact $contact
+     * @param array $config
+     * @return bool
      */
-    public function pushLead($lead, $config = [])
+    public function pushLead($contact, $config = [])
     {
+        $container = $this->dispatcher->getContainer();
+
         $config = $this->mergeConfigToFeatureSettings($config);
-        // @todo - Push a single contact by Campaign Action.
-//
-//        if (empty($config['leadFields'])) {
-//            return [];
-//        }
-//
-//        $mappedData = $this->mapContactDataForPush($lead, $config);
-//
-//        // No fields are mapped so bail
-//        if (empty($mappedData)) {
-//            return false;
-//        }
-        return false;
+        if (empty($config['contactclient'])) {
+            return false;
+        }
+
+        /** @var Contact $contactModel */
+        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        $client = $clientModel->getEntity($config['contactclient']);
+        if (!$client || $client->getIsPublished() === false) {
+            return false;
+        }
+
+        // Get field overrides.
+        $overrides = [];
+        if (!empty($config['contactclient_overrides'])) {
+            // Flatten overrides to key-value pairs.
+            $obj = json_decode($config['contactclient_overrides']);
+            $overrides = [];
+            if ($obj) {
+                foreach ($obj as $field) {
+                    if (!empty($field->key) && !empty($field->value)) {
+                        $overrides[$field->key] = $field->value;
+                    }
+                }
+            }
+        }
+
+
+        $result = false;
+        try {
+            $result = $this->sendContact($client, $contact, $container, false, $overrides);
+        } catch (\Exception $e) {
+            if ($e instanceof ApiErrorException) {
+                $e->setContact($contact);
+            }
+            $this->logIntegrationError($e);
+        }
+
+        return $result;
     }
 
     /**
@@ -135,28 +163,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param array $params
-     *
-     * @return mixed
-     */
-    public function pushLeads($params = [])
-    {
-        $limit = (isset($params['limit'])) ? $params['limit'] : 100;
-
-        // @todo - Push multiple contacts by Campaign Action.
-
-//        list($fromDate, $toDate) = $this->getSyncTimeframeDates($params);
-//        $config                  = $this->mergeConfigToFeatureSettings($params);
-//        $integrationEntityRepo   = $this->getIntegrationEntityRepository();
-        $totalUpdated = 0;
-        $totalCreated = 0;
-        $totalErrors = 0;
-        $totalIgnored = 0;
-
-        return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
-    }
-
-    /**
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
      *
@@ -164,13 +170,18 @@ class ClientIntegration extends AbstractIntegration
      * @param Contact $contact
      * @param Container $container
      * @param bool $test
+     * @param array $overrides
+     * @return bool
      * @throws ApiErrorException
      * @throws Exception
      */
-    public function sendContact(ContactClient $client, Contact $contact, Container $container, $test = false)
-    {
-
-        // @todo - Convert/integrate method ino sendLead and update the console command as needed.
+    public function sendContact(
+        ContactClient $client,
+        Contact $contact,
+        Container $container,
+        $test = false,
+        $overrides = []
+    ) {
 
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
@@ -189,6 +200,11 @@ class ClientIntegration extends AbstractIntegration
         $this->contact = $contact;
 
         $this->payload = new ApiPayload($client, $contact, $container, $test);
+
+        if ($overrides) {
+            $this->payload->setOverrides($overrides);
+        }
+
         try {
             $this->valid = $this->payload->run();
         } catch (ApiErrorException $e) {
@@ -202,14 +218,10 @@ class ClientIntegration extends AbstractIntegration
         $this->updateContact();
 
         $this->logResults();
-        die(var_dump($this->logs));
+
+        return $this->valid;
     }
 
-    /**
-     * Map the response to contact fields and update the contact, logging the action.
-     *
-     * @param array $response Expected response mapping.
-     */
     /**
      * Loop through the API Operation responses and find valid field mappings.
      * Set the new values to the contact and log the changes thereof.
@@ -245,9 +257,38 @@ class ClientIntegration extends AbstractIntegration
         }
     }
 
+    /**
+     * Map the response to contact fields and update the contact, logging the action.
+     *
+     * @param array $response Expected response mapping.
+     */
+
     private function logResults()
     {
         // @todo - Ensure audit log, stats log, and lead logs on success.
+        // Do something with $this->logs.
+    }
+
+    /**
+     * @param array $params
+     *
+     * @return mixed
+     */
+    public function pushLeads($params = [])
+    {
+        $limit = (isset($params['limit'])) ? $params['limit'] : 100;
+
+        // @todo - Push multiple contacts by Campaign Action.
+
+//        list($fromDate, $toDate) = $this->getSyncTimeframeDates($params);
+//        $config                  = $this->mergeConfigToFeatureSettings($params);
+//        $integrationEntityRepo   = $this->getIntegrationEntityRepository();
+        $totalUpdated = 0;
+        $totalCreated = 0;
+        $totalErrors = 0;
+        $totalIgnored = 0;
+
+        return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
     }
 
     public function getValid()
@@ -272,6 +313,7 @@ class ClientIntegration extends AbstractIntegration
             if ($this->isAuthorized()) {
 
                 // @todo - Remove use of deprecated factory when a better way to get the container exists.
+                // $container = $this->dispatcher->getContainer();
                 $clientModel = $this->factory->get('mautic.contactclient.model.contactclient');
                 /** @var contactClientRepository $contactClientRepo */
                 $contactClientRepo = $clientModel->getRepository();

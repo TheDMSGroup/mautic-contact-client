@@ -182,7 +182,7 @@ class ApiPayload
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;
             } else {
-                // Aggregate succesful responses that are mapped to Contact fields.
+                // Aggregate successful responses that are mapped to Contact fields.
                 $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
             }
         }
@@ -313,5 +313,33 @@ class ApiPayload
             }
         }
         return $result;
+    }
+
+    /**
+     * Override the default field values, if allowed.
+     *
+     * @param array $overrides Key value pair array.
+     */
+    public function setOverrides($overrides){
+        if ($overrides && isset($this->payload->operations)) {
+            foreach ($this->payload->operations as $id => &$operation) {
+                if (isset($operation->request)) {
+                    foreach (['headers', 'body'] as $type) {
+                        if (isset($operation->request->{$type})) {
+                            foreach ($operation->request->{$type} as &$field) {
+                                if (
+                                    isset($field->overridable)
+                                    && $field->overridable === true
+                                    && isset($field->key)
+                                    && isset($overrides[$field->key])
+                                ) {
+                                    $field->value = $overrides[$field->key];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

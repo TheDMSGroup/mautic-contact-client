@@ -291,7 +291,7 @@ class ApiPayloadResponse
                 throw new ApiErrorException(
                     'Error based on your success definition: '.implode(
                         ', ',
-                        $filter->getErrors()
+                        !empty($filter) ? $filter->getErrors() : []
                     )
                 );
             }

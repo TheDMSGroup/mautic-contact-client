@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
+use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use Symfony\Component\Yaml\Yaml;
@@ -220,7 +221,9 @@ class ApiPayloadRequest
                 // The field value is empty.
                 if (($field->required ?? false) === true) {
                     // The field is required. Abort.
-                    $this->abortOperation('A required field is missing/empty: '.$key);
+                    throw new ApiErrorException(
+                        'A required field is missing/empty: '.$key
+                    );
                     break;
                 }
             }
