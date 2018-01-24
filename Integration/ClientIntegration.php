@@ -23,8 +23,6 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Class ContactClientIntegration.
- *
- * @todo - Rename to ClientAPIIntegration to make room for ClientFileIntegration, with virtually no overlap.
  */
 class ClientIntegration extends AbstractIntegration
 {
@@ -116,16 +114,7 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-
-        $result = false;
-        try {
-            $result = $this->sendContact($client, $contact, $container, false, $overrides);
-        } catch (\Exception $e) {
-            if ($e instanceof ApiErrorException) {
-                $e->setContact($contact);
-            }
-            $this->logIntegrationError($e);
-        }
+        $result = $this->sendContact($client, $contact, $container, false, $overrides);
 
         return $result;
     }
@@ -172,8 +161,6 @@ class ClientIntegration extends AbstractIntegration
      * @param bool $test
      * @param array $overrides
      * @return bool
-     * @throws ApiErrorException
-     * @throws Exception
      */
     public function sendContact(
         ContactClient $client,
@@ -189,30 +176,34 @@ class ClientIntegration extends AbstractIntegration
         $this->container = $container;
         $this->test = $test;
 
-        if (!$client) {
-            throw new ApiErrorException('Contact Client appears to not exist.');
-        }
-        $this->client = $client;
-
-        if (!$contact) {
-            throw new ApiErrorException('Contact appears to not exist.');
-        }
-        $this->contact = $contact;
-
-        $this->payload = new ApiPayload($client, $contact, $container, $test);
-
-        if ($overrides) {
-            $this->payload->setOverrides($overrides);
-        }
-
         try {
+
+            if (!$client) {
+                throw new ApiErrorException('Contact Client appears to not exist.');
+            }
+            $this->client = $client;
+
+            if (!$contact) {
+                throw new ApiErrorException('Contact appears to not exist.');
+            }
+            $this->contact = $contact;
+
+            $this->payload = new ApiPayload($client, $contact, $container, $test);
+
+            if ($overrides) {
+                $this->payload->setOverrides($overrides);
+            }
+
             $this->valid = $this->payload->run();
-        } catch (ApiErrorException $e) {
-            // Failure to validate one or more API operations in the payload.
+        } catch (\Exception $e) {
             $this->valid = false;
             $this->logs[] = $e->getMessage();
+            if ($e instanceof ApiErrorException) {
+                $e->setContact($this->contact);
+            }
             $this->logIntegrationError($e, $this->contact);
         }
+
         $this->logs = array_merge($this->payload->getLogs(), $this->logs);
 
         $this->updateContact();
@@ -258,31 +249,21 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Map the response to contact fields and update the contact, logging the action.
-     *
-     * @param array $response Expected response mapping.
+     * @todo - Do something useful with $this->logs.
      */
-
     private function logResults()
     {
-        // @todo - Ensure audit log, stats log, and lead logs on success.
-        // Do something with $this->logs.
     }
 
     /**
+     * @todo - Push multiple contacts by Campaign Action.
      * @param array $params
      *
      * @return mixed
      */
     public function pushLeads($params = [])
     {
-        $limit = (isset($params['limit'])) ? $params['limit'] : 100;
-
-        // @todo - Push multiple contacts by Campaign Action.
-
-//        list($fromDate, $toDate) = $this->getSyncTimeframeDates($params);
-//        $config                  = $this->mergeConfigToFeatureSettings($params);
-//        $integrationEntityRepo   = $this->getIntegrationEntityRepository();
+        // $limit = (isset($params['limit'])) ? $params['limit'] : 100;
         $totalUpdated = 0;
         $totalCreated = 0;
         $totalErrors = 0;
@@ -312,9 +293,10 @@ class ClientIntegration extends AbstractIntegration
         if ($formArea == 'integration') {
             if ($this->isAuthorized()) {
 
-                // @todo - Remove use of deprecated factory when a better way to get the container exists.
-                // $container = $this->dispatcher->getContainer();
-                $clientModel = $this->factory->get('mautic.contactclient.model.contactclient');
+                $container = $this->dispatcher->getContainer();
+                /** @var contactClientModel $clientModel */
+                $clientModel = $container->get('mautic.contactclient.model.contactclient');
+
                 /** @var contactClientRepository $contactClientRepo */
                 $contactClientRepo = $clientModel->getRepository();
                 $contactClientEntities = $contactClientRepo->getEntities();
