@@ -20,6 +20,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Mautic\PluginBundle\Entity\IntegrationEntity;
 
 /**
  * Class ContactClientIntegration.
@@ -210,6 +211,18 @@ class ClientIntegration extends AbstractIntegration
 
         $this->logResults();
 
+        if ($this->valid) {
+            // @todo - Automatically resolve ID by searching the last response body/headers for things like id/key/uuid/etc.
+            $id = 'NA';
+            $integrationEntities[] = $this->saveSyncedData($contact, 'Contact', 'lead', $id);
+
+            if (!empty($integrationEntities)) {
+                $this->em->getRepository('MauticPluginBundle:IntegrationEntity')->saveEntities($integrationEntities);
+                $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
+            }
+
+        }
+
         return $this->valid;
     }
 
@@ -398,5 +411,40 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
         }
+    }
+
+    /**
+     * @param $entity
+     * @param $object
+     * @param $mauticObjectReference
+     * @param $integrationEntityId
+     *
+     * @return IntegrationEntity|null|object
+     */
+    public function saveSyncedData($entity, $object, $mauticObjectReference, $integrationEntityId)
+    {
+        /** @var IntegrationEntityRepository $integrationEntityRepo */
+        $integrationEntityRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
+        $integrationEntities   = $integrationEntityRepo->getIntegrationEntities(
+            $this->getName(),
+            $object,
+            $mauticObjectReference,
+            [$entity->getId()]
+        );
+
+        if ($integrationEntities) {
+            $integrationEntity = reset($integrationEntities);
+            $integrationEntity->setLastSyncDate(new \DateTime());
+        } else {
+            $integrationEntity = new IntegrationEntity();
+            $integrationEntity->setDateAdded(new \DateTime());
+            $integrationEntity->setIntegration($this->client->getName() ?? $this->getName());
+            $integrationEntity->setIntegrationEntity($object);
+            $integrationEntity->setIntegrationEntityId($integrationEntityId);
+            $integrationEntity->setInternalEntity($mauticObjectReference);
+            $integrationEntity->setInternalEntityId($entity->getId());
+        }
+
+        return $integrationEntity;
     }
 }
