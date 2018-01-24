@@ -19,12 +19,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use Symfony\Component\DependencyInjection\Container;
-
-//use Symfony\Component\Form\FormEvent;
-//use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Validator\Constraints\NotBlank;
-// use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
-use Symfony\Component\Form\FormTypeInterface;
 
 /**
  * Class ContactClientIntegration.
@@ -62,7 +57,7 @@ class ClientIntegration extends AbstractIntegration
 
     public function getDisplayName()
     {
-        return 'Any Client';
+        return 'Clients';
     }
 
     /**
@@ -266,11 +261,10 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param Form|FormBuilder $builder
+     * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
      * @param array $data
      * @param string $formArea
-     *
-     * @throws \InvalidArgumentException
+     * @throws ApiErrorException
      */
     public function appendToForm(&$builder, $data, $formArea)
     {
@@ -319,7 +313,7 @@ class ClientIntegration extends AbstractIntegration
                                 "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
                                 "    eventName = mQuery('#campaignevent_name');".
                                 "if (client.length && client.val() && eventName.length) {".
-                                "    eventName.val('Push to ' + client.text().trim());".
+                                "    eventName.val(client.text().trim());".
                                 "}",
                         ],
                         'required' => true,
@@ -348,7 +342,7 @@ class ClientIntegration extends AbstractIntegration
                     [
                         'label' => 'mautic.contactclient.integration.overrides',
                         'attr' => [
-                            'class' => 'btn btn-default',
+                            'class' => 'btn btn-default btn-nospin',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                             // Shim to get our javascript over the border and into Integration land.
                             'onclick' =>

@@ -4,20 +4,23 @@ Mautic.contactclientIntegration = function () {
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:first');
     if ($client.length && $overrides.length) {
 
-        // Auto-set the integration name.
-        var $client = mQuery('#campaignevent_properties_config_contactclient:first'),
-            $eventName = mQuery('#campaignevent_name');
-        if ($client.length && $client.val() && $eventName.length) {
-            $eventName.val('Push contact to Client ' + $client.text().trim());
-        }
-
-        var clientId = parseInt($client.val());
-        if (clientId) {
-            var $select = mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first'),
+        // Get the JSON from the client selector, if not already present.
+        $client.change(function(){
+            console.log('client change');
+            var clientId = parseInt(mQuery(this).val()),
+                $select = clientId ? mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first') : [],
                 json = $select.length ? $select.attr('data-overridable-fields') : null;
 
-            // $overrides.val(json).removeClass('hide');
-        }
+            if (json) {
+                mQuery('#campaignevent_properties_config_contactclient_overrides_button').removeClass('hide');
+                mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
+            } else {
+                mQuery('#campaignevent_properties_config_contactclient_overrides_button').addClass('hide');
+                mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
+            }
+
+            $overrides.val(json);
+        }).trigger('change');
 
         var overridesJSONEditor;
 
@@ -44,23 +47,25 @@ Mautic.contactclientIntegration = function () {
                     disable_collapse: true
                 });
 
-                // Load the initial value if applicable.
-                var raw = $overrides.val(),
-                    obj;
-                if (raw.length) {
-                    try {
-                        obj = mQuery.parseJSON(raw);
-                        if (typeof obj === 'object') {
-                            overridesJSONEditor.setValue(obj);
+                $overrides.change(function(){
+                    // Load the initial value if applicable.
+                    var raw = mQuery(this).val(),
+                        obj;
+                    if (raw.length) {
+                        try {
+                            obj = mQuery.parseJSON(raw);
+                            if (typeof obj === 'object') {
+                                overridesJSONEditor.setValue(obj);
+                            }
+                        }
+                        catch (e) {
+                            console.warn(e);
                         }
                     }
-                    catch (e) {
-                        console.warn(e);
-                    }
-                }
+                }).trigger('change');
 
                 // Persist the value to the JSON Editor.
-                overridesJSONEditor.on('keyup', function () {
+                overridesJSONEditor.on('change', function () {
                     var obj = overridesJSONEditor.getValue();
                     if (typeof obj === 'object') {
                         var raw = JSON.stringify(obj, null, '  ');
@@ -75,7 +80,5 @@ Mautic.contactclientIntegration = function () {
                 mQuery('label[for=campaignevent_properties_config_contactclient_overrides]').removeClass('hide');
             }
         });
-
-        // $overrides.css({'display': 'none'});
     }
 };
