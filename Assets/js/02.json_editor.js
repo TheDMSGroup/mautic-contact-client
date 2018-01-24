@@ -135,3 +135,4 @@ JSONEditor.defaults.options.disable_properties = true;
 JSONEditor.defaults.options.disable_array_delete_all_rows = true;
 JSONEditor.defaults.options.disable_array_delete_last_row = true;
 JSONEditor.defaults.options.required_by_default = true;
+JSONEditor.defaults.options.expand_height = true;

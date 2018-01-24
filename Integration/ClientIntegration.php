@@ -12,7 +12,6 @@
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
@@ -20,12 +19,12 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
+
+//use Symfony\Component\Form\FormEvent;
+//use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Validator\Constraints\NotBlank;
-
 // use MauticPlugin\MauticContactClientBundle\Helper\ContactEventLogHelper;
-
+use Symfony\Component\Form\FormTypeInterface;
 
 /**
  * Class ContactClientIntegration.
@@ -63,7 +62,7 @@ class ClientIntegration extends AbstractIntegration
 
     public function getDisplayName()
     {
-        return 'Choose Client';
+        return 'Any Client';
     }
 
     /**
@@ -280,7 +279,6 @@ class ClientIntegration extends AbstractIntegration
 
                 // @todo - Remove use of deprecated factory when a better way to get the container exists.
                 $clientModel = $this->factory->get('mautic.contactclient.model.contactclient');
-                // $clientModel = $this->container->get('mautic.contactclient.model.contactclient');
                 /** @var contactClientRepository $contactClientRepo */
                 $contactClientRepo = $clientModel->getRepository();
                 $contactClientEntities = $contactClientRepo->getEntities();
@@ -303,15 +301,6 @@ class ClientIntegration extends AbstractIntegration
                 if (count($clients) === 1) {
                     $clients = ['', '-- No Clients have been created and published --'];
                 }
-                // Shim to get our javascript over the border and into Integration land.
-                $onchange = "if (typeof Mautic.contactclientIntegration === 'undefined') {" .
-                            "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){" .
-                            "        Mautic.contactclientIntegration();" .
-                            "    });" .
-                            "    mQuery('head').append('<link rel=\'stylesheet\' href=\'' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css\' type=\'text/css\' />');" .
-                            "} else {" .
-                            "    Mautic.contactclientIntegration();" .
-                            "}";
 
                 $builder->add(
                     'contactclient',
@@ -325,7 +314,13 @@ class ClientIntegration extends AbstractIntegration
                         'attr' => [
                             'class' => 'form-control',
                             'tooltip' => 'mautic.contactclient.integration.client.tooltip',
-                            'onchange' => preg_replace('/\s+/', ' ', $onchange),
+                            // Auto-set the integration name based on the client.
+                            'onchange' =>
+                                "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
+                                "    eventName = mQuery('#campaignevent_name');".
+                                "if (client.length && client.val() && eventName.length) {".
+                                "    eventName.val('Push to ' + client.text().trim());".
+                                "}",
                         ],
                         'required' => true,
                         'constraints' => [
@@ -341,8 +336,32 @@ class ClientIntegration extends AbstractIntegration
                                 // Change format to match json schema.
                                 $results['data-overridable-fields'] = json_encode($overridableFields[$val]);
                             }
+
                             return $results;
                         },
+                    ]
+                );
+
+                $builder->add(
+                    'contactclient_overrides_button',
+                    'button',
+                    [
+                        'label' => 'mautic.contactclient.integration.overrides',
+                        'attr' => [
+                            'class' => 'btn btn-default',
+                            'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
+                            // Shim to get our javascript over the border and into Integration land.
+                            'onclick' =>
+                                "if (typeof Mautic.contactclientIntegration === 'undefined') {".
+                                "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){".
+                                "        Mautic.contactclientIntegration();".
+                                "    });".
+                                "    mQuery('head').append('<"."link rel=\'stylesheet\' href=\'' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css\' type=\'text/css\' />');".
+                                "} else {".
+                                "    Mautic.contactclientIntegration();".
+                                "}",
+                            'icon' => 'fa fa-wrench',
+                        ],
                     ]
                 );
 
@@ -350,14 +369,13 @@ class ClientIntegration extends AbstractIntegration
                     'contactclient_overrides',
                     'textarea',
                     [
-                        'label'      => 'mautic.contactclient.integration.overrides',
+                        'label' => 'mautic.contactclient.integration.overrides',
                         'label_attr' => ['class' => 'control-label hide'],
-                        'attr'       => [
+                        'attr' => [
                             'class' => 'form-control hide',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                         ],
-                        'required'   => false,
-                        'data'       => ''
+                        'required' => false,
                     ]
                 );
             }

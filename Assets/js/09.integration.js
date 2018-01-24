@@ -3,25 +3,26 @@ Mautic.contactclientIntegration = function () {
     var $client = mQuery('#campaignevent_properties_config_contactclient:first'),
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:first');
     if ($client.length && $overrides.length) {
+
+        // Auto-set the integration name.
+        var $client = mQuery('#campaignevent_properties_config_contactclient:first'),
+            $eventName = mQuery('#campaignevent_name');
+        if ($client.length && $client.val() && $eventName.length) {
+            $eventName.val('Push contact to Client ' + $client.text().trim());
+        }
+
         var clientId = parseInt($client.val());
         if (clientId) {
             var $select = mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first'),
                 json = $select.length ? $select.attr('data-overridable-fields') : null;
-                // fields = (typeof json !== 'undefined' && json) ? mQuery.parseJSON(json) : null,
-                // overrides = fields ? {'items': fields} : null;
-            //
-            // if (overrides) {
-            //     $overrides.val(JSON.stringify(overrides));
-            // }
 
-            $overrides.val(json).removeClass('hide');
+            // $overrides.val(json).removeClass('hide');
         }
 
         var overridesJSONEditor;
 
         // Grab the JSON Schema to begin rendering the form with
         // JSONEditor.
-
         mQuery.ajax({
             dataType: 'json',
             cache: true,
@@ -36,7 +37,11 @@ Mautic.contactclientIntegration = function () {
 
                 // Instantiate the JSON Editor based on our schema.
                 overridesJSONEditor = new JSONEditor($overridesJSONEditor[0], {
-                    schema: schema
+                    schema: schema,
+                    disable_array_add: true,
+                    disable_array_delete: true,
+                    disable_array_reorder: true,
+                    disable_collapse: true
                 });
 
                 // Load the initial value if applicable.
@@ -55,7 +60,7 @@ Mautic.contactclientIntegration = function () {
                 }
 
                 // Persist the value to the JSON Editor.
-                overridesJSONEditor.on('change', function () {
+                overridesJSONEditor.on('keyup', function () {
                     var obj = overridesJSONEditor.getValue();
                     if (typeof obj === 'object') {
                         var raw = JSON.stringify(obj, null, '  ');
@@ -65,6 +70,9 @@ Mautic.contactclientIntegration = function () {
                         }
                     }
                 });
+                // Hide the button, show the label.
+                mQuery('#campaignevent_properties_config_contactclient_overrides_button').addClass('hide');
+                mQuery('label[for=campaignevent_properties_config_contactclient_overrides]').removeClass('hide');
             }
         });
 

@@ -17,9 +17,7 @@
       "type": "object",
       "options": {
         "collapsed": false,
-        "disable_collapse": false,
-        "disable_delete": true,
-        "disable_new": true
+        "disable_collapse": true
       },
       "properties": {
         "key": {
@@ -50,7 +48,6 @@
           "type": "string",
           "title": "Description",
           "options": {
-            "disabled": true,
             "infoText": ""
           },
           "default": "",
