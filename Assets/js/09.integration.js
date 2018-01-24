@@ -6,7 +6,6 @@ Mautic.contactclientIntegration = function () {
 
         // Get the JSON from the client selector, if not already present.
         $client.change(function(){
-            console.log('client change');
             var clientId = parseInt(mQuery(this).val()),
                 $select = clientId ? mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first') : [],
                 json = $select.length ? $select.attr('data-overridable-fields') : null;
@@ -20,7 +19,10 @@ Mautic.contactclientIntegration = function () {
             }
 
             $overrides.val(json);
-        }).trigger('change');
+        });
+        if ($overrides.val().length === 0) {
+            $client.trigger('change');
+        }
 
         var overridesJSONEditor;
 
