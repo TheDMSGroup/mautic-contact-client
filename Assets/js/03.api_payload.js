@@ -65,8 +65,7 @@ Mautic.contactclientApiPayload = function () {
                                         // If there is a header array...
                                         if (typeof obj.operations[i].response.headers === 'object') {
                                             for (var j = 0, lenj = obj.operations[i].response.headers.length; j < lenj; j++) {
-                                                // Grab the keys from each
-                                                // Header.
+                                                // Grab the keys from each header field.
                                                 if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length) {
                                                     additionalFilters.push({
                                                         id: 'operation.' + i + '.headers.' + obj.operations[i].response.headers[j].key,
@@ -80,9 +79,8 @@ Mautic.contactclientApiPayload = function () {
 
                                         // If there is a body array...
                                         if (typeof obj.operations[i].response.body === 'object') {
-                                            for (var k = 0, lenk = obj.operations[k].response.body.length; k < lenk; k++) {
-                                                // Grab the keys from each
-                                                // Header.
+                                            for (var k = 0, lenk = obj.operations[i].response.body.length; k < lenk; k++) {
+                                                // Grab the keys from each body field.
                                                 if (typeof obj.operations[i].response.body[k].key !== 'undefined' && obj.operations[i].response.body[k].key.length) {
                                                     additionalFilters.push({
                                                         id: 'operation.' + i + '.body.' + obj.operations[i].response.body[k].key,
