@@ -68,7 +68,7 @@ Mautic.contactclientApiPayload = function () {
                                                 // Grab the keys from each header field.
                                                 if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length) {
                                                     additionalFilters.push({
-                                                        id: 'operation.' + i + '.headers.' + obj.operations[i].response.headers[j].key,
+                                                        id: 'headers.' + obj.operations[i].response.headers[j].key,
                                                         label: 'Header Field: ' + obj.operations[i].response.headers[j].key,
                                                         type: 'string',
                                                         operators: Mautic.contactclientSuccessDefinitionDefaultOps
@@ -83,7 +83,7 @@ Mautic.contactclientApiPayload = function () {
                                                 // Grab the keys from each body field.
                                                 if (typeof obj.operations[i].response.body[k].key !== 'undefined' && obj.operations[i].response.body[k].key.length) {
                                                     additionalFilters.push({
-                                                        id: 'operation.' + i + '.body.' + obj.operations[i].response.body[k].key,
+                                                        id: 'body.' + obj.operations[i].response.body[k].key,
                                                         label: 'Body Field: ' + obj.operations[i].response.body[k].key,
                                                         type: 'string',
                                                         operators: Mautic.contactclientSuccessDefinitionDefaultOps

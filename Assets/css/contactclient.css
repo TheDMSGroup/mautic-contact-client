@@ -195,6 +195,13 @@
     display: none;
 }
 
+.contactclient_jsoneditor td[data-schemapath*=".example"] > div > input {
+    background: none;
+    border: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
 /* ContactClient API Payload - CodeMirror */
 #contactclient_api_payload_codemirror {
     margin-top: 5px;

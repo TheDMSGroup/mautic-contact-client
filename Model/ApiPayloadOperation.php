@@ -108,9 +108,6 @@ class ApiPayloadOperation
             $this->valid = false;
         }
 
-        // @todo Update our Contact with the relevant field mapping. (to be handled in ClientIntegration)
-        // @todo - $this->getResponseUpdated();
-
         if ($this->updatePayload) {
             $this->updatePayloadResponse();
         }
