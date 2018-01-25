@@ -77,6 +77,16 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
+    private $attributionDefault;
+
+    /**
+     * @var int
+     */
+    private $attributionSettings;
+
+    /**
+     * @var int
+     */
     private $duplicate;
 
     /**
@@ -152,6 +162,14 @@ class ContactClient extends FormEntity
         $builder->addNullableField('website', 'string');
 
         $builder->addPublishDates();
+
+        // $builder->addNullableField('attributionDefault', 'number');
+        // Attempt to match schema of the attribution field in table: leads.
+        $builder->createField('attributionDefault', 'float')
+            ->columnDefinition('double DEFAULT NULL')
+            ->build();
+
+        $builder->addNullableField('attributionSettings', 'text');
 
         $builder->addNullableField('duplicate', 'text');
 
@@ -425,6 +443,22 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
+    public function getAttributionDefault()
+    {
+        return $this->attributionDefault;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAttributionSettings()
+    {
+        return $this->attributionSettings;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getDuplicate()
     {
         return $this->duplicate;
@@ -436,6 +470,34 @@ class ContactClient extends FormEntity
     public function getExclusive()
     {
         return $this->exclusive;
+    }
+
+    /**
+     * @param mixed $attributionDefault
+     *
+     * @return ContactClient
+     */
+    public function setAttributionDefault($attributionDefault)
+    {
+        $this->isChanged('attributionDefault', $attributionDefault);
+
+        $this->attributionDefault = $attributionDefault;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $attributionSettings
+     *
+     * @return ContactClient
+     */
+    public function setAttributionSettings($attributionSettings)
+    {
+        $this->isChanged('attributionSettings', $attributionSettings);
+
+        $this->attributionSettings = $attributionSettings;
+
+        return $this;
     }
 
     /**

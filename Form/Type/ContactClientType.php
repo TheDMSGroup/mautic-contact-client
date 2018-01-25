@@ -74,9 +74,9 @@ class ContactClientType extends AbstractType
             'textarea',
             [
                 'label'      => 'mautic.contactclient.form.api_payload',
-                'label_attr' => ['class' => 'control-label hide api-payload'],
+                'label_attr' => ['class' => 'control-label api-payload'],
                 'attr'       => [
-                    'class'        => 'form-control hide api-payload',
+                    'class'        => 'form-control api-payload',
                     'rows'         => 12,
                 ],
                 'required' => false,
@@ -88,9 +88,9 @@ class ContactClientType extends AbstractType
             'textarea',
             [
                 'label'      => 'mautic.contactclient.form.file_payload',
-                'label_attr' => ['class' => 'control-label hide file-payload'],
+                'label_attr' => ['class' => 'control-label file-payload'],
                 'attr'       => [
-                    'class'        => 'form-control hide file-payload',
+                    'class'        => 'form-control file-payload',
                     'rows'         => 12,
                 ],
                 'required' => false,
@@ -106,6 +106,35 @@ class ContactClientType extends AbstractType
                 'attr'       => [
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.form.website.tooltip',
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'attributionDefault',
+            'number',
+            [
+                'label'      => 'mautic.contactclient.form.attribution.default',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'    => 'form-control',
+                    'preaddon' => 'fa fa-money',
+                    'tooltip' => 'mautic.contactclient.form.attribution.default.tooltip',
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'attributionSettings',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.attribution.settings',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
                 ],
                 'required' => false,
             ]
@@ -190,7 +219,7 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.schedule_hours',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control hide',
+                    'class'        => 'form-control',
                     'rows'         => 12,
                     'tooltip'      => 'mautic.contactclient.form.schedule_hours.tooltip',
                 ],
@@ -289,6 +318,7 @@ class ContactClientType extends AbstractType
                 'attr'       => [
                     'class'       => 'form-control',
                     'tooltip'     => 'mautic.contactclient.form.type.tooltip',
+                    'onchange'    => 'Mautic.contactclientTypeChange(this);'
                 ],
             ]
         );

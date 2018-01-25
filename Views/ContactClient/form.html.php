@@ -41,6 +41,11 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
+                    <a href="#attribution" role="tab" data-toggle="tab" class="contactclient-tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.attribution'); ?>
+                    </a>
+                </li>
+                <li>
                     <a href="#duplicate" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.duplicate'); ?>
                     </a>
@@ -96,6 +101,19 @@ echo $view['form']->start($form);
                     </div>
                 </div>
             </div>
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="attribution">
+                <div class="pa-md">
+                    <div class="form-group mb-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <?php echo $view['form']->row($form['attributionDefault']); ?>
+                                <?php echo $view['form']->row($form['attributionSettings']); ?>
+                            </div>
+                        </div>
+                        <hr class="mnr-md mnl-md">
+                    </div>
+                </div>
+            </div>
             <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="duplicate">
                 <div class="pa-md">
                     <div class="form-group mb-0">
@@ -147,7 +165,7 @@ echo $view['form']->start($form);
             <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="payload">
                 <div class="pa-md">
                     <div class="form-group mb-0">
-                        <div class="row">
+                        <div class="row api_payload hide">
                             <div class="col-md-12">
                                 <div id="api_payload_advanced" class="form-group hide">
                                     <div class="choice-wrapper">
@@ -157,6 +175,10 @@ echo $view['form']->start($form);
                                     </div>
                                 </div>
                                 <?php echo $view['form']->row($form['api_payload']); ?>
+                            </div>
+                        </div>
+                        <div class="row file_payload hide">
+                            <div class="col-md-12">
                                 <?php echo $view['form']->row($form['file_payload']); ?>
                             </div>
                         </div>
