@@ -75,7 +75,7 @@ class ApiPayloadOperation
     public function run()
     {
         if (empty($this->request)) {
-            $this->setLogs('Skipping empty operation: '.$this->name);
+            $this->setLogs('Skipping empty operation: '.$this->name, 'notice');
 
             return true;
         }
@@ -84,12 +84,13 @@ class ApiPayloadOperation
             $uri = $this->request->testUrl;
         }
         if (!$uri) {
-            $this->setLogs('Operation skipped. No URL: '.$this->name);
+            $this->setLogs('Operation skipped. No URL: '.$this->name, 'notice');
 
             return true;
         }
 
-        $this->setLogs('Running operation in '.($this->test ? 'TEST' : 'PROD').' mode: '.$this->name);
+        $this->setLogs($this->name, 'name');
+        $this->setLogs(($this->test ? 'TEST' : 'PROD'), 'mode');
 
         // Send the API request.
         $apiRequest = new ApiRequest($uri, $this->request, $this->service, $this->tokenHelper, $this->test);
@@ -105,7 +106,7 @@ class ApiPayloadOperation
         try {
             $this->valid = $apiResponse->validate();
         } catch (ApiErrorException $e) {
-            $this->setLogs(['invalid' => $e->getMessage()], 'response');
+            $this->setLogs($e->getMessage(), 'invalid');
             $this->valid = false;
         }
 
@@ -144,14 +145,14 @@ class ApiPayloadOperation
                         $newField->key = $key;
                         $newField->example = $value;
                         $result->{$type}[] = $newField;
-                        $this->setLogs('New '.$type.' field "'.$key.'" added with example: '.$value);
+                        $this->setLogs('New '.$type.' field "'.$key.'" added with example: '.$value, 'autoUpdate');
                         $updates = true;
                     } else {
                         if (!empty($value) && empty($result->{$type}[$fieldId]->example)) {
                             // This is an existing field, but requires an updated example.
                             $result->{$type}[$fieldId]->example = $value;
                             $updates = true;
-                            $this->setLogs('Existing '.$type.' field "'.$key.'" now has an example: '.$value);
+                            $this->setLogs('Existing '.$type.' field "'.$key.'" now has an example: '.$value, 'autoUpdate');
                         }
                     }
                 }

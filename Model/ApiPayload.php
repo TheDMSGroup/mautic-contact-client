@@ -257,12 +257,12 @@ class ApiPayload
                     /** @var ContactClientModel $contactClientModel */
                     $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
                     $contactClientModel->saveEntity($this->contactClient);
-                    $this->setLogs('Updated our response payload expectations.');
+                    $this->setLogs('Updated our response payload expectations.', 'complete');
                 } catch (Exception $e) {
                     $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
                 }
             } else {
-                $this->setLogs('Payload responses matched expectations, no updates necessary.');
+                $this->setLogs('Payload responses matched expectations, no updates necessary.', 'complete');
             }
         }
     }

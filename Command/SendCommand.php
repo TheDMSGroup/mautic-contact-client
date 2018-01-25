@@ -134,7 +134,7 @@ class SendCommand extends ModeratedCommand
                 $output->writeln('<info>Contact sent.</info>');
             } else {
                 $output->writeln('<error>Contact not sent or not accepted.</error>');
-                $output->writeln('<info>Logs: </info>'.print_r($integrationObject->getLogs(), true));
+                $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
             }
 
         } elseif ($clientType == 'file') {

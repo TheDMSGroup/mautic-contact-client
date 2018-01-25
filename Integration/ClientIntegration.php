@@ -22,6 +22,7 @@ use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class ClientIntegration
@@ -210,7 +211,7 @@ class ClientIntegration extends AbstractIntegration
             $this->logIntegrationError($e, $this->contact);
         }
 
-        $this->setLogs($this->payload->getLogs(), 'payload');
+        $this->setLogs($this->payload->getLogs(), 'operations');
 
         $this->updateContact();
 
@@ -342,6 +343,10 @@ class ClientIntegration extends AbstractIntegration
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    public function getLogsYAML(){
+        return Yaml::dump($this->getLogs(), 10);
     }
 
     function setLogs($value, $type = null)

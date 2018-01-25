@@ -144,9 +144,9 @@ class ApiPayloadRequest
             }
         }
 
-        $this->setLogs('Sending request to: '.$uri);
+        $this->setLogs($uri, 'uri');
         $method = trim(strtolower($request->method ?? 'post'));
-        $this->setLogs('Using method: '.$method);
+        $this->setLogs($method, 'method');
         switch ($method) {
             case 'delete':
                 $this->setLogs($options, 'options');

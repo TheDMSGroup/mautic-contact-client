@@ -65,9 +65,14 @@ class ApiPayloadResponse
         $result = [];
 
         $result['status'] = $this->service->getStatusCode();
-        $this->setLogs('Response status code: '.$result['status'], 'status');
+        $this->setLogs($result['status'], 'status');
 
+        // Format the head response.
         $result['headers'] = $this->service->getHeaders();
+        if ($result['headers']) {
+            $result['headers'] = $this->getResponseArray($result['headers'], 'headers');
+        }
+        $result['headersRaw'] = implode('; ', $result['headers']);
         $this->setLogs($result['headers'], 'headers');
 
         $result['bodySize'] = $this->service->getBody()->getSize();
@@ -75,12 +80,6 @@ class ApiPayloadResponse
 
         $result['bodyRaw'] = $this->service->getBody()->getContents();
         $this->setLogs($result['bodyRaw'], 'bodyRaw');
-
-        // Format the head response.
-        if ($result['headers']) {
-            $result['headers'] = $this->getResponseArray($result['headers'], 'headers');
-        }
-        $result['headersRaw'] = implode('; ', $result['headers']);
 
         // Format the body response.
         $responseExpectedFormat = trim(strtolower($this->responseExpected->format ?? 'auto'));
