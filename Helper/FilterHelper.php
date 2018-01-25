@@ -181,7 +181,7 @@ class FilterHelper
         $result = $this->evaluateRuleAgainstContext($rule, $contextValue, $ruleValue);
         if (!$result) {
             $this->setError(
-                $rule->field.' did not match the filter: '.$contextValue.' '.$rule->operator.' '.$ruleValue
+                $rule->field.' did not '.$rule->operator.' '.$ruleValue.' (actual value was '.$contextValue.')'
             );
         }
 

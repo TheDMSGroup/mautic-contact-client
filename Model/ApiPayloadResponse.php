@@ -61,13 +61,13 @@ class ApiPayloadResponse
         $this->logs[] = 'Response status code: '.$result['status'];
 
         $result['headers'] = $this->service->getHeaders();
-        $this->logs[] = 'Response headers: '.json_encode($result['headers']);
+        $this->logs[] = ['Response headers: ' => $result['headers']];
 
         $result['bodySize'] = $this->service->getBody()->getSize();
         $this->logs[] = 'Response size: '.$result['bodySize'];
 
         $result['bodyRaw'] = $this->service->getBody()->getContents();
-        $this->logs[] = 'Response body: '.$result['bodyRaw'];
+        $this->logs[] = 'Response body (raw): '.$result['bodyRaw'];
 
         // Format the head response.
         if ($result['headers']) {
@@ -247,7 +247,7 @@ class ApiPayloadResponse
                 $this->flattenStructure($value, $result);
             } else {
                 // Do not nullify existing key/value pairs if already present.
-                if (empty($value) && !isset($result[$key])) {
+                if (empty($value) && $value !== false && !isset($result[$key])) {
                     $result[$key] = null;
                 } else {
                     $result[$key] = $value;
