@@ -112,34 +112,9 @@ class ContactClientSubscriber extends CommonSubscriber
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::REQUEST          => ['onKernelRequest', 0],
             ContactClientEvents::POST_SAVE         => ['onContactClientPostSave', 0],
             ContactClientEvents::POST_DELETE       => ['onContactClientDelete', 0],
         ];
-    }
-
-    /*
-     * Check and hijack the form's generate link if the ID has mf- in it
-     */
-    public function onKernelRequest(GetResponseEvent $event)
-    {
-        if ($event->isMasterRequest()) {
-            // get the current event request
-            $request    = $event->getRequest();
-            $requestUri = $request->getRequestUri();
-
-            $formGenerateUrl = $this->router->generate('mautic_form_generateform');
-
-            if (strpos($requestUri, $formGenerateUrl) !== false) {
-                $id = InputHelper::_($this->request->get('id'));
-                if (strpos($id, 'mf-') === 0) {
-                    $mfId             = str_replace('mf-', '', $id);
-                    $contactclientGenerateUrl = $this->router->generate('mautic_contactclient_generate', ['id' => $mfId]);
-
-                    $event->setResponse(new RedirectResponse($contactclientGenerateUrl));
-                }
-            }
-        }
     }
 
     /**

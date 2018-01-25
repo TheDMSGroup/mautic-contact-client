@@ -265,24 +265,17 @@ class ContactClientModel extends FormModel
             $this->limitQueryToCreator($q);
         }
         $data = $query->loadAndBuildTimeData($q);
-        $chart->setDataset($this->translator->trans('mautic.contactclient.graph.views'), $data);
+        $chart->setDataset($this->translator->trans('mautic.contactclient.graph.queued'), $data);
 
-        if ($contactclient->getType() != 'notification') {
-            if ($contactclient->getType() == 'link') {
-                $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_CLICK]);
-                if (!$canViewOthers) {
-                    $this->limitQueryToCreator($q);
-                }
-                $data = $query->loadAndBuildTimeData($q);
-                $chart->setDataset($this->translator->trans('mautic.contactclient.graph.clicks'), $data);
-            } else {
-                $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_FORM]);
-                if (!$canViewOthers) {
-                    $this->limitQueryToCreator($q);
-                }
-                $data = $query->loadAndBuildTimeData($q);
-                $chart->setDataset($this->translator->trans('mautic.contactclient.graph.submissions'), $data);
+        if ($contactclient->getType() == 'api') {
+            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_SUCCESS]);
+            if (!$canViewOthers) {
+                $this->limitQueryToCreator($q);
             }
+            $data = $query->loadAndBuildTimeData($q);
+            $chart->setDataset($this->translator->trans('mautic.contactclient.graph.success'), $data);
+        } else {
+            // @todo - Stats for file based payload
         }
 
         return $chart->render();

@@ -112,25 +112,25 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
-            'attributionDefault',
+            'revenueDefault',
             'number',
             [
-                'label'      => 'mautic.contactclient.form.attribution.default',
+                'label'      => 'mautic.contactclient.form.revenue.default',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
                     'class'    => 'form-control',
                     'preaddon' => 'fa fa-money',
-                    'tooltip' => 'mautic.contactclient.form.attribution.default.tooltip',
+                    'tooltip' => 'mautic.contactclient.form.revenue.default.tooltip',
                 ],
                 'required' => false,
             ]
         );
 
         $builder->add(
-            'attributionSettings',
+            'revenueSettings',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.attribution.settings',
+                'label'      => 'mautic.contactclient.form.revenue.settings',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
                     'class'        => 'form-control',

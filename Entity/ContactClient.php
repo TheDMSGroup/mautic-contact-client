@@ -77,12 +77,12 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
-    private $attributionDefault;
+    private $revenue_default;
 
     /**
      * @var int
      */
-    private $attributionSettings;
+    private $revenue_settings;
 
     /**
      * @var int
@@ -163,13 +163,11 @@ class ContactClient extends FormEntity
 
         $builder->addPublishDates();
 
-        // $builder->addNullableField('attributionDefault', 'number');
-        // Attempt to match schema of the attribution field in table: leads.
-        $builder->createField('attributionDefault', 'float')
+        $builder->createField('revenue_default', 'float')
             ->columnDefinition('double DEFAULT NULL')
             ->build();
 
-        $builder->addNullableField('attributionSettings', 'text');
+        $builder->addNullableField('revenue_settings', 'text');
 
         $builder->addNullableField('duplicate', 'text');
 
@@ -443,17 +441,17 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getAttributionDefault()
+    public function getRevenueDefault()
     {
-        return $this->attributionDefault;
+        return $this->revenue_default;
     }
 
     /**
      * @return mixed
      */
-    public function getAttributionSettings()
+    public function getRevenueSettings()
     {
-        return $this->attributionSettings;
+        return $this->revenue_settings;
     }
 
     /**
@@ -473,29 +471,29 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @param mixed $attributionDefault
+     * @param mixed $revenueDefault
      *
      * @return ContactClient
      */
-    public function setAttributionDefault($attributionDefault)
+    public function setRevenueDefault($revenueDefault)
     {
-        $this->isChanged('attributionDefault', $attributionDefault);
+        $this->isChanged('revenue_default', $revenueDefault);
 
-        $this->attributionDefault = $attributionDefault;
+        $this->revenueDefault = $revenueDefault;
 
         return $this;
     }
 
     /**
-     * @param mixed $attributionSettings
+     * @param mixed $revenueSettings
      *
      * @return ContactClient
      */
-    public function setAttributionSettings($attributionSettings)
+    public function setRevenueSettings($revenueSettings)
     {
-        $this->isChanged('attributionSettings', $attributionSettings);
+        $this->isChanged('revenue_settings', $revenueSettings);
 
-        $this->attributionSettings = $attributionSettings;
+        $this->revenueSettings = $revenueSettings;
 
         return $this;
     }

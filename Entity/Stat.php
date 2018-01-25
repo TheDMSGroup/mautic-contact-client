@@ -21,9 +21,15 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 class Stat
 {
     // Used for querying stats
-    const TYPE_FORM         = 'submission';
-    const TYPE_CLICK        = 'click';
-    const TYPE_NOTIFICATION = 'view';
+    const TYPE_QUEUED = 'queue';
+    const TYPE_DUPLICATE = 'duplicate';
+    const TYPE_EXCLUSIVE = 'exclusive';
+    const TYPE_FILTER = 'filter';
+    const TYPE_LIMITS = 'limits';
+    const TYPE_REVENUE = 'revenue';
+    const TYPE_SCHEDULE = 'schedule';
+    const TYPE_SUCCESS = 'success';
+    const TYPE_FAILURE = 'failure';
 
     /**
      * @var int
