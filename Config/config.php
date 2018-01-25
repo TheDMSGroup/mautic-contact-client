@@ -50,18 +50,9 @@ return [
                 ],
             ],
             'mautic.contactclient.stats.subscriber' => [
-                'class'     => \MauticPlugin\MauticContactClientBundle\EventListener\StatsSubscriber::class,
+                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\StatsSubscriber',
                 'arguments' => [
                     'doctrine.orm.entity_manager',
-                ],
-            ],
-            'mautic.contactclient.campaignbundle.subscriber' => [
-                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\CampaignSubscriber',
-                'arguments' => [
-                    'mautic.campaign.model.event',
-                    'mautic.contactclient.model.contactclient',
-                    'mautic.page.helper.tracking',
-                    'router',
                 ],
             ],
         ],
@@ -97,6 +88,13 @@ return [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ApiPayload',
                 'arguments' => [
                     'mautic.lead.model.lead',
+                ],
+            ],
+        ],
+        'integrations' => [
+            'mautic.contactclient.integration' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration',
+                'arguments' => [
                 ],
             ],
         ],

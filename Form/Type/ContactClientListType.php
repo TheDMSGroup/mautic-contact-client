@@ -8,7 +8,8 @@ use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Class ContactClientListType.
+ * Class ContactClientListType
+ * @package MauticPlugin\MauticContactClientBundle\Form\Type
  */
 class ContactClientListType extends AbstractType
 {

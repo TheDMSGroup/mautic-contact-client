@@ -20,7 +20,8 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
- * Class StatSubscriber.
+ * Class StatSubscriber
+ * @package MauticPlugin\MauticContactClientBundle\EventListener
  */
 class StatSubscriber extends CommonSubscriber
 {
@@ -45,8 +46,8 @@ class StatSubscriber extends CommonSubscriber
     public static function getSubscribedEvents()
     {
         return [
-            PageEvents::PAGE_ON_HIT    => ['onPageHit', 0],
-            FormEvents::FORM_ON_SUBMIT => ['onFormSubmit', 0],
+//            PageEvents::PAGE_ON_HIT    => ['onPageHit', 0],
+//            FormEvents::FORM_ON_SUBMIT => ['onFormSubmit', 0],
         ];
     }
 
@@ -60,10 +61,10 @@ class StatSubscriber extends CommonSubscriber
 
         if ($source == 'contactclient' || $source == 'contactclient.contactclient') {
             $sourceId = $hit->getSourceId();
-            $contactclient    = $this->model->getEntity($sourceId);
+            $contactClient    = $this->model->getEntity($sourceId);
 
-            if ($contactclient && $contactclient->isPublished()) {
-                $this->model->addStat($contactclient, Stat::TYPE_CLICK, $hit, $hit->getLead());
+            if ($contactClient && $contactClient->isPublished()) {
+                $this->model->addStat($contactClient, Stat::TYPE_CLICK, $hit, $hit->getLead());
             }
         }
     }
@@ -79,13 +80,13 @@ class StatSubscriber extends CommonSubscriber
         $id = $this->request->request->get('mauticform[contactclientId]', false, true);
 
         if (!empty($id)) {
-            $contactclient = $this->model->getEntity($id);
+            $contactClient = $this->model->getEntity($id);
 
-            if ($contactclient && $contactclient->isPublished()) {
+            if ($contactClient && $contactClient->isPublished()) {
                 // Make sure the form is still applicable
                 $form = $event->getSubmission()->getForm();
-                if ((int) $form->getId() === (int) $contactclient->getForm()) {
-                    $this->model->addStat($contactclient, Stat::TYPE_FORM, $event->getSubmission(), $event->getLead());
+                if ((int) $form->getId() === (int) $contactClient->getForm()) {
+                    $this->model->addStat($contactClient, Stat::TYPE_FORM, $event->getSubmission(), $event->getLead());
                 }
             }
         }

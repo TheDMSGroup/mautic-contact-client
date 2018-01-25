@@ -54,22 +54,4 @@ final class ContactClientEvents
      */
     const POST_DELETE = 'mautic.contactclient_post_delete';
 
-    /**
-     * The mautic.contactclient_token_replacent event is dispatched after a load content.
-     *
-     * The event listener receives a MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent instance.
-     *
-     * @var string
-     */
-    const TOKEN_REPLACEMENT = 'mautic.contactclient_token_replacement';
-
-    /**
-     * The mautic.contactclient.on_campaign_trigger_action event is fired when the campaign action triggers.
-     *
-     * The event listener receives a
-     * Mautic\CampaignBundle\Event\CampaignExecutionEvent
-     *
-     * @var string
-     */
-    const ON_CAMPAIGN_TRIGGER_ACTION = 'mautic.contactclient.on_campaign_trigger_action';
 }

@@ -18,7 +18,8 @@ use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiPayloadResponse.
+ * Class ApiPayloadResponse
+ * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadResponse
 {
@@ -39,6 +40,13 @@ class ApiPayloadResponse
 
     protected $logs = [];
 
+    /**
+     * ApiPayloadResponse constructor.
+     * @param $responseExpected
+     * @param $successDefinition
+     * @param Transport $service
+     * @param bool $test
+     */
     public function __construct($responseExpected, $successDefinition, Transport $service, $test = false)
     {
         $this->responseExpected = $responseExpected;
@@ -60,13 +68,13 @@ class ApiPayloadResponse
         $this->logs[] = 'Response status code: '.$result['status'];
 
         $result['headers'] = $this->service->getHeaders();
-        $this->logs[] = 'Response headers: '.json_encode($result['headers']);
+        $this->logs[] = ['Response headers' => $result['headers']];
 
         $result['bodySize'] = $this->service->getBody()->getSize();
         $this->logs[] = 'Response size: '.$result['bodySize'];
 
         $result['bodyRaw'] = $this->service->getBody()->getContents();
-        $this->logs[] = 'Response body: '.$result['bodyRaw'];
+        $this->logs[] = 'Response body (raw): '.$result['bodyRaw'];
 
         // Format the head response.
         if ($result['headers']) {
@@ -184,7 +192,7 @@ class ApiPayloadResponse
             } elseif ($value === false) {
                 $value = 'false';
             }
-            $value = (string) $value;
+            $value = (string)$value;
         }
 
         return $result;
@@ -246,7 +254,7 @@ class ApiPayloadResponse
                 $this->flattenStructure($value, $result);
             } else {
                 // Do not nullify existing key/value pairs if already present.
-                if (empty($value) && !isset($result[$key])) {
+                if (empty($value) && $value !== false && !isset($result[$key])) {
                     $result[$key] = null;
                 } else {
                     $result[$key] = $value;
@@ -291,7 +299,7 @@ class ApiPayloadResponse
                 throw new ApiErrorException(
                     'Error based on your success definition: '.implode(
                         ', ',
-                        $filter->getErrors()
+                        !empty($filter) ? $filter->getErrors() : []
                     )
                 );
             }
@@ -309,6 +317,9 @@ class ApiPayloadResponse
         return $this->responseActual ?? [];
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;

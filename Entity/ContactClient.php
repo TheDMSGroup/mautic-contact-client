@@ -77,6 +77,21 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
+    private $revenue_default;
+
+    /**
+     * @var int
+     */
+    private $revenue_settings;
+
+    /**
+     * @var int
+     */
+    private $duplicate;
+
+    /**
+     * @var int
+     */
     private $exclusive;
 
     /**
@@ -148,6 +163,14 @@ class ContactClient extends FormEntity
 
         $builder->addPublishDates();
 
+        $builder->createField('revenue_default', 'float')
+            ->columnDefinition('double DEFAULT NULL')
+            ->build();
+
+        $builder->addNullableField('revenue_settings', 'text');
+
+        $builder->addNullableField('duplicate', 'text');
+
         $builder->addNullableField('exclusive', 'text');
 
         $builder->addNullableField('filter', 'text');
@@ -187,6 +210,7 @@ class ContactClient extends FormEntity
                     'website',
                     'publishUp',
                     'publishDown',
+                    'duplicate',
                     'exclusive',
                     'filter',
                     'limits',
@@ -417,9 +441,75 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
+    public function getRevenueDefault()
+    {
+        return $this->revenue_default;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRevenueSettings()
+    {
+        return $this->revenue_settings;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDuplicate()
+    {
+        return $this->duplicate;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getExclusive()
     {
         return $this->exclusive;
+    }
+
+    /**
+     * @param mixed $revenueDefault
+     *
+     * @return ContactClient
+     */
+    public function setRevenueDefault($revenueDefault)
+    {
+        $this->isChanged('revenue_default', $revenueDefault);
+
+        $this->revenueDefault = $revenueDefault;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $revenueSettings
+     *
+     * @return ContactClient
+     */
+    public function setRevenueSettings($revenueSettings)
+    {
+        $this->isChanged('revenue_settings', $revenueSettings);
+
+        $this->revenueSettings = $revenueSettings;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $duplicate
+     *
+     * @return ContactClient
+     */
+    public function setDuplicate($duplicate)
+    {
+        $this->isChanged('duplicate', $duplicate);
+
+        $this->duplicate = $duplicate;
+
+        return $this;
     }
 
     /**

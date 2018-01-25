@@ -464,8 +464,18 @@
           "minLength": 0,
           "maxLength": 255
         },
-        "required": {
+        "overridable": {
           "propertyOrder": 80,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Overridable",
+          "options": {
+            "infoText": "Allow this field to be overridden within a campaign workflow."
+          },
+          "default": false
+        },
+        "required": {
+          "propertyOrder": 90,
           "type": "boolean",
           "format": "checkbox",
           "title": "Required",

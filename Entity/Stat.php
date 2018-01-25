@@ -21,9 +21,15 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 class Stat
 {
     // Used for querying stats
-    const TYPE_FORM         = 'submission';
-    const TYPE_CLICK        = 'click';
-    const TYPE_NOTIFICATION = 'view';
+    const TYPE_QUEUED = 'queue';
+    const TYPE_DUPLICATE = 'duplicate';
+    const TYPE_EXCLUSIVE = 'exclusive';
+    const TYPE_FILTER = 'filter';
+    const TYPE_LIMITS = 'limits';
+    const TYPE_REVENUE = 'revenue';
+    const TYPE_SCHEDULE = 'schedule';
+    const TYPE_SUCCESS = 'success';
+    const TYPE_FAILURE = 'failure';
 
     /**
      * @var int
@@ -33,7 +39,7 @@ class Stat
     /**
      * @var ContactClient
      */
-    private $contactclient;
+    private $contactClient;
 
     /**
      * @var string
@@ -69,7 +75,7 @@ class Stat
 
         $builder->addId();
 
-        $builder->createManyToOne('contactclient', 'ContactClient')
+        $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', false, false, 'CASCADE')
             ->build();
 
@@ -77,7 +83,7 @@ class Stat
 
         $builder->addNamedField('dateAdded', 'datetime', 'date_added');
 
-        $builder->addLead(true, 'SET NULL');
+        $builder->addContact(true, 'SET NULL');
     }
 
     /**
@@ -93,17 +99,17 @@ class Stat
      */
     public function getContactClient()
     {
-        return $this->contactclient;
+        return $this->contactClient;
     }
 
     /**
-     * @param mixed $contactclient
+     * @param mixed $contactClient
      *
      * @return Stat
      */
-    public function setContactClient($contactclient)
+    public function setContactClient($contactClient)
     {
-        $this->contactclient = $contactclient;
+        $this->contactClient = $contactClient;
 
         return $this;
     }
@@ -177,7 +183,7 @@ class Stat
     }
 
     /**
-     * @param Contact $lead
+     * @param Contact $contact
      *
      * @return Stat
      */

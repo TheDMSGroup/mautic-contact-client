@@ -15,7 +15,8 @@ use Mautic\CoreBundle\Security\Permissions\AbstractPermissions;
 use Symfony\Component\Form\FormBuilderInterface;
 
 /**
- * Class MauticContactClientPermissions.
+ * Class ContactClientPermissions
+ * @package MauticPlugin\MauticContactClientBundle\Security\Permissions
  */
 class ContactClientPermissions extends AbstractPermissions
 {
@@ -32,7 +33,7 @@ class ContactClientPermissions extends AbstractPermissions
     /**
      * {@inheritdoc}
      *
-     * @return string|void
+     * @return string
      */
     public function getName()
     {

@@ -16,7 +16,8 @@ use Mustache_Engine as Engine;
 use MauticPlugin\MauticContactClientBundle\Helper\DateFormatHelper;
 
 /**
- * Class TokenHelper.
+ * Class TokenHelper
+ * @package MauticPlugin\MauticContactClientBundle\Helper
  */
 class TokenHelper
 {

@@ -18,7 +18,8 @@ use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiRespon
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
 /**
- * Class ApiPayloadOperation.
+ * Class ApiPayloadOperation
+ * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadOperation
 {
@@ -107,9 +108,6 @@ class ApiPayloadOperation
             $this->logs['response'][] = $e->getMessage();
             $this->valid = false;
         }
-
-        // @todo Update our Contact with the relevant field mapping. (to be handled in ClientIntegration)
-        // @todo - $this->getResponseUpdated();
 
         if ($this->updatePayload) {
             $this->updatePayloadResponse();

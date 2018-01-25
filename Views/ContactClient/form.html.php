@@ -41,6 +41,11 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
+                    <a href="#duplicate" role="tab" data-toggle="tab" class="contactclient-tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.duplicate'); ?>
+                    </a>
+                </li>
+                <li>
                     <a href="#exclusive" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
                     </a>
@@ -55,9 +60,14 @@ echo $view['form']->start($form);
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.limits'); ?>
                     </a>
                 </li>
-                <li class="hide payload-tab">
+                <li id="payload-tab" class="hide">
                     <a href="#payload" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
+                    </a>
+                </li>
+                <li>
+                    <a href="#revenue" role="tab" data-toggle="tab" class="contactclient-tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.revenue'); ?>
                     </a>
                 </li>
                 <li>
@@ -88,6 +98,31 @@ echo $view['form']->start($form);
                                 <?php echo $view['form']->row($form['description']); ?>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="revenue">
+                <div class="pa-md">
+                    <div class="form-group mb-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <?php echo $view['form']->row($form['revenueDefault']); ?>
+                                <?php echo $view['form']->row($form['revenueSettings']); ?>
+                            </div>
+                        </div>
+                        <hr class="mnr-md mnl-md">
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="duplicate">
+                <div class="pa-md">
+                    <div class="form-group mb-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <?php echo $view['form']->row($form['duplicate']); ?>
+                            </div>
+                        </div>
+                        <hr class="mnr-md mnl-md">
                     </div>
                 </div>
             </div>
@@ -130,7 +165,7 @@ echo $view['form']->start($form);
             <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="payload">
                 <div class="pa-md">
                     <div class="form-group mb-0">
-                        <div class="row">
+                        <div class="row api_payload hide">
                             <div class="col-md-12">
                                 <div id="api_payload_advanced" class="form-group hide">
                                     <div class="choice-wrapper">
@@ -140,6 +175,10 @@ echo $view['form']->start($form);
                                     </div>
                                 </div>
                                 <?php echo $view['form']->row($form['api_payload']); ?>
+                            </div>
+                        </div>
+                        <div class="row file_payload hide">
+                            <div class="col-md-12">
                                 <?php echo $view['form']->row($form['file_payload']); ?>
                             </div>
                         </div>
