@@ -75,7 +75,7 @@ class ApiPayloadOperation
     public function run()
     {
         if (empty($this->request)) {
-            $this->logs[] = 'Skipping empty operation: '.$this->name;
+            $this->setLogs('Skipping empty operation: '.$this->name);
 
             return true;
         }
@@ -84,28 +84,28 @@ class ApiPayloadOperation
             $uri = $this->request->testUrl;
         }
         if (!$uri) {
-            $this->logs[] = 'Operation skipped. No URL: '.$this->name;
+            $this->setLogs('Operation skipped. No URL: '.$this->name);
 
             return true;
         }
 
-        $this->logs[] = 'Running operation in '.($this->test ? 'TEST' : 'PROD').' mode: '.$this->name;
+        $this->setLogs('Running operation in '.($this->test ? 'TEST' : 'PROD').' mode: '.$this->name);
 
         // Send the API request.
         $apiRequest = new ApiRequest($uri, $this->request, $this->service, $this->tokenHelper, $this->test);
         $apiRequest->send();
-        $this->logs['request'] = $apiRequest->getLogs();
+        $this->setLogs($apiRequest->getLogs(), 'request');
 
         // Parse the API response.
         $apiResponse = new ApiResponse($this->responseExpected, $this->successDefinition, $this->service, $this->test);
         $this->responseActual = $apiResponse->parse()->getResponse();
-        $this->logs['response'] = $apiResponse->getLogs();
+        $this->setLogs($apiResponse->getLogs(), 'response');
 
         // Validate the API response with the given success definition.
         try {
             $this->valid = $apiResponse->validate();
         } catch (ApiErrorException $e) {
-            $this->logs['response'][] = $e->getMessage();
+            $this->setLogs(['invalid' => $e->getMessage()], 'response');
             $this->valid = false;
         }
 
@@ -144,14 +144,14 @@ class ApiPayloadOperation
                         $newField->key = $key;
                         $newField->example = $value;
                         $result->{$type}[] = $newField;
-                        $this->logs[] = 'New '.$type.' field "'.$key.'" added with example: '.$value;
+                        $this->setLogs('New '.$type.' field "'.$key.'" added with example: '.$value);
                         $updates = true;
                     } else {
                         if (!empty($value) && empty($result->{$type}[$fieldId]->example)) {
                             // This is an existing field, but requires an updated example.
                             $result->{$type}[$fieldId]->example = $value;
                             $updates = true;
-                            $this->logs[] = 'Existing '.$type.' field "'.$key.'" now has an example: '.$value;
+                            $this->setLogs('Existing '.$type.' field "'.$key.'" now has an example: '.$value);
                         }
                     }
                 }
@@ -170,6 +170,26 @@ class ApiPayloadOperation
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
     public function getResponseActual()

@@ -178,7 +178,7 @@ class ApiPayload
                 $this->valid = false;
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
-            $this->logs[$id] = $logs;
+            $this->setLogs($logs, $id);
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;
@@ -257,12 +257,12 @@ class ApiPayload
                     /** @var ContactClientModel $contactClientModel */
                     $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
                     $contactClientModel->saveEntity($this->contactClient);
-                    $this->logs[] = 'Updated our response payload expectations.';
+                    $this->setLogs('Updated our response payload expectations.');
                 } catch (Exception $e) {
-                    $this->logs[] = 'Unable to save updates to the Contact Client. '.$e->getMessage();
+                    $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
                 }
             } else {
-                $this->logs[] = 'Payload responses matched expectations, no updates necessary.';
+                $this->setLogs('Payload responses matched expectations, no updates necessary.');
             }
         }
     }
@@ -270,6 +270,26 @@ class ApiPayload
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
     /**

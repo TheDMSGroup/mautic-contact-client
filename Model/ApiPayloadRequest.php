@@ -144,12 +144,12 @@ class ApiPayloadRequest
             }
         }
 
-        $this->logs[] = 'Sending request to: '.$uri;
+        $this->setLogs('Sending request to: '.$uri);
         $method = trim(strtolower($request->method ?? 'post'));
-        $this->logs[] = 'Using method: '.$method;
+        $this->setLogs('Using method: '.$method);
         switch ($method) {
             case 'delete':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->delete($uri, $options);
                 break;
 
@@ -159,28 +159,28 @@ class ApiPayloadRequest
                     // GET will not typically support form params in addition.
                     unset($options['form_params']);
                 }
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->get($uri, $options);
                 break;
 
             case 'head':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->head($uri, $options);
                 break;
 
             case 'patch':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->patch($uri, $options);
                 break;
 
             case 'post':
             default:
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->post($uri, $options);
                 break;
 
             case 'put':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->put($uri, $options);
                 break;
         }
@@ -246,12 +246,29 @@ class ApiPayloadRequest
         return $this->tokenHelper->renderString($string);
     }
 
-    /**
-     * @return array
-     */
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
 }

@@ -65,16 +65,16 @@ class ApiPayloadResponse
         $result = [];
 
         $result['status'] = $this->service->getStatusCode();
-        $this->logs[] = 'Response status code: '.$result['status'];
+        $this->setLogs('Response status code: '.$result['status'], 'status');
 
         $result['headers'] = $this->service->getHeaders();
-        $this->logs[] = ['Response headers' => $result['headers']];
+        $this->setLogs($result['headers'], 'headers');
 
         $result['bodySize'] = $this->service->getBody()->getSize();
-        $this->logs[] = 'Response size: '.$result['bodySize'];
+        $this->setLogs($result['bodySize'], 'size');
 
         $result['bodyRaw'] = $this->service->getBody()->getContents();
-        $this->logs[] = 'Response body (raw): '.$result['bodyRaw'];
+        $this->setLogs($result['bodyRaw'], 'bodyRaw');
 
         // Format the head response.
         if ($result['headers']) {
@@ -317,12 +317,29 @@ class ApiPayloadResponse
         return $this->responseActual ?? [];
     }
 
-    /**
-     * @return array
-     */
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
 }

@@ -171,19 +171,8 @@ class ContactClientModel extends FormModel
      */
     public function addStat(ContactClient $contactclient, $type, $data = null, $lead = null)
     {
-        switch ($type) {
-            case Stat::TYPE_FORM:
-                /** @var \Mautic\FormBundle\Entity\Submission $data */
-                $typeId = $data->getId();
-                break;
-            case Stat::TYPE_NOTIFICATION:
-                /** @var Request $data */
-                $typeId = null;
-                break;
-            case Stat::TYPE_CLICK:
-                /** @var \Mautic\PageBundle\Entity\Hit $data */
-                $typeId = $data->getId();
-                break;
+        if ($data) {
+            $typeId = $data->getId();
         }
 
         $stat = new Stat();
