@@ -40,6 +40,13 @@ class ApiPayloadResponse
 
     protected $logs = [];
 
+    /**
+     * ApiPayloadResponse constructor.
+     * @param $responseExpected
+     * @param $successDefinition
+     * @param Transport $service
+     * @param bool $test
+     */
     public function __construct($responseExpected, $successDefinition, Transport $service, $test = false)
     {
         $this->responseExpected = $responseExpected;
@@ -61,7 +68,7 @@ class ApiPayloadResponse
         $this->logs[] = 'Response status code: '.$result['status'];
 
         $result['headers'] = $this->service->getHeaders();
-        $this->logs[] = ['Response headers: ' => $result['headers']];
+        $this->logs[] = ['Response headers' => $result['headers']];
 
         $result['bodySize'] = $this->service->getBody()->getSize();
         $this->logs[] = 'Response size: '.$result['bodySize'];
@@ -185,7 +192,7 @@ class ApiPayloadResponse
             } elseif ($value === false) {
                 $value = 'false';
             }
-            $value = (string) $value;
+            $value = (string)$value;
         }
 
         return $result;
@@ -310,6 +317,9 @@ class ApiPayloadResponse
         return $this->responseActual ?? [];
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;

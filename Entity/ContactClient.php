@@ -77,6 +77,11 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
+    private $duplicate;
+
+    /**
+     * @var int
+     */
     private $exclusive;
 
     /**
@@ -148,6 +153,8 @@ class ContactClient extends FormEntity
 
         $builder->addPublishDates();
 
+        $builder->addNullableField('duplicate', 'text');
+
         $builder->addNullableField('exclusive', 'text');
 
         $builder->addNullableField('filter', 'text');
@@ -187,6 +194,7 @@ class ContactClient extends FormEntity
                     'website',
                     'publishUp',
                     'publishDown',
+                    'duplicate',
                     'exclusive',
                     'filter',
                     'limits',
@@ -417,9 +425,31 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
+    public function getDuplicate()
+    {
+        return $this->duplicate;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getExclusive()
     {
         return $this->exclusive;
+    }
+
+    /**
+     * @param mixed $duplicate
+     *
+     * @return ContactClient
+     */
+    public function setDuplicate($duplicate)
+    {
+        $this->isChanged('duplicate', $duplicate);
+
+        $this->duplicate = $duplicate;
+
+        return $this;
     }
 
     /**

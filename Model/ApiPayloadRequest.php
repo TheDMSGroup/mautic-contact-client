@@ -149,7 +149,7 @@ class ApiPayloadRequest
         $this->logs[] = 'Using method: '.$method;
         switch ($method) {
             case 'delete':
-                $this->logs[] = ['Using options: ' => $options];
+                $this->logs[] = ['Using options' => $options];
                 $service->delete($uri, $options);
                 break;
 
@@ -159,28 +159,28 @@ class ApiPayloadRequest
                     // GET will not typically support form params in addition.
                     unset($options['form_params']);
                 }
-                $this->logs[] = ['Using options: ' => $options];
+                $this->logs[] = ['Using options' => $options];
                 $service->get($uri, $options);
                 break;
 
             case 'head':
-                $this->logs[] = ['Using options: ' => $options];
+                $this->logs[] = ['Using options' => $options];
                 $service->head($uri, $options);
                 break;
 
             case 'patch':
-                $this->logs[] = ['Using options: ' => $options];
+                $this->logs[] = ['Using options' => $options];
                 $service->patch($uri, $options);
                 break;
 
             case 'post':
             default:
-                $this->logs[] = ['Using options: ' => $options];
+                $this->logs[] = ['Using options' => $options];
                 $service->post($uri, $options);
                 break;
 
             case 'put':
-                $this->logs[] = ['Using options: ' => $options];
+                $this->logs[] = ['Using options' => $options];
                 $service->put($uri, $options);
                 break;
         }
@@ -188,8 +188,10 @@ class ApiPayloadRequest
 
     /**
      * Tokenize/parse fields from the API Payload for transit.
+     *
      * @param $fields
      * @return array
+     * @throws ApiErrorException
      */
     private function fieldValues($fields)
     {
@@ -244,6 +246,9 @@ class ApiPayloadRequest
         return $this->tokenHelper->renderString($string);
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;

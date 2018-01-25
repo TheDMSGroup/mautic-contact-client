@@ -41,6 +41,11 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
+                    <a href="#duplicate" role="tab" data-toggle="tab" class="contactclient-tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.duplicate'); ?>
+                    </a>
+                </li>
+                <li>
                     <a href="#exclusive" role="tab" data-toggle="tab" class="contactclient-tab">
                         <?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
                     </a>
@@ -88,6 +93,18 @@ echo $view['form']->start($form);
                                 <?php echo $view['form']->row($form['description']); ?>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="duplicate">
+                <div class="pa-md">
+                    <div class="form-group mb-0">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <?php echo $view['form']->row($form['duplicate']); ?>
+                            </div>
+                        </div>
+                        <hr class="mnr-md mnl-md">
                     </div>
                 </div>
             </div>

@@ -112,6 +112,20 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
+            'duplicate',
+            'textarea',
+            [
+                'label'      => 'mautic.contactclient.form.duplicate',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'        => 'form-control',
+                    'rows'         => 12,
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
             'exclusive',
             'textarea',
             [
