@@ -29,7 +29,8 @@ class Stat
     const TYPE_REVENUE = 'revenue';
     const TYPE_SCHEDULE = 'schedule';
     const TYPE_SUCCESS = 'success';
-    const TYPE_FAILURE = 'failure';
+    const TYPE_REJECT = 'reject';
+    const TYPE_ERROR = 'error';
 
     /**
      * @var int

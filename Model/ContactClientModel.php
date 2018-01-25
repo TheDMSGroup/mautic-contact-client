@@ -64,18 +64,23 @@ class ContactClientModel extends FormModel
      * ContactClientModel constructor.
      *
      * @param \Mautic\FormBundle\Model\FormModel $formModel
-     * @param TrackableModel                     $trackableModel
-     * @param TemplatingHelper                   $templating
-     * @param EventDispatcherInterface           $dispatcher
-     * @param LeadModel                          $leadModel
+     * @param TrackableModel $trackableModel
+     * @param TemplatingHelper $templating
+     * @param EventDispatcherInterface $dispatcher
+     * @param LeadModel $leadModel
      */
-    public function __construct(\Mautic\FormBundle\Model\FormModel $formModel, TrackableModel $trackableModel, TemplatingHelper $templating, EventDispatcherInterface $dispatcher, LeadModel $leadModel)
-    {
-        $this->formModel      = $formModel;
+    public function __construct(
+        \Mautic\FormBundle\Model\FormModel $formModel,
+        TrackableModel $trackableModel,
+        TemplatingHelper $templating,
+        EventDispatcherInterface $dispatcher,
+        LeadModel $leadModel
+    ) {
+        $this->formModel = $formModel;
         $this->trackableModel = $trackableModel;
-        $this->templating     = $templating;
-        $this->dispatcher     = $dispatcher;
-        $this->leadModel      = $leadModel;
+        $this->templating = $templating;
+        $this->dispatcher = $dispatcher;
+        $this->leadModel = $leadModel;
     }
 
     /**
@@ -97,10 +102,10 @@ class ContactClientModel extends FormModel
     /**
      * {@inheritdoc}
      *
-     * @param object                              $entity
+     * @param object $entity
      * @param \Symfony\Component\Form\FormFactory $formFactory
-     * @param null                                $action
-     * @param array                               $options
+     * @param null $action
+     * @param array $options
      *
      * @throws NotFoundHttpException
      */
@@ -115,26 +120,6 @@ class ContactClientModel extends FormModel
         }
 
         return $formFactory->create('contactclient', $entity, $options);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository
-     */
-    public function getRepository()
-    {
-        return $this->em->getRepository('MauticContactClientBundle:ContactClient');
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
-     */
-    public function getStatRepository()
-    {
-        return $this->em->getRepository('MauticContactClientBundle:Stat');
     }
 
     /**
@@ -156,7 +141,7 @@ class ContactClientModel extends FormModel
     /**
      * {@inheritdoc}
      *
-     * @param ContactClient      $entity
+     * @param ContactClient $entity
      * @param bool|false $unlock
      */
     public function saveEntity($entity, $unlock = true)
@@ -167,12 +152,22 @@ class ContactClientModel extends FormModel
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository
+     */
+    public function getRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:ContactClient');
+    }
+
+    /**
      * Add a stat entry.
      *
      * @param ContactClient $contactclient
      * @param       $type
-     * @param null  $data
-     * @param null  $lead
+     * @param null $data
+     * @param null $lead
      */
     public function addStat(ContactClient $contactclient, $type, $data = null, $lead = null)
     {
@@ -199,6 +194,84 @@ class ContactClientModel extends FormModel
             ->setLead($lead);
 
         $this->getStatRepository()->saveEntity($stat);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
+     */
+    public function getStatRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:Stat');
+    }
+
+    /**
+     * @param ContactClient $contactclient
+     * @param                $unit
+     * @param \DateTime|null $dateFrom
+     * @param \DateTime|null $dateTo
+     * @param null $dateFormat
+     * @param bool $canViewOthers
+     *
+     * @return array
+     */
+    public function getStats(
+        ContactClient $contactclient,
+        $unit,
+        \DateTime $dateFrom = null,
+        \DateTime $dateTo = null,
+        $dateFormat = null,
+        $canViewOthers = true
+    ) {
+        $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
+        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
+
+        $q = $query->prepareTimeDataQuery(
+            'contactclient_stats',
+            'date_added',
+            ['contactclient_id' => $contactclient->getId()]
+        );
+        if (!$canViewOthers) {
+            $this->limitQueryToCreator($q);
+        }
+        $data = $query->loadAndBuildTimeData($q);
+        $chart->setDataset($this->translator->trans('mautic.contactclient.graph.queued'), $data);
+
+        foreach ([
+                     // Stat::TYPE_QUEUED,
+                     Stat::TYPE_DUPLICATE,
+                     Stat::TYPE_EXCLUSIVE,
+                     Stat::TYPE_FILTER,
+                     Stat::TYPE_LIMITS,
+                     Stat::TYPE_REVENUE,
+                     Stat::TYPE_SCHEDULE,
+                     Stat::TYPE_SUCCESS,
+                     Stat::TYPE_REJECT,
+                     Stat::TYPE_ERROR,
+                 ] as $type) {
+
+            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => $type]);
+            if (!$canViewOthers) {
+                $this->limitQueryToCreator($q);
+            }
+            $data = $query->loadAndBuildTimeData($q);
+            $chart->setDataset($this->translator->trans('mautic.contactclient.graph.' . $type), $data);
+        }
+
+        return $chart->render();
+    }
+
+    /**
+     * Joins the email table and limits created_by to currently logged in user.
+     *
+     * @param QueryBuilder $q
+     */
+    public function limitQueryToCreator(QueryBuilder $q)
+    {
+        $q->join('t', MAUTIC_TABLE_PREFIX.'contactclient', 'm', 'e.id = t.contactclient_id')
+            ->andWhere('m.created_by = :userId')
+            ->setParameter('userId', $this->userHelper->getUser()->getId());
     }
 
     /**
@@ -243,53 +316,5 @@ class ContactClientModel extends FormModel
         } else {
             return null;
         }
-    }
-
-    /**
-     * @param ContactClient          $contactclient
-     * @param                $unit
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param null           $dateFormat
-     * @param bool           $canViewOthers
-     *
-     * @return array
-     */
-    public function getStats(ContactClient $contactclient, $unit, \DateTime $dateFrom = null, \DateTime $dateTo = null, $dateFormat = null, $canViewOthers = true)
-    {
-        $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
-        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
-
-        $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactclient->getId()]);
-        if (!$canViewOthers) {
-            $this->limitQueryToCreator($q);
-        }
-        $data = $query->loadAndBuildTimeData($q);
-        $chart->setDataset($this->translator->trans('mautic.contactclient.graph.queued'), $data);
-
-        if ($contactclient->getType() == 'api') {
-            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_SUCCESS]);
-            if (!$canViewOthers) {
-                $this->limitQueryToCreator($q);
-            }
-            $data = $query->loadAndBuildTimeData($q);
-            $chart->setDataset($this->translator->trans('mautic.contactclient.graph.success'), $data);
-        } else {
-            // @todo - Stats for file based payload
-        }
-
-        return $chart->render();
-    }
-
-    /**
-     * Joins the email table and limits created_by to currently logged in user.
-     *
-     * @param QueryBuilder $q
-     */
-    public function limitQueryToCreator(QueryBuilder $q)
-    {
-        $q->join('t', MAUTIC_TABLE_PREFIX.'contactclient', 'm', 'e.id = t.contactclient_id')
-            ->andWhere('m.created_by = :userId')
-            ->setParameter('userId', $this->userHelper->getUser()->getId());
     }
 }
