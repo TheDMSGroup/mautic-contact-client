@@ -18,7 +18,8 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * Class ContactClientShowType.
+ * Class ContactClientShowType
+ * @package MauticPlugin\MauticContactClientBundle\Form\Type
  */
 class ContactClientShowType extends AbstractType
 {

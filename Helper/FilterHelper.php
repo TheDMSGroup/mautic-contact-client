@@ -15,6 +15,7 @@ use Exception;
 
 /**
  * Class FilterHelper.
+ * @package MauticPlugin\MauticContactClientBundle\Helper
  *
  * Based loosely on https://github.com/josedacosta/jQueryQueryBuilderBundle
  *

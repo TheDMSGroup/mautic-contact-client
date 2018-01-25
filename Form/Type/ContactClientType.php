@@ -18,6 +18,10 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
+/**
+ * Class ContactClientType
+ * @package MauticPlugin\MauticContactClientBundle\Form\Type
+ */
 class ContactClientType extends AbstractType
 {
     /**

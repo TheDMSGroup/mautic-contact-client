@@ -29,7 +29,8 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Form\FormEvents;
 
 /**
- * Class ContactClientSubscriber.
+ * Class ContactClientSubscriber
+ * @package MauticPlugin\MauticContactClientBundle\EventListener
  */
 class ContactClientSubscriber extends CommonSubscriber
 {

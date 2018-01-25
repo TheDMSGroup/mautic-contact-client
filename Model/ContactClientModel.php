@@ -29,6 +29,10 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
+/**
+ * Class ContactClientModel
+ * @package MauticPlugin\MauticContactClientBundle\Model
+ */
 class ContactClientModel extends FormModel
 {
     /**

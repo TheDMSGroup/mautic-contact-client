@@ -23,7 +23,8 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 
 /**
- * Class ContactClientIntegration.
+ * Class ClientIntegration
+ * @package MauticPlugin\MauticContactClientBundle\Integration
  */
 class ClientIntegration extends AbstractIntegration
 {
@@ -247,6 +248,7 @@ class ClientIntegration extends AbstractIntegration
             }
             if ($updated) {
                 try {
+                    /** @var Contact $contactModel */
                     $contactModel = $this->container->get('mautic.lead.model.lead');
                     $contactModel->saveEntity($this->contact);
                     $this->logs[] = 'Operation successful. The Contact was updated.';
@@ -263,9 +265,45 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @todo - Do something useful with $this->logs.
+     * Use LeadTimelineEvent
      */
     private function logResults()
     {
+    }
+
+    /**
+     * @param $entity
+     * @param $object
+     * @param $mauticObjectReference
+     * @param $integrationEntityId
+     *
+     * @return IntegrationEntity|null|object
+     */
+    public function saveSyncedData($entity, $object, $mauticObjectReference, $integrationEntityId)
+    {
+        /** @var IntegrationEntityRepository $integrationEntityRepo */
+        $integrationEntityRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
+        $integrationEntities = $integrationEntityRepo->getIntegrationEntities(
+            $this->getName(),
+            $object,
+            $mauticObjectReference,
+            [$entity->getId()]
+        );
+
+        if ($integrationEntities) {
+            $integrationEntity = reset($integrationEntities);
+            $integrationEntity->setLastSyncDate(new \DateTime());
+        } else {
+            $integrationEntity = new IntegrationEntity();
+            $integrationEntity->setDateAdded(new \DateTime());
+            $integrationEntity->setIntegration($this->client->getName() ?? $this->getName());
+            $integrationEntity->setIntegrationEntity($object);
+            $integrationEntity->setIntegrationEntityId($integrationEntityId);
+            $integrationEntity->setInternalEntity($mauticObjectReference);
+            $integrationEntity->setInternalEntityId($entity->getId());
+        }
+
+        return $integrationEntity;
     }
 
     /**
@@ -411,40 +449,5 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
         }
-    }
-
-    /**
-     * @param $entity
-     * @param $object
-     * @param $mauticObjectReference
-     * @param $integrationEntityId
-     *
-     * @return IntegrationEntity|null|object
-     */
-    public function saveSyncedData($entity, $object, $mauticObjectReference, $integrationEntityId)
-    {
-        /** @var IntegrationEntityRepository $integrationEntityRepo */
-        $integrationEntityRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
-        $integrationEntities   = $integrationEntityRepo->getIntegrationEntities(
-            $this->getName(),
-            $object,
-            $mauticObjectReference,
-            [$entity->getId()]
-        );
-
-        if ($integrationEntities) {
-            $integrationEntity = reset($integrationEntities);
-            $integrationEntity->setLastSyncDate(new \DateTime());
-        } else {
-            $integrationEntity = new IntegrationEntity();
-            $integrationEntity->setDateAdded(new \DateTime());
-            $integrationEntity->setIntegration($this->client->getName() ?? $this->getName());
-            $integrationEntity->setIntegrationEntity($object);
-            $integrationEntity->setIntegrationEntityId($integrationEntityId);
-            $integrationEntity->setInternalEntity($mauticObjectReference);
-            $integrationEntity->setInternalEntityId($entity->getId());
-        }
-
-        return $integrationEntity;
     }
 }

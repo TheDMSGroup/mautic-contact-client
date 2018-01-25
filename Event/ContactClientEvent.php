@@ -15,7 +15,8 @@ use Mautic\CoreBundle\Event\CommonEvent;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
- * Class ContactClientEvent.
+ * Class ContactClientEvent
+ * @package MauticPlugin\MauticContactClientBundle\Event
  */
 class ContactClientEvent extends CommonEvent
 {

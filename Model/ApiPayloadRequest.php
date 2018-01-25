@@ -18,7 +18,8 @@ use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiPayloadRequest.
+ * Class ApiPayloadRequest
+ * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadRequest
 {

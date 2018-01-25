@@ -18,7 +18,8 @@ use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiPayloadResponse.
+ * Class ApiPayloadResponse
+ * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadResponse
 {

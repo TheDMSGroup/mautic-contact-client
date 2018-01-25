@@ -81,13 +81,13 @@ class SendCommand extends ModeratedCommand
         }
 
         if (!$options['client'] || !is_numeric($options['client'])) {
-            $output->writeln('Client is required.');
+            $output->writeln('<error>Client is required.</error>');
 
             return 0;
         }
 
         if (!$options['contact'] || !is_numeric($options['contact'])) {
-            $output->writeln('Contact is required.');
+            $output->writeln('<error>Contact is required.</error>');
 
             return 0;
         }
@@ -95,13 +95,13 @@ class SendCommand extends ModeratedCommand
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
         $client = $clientModel->getEntity($options['client']);
         if (!$client) {
-            $output->writeln('Could not load Client.');
+            $output->writeln('<error>Could not load Client.</error>');
 
             return 0;
         }
 
         if ($client->getIsPublished() === false && !$options['force']) {
-            $output->writeln('This client is not published. Publish it or use --force');
+            $output->writeln('<error>This client is not published. Publish it or use --force</error>');
 
             return 0;
         }
@@ -110,7 +110,7 @@ class SendCommand extends ModeratedCommand
         $contactModel = $container->get('mautic.lead.model.lead');
         $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {
-            $output->writeln('Could not load Contact.');
+            $output->writeln('<error>Could not load Contact.</error>');
 
             return 0;
         }
@@ -121,17 +121,20 @@ class SendCommand extends ModeratedCommand
             $integrationHelper = $container->get('mautic.helper.integration');
             /** @var ClientIntegration $integrationObject */
             $integrationObject = $integrationHelper->getIntegrationObject('Client');
-            if (!$integrationObject || ($integrationObject->getIntegrationSettings()->getIsPublished() === false && !$options['force'])) {
-                $output->writeln('The Contact Clients plugin is not published.');
+            if (
+                !$integrationObject
+                || ($integrationObject->getIntegrationSettings()->getIsPublished() === false && !$options['force'])
+            ) {
+                $output->writeln('<error>The Contact Clients plugin is not published.</error>');
 
                 return 0;
             }
             $integrationObject->sendContact($client, $contact, $container, $options['test']);
             if ($integrationObject->getValid()) {
-                $output->writeln('Contact sent.');
+                $output->writeln('<info>Contact sent.</info>');
             } else {
-                $output->writeln('Contact not sent or not accepted.');
-                $output->writeln('Logs: ' . print_r($integrationObject->getLogs(), true));
+                $output->writeln('<error>Contact not sent or not accepted.</error>');
+                $output->writeln('<info>Logs: </info>'.print_r($integrationObject->getLogs(), true));
             }
 
         } elseif ($clientType == 'file') {
@@ -143,8 +146,6 @@ class SendCommand extends ModeratedCommand
 
             return 0;
         }
-
-        $output->writeln('<info>Done.</info>');
 
         $this->completeRun();
     }

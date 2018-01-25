@@ -20,7 +20,8 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
- * Class StatSubscriber.
+ * Class StatSubscriber
+ * @package MauticPlugin\MauticContactClientBundle\EventListener
  */
 class StatSubscriber extends CommonSubscriber
 {

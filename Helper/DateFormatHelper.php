@@ -12,7 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 /**
- * Class DateFormatHelper.
+ * Class DateFormatHelper
+ * @package MauticPlugin\MauticContactClientBundle\Helper
  */
 class DateFormatHelper
 {

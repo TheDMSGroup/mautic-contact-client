@@ -19,7 +19,8 @@ use Mautic\LeadBundle\Entity\ContactEventLogRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
- * Class ContactLogHelper.
+ * Class ContactEventLogHelper
+ * @package MauticPlugin\MauticContactClientBundle\Helper
  */
 class ContactEventLogHelper
 {

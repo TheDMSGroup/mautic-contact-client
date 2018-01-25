@@ -15,7 +15,8 @@ use Mautic\CoreBundle\Controller\FormController;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class ContactClientController.
+ * Class ContactClientController
+ * @package MauticPlugin\MauticContactClientBundle\Controller
  */
 class ContactClientController extends FormController
 {

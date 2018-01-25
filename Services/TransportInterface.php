@@ -11,6 +11,10 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Services;
 
+/**
+ * Interface TransportInterface
+ * @package MauticPlugin\MauticContactClientBundle\Services
+ */
 interface TransportInterface
 {
     public function patch($uri, array $options);

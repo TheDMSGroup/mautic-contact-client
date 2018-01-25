@@ -18,7 +18,8 @@ use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiRespon
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
 /**
- * Class ApiPayloadOperation.
+ * Class ApiPayloadOperation
+ * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadOperation
 {

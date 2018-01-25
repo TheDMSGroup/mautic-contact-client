@@ -14,13 +14,14 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class ApiPayload.
+ * Class ApiPayload
+ * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayload
 {
@@ -201,13 +202,10 @@ class ApiPayload
     private function getService()
     {
         if (!$this->service) {
-            try {
-                $this->service = $this->container->get('mautic.contactclient.service.transport');
-                // Set our internal settings that are pertinent.
-                $this->service->setSettings($this->settings);
-            } catch (\Exception $e) {
-                // @todo - not sure what could go wrong here yet
-            }
+            /** @var Transport service */
+            $this->service = $this->container->get('mautic.contactclient.service.transport');
+            // Set our internal settings that are pertinent.
+            $this->service->setSettings($this->settings);
         }
 
         return $this->service;
@@ -256,7 +254,7 @@ class ApiPayload
                 $this->contactClient->setAPIPayload($payloadJSON);
 
                 try {
-                    /** @var contactClientModel $contactClientModel */
+                    /** @var ContactClientModel $contactClientModel */
                     $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
                     $contactClientModel->saveEntity($this->contactClient);
                     $this->logs[] = 'Updated our response payload expectations.';
@@ -321,7 +319,7 @@ class ApiPayload
      * @param array $overrides Key value pair array.
      */
     public function setOverrides($overrides){
-        if ($overrides && isset($this->payload->operations)) {
+        if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $id => &$operation) {
                 if (isset($operation->request)) {
                     foreach (['headers', 'body'] as $type) {
@@ -331,7 +329,7 @@ class ApiPayload
                                     isset($field->overridable)
                                     && $field->overridable === true
                                     && isset($field->key)
-                                    && isset($overrides[$field->key])
+                                    && isset($overrideValues[$field->key])
                                 ) {
                                     $field->value = $overrides[$field->key];
                                 }

@@ -13,6 +13,10 @@ namespace MauticPlugin\MauticContactClientBundle\Services;
 
 use GuzzleHttp\Client;
 
+/**
+ * Class Transport
+ * @package MauticPlugin\MauticContactClientBundle\Services
+ */
 class Transport implements TransportInterface
 {
     /**
