@@ -535,9 +535,8 @@ class ContactEventLog
     }
 
     /**
-     * @param FailedContactEventLog $log
-     *
-     * return $this
+     * @param FailedContactEventLog|null $log
+     * @return $this
      */
     public function setFailedLog(FailedContactEventLog $log = null)
     {

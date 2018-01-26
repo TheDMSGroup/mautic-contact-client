@@ -188,7 +188,7 @@ class Stat
      *
      * @return Stat
      */
-    public function setLead(Contact $contact)
+    public function setContact(Contact $contact)
     {
         $this->contact = $contact;
 

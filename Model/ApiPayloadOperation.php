@@ -46,7 +46,24 @@ class ApiPayloadOperation
 
     protected $valid = false;
 
+    protected $filter = null;
+
     protected $tokenHelper;
+
+    /**
+     * Prioritized list of possible external IDs to search for.
+     * @var array
+     */
+    protected $externalIds = [
+        'id',
+        'uuid',
+        'leadid',
+        'leaduuid',
+        'contactid',
+        'contactuuid',
+        'uniqueid',
+        'email',
+    ];
 
     public function __construct(
         $id,
@@ -104,10 +121,13 @@ class ApiPayloadOperation
 
         // Validate the API response with the given success definition.
         try {
-            $this->valid = $apiResponse->validate();
+            $this->setValid($apiResponse->validate());
+            $this->setLogs($this->getValid(), 'valid');
         } catch (ApiErrorException $e) {
-            $this->setLogs($e->getMessage(), 'invalid');
-            $this->valid = false;
+            $this->setValid(false);
+            $this->setLogs($this->getValid(), 'valid');
+            $this->setLogs($e->getMessage(), 'filter');
+            $this->setFilter($e->getMessage());
         }
 
         if ($this->updatePayload) {
@@ -152,7 +172,10 @@ class ApiPayloadOperation
                             // This is an existing field, but requires an updated example.
                             $result->{$type}[$fieldId]->example = $value;
                             $updates = true;
-                            $this->setLogs('Existing '.$type.' field "'.$key.'" now has an example: '.$value, 'autoUpdate');
+                            $this->setLogs(
+                                'Existing '.$type.' field "'.$key.'" now has an example: '.$value,
+                                'autoUpdate'
+                            );
                         }
                     }
                 }
@@ -166,6 +189,21 @@ class ApiPayloadOperation
     public function getValid()
     {
         return $this->valid;
+    }
+
+    public function setValid($valid)
+    {
+        $this->valid = $valid;
+    }
+
+    public function getFilter()
+    {
+        return $this->filter;
+    }
+
+    public function setFilter($filter)
+    {
+        $this->filter = $filter;
     }
 
     public function getLogs()
@@ -182,7 +220,7 @@ class ApiPayloadOperation
                 } else {
                     $this->logs[$type] = [
                         $this->logs[$type],
-                        $value
+                        $value,
                     ];
                 }
             } else {
@@ -217,6 +255,35 @@ class ApiPayloadOperation
         }
 
         return $mappedFields;
+    }
+
+    /**
+     * Given the response fields, attempt to assume an external ID for future correlation.
+     * Find the best possible fit.
+     *
+     * @return null
+     */
+    public function getExternalId()
+    {
+        $externalIds = array_flip($this->externalIds);
+        $id = null;
+        $idIndex = null;
+        foreach (['headers', 'body'] as $type) {
+            if (isset($this->responseActual[$type]) && isset($this->responseActual[$type])) {
+                foreach ($this->responseActual[$type] as $key => $value) {
+                    $key = preg_replace("/[^a-z0-9]/", '', strtolower($key));
+                    if (isset($externalIds[$key]) && ($idIndex === null || $externalIds[$key] < $idIndex)) {
+                        $idIndex = $externalIds[$key];
+                        $id = $value;
+                        if ($idIndex == 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $id;
     }
 
 }

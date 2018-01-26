@@ -83,6 +83,8 @@ class ApiPayloadResponse
 
         // Format the body response.
         $responseExpectedFormat = trim(strtolower($this->responseExpected->format ?? 'auto'));
+        $this->setLogs($responseExpectedFormat, 'format');
+
         $result['body'] = [];
         switch ($responseExpectedFormat) {
             default:
@@ -98,6 +100,7 @@ class ApiPayloadResponse
                 $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseExpectedFormat);
                 break;
         }
+        $this->setLogs($result['body'], 'body');
 
         $this->valid = (bool)$result['status'];
         $this->responseActual = $result;

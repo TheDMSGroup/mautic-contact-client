@@ -61,6 +61,8 @@ class ApiPayloadRequest
     public function send()
     {
         $uri = $this->uri;
+        $this->setLogs($uri, 'uri');
+
         $request = $this->request;
         $service = $this->service;
         $options = [];
@@ -70,7 +72,9 @@ class ApiPayloadRequest
         if (!empty($request->body) && !is_string($request->body)) {
             $requestFields = $this->fieldValues($request->body);
         }
-        switch (strtolower($request->format ?? 'form')) {
+        $requestFormat = strtolower($request->format ?? 'form');
+        $this->setLogs($requestFormat, 'format');
+        switch ($requestFormat) {
             case 'form':
             default:
                 $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
@@ -144,7 +148,6 @@ class ApiPayloadRequest
             }
         }
 
-        $this->setLogs($uri, 'uri');
         $method = trim(strtolower($request->method ?? 'post'));
         $this->setLogs($method, 'method');
         switch ($method) {

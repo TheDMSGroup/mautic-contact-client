@@ -15,7 +15,7 @@ use Mautic\CoreBundle\Command\ModeratedCommand;
 
 //use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 //use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
+//use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticSocialBundle\Entity\Lead as Contact;
 
 use Symfony\Component\Console\Input\InputInterface;
@@ -118,6 +118,7 @@ class SendCommand extends ModeratedCommand
         $clientType = $client->getType();
         if ($clientType == 'api') {
             // Load the integration helper for our general ClientIntegration
+            /** @var IntegrationHelper $integrationHelper */
             $integrationHelper = $container->get('mautic.helper.integration');
             /** @var ClientIntegration $integrationObject */
             $integrationObject = $integrationHelper->getIntegrationObject('Client');
@@ -131,9 +132,9 @@ class SendCommand extends ModeratedCommand
             }
             $integrationObject->sendContact($client, $contact, $container, $options['test']);
             if ($integrationObject->getValid()) {
-                $output->writeln('<info>Contact sent.</info>');
+                $output->writeln('<info>Contact sent and accepted.</info>');
             } else {
-                $output->writeln('<error>Contact not sent or not accepted.</error>');
+                $output->writeln('<error>The Contact was not sent or accepted. See logs for details.</error>');
                 $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
             }
 
@@ -142,7 +143,7 @@ class SendCommand extends ModeratedCommand
             // @todo - Support file payloads.
 
         } else {
-            $output->writeln('Client type is not recognized.');
+            $output->writeln('<error>Client type is not recognized.</error>');
 
             return 0;
         }

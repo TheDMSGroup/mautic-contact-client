@@ -164,23 +164,24 @@ class ContactClientModel extends FormModel
     /**
      * Add a stat entry.
      *
-     * @param ContactClient $contactclient
+     * @param ContactClient $contactClient
      * @param       $type
      * @param null $data
-     * @param null $lead
+     * @param null $contact
      */
-    public function addStat(ContactClient $contactclient, $type, $data = null, $lead = null)
+    public function addStat(ContactClient $contactClient, $type, $data = null, $contact = null)
     {
+        $typeId = null;
         if ($data) {
             $typeId = $data->getId();
         }
 
         $stat = new Stat();
-        $stat->setContactClient($contactclient)
+        $stat->setContactClient($contactClient)
             ->setDateAdded(new \DateTime())
             ->setType($type)
             ->setTypeId($typeId)
-            ->setLead($lead);
+            ->setContact($contact);
 
         $this->getStatRepository()->saveEntity($stat);
     }
