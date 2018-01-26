@@ -247,14 +247,14 @@ class ClientIntegration extends AbstractIntegration
                     /** @var Contact $contactModel */
                     $contactModel = $this->container->get('mautic.lead.model.lead');
                     $contactModel->saveEntity($this->contact);
-                    $this->setLogs('Operation successful. The Contact was updated.');
+                    $this->setLogs('Operation successful. The Contact was updated.', 'updated');
                 } catch (Exception $e) {
                     $this->setLogs('Failure to update our Contact. '.$e->getMessage(), 'error');
                     $this->valid = false;
                     $this->logIntegrationError($e, $this->contact);
                 }
             } else {
-                $this->setLogs('Operation successful, but no fields on the Contact needed updating.');
+                $this->setLogs('Operation successful, but no fields on the Contact needed updating.', 'info');
             }
         }
     }
@@ -304,22 +304,20 @@ class ClientIntegration extends AbstractIntegration
 
         $clientModel->addStat($this->contactClient, $statType, null, $this->contact);
 
-        // Events - contactclient_events - Note, this is usually an audit log.
-        $contactModel = $container->get('mautic.lead.model.lead');
-        $eventLogRepo = $contactModel->getEventLogRepository();
-
-        // Contact Events - LeadTimelineEvent
-        $eventLog = new LeadEventLog();
-        $eventLog
-            ->setUserId($this->contactClient->getCreatedBy())
-            ->setUserName($this->contactClient->getCreatedByUser())
-            ->setBundle('MauticContactClientBundle')
-            ->setObject('ContactClient')
-            ->setObjectId($this->contactClient->getId())
-            ->setLead($this->contact)
-            ->setAction($statType)
-            ->setProperties($this->logs);
-        $eventLogRepo->saveEntity($eventLog);
+        // lead_event_log - Not sure if I should be using this...
+//        $contactModel = $container->get('mautic.lead.model.lead');
+//        $eventLogRepo = $contactModel->getEventLogRepository();
+//        $eventLog = new LeadEventLog();
+//        $eventLog
+//            ->setUserId($this->contactClient->getCreatedBy())
+//            ->setUserName($this->contactClient->getCreatedByUser())
+//            ->setBundle('lead')
+//            ->setObject('import')
+//            ->setObjectId($this->contactClient->getId())
+//            ->setLead($this->contact)
+//            ->setAction('updated')
+//            ->setProperties($this->logs);
+//        $eventLogRepo->saveEntity($eventLog);
 
         // $this->dispatchIntegrationKeyEvent()
 
