@@ -282,56 +282,11 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient $contactClient
-     * @param                $unit
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param null $dateFormat
-     * @param bool $canViewOthers
-     *
-     * @return array
-     */
-//    public function getEvents(
-//        ContactClient $contactClient,
-//        $unit,
-//        \DateTime $dateFrom = null,
-//        \DateTime $dateTo = null,
-//        $dateFormat = null,
-//        $canViewOthers = true
-//    ) {
-//
-//        $eventRepo = $this->getEventRepository();
-//        $payload = [
-//            'events'   => $eventRepo->getEventsForTimeline($contactClient),
-//            'filters'  => $filters,
-//            'order'    => $orderBy,
-//            'types'    => [
-//                // Stat::TYPE_QUEUED,
-//                Stat::TYPE_DUPLICATE,
-//                Stat::TYPE_EXCLUSIVE,
-//                Stat::TYPE_FILTER,
-//                Stat::TYPE_LIMITS,
-//                Stat::TYPE_REVENUE,
-//                Stat::TYPE_SCHEDULE,
-//                Stat::TYPE_SUCCESS,
-//                Stat::TYPE_REJECT,
-//                Stat::TYPE_ERROR,
-//            ],
-//            'total'    => 99, // $eventRepo->getEventCounter()['total'],
-//            'page'     => 1, //$page,
-//            'limit'    => 25, // $limit,
-//            'maxPages' => 2, // $eventRepo->getMaxPage(),
-//        ];
-//
-//        return $payload;
-//    }
-
-    /**
      * Get timeline/engagement data.
      *
      * @param ContactClient|null $contactClient
-     * @param null $filters
-     * @param array|null $orderBy
+     * @param array $filters
+     * @param null $orderBy
      * @param int $page
      * @param int $limit
      * @param bool $forTimeline
@@ -339,7 +294,10 @@ class ContactClientModel extends FormModel
      */
     public function getEngagements(ContactClient $contactClient = null, $filters = [], $orderBy = null, $page = 1, $limit = 25, $forTimeline = true)
     {
-        $event = new ContactClientTimelineEvent($contactClient, $filters, $orderBy, $page, $limit, $forTimeline, $this->coreParametersHelper->getParameter('site_url'));
+        $event = $this->dispatcher->dispatch(
+            ContactClientEvents::TIMELINE_ON_GENERATE,
+            new ContactClientTimelineEvent($contactClient, $filters, $orderBy, $page, $limit, $forTimeline, $this->coreParametersHelper->getParameter('site_url'))
+        );
 
         if (!isset($filters['search'])) {
             $filters['search'] = null;
@@ -366,7 +324,7 @@ class ContactClientModel extends FormModel
         $event = new ContactClientTimelineEvent();
         $event->fetchTypesOnly();
 
-        $this->dispatcher->dispatch(LeadEvents::TIMELINE_ON_GENERATE, $event);
+        $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventTypes();
     }
@@ -387,7 +345,7 @@ class ContactClientModel extends FormModel
         $event = new ContactClientTimelineEvent($lead);
         $event->setCountOnly($dateFrom, $dateTo, $unit, $chartQuery);
 
-        $this->dispatcher->dispatch(LeadEvents::TIMELINE_ON_GENERATE, $event);
+        $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
     }

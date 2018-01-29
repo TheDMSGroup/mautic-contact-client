@@ -136,7 +136,7 @@ if ($tmpl == 'index') {
             [
                 'totalItems' => count($items),
                 'page'       => $page,
-                'limits'      => $limit,
+                'limits'     => $limit,
                 'baseUrl'    => $view['router']->path('mautic_contactclient_index'),
                 'sessionVar' => 'contactclient',
             ]

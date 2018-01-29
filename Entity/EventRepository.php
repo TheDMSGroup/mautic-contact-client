@@ -27,14 +27,15 @@ class EventRepository extends CommonRepository
      * @param \DateTime|null $dateAdded
      * @return array
      */
-    public function getEvents($contactClientId, $eventType, \DateTime $dateAdded = null)
+    public function getEvents($contactClientId, $eventType = null, \DateTime $dateAdded = null)
     {
-        $q = $this->createQueryBuilder('c');
+        $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
+            ->select('c.*');
 
-        $expr = $q->expr()->andX(
-            $q->expr()->eq('c.product', ':product'),
-            $q->expr()->eq('c.event_type', ':eventType')
-        );
+        $expr = $q->expr()->eq('c.contactclient_id', ':contactClient');
+        $q->where($expr)
+            ->setParameter('contactClient', (int)$contactClientId);
 
         if ($dateAdded) {
             $expr->add(
@@ -43,11 +44,13 @@ class EventRepository extends CommonRepository
             $q->setParameter('dateAdded', $dateAdded);
         }
 
-        $q->where($expr)
-            ->setParameter('eventType', $eventType)
-            ->setParameter('contactclient_id', $contactClientId);
-
-        return $q->getQuery()->getArrayResult();
+        if ($eventType) {
+            $expr->add(
+                $q->expr()->eq('c.type', ':type')
+            );
+            $q->setParameter('type', $eventType);
+        }
+        return $q->execute()->fetchAll();
     }
 
     /**
@@ -65,9 +68,9 @@ class EventRepository extends CommonRepository
             ->select('c.*');
 
         $query->where(
-            $query->expr()->eq('c.contactclient_id', ':contactclient_id')
+            $query->expr()->eq('c.contactclient_id', ':contactClientId')
         )
-            ->setParameter('contactclient_id', $contactClientId);
+            ->setParameter('contactClientId', $contactClientId);
 
 
         if ($eventType) {
@@ -92,6 +95,7 @@ class EventRepository extends CommonRepository
 
         return $this->getTimelineResults($query, $options, 'c.type', 'c.date_added', [], ['date_added']);
     }
+
 
     /**
      * Get a list of entities.

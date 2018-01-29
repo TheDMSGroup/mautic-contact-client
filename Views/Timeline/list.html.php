@@ -15,7 +15,7 @@ if (isset($tmpl) && $tmpl == 'index') {
 $baseUrl = $view['router']->path(
     'mautic_contactclient_timeline_action',
     [
-        'contactClientId' => $contactClient->getId(),
+        'contactClientId' => $contactClient->getId()
     ]
 );
 ?>
@@ -69,7 +69,7 @@ $baseUrl = $view['router']->path(
             $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
             if (is_array($eventLabel)):
                 $linkType   = empty($eventLabel['isExternal']) ? 'data-toggle="ajax"' : 'target="_new"';
-                $eventLabel = "<a href=\"{$eventLabel['href']}\" $linkType>{$eventLabel['label']}</a>";
+                $eventLabel = isset($eventLabel['href']) ? "<a href=\"{$eventLabel['href']}\" $linkType>{$eventLabel['label']}</a>" : "{$eventLabel['label']}";
             endif;
 
             $details = '';

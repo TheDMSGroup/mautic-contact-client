@@ -124,11 +124,12 @@ $website = $item->getWebsite();
                 <li class="active">
                     <a href="#timeline-container" role="tab" data-toggle="tab">
                         <span class="label label-primary mr-sm" id="TimelineCount">
-                            <?php // echo $events['total']; ?>
+                            <?php echo $events['total']; ?>
                         </span>
-                        <?php echo $view['translator']->trans('mautic.lead.lead.tab.history'); ?>
+                        <?php echo $view['translator']->trans('mautic.contactclient.timeline.events'); ?>
                     </a>
                 </li>
+                <?php /*
                 <li class="">
                     <a href="#auditlog-container" role="tab" data-toggle="tab">
                     <span class="label label-primary mr-sm" id="AuditLogCount">
@@ -136,7 +137,7 @@ $website = $item->getWebsite();
                     </span>
                         <?php echo $view['translator']->trans('mautic.lead.lead.tab.auditlog'); ?>
                     </a>
-                </li>
+                </li> */ ?>
 
                 <?php echo $view['content']->getCustomContent('tabs', $mauticTemplateVars); ?>
             </ul>

@@ -21,7 +21,7 @@
             <div class="col-sm-5">
                 <select name="includeEvents[]" multiple="multiple" class="form-control bdr-w-0" data-placeholder="<?php echo $view['translator']->trans('mautic.lead.lead.filter.bundles.include.placeholder'); ?>">
                     <?php foreach ($events['types'] as $typeKey => $typeName) : ?>
-                        <option value="<?php echo $typeKey; ?>"<?php echo in_array($typeKey, $events['filters']['includeEvents']) ? ' selected' : ''; ?> >
+                        <option value="<?php echo $typeKey; ?>"<?php echo isset($events['filters']['includeEvents']) && in_array($typeKey, $events['filters']['includeEvents']) ? ' selected' : ''; ?> >
                             <?php echo $typeName; ?>
                         </option>
                     <?php endforeach; ?>
@@ -30,7 +30,7 @@
             <div class="col-sm-5">
                 <select name="excludeEvents[]" multiple="multiple" class="form-control bdr-w-0" data-placeholder="<?php echo $view['translator']->trans('mautic.lead.lead.filter.bundles.exclude.placeholder'); ?>">
                     <?php foreach ($events['types'] as $typeKey => $typeName) : ?>
-                        <option value="<?php echo $typeKey; ?>"<?php echo in_array($typeKey, $events['filters']['excludeEvents']) ? ' selected' : ''; ?> >
+                        <option value="<?php echo $typeKey; ?>"<?php echo isset($events['filters']['excludeEvents']) && in_array($typeKey, $events['filters']['excludeEvents']) ? ' selected' : ''; ?> >
                             <?php echo $typeName; ?>
                         </option>
                     <?php endforeach; ?>

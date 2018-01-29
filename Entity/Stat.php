@@ -119,6 +119,18 @@ class Stat
     }
 
     /**
+     * @return array
+     */
+    public function getAllTypes() {
+        $result = [];
+        try {
+            $reflection = new \ReflectionClass(__CLASS__);
+            $result = $reflection->getConstants();
+        } catch (\ReflectionException $e){};
+        return $result;
+    }
+
+    /**
      * @param mixed $type
      *
      * @return Stat

@@ -45,10 +45,7 @@ class StatSubscriber extends CommonSubscriber
      */
     public static function getSubscribedEvents()
     {
-        return [
-//            PageEvents::PAGE_ON_HIT    => ['onPageHit', 0],
-//            FormEvents::FORM_ON_SUBMIT => ['onFormSubmit', 0],
-        ];
+        return [];
     }
 
 }

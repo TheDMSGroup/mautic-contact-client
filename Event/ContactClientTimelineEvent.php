@@ -663,4 +663,5 @@ class ContactClientTimelineEvent extends Event
     {
         $this->fetchTypesOnly = true;
     }
+
 }

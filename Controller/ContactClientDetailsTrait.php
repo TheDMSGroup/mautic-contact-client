@@ -77,6 +77,7 @@ trait ContactClientDetailsTrait
                 ]
             );
         }
+        $filters = $this->sanitizeEventFilter(InputHelper::clean($this->request->get('filters', [])));
 
         if (null == $orderBy) {
             if (!$session->has('mautic.plugin.timeline.orderby')) {
