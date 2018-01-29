@@ -146,14 +146,14 @@ $website = $item->getWebsite();
             <div class="tab-content pa-md">
                 <!-- #history-container -->
                 <div class="tab-pane fade in active bdr-w-0" id="timeline-container">
-                    <?php /*echo $view->render(
-                        'MauticLeadBundle:Timeline:list.html.php',
+                    <?php echo $view->render(
+                        'MauticContactClientBundle:Timeline:list.html.php',
                         [
                             'events' => $events,
-                            'lead'   => $lead,
-                            'tmpl'   => 'index',
+                            'contactClient' => $item,
+                            'tmpl' => 'index',
                         ]
-                    );*/ ?>
+                    ); ?>
                 </div>
                 <!--/ #history-container -->
 

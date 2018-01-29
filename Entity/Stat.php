@@ -48,11 +48,6 @@ class Stat
     private $type;
 
     /**
-     * @var int
-     */
-    private $typeId;
-
-    /**
      * @var \DateTime
      */
     private $dateAdded;
@@ -131,26 +126,6 @@ class Stat
     public function setType($type)
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTypeId()
-    {
-        return $this->typeId;
-    }
-
-    /**
-     * @param mixed $typeId
-     *
-     * @return Stat
-     */
-    public function setTypeId($typeId)
-    {
-        $this->typeId = $typeId;
 
         return $this;
     }

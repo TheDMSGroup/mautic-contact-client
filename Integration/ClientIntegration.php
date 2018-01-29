@@ -302,7 +302,8 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-        $clientModel->addStat($this->contactClient, $statType, null, $this->contact);
+        $clientModel->addStat($this->contactClient, $statType, $this->contact);
+        $clientModel->addEvent($this->contactClient, $statType, $this->contact, $this->logs);
 
         // lead_event_log - Not sure if I should be using this...
 //        $contactModel = $container->get('mautic.lead.model.lead');

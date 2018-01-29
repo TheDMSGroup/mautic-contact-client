@@ -127,7 +127,7 @@ class ContactClientController extends FormController
 
             // For line graphs in the view
             $dateRangeValues = $this->request->get('daterange', []);
-            $dateRangeForm   = $this->get('form.factory')->create(
+            $dateRangeForm = $this->get('form.factory')->create(
                 'daterange',
                 $dateRangeValues,
                 [
@@ -135,7 +135,7 @@ class ContactClientController extends FormController
                         'mautic_contactclient_action',
                         [
                             'objectAction' => 'view',
-                            'objectId'     => $item->getId(),
+                            'objectId' => $item->getId(),
                         ]
                     ),
                 ]
@@ -150,11 +150,15 @@ class ContactClientController extends FormController
                 new \DateTime($dateRangeForm->get('date_to')->getData())
             );
 
-            $args['viewParameters']['stats']         = $stats;
+            $args['viewParameters']['stats'] = $stats;
+            $args['viewParameters']['events'] = $model->getEngagements($item);
             $args['viewParameters']['dateRangeForm'] = $dateRangeForm->createView();
 
             if ('link' == $item->getType()) {
-                $args['viewParameters']['trackables'] = $this->getModel('page.trackable')->getTrackableList('contactclient', $item->getId());
+                $args['viewParameters']['trackables'] = $this->getModel('page.trackable')->getTrackableList(
+                    'contactclient',
+                    $item->getId()
+                );
             }
         }
 
@@ -184,8 +188,8 @@ class ContactClientController extends FormController
                         $passthrough,
                         [
                             'updateSelect' => $updateSelect,
-                            'id'           => $args['entity']->getId(),
-                            'name'         => $args['entity']->getName(),
+                            'id' => $args['entity']->getId(),
+                            'name' => $args['entity']->getName(),
                         ]
                     );
                     $args['passthroughVars'] = $passthrough;
@@ -217,17 +221,21 @@ class ContactClientController extends FormController
      *
      * @param string $updateSelect HTML id of the select
      * @param object $entity
-     * @param string $nameMethod   name of the entity method holding the name
-     * @param string $groupMethod  name of the entity method holding the select group
+     * @param string $nameMethod name of the entity method holding the name
+     * @param string $groupMethod name of the entity method holding the select group
      *
      * @return array
      */
-    protected function getUpdateSelectParams($updateSelect, $entity, $nameMethod = 'getName', $groupMethod = 'getLanguage')
-    {
+    protected function getUpdateSelectParams(
+        $updateSelect,
+        $entity,
+        $nameMethod = 'getName',
+        $groupMethod = 'getLanguage'
+    ) {
         $options = [
             'updateSelect' => $updateSelect,
-            'id'           => $entity->getId(),
-            'name'         => $entity->$nameMethod(),
+            'id' => $entity->getId(),
+            'name' => $entity->$nameMethod(),
         ];
 
         return $options;

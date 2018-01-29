@@ -51,44 +51,4 @@ class StatSubscriber extends CommonSubscriber
         ];
     }
 
-    /**
-     * @param PageHitEvent $event
-     */
-    public function onPageHit(PageHitEvent $event)
-    {
-        $hit    = $event->getHit();
-        $source = $hit->getSource();
-
-        if ($source == 'contactclient' || $source == 'contactclient.contactclient') {
-            $sourceId = $hit->getSourceId();
-            $contactClient    = $this->model->getEntity($sourceId);
-
-            if ($contactClient && $contactClient->isPublished()) {
-                $this->model->addStat($contactClient, Stat::TYPE_CLICK, $hit, $hit->getLead());
-            }
-        }
-    }
-
-    /**
-     * Note if this submission is from a contactclient submit.
-     *
-     * @param SubmissionEvent $event
-     */
-    public function onFormSubmit(SubmissionEvent $event)
-    {
-        // Check the request for a contactclient field
-        $id = $this->request->request->get('mauticform[contactclientId]', false, true);
-
-        if (!empty($id)) {
-            $contactClient = $this->model->getEntity($id);
-
-            if ($contactClient && $contactClient->isPublished()) {
-                // Make sure the form is still applicable
-                $form = $event->getSubmission()->getForm();
-                if ((int) $form->getId() === (int) $contactClient->getForm()) {
-                    $this->model->addStat($contactClient, Stat::TYPE_FORM, $event->getSubmission(), $event->getLead());
-                }
-            }
-        }
-    }
 }
