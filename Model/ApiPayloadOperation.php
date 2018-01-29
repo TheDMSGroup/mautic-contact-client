@@ -46,7 +46,24 @@ class ApiPayloadOperation
 
     protected $valid = false;
 
+    protected $filter = null;
+
     protected $tokenHelper;
+
+    /**
+     * Prioritized list of possible external IDs to search for.
+     * @var array
+     */
+    protected $externalIds = [
+        'id',
+        'uuid',
+        'leadid',
+        'leaduuid',
+        'contactid',
+        'contactuuid',
+        'uniqueid',
+        'email',
+    ];
 
     public function __construct(
         $id,
@@ -75,7 +92,7 @@ class ApiPayloadOperation
     public function run()
     {
         if (empty($this->request)) {
-            $this->logs[] = 'Skipping empty operation: '.$this->name;
+            $this->setLogs('Skipping empty operation: '.$this->name, 'notice');
 
             return true;
         }
@@ -84,29 +101,33 @@ class ApiPayloadOperation
             $uri = $this->request->testUrl;
         }
         if (!$uri) {
-            $this->logs[] = 'Operation skipped. No URL: '.$this->name;
+            $this->setLogs('Operation skipped. No URL: '.$this->name, 'notice');
 
             return true;
         }
 
-        $this->logs[] = 'Running operation in '.($this->test ? 'TEST' : 'PROD').' mode: '.$this->name;
+        $this->setLogs($this->name, 'name');
+        $this->setLogs(($this->test ? 'TEST' : 'PROD'), 'mode');
 
         // Send the API request.
         $apiRequest = new ApiRequest($uri, $this->request, $this->service, $this->tokenHelper, $this->test);
         $apiRequest->send();
-        $this->logs['request'] = $apiRequest->getLogs();
+        $this->setLogs($apiRequest->getLogs(), 'request');
 
         // Parse the API response.
         $apiResponse = new ApiResponse($this->responseExpected, $this->successDefinition, $this->service, $this->test);
         $this->responseActual = $apiResponse->parse()->getResponse();
-        $this->logs['response'] = $apiResponse->getLogs();
+        $this->setLogs($apiResponse->getLogs(), 'response');
 
         // Validate the API response with the given success definition.
         try {
-            $this->valid = $apiResponse->validate();
+            $this->setValid($apiResponse->validate());
+            $this->setLogs($this->getValid(), 'valid');
         } catch (ApiErrorException $e) {
-            $this->logs['response'][] = $e->getMessage();
-            $this->valid = false;
+            $this->setValid(false);
+            $this->setLogs($this->getValid(), 'valid');
+            $this->setLogs($e->getMessage(), 'filter');
+            $this->setFilter($e->getMessage());
         }
 
         if ($this->updatePayload) {
@@ -144,14 +165,17 @@ class ApiPayloadOperation
                         $newField->key = $key;
                         $newField->example = $value;
                         $result->{$type}[] = $newField;
-                        $this->logs[] = 'New '.$type.' field "'.$key.'" added with example: '.$value;
+                        $this->setLogs('New '.$type.' field "'.$key.'" added with example: '.$value, 'autoUpdate');
                         $updates = true;
                     } else {
                         if (!empty($value) && empty($result->{$type}[$fieldId]->example)) {
                             // This is an existing field, but requires an updated example.
                             $result->{$type}[$fieldId]->example = $value;
                             $updates = true;
-                            $this->logs[] = 'Existing '.$type.' field "'.$key.'" now has an example: '.$value;
+                            $this->setLogs(
+                                'Existing '.$type.' field "'.$key.'" now has an example: '.$value,
+                                'autoUpdate'
+                            );
                         }
                     }
                 }
@@ -167,9 +191,44 @@ class ApiPayloadOperation
         return $this->valid;
     }
 
+    public function setValid($valid)
+    {
+        $this->valid = $valid;
+    }
+
+    public function getFilter()
+    {
+        return $this->filter;
+    }
+
+    public function setFilter($filter)
+    {
+        $this->filter = $filter;
+    }
+
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value,
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
     public function getResponseActual()
@@ -196,6 +255,35 @@ class ApiPayloadOperation
         }
 
         return $mappedFields;
+    }
+
+    /**
+     * Given the response fields, attempt to assume an external ID for future correlation.
+     * Find the best possible fit.
+     *
+     * @return null
+     */
+    public function getExternalId()
+    {
+        $externalIds = array_flip($this->externalIds);
+        $id = null;
+        $idIndex = null;
+        foreach (['headers', 'body'] as $type) {
+            if (isset($this->responseActual[$type]) && isset($this->responseActual[$type])) {
+                foreach ($this->responseActual[$type] as $key => $value) {
+                    $key = preg_replace("/[^a-z0-9]/", '', strtolower($key));
+                    if (isset($externalIds[$key]) && ($idIndex === null || $externalIds[$key] < $idIndex)) {
+                        $idIndex = $externalIds[$key];
+                        $id = $value;
+                        if ($idIndex == 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $id;
     }
 
 }

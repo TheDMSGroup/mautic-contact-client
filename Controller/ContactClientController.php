@@ -48,7 +48,8 @@ class ContactClientController extends FormController
     /**
      * Generates new form and processes post data.
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|Response
+     * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @throws \Exception
      */
     public function newAction()
     {
@@ -58,10 +59,10 @@ class ContactClientController extends FormController
     /**
      * Generates edit form and processes post data.
      *
-     * @param int  $objectId
+     * @param $objectId
      * @param bool $ignorePost
-     *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|Response
+     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @throws \Exception
      */
     public function editAction($objectId, $ignorePost = false)
     {

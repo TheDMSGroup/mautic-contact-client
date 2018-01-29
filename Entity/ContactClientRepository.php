@@ -20,8 +20,7 @@ class ContactClientRepository extends CommonRepository
      * Get a list of entities.
      *
      * @param array $args
-     *
-     * @return Paginator
+     * @return \Doctrine\ORM\Tools\Pagination\Paginator
      */
     public function getEntities(array $args = [])
     {
@@ -72,7 +71,7 @@ class ContactClientRepository extends CommonRepository
     }
 
     /**
-     * @return string
+     * @return array
      */
     protected function getDefaultOrder()
     {

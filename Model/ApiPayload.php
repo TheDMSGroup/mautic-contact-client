@@ -71,6 +71,8 @@ class ApiPayload
      */
     protected $container;
 
+    protected $externalId = null;
+
     /**
      * ApiPayload constructor.
      * @param ContactClient $contactClient
@@ -163,6 +165,7 @@ class ApiPayload
             throw new ApiErrorException('API instructions payload has no operations to run.');
         }
         // We will create and reuse the same Transport session throughout our operations.
+        /** @var Transport $service */
         $service = $this->getService();
         $tokenHelper = $this->getTokenHelper();
         $updatePayload = (bool)$this->settings['autoUpdate'];
@@ -173,12 +176,16 @@ class ApiPayload
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $logs[] = $e->getMessage();
                 $this->valid = false;
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
-            $this->logs[$id] = $logs;
+            $this->setLogs($logs, $id);
+//            $filter = $apiOperation->getFilter();
+//            if ($filter) {
+//                $this->setLogs($filter, 'filter');
+//            }
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;
@@ -186,6 +193,11 @@ class ApiPayload
                 // Aggregate successful responses that are mapped to Contact fields.
                 $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
             }
+        }
+
+        // Get the remote ID after the last operation for logging purposes.
+        if ($this->valid && isset($apiOperation)) {
+            $this->externalId = $apiOperation->getExternalId();
         }
 
         // Update the payload if enabled.
@@ -257,12 +269,12 @@ class ApiPayload
                     /** @var ContactClientModel $contactClientModel */
                     $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
                     $contactClientModel->saveEntity($this->contactClient);
-                    $this->logs[] = 'Updated our response payload expectations.';
+                    $this->setLogs('Updated our response payload expectations.', 'payload');
                 } catch (Exception $e) {
-                    $this->logs[] = 'Unable to save updates to the Contact Client. '.$e->getMessage();
+                    $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
                 }
             } else {
-                $this->logs[] = 'Payload responses matched expectations, no updates necessary.';
+                $this->setLogs('Payload responses matched expectations, no updates necessary.', 'payload');
             }
         }
     }
@@ -270,6 +282,26 @@ class ApiPayload
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
     /**
@@ -339,5 +371,13 @@ class ApiPayload
                 }
             }
         }
+    }
+
+    /**
+     * Get the external ID acquired/assumed by the last successful API operation.
+     * @return mixed
+     */
+    public function getExternalId() {
+        return $this->externalId;
     }
 }

@@ -61,6 +61,8 @@ class ApiPayloadRequest
     public function send()
     {
         $uri = $this->uri;
+        $this->setLogs($uri, 'uri');
+
         $request = $this->request;
         $service = $this->service;
         $options = [];
@@ -70,7 +72,9 @@ class ApiPayloadRequest
         if (!empty($request->body) && !is_string($request->body)) {
             $requestFields = $this->fieldValues($request->body);
         }
-        switch (strtolower($request->format ?? 'form')) {
+        $requestFormat = strtolower($request->format ?? 'form');
+        $this->setLogs($requestFormat, 'format');
+        switch ($requestFormat) {
             case 'form':
             default:
                 $options['headers']['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
@@ -144,12 +148,11 @@ class ApiPayloadRequest
             }
         }
 
-        $this->logs[] = 'Sending request to: '.$uri;
         $method = trim(strtolower($request->method ?? 'post'));
-        $this->logs[] = 'Using method: '.$method;
+        $this->setLogs($method, 'method');
         switch ($method) {
             case 'delete':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->delete($uri, $options);
                 break;
 
@@ -159,28 +162,28 @@ class ApiPayloadRequest
                     // GET will not typically support form params in addition.
                     unset($options['form_params']);
                 }
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->get($uri, $options);
                 break;
 
             case 'head':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->head($uri, $options);
                 break;
 
             case 'patch':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->patch($uri, $options);
                 break;
 
             case 'post':
             default:
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->post($uri, $options);
                 break;
 
             case 'put':
-                $this->logs[] = ['Using options' => $options];
+                $this->setLogs($options, 'options');
                 $service->put($uri, $options);
                 break;
         }
@@ -246,12 +249,29 @@ class ApiPayloadRequest
         return $this->tokenHelper->renderString($string);
     }
 
-    /**
-     * @return array
-     */
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
 }

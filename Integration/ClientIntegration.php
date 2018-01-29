@@ -17,10 +17,15 @@ use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
+use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
+use Symfony\Component\Yaml\Yaml;
+use Mautic\LeadBundle\Entity\LeadEventLog;
+
 
 /**
  * Class ClientIntegration
@@ -32,7 +37,7 @@ class ClientIntegration extends AbstractIntegration
     /**
      * @var ContactClient client we are about to send this Contact to.
      */
-    protected $client;
+    protected $contactClient;
 
     /**
      * @var array Of temporary log entries.
@@ -54,6 +59,8 @@ class ClientIntegration extends AbstractIntegration
     protected $valid = true;
 
     protected $container;
+
+    protected $eventType;
 
     public function getDisplayName()
     {
@@ -183,46 +190,35 @@ class ClientIntegration extends AbstractIntegration
             if (!$client) {
                 throw new ApiErrorException('Contact Client appears to not exist.');
             }
-            $this->client = $client;
+            $this->contactClient = $client;
 
             if (!$contact) {
                 throw new ApiErrorException('Contact appears to not exist.');
             }
             $this->contact = $contact;
 
-            $this->payload = new ApiPayload($client, $contact, $container, $test);
+            $this->payload = new ApiPayload($this->contactClient, $contact, $container, $test);
 
             if ($overrides) {
                 $this->payload->setOverrides($overrides);
             }
 
             $this->valid = $this->payload->run();
+
         } catch (\Exception $e) {
             $this->valid = false;
-            $this->logs[] = $e->getMessage();
+            $this->setLogs($e->getMessage(), 'error');
             if ($e instanceof ApiErrorException) {
                 $e->setContact($this->contact);
             }
             $this->logIntegrationError($e, $this->contact);
         }
 
-        $this->logs = array_merge($this->payload->getLogs(), $this->logs);
+        $this->setLogs($this->payload->getLogs(), 'operations');
 
         $this->updateContact();
 
         $this->logResults();
-
-        if ($this->valid) {
-            // @todo - Automatically resolve ID by searching the last response body/headers for things like id/key/uuid/etc.
-            $id = 'NA';
-            $integrationEntities[] = $this->saveSyncedData($contact, 'Contact', 'lead', $id);
-
-            if (!empty($integrationEntities)) {
-                $this->em->getRepository('MauticPluginBundle:IntegrationEntity')->saveEntities($integrationEntities);
-                $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
-            }
-
-        }
 
         return $this->valid;
     }
@@ -241,7 +237,7 @@ class ClientIntegration extends AbstractIntegration
                     $oldValue = $this->contact->getFieldValue($alias);
                     if ($oldValue !== $value) {
                         $this->contact->addUpdatedField($alias, $value, $oldValue);
-                        $this->logs[] = 'Updating Contact: '.$alias.' = '.$value;
+                        $this->setLogs('Updating Contact: '.$alias.' = '.$value);
                         $updated = true;
                     }
                 }
@@ -251,24 +247,94 @@ class ClientIntegration extends AbstractIntegration
                     /** @var Contact $contactModel */
                     $contactModel = $this->container->get('mautic.lead.model.lead');
                     $contactModel->saveEntity($this->contact);
-                    $this->logs[] = 'Operation successful. The Contact was updated.';
+                    $this->setLogs('Operation successful. The Contact was updated.', 'updated');
                 } catch (Exception $e) {
-                    $this->logs[] = 'Failure to update our Contact. '.$e->getMessage();
+                    $this->setLogs('Failure to update our Contact. '.$e->getMessage(), 'error');
                     $this->valid = false;
                     $this->logIntegrationError($e, $this->contact);
                 }
             } else {
-                $this->logs[] = 'Operation successful, but no fields on the Contact needed updating.';
+                $this->setLogs('Operation successful, but no fields on the Contact needed updating.', 'info');
             }
         }
     }
 
     /**
-     * @todo - Do something useful with $this->logs.
+     * Log to:
+     *      contactclient_stats
+     *      contactclient_events
+     *      contactclient_contact_event_log             ?
+     *      contactclient_contact_event_failed_log      ?
+     *      integration_entity
+     *
      * Use LeadTimelineEvent
      */
     private function logResults()
     {
+        $container = $this->dispatcher->getContainer();
+        /** @var contactClientModel $clientModel */
+        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+
+        // Stats - contactclient_stats
+
+        // @todo - additional stat logging:
+        // Stat::TYPE_QUEUED - Queued should happen before pushLead when a lead is discerned that it should go to this client.
+        // Stat::TYPE_DUPLICATE
+        // Stat::TYPE_EXCLUSIVE
+        // Stat::TYPE_FILTER
+        // Stat::TYPE_LIMITS
+        // Stat::TYPE_REVENUE
+        // Stat::TYPE_SCHEDULE
+
+        if ($this->valid) {
+            $statType = Stat::TYPE_SUCCESS;
+        } else {
+            $statType = Stat::TYPE_ERROR;
+            // Check for a filter-based rejection.
+            if (isset($this->logs['operations'])) {
+                foreach ($this->logs['operations'] as $operation) {
+                    if (isset($operation['filter'])) {
+                        // Contact was rejected due to success definition filters.
+                        $statType = Stat::TYPE_REJECT;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $clientModel->addStat($this->contactClient, $statType, null, $this->contact);
+
+        // lead_event_log - Not sure if I should be using this...
+//        $contactModel = $container->get('mautic.lead.model.lead');
+//        $eventLogRepo = $contactModel->getEventLogRepository();
+//        $eventLog = new LeadEventLog();
+//        $eventLog
+//            ->setUserId($this->contactClient->getCreatedBy())
+//            ->setUserName($this->contactClient->getCreatedByUser())
+//            ->setBundle('lead')
+//            ->setObject('import')
+//            ->setObjectId($this->contactClient->getId())
+//            ->setLead($this->contact)
+//            ->setAction('updated')
+//            ->setProperties($this->logs);
+//        $eventLogRepo->saveEntity($eventLog);
+
+        // $this->dispatchIntegrationKeyEvent()
+
+        // Transaction log
+        // $this->getLogger();
+
+        // Integration entity creation (shows up under Integrations in a Contact).
+        if ($this->valid) {
+            $id = $this->payload->getExternalId();
+            $integrationEntities = [];
+            $integrationEntities[] = $this->saveSyncedData($this->contact, $this->contactClient->getName(), 'lead', $id);
+
+            if (!empty($integrationEntities)) {
+                $this->em->getRepository('MauticPluginBundle:IntegrationEntity')->saveEntities($integrationEntities);
+                $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
+            }
+        }
     }
 
     /**
@@ -292,16 +358,18 @@ class ClientIntegration extends AbstractIntegration
 
         if ($integrationEntities) {
             $integrationEntity = reset($integrationEntities);
-            $integrationEntity->setLastSyncDate(new \DateTime());
         } else {
             $integrationEntity = new IntegrationEntity();
             $integrationEntity->setDateAdded(new \DateTime());
-            $integrationEntity->setIntegration($this->client->getName() ?? $this->getName());
+            $integrationEntity->setIntegration($this->getName());
             $integrationEntity->setIntegrationEntity($object);
             $integrationEntity->setIntegrationEntityId($integrationEntityId);
             $integrationEntity->setInternalEntity($mauticObjectReference);
             $integrationEntity->setInternalEntityId($entity->getId());
         }
+        // We may not want to log here as well in future.
+        $integrationEntity->setInternal($this->logs);
+        $integrationEntity->setLastSyncDate(new \DateTime());
 
         return $integrationEntity;
     }
@@ -328,9 +396,34 @@ class ClientIntegration extends AbstractIntegration
         return $this->valid;
     }
 
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
+    }
+
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value,
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
     /**

@@ -65,25 +65,26 @@ class ApiPayloadResponse
         $result = [];
 
         $result['status'] = $this->service->getStatusCode();
-        $this->logs[] = 'Response status code: '.$result['status'];
-
-        $result['headers'] = $this->service->getHeaders();
-        $this->logs[] = ['Response headers' => $result['headers']];
-
-        $result['bodySize'] = $this->service->getBody()->getSize();
-        $this->logs[] = 'Response size: '.$result['bodySize'];
-
-        $result['bodyRaw'] = $this->service->getBody()->getContents();
-        $this->logs[] = 'Response body (raw): '.$result['bodyRaw'];
+        $this->setLogs($result['status'], 'status');
 
         // Format the head response.
+        $result['headers'] = $this->service->getHeaders();
         if ($result['headers']) {
             $result['headers'] = $this->getResponseArray($result['headers'], 'headers');
         }
         $result['headersRaw'] = implode('; ', $result['headers']);
+        $this->setLogs($result['headers'], 'headers');
+
+        $result['bodySize'] = $this->service->getBody()->getSize();
+        $this->setLogs($result['bodySize'], 'size');
+
+        $result['bodyRaw'] = $this->service->getBody()->getContents();
+        $this->setLogs($result['bodyRaw'], 'bodyRaw');
 
         // Format the body response.
         $responseExpectedFormat = trim(strtolower($this->responseExpected->format ?? 'auto'));
+        $this->setLogs($responseExpectedFormat, 'format');
+
         $result['body'] = [];
         switch ($responseExpectedFormat) {
             default:
@@ -99,6 +100,7 @@ class ApiPayloadResponse
                 $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseExpectedFormat);
                 break;
         }
+        $this->setLogs($result['body'], 'body');
 
         $this->valid = (bool)$result['status'];
         $this->responseActual = $result;
@@ -317,12 +319,29 @@ class ApiPayloadResponse
         return $this->responseActual ?? [];
     }
 
-    /**
-     * @return array
-     */
     public function getLogs()
     {
         return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 
 }
