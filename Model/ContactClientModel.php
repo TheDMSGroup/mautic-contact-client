@@ -189,7 +189,7 @@ class ContactClientModel extends FormModel
      * @param $contact
      * @param array $logs
      */
-    public function addEvent(ContactClient $contactClient, $type, $contact = null, $logs = [])
+    public function addEvent(ContactClient $contactClient, $type, $contact = null, $logs = [], $message = null, $integration_entity_id = null)
     {
         $event = new EventEntity();
         $event->setContactClient($contactClient)
@@ -200,6 +200,12 @@ class ContactClientModel extends FormModel
         }
         if ($logs) {
             $event->setLogs(json_encode($logs));
+        }
+        if ($message) {
+            $event->setMessage($message);
+        }
+        if ($integration_entity_id) {
+            $event->setIntegrationEntityId($integration_entity_id);
         }
 
         $this->getEventRepository()->saveEntity($event);
@@ -230,6 +236,7 @@ class ContactClientModel extends FormModel
      * @param                $unit
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
+     *
      * @param null $dateFormat
      * @param bool $canViewOthers
      *

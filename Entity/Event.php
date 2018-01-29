@@ -38,9 +38,25 @@ class Event
      */
     protected $type;
 
+    /**
+     * @var ContactClient
+     */
     protected $contactClient;
 
+    /**
+     * @var array
+     */
     protected $logs;
+
+    /**
+     * @var string
+     */
+    protected $message;
+
+    /**
+     * @var string
+     */
+    protected $integration_entity_id;
 
     /**
      * @var \DateTime
@@ -75,6 +91,18 @@ class Event
         $builder->createField('type', 'string')
             ->columnName('type')
             ->length(50)
+            ->build();
+
+        $builder->createField('message', 'string')
+            ->columnName('message')
+            ->length(255)
+            ->nullable()
+            ->build();
+
+        $builder->createField('integration_entity_id', 'string')
+            ->columnName('integration_entity_id')
+            ->length(255)
+            ->nullable()
             ->build();
 
         $builder->addNamedField('dateAdded', 'datetime', 'date_added');
@@ -172,6 +200,44 @@ class Event
     public function setLogs($logs)
     {
         $this->logs = $logs;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
+
+    /**
+     * @param $message
+     * @return $this
+     */
+    public function setMessage($message)
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIntegrationEntityId()
+    {
+        return $this->integration_entity_id;
+    }
+
+    /**
+     * @param $integration_entity_id
+     * @return $this
+     */
+    public function setIntegrationEntityId($integration_entity_id)
+    {
+        $this->integration_entity_id = $integration_entity_id;
 
         return $this;
     }

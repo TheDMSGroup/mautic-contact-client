@@ -271,6 +271,8 @@ class ClientIntegration extends AbstractIntegration
      */
     private function logResults()
     {
+        $integration_entity_id = $this->payload->getExternalId();
+
         $container = $this->dispatcher->getContainer();
         /** @var contactClientModel $clientModel */
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
@@ -288,54 +290,74 @@ class ClientIntegration extends AbstractIntegration
 
         if ($this->valid) {
             $statType = Stat::TYPE_SUCCESS;
+            $statLevel = 'INFO';
+            $message = 'Contact was sent successfully.';
         } else {
             $statType = Stat::TYPE_ERROR;
+            $statLevel = 'ERROR';
+            $message = $operation['error'] ?? 'An unexpected error occurred.';
             // Check for a filter-based rejection.
             if (isset($this->logs['operations'])) {
                 foreach ($this->logs['operations'] as $operation) {
                     if (isset($operation['filter'])) {
                         // Contact was rejected due to success definition filters.
                         $statType = Stat::TYPE_REJECT;
+                        $statLevel = 'WARNING';
+                        $message = $operation['filter'];
                         break;
                     }
                 }
             }
         }
 
+        // Add log entry for statistics / charts.
         $clientModel->addStat($this->contactClient, $statType, $this->contact);
-        $clientModel->addEvent($this->contactClient, $statType, $this->contact, $this->logs);
 
-        // lead_event_log - Not sure if I should be using this...
-//        $contactModel = $container->get('mautic.lead.model.lead');
-//        $eventLogRepo = $contactModel->getEventLogRepository();
-//        $eventLog = new LeadEventLog();
-//        $eventLog
-//            ->setUserId($this->contactClient->getCreatedBy())
-//            ->setUserName($this->contactClient->getCreatedByUser())
-//            ->setBundle('lead')
-//            ->setObject('import')
-//            ->setObjectId($this->contactClient->getId())
-//            ->setLead($this->contact)
-//            ->setAction('updated')
-//            ->setProperties($this->logs);
-//        $eventLogRepo->saveEntity($eventLog);
+        // Add transactional event for deep dive into logs.
+        $clientModel->addEvent(
+            $this->contactClient,
+            $statType,
+            $this->contact,
+            $this->logs,
+            $message,
+            $integration_entity_id
+        );
+
+        // Lead event log (lead_event_log) I've decided to leave this out for now because it's not very useful.
+        //$contactModel = $container->get('mautic.lead.model.lead');
+        //$eventLogRepo = $contactModel->getEventLogRepository();
+        //$eventLog = new LeadEventLog();
+        //$eventLog
+        //    ->setUserId($this->contactClient->getCreatedBy())
+        //    ->setUserName($this->contactClient->getCreatedByUser())
+        //    ->setBundle('lead')
+        //    ->setObject('import')
+        //    ->setObjectId($this->contactClient->getId())
+        //    ->setLead($this->contact)
+        //    ->setAction('updated')
+        //    ->setProperties($this->logs);
+        //$eventLogRepo->saveEntity($eventLog);
 
         // $this->dispatchIntegrationKeyEvent()
 
-        // Transaction log
-        // $this->getLogger();
-
         // Integration entity creation (shows up under Integrations in a Contact).
         if ($this->valid) {
-            $id = $this->payload->getExternalId();
-            $integrationEntities = [];
-            $integrationEntities[] = $this->saveSyncedData($this->contact, $this->contactClient->getName(), 'lead', $id);
-
+            $integrationEntities = [
+                $this->saveSyncedData(
+                    $this->contact,
+                    $this->contactClient->getName(),
+                    'lead',
+                    $integration_entity_id
+                ),
+            ];
             if (!empty($integrationEntities)) {
                 $this->em->getRepository('MauticPluginBundle:IntegrationEntity')->saveEntities($integrationEntities);
                 $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
             }
         }
+
+        // File-based logging.
+        $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().' '.$message);
     }
 
     /**
