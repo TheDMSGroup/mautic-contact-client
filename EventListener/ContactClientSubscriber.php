@@ -198,10 +198,6 @@ class ContactClientSubscriber extends CommonSubscriber
             $event->addToCounter($eventTypeKey, 1);
 
             if (!$event->isEngagementCount()) {
-                // Add the submissions to the event array
-                // Convert to local from UTC
-                // $form = $this->formModel->getEntity($row['form_id']);
-                // $event = $eventRepository->getEntity($row['id']);
 
 //                if (!$this->pageModel) {
 //                    $this->pageModel = new PageModel();
@@ -213,18 +209,21 @@ class ContactClientSubscriber extends CommonSubscriber
                         'eventId' => $eventTypeKey.$row['id'],
                         'eventLabel' => [
                             'label' => $eventTypeName,
-//                                'href' => $this->router->generate(
-//                                    'mautic_form_action',
-//                                    ['objectAction' => 'view', 'objectId' => $form->getId()]
-//                                ),
+                            'href' => $this->router->generate(
+                                'mautic_form_action',
+                                ['objectAction' => 'view', 'objectId' => $row['id']]
+                            ),
                         ],
                         'eventType' => $eventTypeName,
                         'timestamp' => $row['date_added'],
                         'extra' => [
                             // 'page' => $this->pageModel->getEntity($row['page_id']),
+                            'logs' => $row['logs'],
+                            'integrationEntityId' => $row['integration_entity_id'],
                         ],
-//                            'contentTemplate' => 'MauticFormBundle:SubscribedEvents\Timeline:index.html.php',
-                        'icon' => 'fa-pencil-square-o',
+                        'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents\Timeline:index.html.php',
+                        'icon' => 'fa-plus-square-o',
+                        'message' => $row['message'],
                         'contactId' => $row['contact_id'],
                     ]
                 );

@@ -318,7 +318,7 @@ class ClientIntegration extends AbstractIntegration
             $this->contactClient,
             $statType,
             $this->contact,
-            $this->logs,
+            $this->getLogsYAML(),
             $message,
             $integration_entity_id
         );

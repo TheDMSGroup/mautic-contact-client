@@ -217,6 +217,8 @@ class ContactClientTimelineEvent extends Event
                     'eventLabel' => true,
                     'eventType' => true,
                     'timestamp' => true,
+                    'message' => true,
+                    'integratonEntityId' => true,
                     'contactId' => true,
                     'extra' => true,
                 ];

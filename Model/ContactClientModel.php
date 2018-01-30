@@ -185,11 +185,13 @@ class ContactClientModel extends FormModel
      * Add transactional log in contactclient_events
      *
      * @param ContactClient $contactClient
-     * @param string $type
-     * @param $contact
-     * @param array $logs
+     * @param $type
+     * @param null $contact
+     * @param null $logs
+     * @param null $message
+     * @param null $integration_entity_id
      */
-    public function addEvent(ContactClient $contactClient, $type, $contact = null, $logs = [], $message = null, $integration_entity_id = null)
+    public function addEvent(ContactClient $contactClient, $type, $contact = null, $logs = null, $message = null, $integration_entity_id = null)
     {
         $event = new EventEntity();
         $event->setContactClient($contactClient)
@@ -199,7 +201,7 @@ class ContactClientModel extends FormModel
             $event->setContact($contact);
         }
         if ($logs) {
-            $event->setLogs(json_encode($logs));
+            $event->setLogs($logs);
         }
         if ($message) {
             $event->setMessage($message);

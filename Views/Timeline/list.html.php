@@ -22,7 +22,7 @@ $baseUrl = $view['router']->path(
 
 <!-- timeline -->
 <div class="table-responsive">
-    <table class="table table-hover table-bordered" id="contact-timeline">
+    <table class="table table-hover table-bordered" id="contactclient-timeline">
         <thead>
         <tr>
             <th class="timeline-icon">
@@ -34,8 +34,8 @@ $baseUrl = $view['router']->path(
             </th>
             <?php
             echo $view->render('MauticCoreBundle:Helper:tableheader.html.php', [
-                'orderBy'    => 'eventLabel',
-                'text'       => 'mautic.contactclient.timeline.event_name',
+                'orderBy'    => 'message',
+                'text'       => 'mautic.contactclient.timeline.message',
                 'class'      => 'timeline-name',
                 'sessionVar' => 'contactclient.'.$contactClient->getId().'.timeline',
                 'baseUrl'    => $baseUrl,
@@ -67,6 +67,7 @@ $baseUrl = $view['router']->path(
             $counter += 1; // prevent 0
             $icon       = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
             $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
+            $message = (isset($event['message'])) ? $event['message'] : $event['message'];
             if (is_array($eventLabel)):
                 $linkType   = empty($eventLabel['isExternal']) ? 'data-toggle="ajax"' : 'target="_new"';
                 $eventLabel = isset($eventLabel['href']) ? "<a href=\"{$eventLabel['href']}\" $linkType>{$eventLabel['label']}</a>" : "{$eventLabel['label']}";
@@ -89,7 +90,7 @@ $baseUrl = $view['router']->path(
                         <span class="fa fa-fw <?php echo $icon ?>"></span>
                     </a>
                 </td>
-                <td class="timeline-name"><?php echo $eventLabel; ?></td>
+                <td class="timeline-message"><?php echo $message; ?></td>
                 <td class="timeline-type"><?php if (isset($event['eventType'])) {
                 echo $event['eventType'];
             } ?></td>
