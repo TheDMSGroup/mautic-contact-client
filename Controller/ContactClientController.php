@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ContactClientController extends FormController
 {
+    use ContactClientDetailsTrait;
 
     public function __construct()
     {
@@ -118,6 +119,7 @@ class ContactClientController extends FormController
     /**
      * @param $args
      * @param $view
+     * @return array
      */
     public function customizeViewArguments($args, $view)
     {
@@ -150,6 +152,7 @@ class ContactClientController extends FormController
                 new \DateTime($dateRangeForm->get('date_to')->getData())
             );
 
+            $args['viewParameters']['auditlog'] = $this->getAuditlogs($item);
             $args['viewParameters']['stats'] = $stats;
             $args['viewParameters']['events'] = $model->getEngagements($item);
             $args['viewParameters']['dateRangeForm'] = $dateRangeForm->createView();

@@ -109,7 +109,7 @@ $baseUrl = $view['router']->path(
             </tr>
             <?php if (!empty($details)): ?>
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide" id="timeline-details-<?php echo $counter; ?>">
-                    <td colspan="4">
+                    <td colspan="5">
                         <?php echo $details ?>
                     </td>
                 </tr>

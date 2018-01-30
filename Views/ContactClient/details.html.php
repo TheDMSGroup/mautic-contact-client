@@ -129,15 +129,14 @@ $website = $item->getWebsite();
                         <?php echo $view['translator']->trans('mautic.contactclient.timeline.events'); ?>
                     </a>
                 </li>
-                <?php /*
                 <li class="">
                     <a href="#auditlog-container" role="tab" data-toggle="tab">
                     <span class="label label-primary mr-sm" id="AuditLogCount">
-                        <?php // echo $auditlog['total']; ?>
+                        <?php echo $auditlog['total']; ?>
                     </span>
                         <?php echo $view['translator']->trans('mautic.lead.lead.tab.auditlog'); ?>
                     </a>
-                </li> */ ?>
+                </li>
 
                 <?php echo $view['content']->getCustomContent('tabs', $mauticTemplateVars); ?>
             </ul>
@@ -160,14 +159,14 @@ $website = $item->getWebsite();
 
                 <!-- #auditlog-container -->
                 <div class="tab-pane fade bdr-w-0" id="auditlog-container">
-                    <?php /*echo $view->render(
+                    <?php echo $view->render(
                         'MauticLeadBundle:Auditlog:list.html.php',
                         [
                             'events' => $auditlog,
-                            'lead'   => $lead,
+                            // 'lead'   => $lead,
                             'tmpl'   => 'index',
                         ]
-                    );*/ ?>
+                    ); ?>
                 </div>
                 <!--/ #auditlog-container -->
 
@@ -198,14 +197,10 @@ $website = $item->getWebsite();
         <? endif; ?>
         <!--/ form HTML -->
 
-        <!--
-        we can leverage data from audit_log table
-        and build activity feed from it
-        -->
         <div class="panel bg-transparent shd-none bdr-rds-0 bdr-w-0 mb-0">
 
             <!-- recent activity -->
-            <?php echo $view->render('MauticCoreBundle:Helper:recentactivity.html.php', ['logs' => $logs]); ?>
+            <?php echo $view->render('MauticCoreBundle:Helper:recentactivity.html.php', ['logs' => $auditlog['events']]); ?>
 
         </div>
     </div>

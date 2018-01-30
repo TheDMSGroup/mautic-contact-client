@@ -20,43 +20,15 @@ use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 trait ContactClientDetailsTrait
 {
-    /**
-     * Makes sure that the event filter array is in the right format.
-     *
-     * @param mixed $filters
-     *
-     * @return array
-     *
-     * @throws InvalidArgumentException if not an array
-     */
-    public function sanitizeEventFilter($filters)
-    {
-        if (!is_array($filters)) {
-            throw new \InvalidArgumentException('filters parameter must be an array');
-        }
-
-        if (!isset($filters['search'])) {
-            $filters['search'] = '';
-        }
-
-        if (!isset($filters['includeEvents'])) {
-            $filters['includeEvents'] = [];
-        }
-
-        if (!isset($filters['excludeEvents'])) {
-            $filters['excludeEvents'] = [];
-        }
-
-        return $filters;
-    }
 
     /**
      * @param array $contactClients
      * @param array|null $filters
      * @param array|null $orderBy
      * @param int $page
-     *
+     * @param int $limit
      * @return array
+     * @throws InvalidArgumentException
      */
     protected function getAllEngagements(
         array $contactClients,
@@ -136,6 +108,36 @@ trait ContactClientDetailsTrait
         $result['total'] = count($result['events']);
 
         return $result;
+    }
+
+    /**
+     * Makes sure that the event filter array is in the right format.
+     *
+     * @param mixed $filters
+     *
+     * @return array
+     *
+     * @throws InvalidArgumentException if not an array
+     */
+    public function sanitizeEventFilter($filters)
+    {
+        if (!is_array($filters)) {
+            throw new \InvalidArgumentException('filters parameter must be an array');
+        }
+
+        if (!isset($filters['search'])) {
+            $filters['search'] = '';
+        }
+
+        if (!isset($filters['includeEvents'])) {
+            $filters['includeEvents'] = [];
+        }
+
+        if (!isset($filters['excludeEvents'])) {
+            $filters['excludeEvents'] = [];
+        }
+
+        return $filters;
     }
 
     /**
@@ -259,23 +261,9 @@ trait ContactClientDetailsTrait
         // Audit Log
         /** @var AuditLogModel $auditlogModel */
         $auditlogModel = $this->getModel('core.auditLog');
-        /** @var AuditLogRepository $repo */
-        $repo = $auditlogModel->getRepository();
-        $logCount = $repo->getAuditLogsCount($contactClient, $filters);
-        $logs = $repo->getAuditLogs($contactClient, $filters, $orderBy, $page, $limit);
 
-        $logEvents = array_map(
-            function ($l) {
-                return [
-                    'eventType' => $l['action'],
-                    'eventLabel' => $l['userName'],
-                    'timestamp' => $l['dateAdded'],
-                    'details' => $l['details'],
-                    'contentTemplate' => 'MauticContactClientBundle:Auditlog:details.html.php',
-                ];
-            },
-            $logs
-        );
+        $logs = $auditlogModel->getLogForObject('contactclient', $contactClient->getId(), $contactClient->getDateAdded());
+        $logCount = count($logs);
 
         $types = [
             'delete' => $this->translator->trans('mautic.contactClient.event.delete'),
@@ -287,7 +275,7 @@ trait ContactClientDetailsTrait
         ];
 
         return [
-            'events' => $logEvents,
+            'events' => $logs,
             'filters' => $filters,
             'order' => $orderBy,
             'types' => $types,
