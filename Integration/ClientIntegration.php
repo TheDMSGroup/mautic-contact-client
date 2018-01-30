@@ -357,7 +357,7 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // File-based logging.
-        $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().' '.$message);
+        $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().': '.$message);
     }
 
     /**

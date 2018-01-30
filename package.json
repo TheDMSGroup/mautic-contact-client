@@ -1,10 +1,10 @@
 {
     "name": "MauticContactClientBundle",
-    "description": "Send contacts to third party APIs or enhance your contacts without code.",
+    "description": "Create custom integrations without writing code.",
     "license": "GPL-3.0",
     "authors": [
         {
-            "name": "heathdutton",
+            "name": "Heath Dutton",
             "email": "heathdutton@gmail.com"
         }
     ],

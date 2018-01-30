@@ -1,5 +1,16 @@
 {
+    "name": "thedmsgroup/mmautic-contact-client",
+    "description": "Create custom integrations without writing code.",
+    "type": "mautic-plugin",
     "require": {
+        "mautic/composer-plugin": "^1.0",
         "mustache/mustache": "^2.12"
-    }
+    },
+    "license": "GNU General Public License v3.0",
+    "authors": [
+        {
+            "name": "Heath Dutton",
+            "email": "heathdutton@gmail.com"
+        }
+    ]
 }
