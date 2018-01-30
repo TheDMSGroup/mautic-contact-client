@@ -4,8 +4,7 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
             var $textarea = $el.find('textarea.codeMirror-yaml');
             if ($textarea.length) {
                 CodeMirror.fromTextArea($textarea[0], {
-                    value: $textarea.val(),
-                    // mode: 'yaml',
+                    mode: 'yaml',
                     theme: 'material',
                     gutters: [],
                     lineNumbers: false,

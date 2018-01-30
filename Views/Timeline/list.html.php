@@ -22,7 +22,7 @@ $baseUrl = $view['router']->path(
 
 <!-- timeline -->
 <div class="table-responsive">
-    <table class="table table-hover table-bordered" id="contactclient-timeline">
+    <table class="table table-hover table-bordered" id="contactclient-timeline" style="z-index: 2; position: relative;">
         <thead>
         <tr>
             <th class="timeline-icon">
