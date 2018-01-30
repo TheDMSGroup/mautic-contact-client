@@ -1,7 +1,7 @@
 {
     "name": "MauticContactClientBundle",
     "description": "Create custom integrations without writing code.",
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-only",
     "authors": [
         {
             "name": "Heath Dutton",
