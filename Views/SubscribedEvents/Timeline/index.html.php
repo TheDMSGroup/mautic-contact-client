@@ -23,10 +23,6 @@ $integrationEntityId = (isset($event['extra']['integrationEntityId'])) ? $event[
     <hr />
     <strong><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.heading') ?></strong>
     <br />
-    <small>
-        <pre>
-            <?php echo $logs; ?>
-        </pre>
-    </small>
+    <textarea class="codeMirror-yaml"><?php echo $logs; ?></textarea>
 </div>
 <?php endif; ?>
