@@ -21,7 +21,9 @@ use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\PageBundle\Model\TrackableModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\EventDispatcher\Event;
@@ -166,24 +168,49 @@ class ContactClientModel extends FormModel
      *
      * @param ContactClient $contactClient
      * @param       $type
-     * @param null $data
      * @param null $contact
      */
-    public function addStat(ContactClient $contactClient, $type, $data = null, $contact = null)
+    public function addStat(ContactClient $contactClient, $type, $contact = null)
     {
-        $typeId = null;
-        if ($data) {
-            $typeId = $data->getId();
-        }
-
         $stat = new Stat();
         $stat->setContactClient($contactClient)
             ->setDateAdded(new \DateTime())
             ->setType($type)
-            ->setTypeId($typeId)
             ->setContact($contact);
 
         $this->getStatRepository()->saveEntity($stat);
+    }
+
+    /**
+     * Add transactional log in contactclient_events
+     *
+     * @param ContactClient $contactClient
+     * @param $type
+     * @param null $contact
+     * @param null $logs
+     * @param null $message
+     * @param null $integration_entity_id
+     */
+    public function addEvent(ContactClient $contactClient, $type, $contact = null, $logs = null, $message = null, $integration_entity_id = null)
+    {
+        $event = new EventEntity();
+        $event->setContactClient($contactClient)
+            ->setDateAdded(new \DateTime())
+            ->setType($type);
+        if ($contact) {
+            $event->setContact($contact);
+        }
+        if ($logs) {
+            $event->setLogs($logs);
+        }
+        if ($message) {
+            $event->setMessage($message);
+        }
+        if ($integration_entity_id) {
+            $event->setIntegrationEntityId($integration_entity_id);
+        }
+
+        $this->getEventRepository()->saveEntity($event);
     }
 
     /**
@@ -197,17 +224,28 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient $contactclient
+     * {@inheritdoc}
+     *
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
+     */
+    public function getEventRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:Event');
+    }
+
+    /**
+     * @param ContactClient $contactClient
      * @param                $unit
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
+     *
      * @param null $dateFormat
      * @param bool $canViewOthers
      *
      * @return array
      */
     public function getStats(
-        ContactClient $contactclient,
+        ContactClient $contactClient,
         $unit,
         \DateTime $dateFrom = null,
         \DateTime $dateTo = null,
@@ -220,7 +258,7 @@ class ContactClientModel extends FormModel
         $q = $query->prepareTimeDataQuery(
             'contactclient_stats',
             'date_added',
-            ['contactclient_id' => $contactclient->getId()]
+            ['contactclient_id' => $contactClient->getId()]
         );
         if (!$canViewOthers) {
             $this->limitQueryToCreator($q);
@@ -250,6 +288,75 @@ class ContactClientModel extends FormModel
         }
 
         return $chart->render();
+    }
+
+    /**
+     * Get timeline/engagement data.
+     *
+     * @param ContactClient|null $contactClient
+     * @param array $filters
+     * @param null $orderBy
+     * @param int $page
+     * @param int $limit
+     * @param bool $forTimeline
+     * @return array
+     */
+    public function getEngagements(ContactClient $contactClient = null, $filters = [], $orderBy = null, $page = 1, $limit = 25, $forTimeline = true)
+    {
+        $event = $this->dispatcher->dispatch(
+            ContactClientEvents::TIMELINE_ON_GENERATE,
+            new ContactClientTimelineEvent($contactClient, $filters, $orderBy, $page, $limit, $forTimeline, $this->coreParametersHelper->getParameter('site_url'))
+        );
+
+        if (!isset($filters['search'])) {
+            $filters['search'] = null;
+        }
+        $payload = [
+            'events'   => $event->getEvents(),
+            'filters'  => $filters,
+            'order'    => $orderBy,
+            'types'    => $event->getEventTypes(),
+            'total'    => $event->getEventCounter()['total'],
+            'page'     => $page,
+            'limit'    => $limit,
+            'maxPages' => $event->getMaxPage(),
+        ];
+
+        return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];
+    }
+
+    /**
+     * @return array
+     */
+    public function getEngagementTypes()
+    {
+        $event = new ContactClientTimelineEvent();
+        $event->fetchTypesOnly();
+
+        $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
+
+        return $event->getEventTypes();
+    }
+
+    /**
+     * Get engagement counts by time unit.
+     *
+     * @param Lead            $lead
+     * @param \DateTime|null  $dateFrom
+     * @param \DateTime|null  $dateTo
+     * @param string          $unit
+     * @param ChartQuery|null $chartQuery
+     *
+     * @return array
+     */
+    public function getEngagementCount(Lead $lead, \DateTime $dateFrom = null, \DateTime $dateTo = null, $unit = 'm', ChartQuery $chartQuery = null)
+    {
+        $event = new ContactClientTimelineEvent($lead);
+        $event->setCountOnly($dateFrom, $dateTo, $unit, $chartQuery);
+
+        $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
+
+        return $event->getEventCounter();
     }
 
     /**

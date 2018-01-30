@@ -25,6 +25,13 @@ return [
                 'path'       => '/contactclient/{objectAction}/{objectId}',
                 'controller' => 'MauticContactClientBundle:ContactClient:execute',
             ],
+            'mautic_contactclient_timeline_action' => [
+                'path'       => '/contactclient/timeline/{contactClientId}',
+                'controller' => 'MauticContactClientBundle:Timeline:index',
+                'requirements' => [
+                    'contactClientId' => '\d+',
+                ],
+            ],
         ],
     ],
 

@@ -11,141 +11,62 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
- * Class Event.
+ * Class Event
+ * @package MauticPlugin\MauticContactClientBundle\Entity
  */
 class Event
 {
     /**
-     * @var int
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
-     * @var string
+     * @var Contact
      */
-    private $name;
+    protected $contact;
 
     /**
-     * @var string
+     * @ORM\Column(name="type", type="string", length=50)
      */
-    private $description;
-
-    /**
-     * @var string
-     */
-    private $type;
-
-    /**
-     * @var string
-     */
-    private $eventType;
-
-    /**
-     * @var int
-     */
-    private $order = 0;
-
-    /**
-     * @var array
-     */
-    private $properties = [];
-
-    /**
-     * @var null|\DateTime
-     */
-    private $triggerDate;
-
-    /**
-     * @var int
-     */
-    private $triggerInterval = 0;
-
-    /**
-     * @var string
-     */
-    private $triggerIntervalUnit;
-
-    /**
-     * @var string
-     */
-    private $triggerMode;
+    protected $type;
 
     /**
      * @var ContactClient
      */
-    private $contactclient;
+    protected $contactClient;
 
     /**
-     * @var ArrayCollection
-     **/
-    private $children;
-
-    /**
-     * @var Event
-     **/
-    private $parent = null;
-
-    /**
-     * @var string
-     **/
-    private $decisionPath;
-
-    /**
-     * @var string
-     **/
-    private $tempId;
-
-    /**
-     * @var ArrayCollection
-     */
-    private $log;
-
-    /**
-     * Used by API to house contact specific logs.
-     *
      * @var array
      */
-    private $contactLog = [];
+    protected $logs;
 
     /**
-     * @var
+     * @var string
      */
-    private $channel;
+    protected $message;
 
     /**
-     * @var
+     * @var string
      */
-    private $channelId;
+    protected $integration_entity_id;
 
     /**
-     * @var
+     * @var \DateTime
      */
-    private $changes;
+    private $dateAdded;
 
     public function __construct()
     {
-        $this->log = new ArrayCollection();
-        $this->children = new ArrayCollection();
-    }
-
-    /**
-     * Clean up after clone.
-     */
-    public function __clone()
-    {
-        $this->id = null;
-        $this->tempId = null;
-        $this->contactclient = null;
-        $this->channel = null;
-        $this->channelId = null;
+        $this->dateAdded = new \Datetime();
+        $this->type = 'undefined';
     }
 
     /**
@@ -157,215 +78,47 @@ class Event
 
         $builder->setTable('contactclient_events')
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\EventRepository')
-            ->addIndex(['type', 'event_type'], 'contactclient_event_search')
-            ->addIndex(['event_type'], 'contactclient_event_type')
-            ->addIndex(['channel', 'channel_id'], 'contactclient_event_channel');
+            // ->addIndex(['type', 'contactclient_id', 'contact_id'], 'event_contactclient_contact')
+            ->addIndex(['type', 'contact_id'], 'type_contact')
+            ->addIndex(['date_added'], 'date_added');
 
-        $builder->addIdColumns();
+        $builder->addId();
 
-        $builder->createField('type', 'string')
-            ->length(50)
-            ->build();
-
-        $builder->createField('eventType', 'string')
-            ->columnName('event_type')
-            ->length(50)
-            ->build();
-
-        $builder->createField('order', 'integer')
-            ->columnName('event_order')
-            ->build();
-
-        $builder->addField('properties', 'array');
-
-        $builder->createField('triggerDate', 'datetime')
-            ->columnName('trigger_date')
-            ->nullable()
-            ->build();
-
-        $builder->createField('triggerInterval', 'integer')
-            ->columnName('trigger_interval')
-            ->nullable()
-            ->build();
-
-        $builder->createField('triggerIntervalUnit', 'string')
-            ->columnName('trigger_interval_unit')
-            ->length(1)
-            ->nullable()
-            ->build();
-
-        $builder->createField('triggerMode', 'string')
-            ->columnName('trigger_mode')
-            ->length(10)
-            ->nullable()
-            ->build();
-
-        $builder->createManyToOne('contactclient', 'ContactClient')
-            ->inversedBy('events')
+        $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', false, false, 'CASCADE')
             ->build();
 
-        $builder->createOneToMany('children', 'Event')
-            ->setIndexBy('id')
-            ->setOrderBy(['order' => 'ASC'])
-            ->mappedBy('parent')
+        $builder->createField('type', 'string')
+            ->columnName('type')
+            ->length(50)
             ->build();
 
-        $builder->createManyToOne('parent', 'Event')
-            ->inversedBy('children')
-            ->cascadePersist()
-            ->addJoinColumn('parent_id', 'id')
-            ->build();
-
-        $builder->createField('decisionPath', 'string')
-            ->columnName('decision_path')
+        $builder->createField('message', 'string')
+            ->columnName('message')
+            ->length(255)
             ->nullable()
             ->build();
 
-        $builder->createField('tempId', 'string')
-            ->columnName('temp_id')
+        $builder->createField('integration_entity_id', 'string')
+            ->columnName('integration_entity_id')
+            ->length(255)
             ->nullable()
             ->build();
 
-        $builder->createOneToMany('log', 'ContactEventLog')
-            ->mappedBy('event')
-            ->cascadePersist()
-            ->cascadeRemove()
-            ->fetchExtraLazy()
-            ->build();
-
-        $builder->createField('channel', 'string')
-            ->nullable()
-            ->build();
-
-        $builder->createField('channelId', 'integer')
-            ->columnName('channel_id')
-            ->nullable()
-            ->build();
+        $builder->addNamedField('dateAdded', 'datetime', 'date_added');
+        $builder->addContact();
+        $builder->addNamedField('logs', 'text', 'logs');
     }
 
     /**
-     * Prepares the metadata for API usage.
-     *
-     * @param $metadata
+     * @return array
      */
-    public static function loadApiMetadata(ApiMetadataDriver $metadata)
+    public function toArray()
     {
-        $metadata->setGroupPrefix('contactclientEvent')
-            ->addListProperties(
-                [
-                    'id',
-                    'name',
-                    'description',
-                    'type',
-                    'eventType',
-                    'channel',
-                    'channelId',
-                ]
-            )
-            ->addProperties(
-                [
-                    'order',
-                    'properties',
-                    'triggerDate',
-                    'triggerInterval',
-                    'triggerIntervalUnit',
-                    'triggerMode',
-                    'decisionPath',
-                    'channel',
-                    'channelId',
-                    'parent',
-                    'children',
-                ]
-            )
-            ->setMaxDepth(1, 'parent')
-            ->setMaxDepth(1, 'children')
-            // Add standalone groups
-            ->setGroupPrefix('contactclientEventStandalone')
-            ->addListProperties(
-                [
-                    'id',
-                    'name',
-                    'description',
-                    'type',
-                    'eventType',
-                    'channel',
-                    'channelId',
-                ]
-            )
-            ->addProperties(
-                [
-                    'contactclient',
-                    'order',
-                    'properties',
-                    'triggerDate',
-                    'triggerInterval',
-                    'triggerIntervalUnit',
-                    'triggerMode',
-                    'children',
-                    'parent',
-                    'decisionPath',
-                ]
-            )
-            // Include logs
-            ->setGroupPrefix('contactclientEventWithLogs')
-            ->addListProperties(
-                [
-                    'id',
-                    'name',
-                    'description',
-                    'type',
-                    'eventType',
-                    'contactLog',
-                    'triggerDate',
-                    'triggerInterval',
-                    'triggerIntervalUnit',
-                    'triggerMode',
-                    'decisionPath',
-                    'order',
-                    'parent',
-                    'channel',
-                    'channelId',
-                ]
-            )
-            ->addProperties(
-                [
-                    'contactclient',
-                ]
-            )
-            ->build();
+        return get_object_vars($this);
     }
 
     /**
-     * @param string $prop
-     * @param mixed $val
-     */
-    private function isChanged($prop, $val)
-    {
-        $getter = 'get'.ucfirst($prop);
-        $current = $this->$getter();
-        if ($prop == 'category' || $prop == 'parent') {
-            $currentId = ($current) ? $current->getId() : '';
-            $newId = ($val) ? $val->getId() : null;
-            if ($currentId != $newId) {
-                $this->changes[$prop] = [$currentId, $newId];
-            }
-        } elseif ($this->$prop != $val) {
-            $this->changes[$prop] = [$this->$prop, $val];
-        }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getChanges()
-    {
-        return $this->changes;
-    }
-
-    /**
-     * Get id.
-     *
      * @return int
      */
     public function getId()
@@ -374,99 +127,6 @@ class Event
     }
 
     /**
-     * Set order.
-     *
-     * @param int $order
-     *
-     * @return Event
-     */
-    public function setOrder($order)
-    {
-        $this->isChanged('order', $order);
-
-        $this->order = $order;
-
-        return $this;
-    }
-
-    /**
-     * Get order.
-     *
-     * @return int
-     */
-    public function getOrder()
-    {
-        return $this->order;
-    }
-
-    /**
-     * Set properties.
-     *
-     * @param array $properties
-     *
-     * @return Event
-     */
-    public function setProperties($properties)
-    {
-        $this->isChanged('properties', $properties);
-
-        $this->properties = $properties;
-
-        return $this;
-    }
-
-    /**
-     * Get properties.
-     *
-     * @return array
-     */
-    public function getProperties()
-    {
-        return $this->properties;
-    }
-
-    /**
-     * Set contactclient.
-     *
-     * @param \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $contactclient
-     *
-     * @return Event
-     */
-    public function setContactClient(\MauticPlugin\MauticContactClientBundle\Entity\ContactClient $contactclient)
-    {
-        $this->contactclient = $contactclient;
-
-        return $this;
-    }
-
-    /**
-     * Get contactclient.
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\ContactClient
-     */
-    public function getContactClient()
-    {
-        return $this->contactclient;
-    }
-
-    /**
-     * Set type.
-     *
-     * @param string $type
-     *
-     * @return Event
-     */
-    public function setType($type)
-    {
-        $this->isChanged('type', $type);
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * Get type.
-     *
      * @return string
      */
     public function getType()
@@ -475,356 +135,131 @@ class Event
     }
 
     /**
-     * @return array
-     */
-    public function convertToArray()
-    {
-        return get_object_vars($this);
-    }
-
-    /**
-     * Set description.
+     * @param $type
      *
-     * @param string $description
-     *
-     * @return Event
+     * @return $this
      */
-    public function setDescription($description)
+    public function setType($type)
     {
-        $this->isChanged('description', $description);
-        $this->description = $description;
+        $this->type = $type;
 
         return $this;
     }
 
     /**
-     * Get description.
+     * @return Contact
+     */
+    public function getContact()
+    {
+        return $this->contact;
+    }
+
+    /**
+     * @param Contact $contact
      *
+     * @return Event
+     */
+    public function setContact(Contact $contact)
+    {
+        $this->contact = $contact;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getContactClient()
+    {
+        return $this->contactClient;
+    }
+
+    /**
+     * @param $contactClient
+     * @return $this
+     */
+    public function setContactClient($contactClient)
+    {
+        $this->contactClient = $contactClient;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLogs()
+    {
+        return $this->logs;
+    }
+
+    /**
+     * @param $logs
+     * @return $this
+     */
+    public function setLogs($logs)
+    {
+        $this->logs = $logs;
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
-    public function getDescription()
+    public function getMessage()
     {
-        return $this->description;
+        return $this->message;
     }
 
     /**
-     * Set name.
-     *
-     * @param string $name
-     *
-     * @return Event
+     * @param $message
+     * @return $this
      */
-    public function setName($name)
+    public function setMessage($message)
     {
-        $this->isChanged('name', $name);
-        $this->name = $name;
+        $this->message = $message;
 
         return $this;
     }
 
     /**
-     * Get name.
-     *
      * @return string
      */
-    public function getName()
+    public function getIntegrationEntityId()
     {
-        return $this->name;
+        return $this->integration_entity_id;
     }
 
     /**
-     * Add log.
-     *
-     * @param ContactEventLog $log
-     *
-     * @return Event
+     * @param $integration_entity_id
+     * @return $this
      */
-    public function addLog(ContactEventLog $log)
+    public function setIntegrationEntityId($integration_entity_id)
     {
-        $this->log[] = $log;
+        $this->integration_entity_id = $integration_entity_id;
 
         return $this;
     }
 
     /**
-     * Remove log.
-     *
-     * @param ContactEventLog $log
+     * @return mixed
      */
-    public function removeLog(ContactEventLog $log)
+    public function getDateAdded()
     {
-        $this->log->removeElement($log);
+        return $this->dateAdded;
     }
 
     /**
-     * Get log.
-     *
-     * @return \Doctrine\Common\Collections\Collection
+     * @param $dateAdded
+     * @return $this
      */
-    public function getLog()
+    public function setDateAdded($dateAdded)
     {
-        return $this->log;
-    }
-
-    /**
-     * Add children.
-     *
-     * @param \MauticPlugin\MauticContactClientBundle\Entity\Event $children
-     *
-     * @return Event
-     */
-    public function addChild(Event $children)
-    {
-        $this->children[] = $children;
+        $this->dateAdded = $dateAdded;
 
         return $this;
     }
 
-    /**
-     * Remove children.
-     *
-     * @param \MauticPlugin\MauticContactClientBundle\Entity\Event $children
-     */
-    public function removeChild(Event $children)
-    {
-        $this->children->removeElement($children);
-    }
 
-    /**
-     * Get children.
-     *
-     * @return \Doctrine\Common\Collections\Collection
-     */
-    public function getChildren()
-    {
-        return $this->children;
-    }
-
-    /**
-     * Set parent.
-     *
-     * @param \MauticPlugin\MauticContactClientBundle\Entity\Event $parent
-     *
-     * @return Event
-     */
-    public function setParent(Event $parent = null)
-    {
-        $this->isChanged('parent', $parent);
-        $this->parent = $parent;
-
-        return $this;
-    }
-
-    /**
-     * Remove parent.
-     */
-    public function removeParent()
-    {
-        $this->isChanged('parent', '');
-        $this->parent = null;
-    }
-
-    /**
-     * Get parent.
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\Event
-     */
-    public function getParent()
-    {
-        return $this->parent;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTriggerDate()
-    {
-        return $this->triggerDate;
-    }
-
-    /**
-     * @param mixed $triggerDate
-     */
-    public function setTriggerDate($triggerDate)
-    {
-        $this->isChanged('triggerDate', $triggerDate);
-        $this->triggerDate = $triggerDate;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTriggerInterval()
-    {
-        return $this->triggerInterval;
-    }
-
-    /**
-     * @param int $triggerInterval
-     */
-    public function setTriggerInterval($triggerInterval)
-    {
-        $this->isChanged('triggerInterval', $triggerInterval);
-        $this->triggerInterval = $triggerInterval;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTriggerIntervalUnit()
-    {
-        return $this->triggerIntervalUnit;
-    }
-
-    /**
-     * @param mixed $triggerIntervalUnit
-     */
-    public function setTriggerIntervalUnit($triggerIntervalUnit)
-    {
-        $this->isChanged('triggerIntervalUnit', $triggerIntervalUnit);
-        $this->triggerIntervalUnit = $triggerIntervalUnit;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEventType()
-    {
-        return $this->eventType;
-    }
-
-    /**
-     * @param mixed $eventType
-     */
-    public function setEventType($eventType)
-    {
-        $this->eventType = $eventType;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTriggerMode()
-    {
-        return $this->triggerMode;
-    }
-
-    /**
-     * @param mixed $triggerMode
-     */
-    public function setTriggerMode($triggerMode)
-    {
-        $this->triggerMode = $triggerMode;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDecisionPath()
-    {
-        return $this->decisionPath;
-    }
-
-    /**
-     * @param mixed $decisionPath
-     */
-    public function setDecisionPath($decisionPath)
-    {
-        $this->decisionPath = $decisionPath;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTempId()
-    {
-        return $this->tempId;
-    }
-
-    /**
-     * @param mixed $tempId
-     */
-    public function setTempId($tempId)
-    {
-        $this->tempId = $tempId;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getChannel()
-    {
-        return $this->channel;
-    }
-
-    /**
-     * @param mixed $channel
-     */
-    public function setChannel($channel)
-    {
-        $this->channel = $channel;
-    }
-
-    /**
-     * @return int
-     */
-    public function getChannelId()
-    {
-        return $this->channelId;
-    }
-
-    /**
-     * @param int $channelId
-     */
-    public function setChannelId($channelId)
-    {
-        $this->channelId = (int)$channelId;
-    }
-
-    /**
-     * Used by the API.
-     *
-     * @param Contact|null $contact
-     *
-     * @return ContactEventLog[]|\Doctrine\Common\Collections\Collection|static
-     */
-    public function getContactLog(Contact $contact = null)
-    {
-        if ($this->contactLog) {
-            return $this->contactLog;
-        }
-
-        return $this->log->matching(
-            Criteria::create()
-                ->where(
-                    Criteria::expr()->eq('lead', $contact)
-                )
-        );
-    }
-
-    /**
-     * Used by the API.
-     *
-     * @param array $contactLog
-     *
-     * @return Event
-     */
-    public function setContactLog($contactLog)
-    {
-        $this->contactLog = $contactLog;
-
-        return $this;
-    }
-
-    /**
-     * Used by the API.
-     *
-     * @return Event
-     */
-    public function addContactLog($contactLog)
-    {
-        $this->contactLog[] = $contactLog;
-
-        return $this;
-    }
 }

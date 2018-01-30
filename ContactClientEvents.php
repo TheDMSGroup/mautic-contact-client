@@ -54,4 +54,14 @@ final class ContactClientEvents
      */
     const POST_DELETE = 'mautic.contactclient_post_delete';
 
+    /**
+     * The mautic.contactclient_timeline_on_generate event is dispatched when generating a timeline view.
+     *
+     * The event listener receives a
+     * MauticPlugin\MauticContactClientBundle\Event\LeadTimelineEvent instance.
+     *
+     * @var string
+     */
+    const TIMELINE_ON_GENERATE = 'mautic.contactclient_timeline_on_generate';
+
 }
