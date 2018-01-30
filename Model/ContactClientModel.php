@@ -263,21 +263,8 @@ class ContactClientModel extends FormModel
         if (!$canViewOthers) {
             $this->limitQueryToCreator($q);
         }
-        $data = $query->loadAndBuildTimeData($q);
-        $chart->setDataset($this->translator->trans('mautic.contactclient.graph.queued'), $data);
-
-        foreach ([
-                     // Stat::TYPE_QUEUED,
-                     Stat::TYPE_DUPLICATE,
-                     Stat::TYPE_EXCLUSIVE,
-                     Stat::TYPE_FILTER,
-                     Stat::TYPE_LIMITS,
-                     Stat::TYPE_REVENUE,
-                     Stat::TYPE_SCHEDULE,
-                     Stat::TYPE_SUCCESS,
-                     Stat::TYPE_REJECT,
-                     Stat::TYPE_ERROR,
-                 ] as $type) {
+        $stat = new Stat();
+        foreach ($stat->getAllTypes() as $type) {
 
             $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => $type]);
             if (!$canViewOthers) {
