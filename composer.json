@@ -1,5 +1,5 @@
 {
-    "name": "thedmsgroup/mmautic-contact-client",
+    "name": "thedmsgroup/mautic-contact-client",
     "description": "Create custom integrations without writing code.",
     "type": "mautic-plugin",
     "require": {
