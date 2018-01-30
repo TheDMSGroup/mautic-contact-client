@@ -1,12 +1,13 @@
 {
     "name": "thedmsgroup/mautic-contact-client",
     "description": "Create custom integrations without writing code.",
+    "keywords": ["mautic","marketing","marketing automation","plugin"],
     "type": "mautic-plugin",
     "require": {
         "mautic/composer-plugin": "^1.0",
         "mustache/mustache": "^2.12"
     },
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-only",
     "authors": [
         {
             "name": "Heath Dutton",
