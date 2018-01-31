@@ -71,8 +71,6 @@ Mautic.contactclientSchedule = function () {
                     // Instantiate the JSON Editor based on our schema.
                     exclusionsJSONEditor = new JSONEditor($exclusionsJSONEditor[0], {
                         schema: schema,
-                        disable_array_delete: true,
-                        disable_array_reorder: true,
                         disable_collapse: true
                     });
 

@@ -7,12 +7,12 @@
     "disable_collapse": true
   },
   "items": {
-    "title": "Exclusion",
+    "title": "Date",
     "$ref": "#/definitions/exclusionField"
   },
   "definitions": {
     "exclusionField": {
-      "title": "Exclusion",
+      "title": "Date",
       "headerTemplate": "{{ self.key }}",
       "type": "object",
       "options": {
