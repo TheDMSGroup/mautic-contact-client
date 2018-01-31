@@ -1,5 +1,5 @@
 {
-    "name": "thedmsgroup/mautic-contact-client",
+    "name": "thedmsgroup/mautic-contact-client-bundle",
     "description": "Create custom integrations without writing code.",
     "keywords": ["mautic","marketing","marketing automation","plugin"],
     "type": "mautic-plugin",
