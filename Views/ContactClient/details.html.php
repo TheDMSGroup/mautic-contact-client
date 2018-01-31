@@ -164,7 +164,7 @@ $website = $item->getWebsite();
                         'MauticLeadBundle:Auditlog:list.html.php',
                         [
                             'events' => $auditlog,
-                            // 'lead'   => $lead,
+                            'lead'   => $item,
                             'tmpl'   => 'index',
                         ]
                     ); ?>
