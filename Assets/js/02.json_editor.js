@@ -141,12 +141,12 @@ JSONEditor.defaults.options.expand_height = true;
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     var errors = [];
     if (schema.format === 'date') {
-        if (!/^[[0-9]{2}\/[0-9]{2}\/[0-9]{4}|[0-9]{2}\/[0-9]{2}\/yyyy]$/.test(value)) {
+        if (!/^[0-9]{2}\/[0-9]{2}\/[0-9|y]{4}$/gi.test(value)) {
             // Errors must be an object with `path`, `property`, and `message`
             errors.push({
                 path: path,
                 property: 'format',
-                message: 'Dates must be in the format "YYYY-MM-DD" or "MM-DD" for repeating dates.'
+                message: 'Dates must look like 01/31/2020 or 01/31/yyyy for repeating dates.'
             });
         }
     }
