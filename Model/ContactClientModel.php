@@ -401,4 +401,64 @@ class ContactClientModel extends FormModel
             return null;
         }
     }
+
+    /**
+     * @param ContactClient $contactClient
+     * @return bool
+     */
+    public function evaluateScheduleHours(ContactClient $contactClient) {
+        $result = true;
+
+        $hours = json_decode($contactClient->getScheduleHours() ?? null);
+        if ($hours) {
+            $timezone = $contactClient->getScheduleTimezone();
+            if (!$timezone) {
+                $timezone = new \DateTimeZone(date_default_timezone_get());
+            }
+            $now = new \Datetime();
+            $now->setTimezone($timezone);
+
+            $day = intval($now->format('w'));
+            if (isset($hours[$day])) {
+                if (
+                    isset($hours[$day]->isActive)
+                    && !$hours[$day]->isActive
+                ) {
+                    $result = false;
+                    // throw new Exception('This contact client does not allow contacts on a ' . $now->format('l') . '.');
+                } else {
+                    $timeFrom = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
+                    $timeTill = !empty($hours[$day]->timeTill) ? $hours[$day]->timeTill : '23:59';
+                    $startDate = \DateTime::createFromFormat('h:i', $timeFrom, $timezone);
+                    $endDate = \DateTime::createFromFormat('h:i', $timeTill, $timezone);
+                    if (!($now > $startDate && $now < $endDate)) {
+                        $result = false;
+                        // throw new Exception('This contact client does not allow contacts during this time of day on a ' . $now->format('l') . '.');
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    public function evaluateScheduleExclusions(ContactClient $contactClient) {
+        $result = true;
+
+        // Check dates of exclusion (if there are any).
+        $exclusions = $contactClient->getScheduleExclusions();
+        if ($exclusions) {
+            $timezone = $contactClient->getScheduleTimezone();
+            if (!$timezone) {
+                $timezone = new \DateTimeZone(date_default_timezone_get());
+            }
+            $now = new \Datetime();
+            $now->setTimezone($timezone);
+
+            // @todo - json decode and parse, json schema needs to be created and implemented.
+
+        }
+
+        return $result;
+    }
 }

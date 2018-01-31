@@ -26,7 +26,6 @@ use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\Yaml\Yaml;
 use Mautic\LeadBundle\Entity\LeadEventLog;
 
-
 /**
  * Class ClientIntegration
  * @package MauticPlugin\MauticContactClientBundle\Integration
@@ -62,6 +61,8 @@ class ClientIntegration extends AbstractIntegration
 
     protected $eventType;
 
+    protected $contactClientModel;
+
     public function getDisplayName()
     {
         return 'Clients';
@@ -94,7 +95,6 @@ class ClientIntegration extends AbstractIntegration
      */
     public function pushLead($contact, $config = [])
     {
-        $container = $this->dispatcher->getContainer();
 
         $config = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
@@ -102,7 +102,8 @@ class ClientIntegration extends AbstractIntegration
         }
 
         /** @var Contact $contactModel */
-        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        $clientModel = $this->getContactClientModel();
+
         $client = $clientModel->getEntity($config['contactclient']);
         if (!$client || $client->getIsPublished() === false) {
             return false;
@@ -123,7 +124,7 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-        $result = $this->sendContact($client, $contact, $container, false, $overrides);
+        $result = $this->sendContact($client, $contact, false, $overrides);
 
         return $result;
     }
@@ -166,7 +167,6 @@ class ClientIntegration extends AbstractIntegration
      *
      * @param ContactClient $client
      * @param Contact $contact
-     * @param Container $container
      * @param bool $test
      * @param array $overrides
      * @return bool
@@ -174,7 +174,6 @@ class ClientIntegration extends AbstractIntegration
     public function sendContact(
         ContactClient $client,
         Contact $contact,
-        Container $container,
         $test = false,
         $overrides = []
     ) {
@@ -182,7 +181,7 @@ class ClientIntegration extends AbstractIntegration
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
 
-        $this->container = $container;
+
         $this->test = $test;
 
         try {
@@ -191,13 +190,31 @@ class ClientIntegration extends AbstractIntegration
                 throw new ApiErrorException('Contact Client appears to not exist.');
             }
             $this->contactClient = $client;
+            /** @var Contact $contactModel */
+            $clientModel = $this->getContactClientModel();
 
             if (!$contact) {
                 throw new ApiErrorException('Contact appears to not exist.');
             }
             $this->contact = $contact;
 
-            $this->payload = new ApiPayload($this->contactClient, $contact, $container, $test);
+            // Check all rules that may preclude sending this contact, in order of performance cost.
+
+            // @todo - Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
+            $clientModel->evaluateScheduleHours($this->contactClient);
+            $clientModel->evaluateScheduleExclusions($this->contactClient);
+
+            // @todo - If out of schedule window, requeue to contact to be attempted at another time.
+
+            // @todo - Filtering - Check filter rules to ensure this contact is applicable.
+
+            // @todo - Limits - Check limit rules to ensure we have not sent too many contacts in our window.
+
+            // @todo - Exclusivity - Check exclusivity rules to ensure this contact hasn't been sent to a competitor.
+
+            // @todo - Duplicates - Check duplicate cache to ensure we have not already sent this contact.
+
+            $this->payload = new ApiPayload($this->contactClient, $contact, $this->dispatcher->getContainer(), $test);
 
             if ($overrides) {
                 $this->payload->setOverrides($overrides);
@@ -214,7 +231,11 @@ class ClientIntegration extends AbstractIntegration
             $this->logIntegrationError($e, $this->contact);
         }
 
-        $this->setLogs($this->payload->getLogs(), 'operations');
+        // @todo - Revenue - Apply revenue (default or field based) to the Contact and Revenue stats.
+
+        if (isset($this->payload)) {
+            $this->setLogs($this->payload->getLogs(), 'operations');
+        }
 
         $this->updateContact();
 
@@ -245,7 +266,7 @@ class ClientIntegration extends AbstractIntegration
             if ($updated) {
                 try {
                     /** @var Contact $contactModel */
-                    $contactModel = $this->container->get('mautic.lead.model.lead');
+                    $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
                     $contactModel->saveEntity($this->contact);
                     $this->setLogs('Operation successful. The Contact was updated.', 'updated');
                 } catch (Exception $e) {
@@ -260,11 +281,21 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return contactClientModel
+     */
+    private function getContactClientModel() {
+        if (!$this->contactClientModel) {
+            $container = $this->dispatcher->getContainer();
+            /** @var contactClientModel $clientModel */
+            $this->contactClientModel = $container->get('mautic.contactclient.model.contactclient');
+        }
+        return $this->contactClientModel;
+    }
+
+    /**
      * Log to:
      *      contactclient_stats
      *      contactclient_events
-     *      contactclient_contact_event_log             ?
-     *      contactclient_contact_event_failed_log      ?
      *      integration_entity
      *
      * Use LeadTimelineEvent
@@ -273,9 +304,8 @@ class ClientIntegration extends AbstractIntegration
     {
         $integration_entity_id = $this->payload->getExternalId();
 
-        $container = $this->dispatcher->getContainer();
         /** @var contactClientModel $clientModel */
-        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        $clientModel = $this->getContactClientModel();
 
         // Stats - contactclient_stats
 
@@ -453,16 +483,14 @@ class ClientIntegration extends AbstractIntegration
      * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
      * @param array $data
      * @param string $formArea
-     * @throws ApiErrorException
      */
     public function appendToForm(&$builder, $data, $formArea)
     {
         if ($formArea == 'integration') {
             if ($this->isAuthorized()) {
 
-                $container = $this->dispatcher->getContainer();
                 /** @var contactClientModel $clientModel */
-                $clientModel = $container->get('mautic.contactclient.model.contactclient');
+                $clientModel = $this->getContactClientModel();
 
                 /** @var contactClientRepository $contactClientRepo */
                 $contactClientRepo = $clientModel->getRepository();

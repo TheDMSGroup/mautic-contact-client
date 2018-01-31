@@ -136,3 +136,19 @@ JSONEditor.defaults.options.disable_array_delete_all_rows = true;
 JSONEditor.defaults.options.disable_array_delete_last_row = true;
 JSONEditor.defaults.options.required_by_default = true;
 JSONEditor.defaults.options.expand_height = true;
+
+// Custom validators.
+JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+    if (schema.format === 'date') {
+        if (!/^[[0-9]{2}\/[0-9]{2}\/[0-9]{4}|[0-9]{2}\/[0-9]{2}\/yyyy]$/.test(value)) {
+            // Errors must be an object with `path`, `property`, and `message`
+            errors.push({
+                path: path,
+                property: 'format',
+                message: 'Dates must be in the format "YYYY-MM-DD" or "MM-DD" for repeating dates.'
+            });
+        }
+    }
+    return errors;
+});
