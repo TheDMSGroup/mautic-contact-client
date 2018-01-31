@@ -23,14 +23,9 @@
         "value": {
           "propertyOrder": 10,
           "type": "string",
-          "format": "date",
+          "format": "datestring",
           "title": "Date",
-          "options": {
-            "infoText": "The date to exclude. Can be in the format of 01/31/2020 or 01/31/yyyy (for annually repeating dates)."
-          },
-          "default": "",
-          "minLength": 5,
-          "maxLength": 10
+          "default": ""
         },
         "description": {
           "propertyOrder": 20,
