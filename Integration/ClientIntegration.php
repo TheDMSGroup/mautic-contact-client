@@ -190,7 +190,6 @@ class ClientIntegration extends AbstractIntegration
      * @param bool $test
      * @param array $overrides
      * @return bool
-     * @throws \Mautic\PluginBundle\Exception\ContactClientRetryException
      */
     public function sendContact(
         ContactClient $client,
@@ -209,12 +208,12 @@ class ClientIntegration extends AbstractIntegration
         try {
 
             if (!$client) {
-                throw new \Exception('Contact Client appears to not exist.');
+                throw new \InvalidArgumentException('Contact Client appears to not exist.');
             }
             $this->contactClient = $client;
 
             if (!$contact) {
-                throw new \Exception('Contact appears to not exist.');
+                throw new \InvalidArgumentException('Contact appears to not exist.');
             }
             $this->contact = $contact;
 

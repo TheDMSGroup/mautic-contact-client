@@ -167,9 +167,14 @@ echo $view['form']->start($form);
                     <div class="form-group mb-0">
                         <div class="row api_payload hide">
                             <div class="col-md-12">
-                                <div id="api_payload_advanced" class="form-group hide">
-                                    <div class="choice-wrapper">
-                                        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide">
+                                    <div class="btn-group hidden-xs">
+                                        <button type="button" class="btn btn-default" id="api_payload_test" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            <i class="fa fa-check-circle text-success"></i>
+                                            <?php echo $view['translator']->trans('mautic.contactclient.form.test'); ?>
+                                        </button>
+                                        <button type="button" class="btn btn-default btn-nospin" id="api_payload_advanced" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            <i class="fa fa-low-vision"></i>
                                             <?php echo $view['translator']->trans('mautic.contactclient.form.advanced'); ?>
                                         </button>
                                     </div>

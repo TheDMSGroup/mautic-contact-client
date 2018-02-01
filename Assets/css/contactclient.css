@@ -213,7 +213,7 @@
 }
 
 /* ContactClient API Payload - Advanced button */
-#api_payload_advanced {
+#api_payload_buttons {
     float: right;
     z-index: 10;
     position: relative;
@@ -221,7 +221,7 @@
     overflow: visible;
 }
 
-#api_payload_advanced .btn.active {
+#api_payload_buttons .btn#api_payload_advanced.active {
     border-bottom: none;
     background-color: #263238;
     border-color: #263238;

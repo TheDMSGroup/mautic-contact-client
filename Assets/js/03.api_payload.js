@@ -21,7 +21,8 @@ Mautic.contactclientApiPayload = function () {
 
                     // Create our widget container for the JSON Editor.
                     var $apiPayloadJSONEditor = mQuery('<div>', {
-                        class: 'contactclient_jsoneditor'
+                        class: 'contactclient_jsoneditor',
+                        id: 'api_payload_jsoneditor'
                     }).insertBefore($apiPayload);
 
                     // Instantiate the JSON Editor based on our schema.
@@ -140,7 +141,7 @@ Mautic.contactclientApiPayload = function () {
             });
 
             // API Payload advanced button.
-            mQuery('#api_payload_advanced .btn')
+            mQuery('.btn#api_payload_advanced')
                 .click(function () {
                     var raw = $apiPayload.val(),
                         error = false;
@@ -162,7 +163,7 @@ Mautic.contactclientApiPayload = function () {
                             }
                             if (!error) {
                                 $apiPayloadCodeMirror.addClass('hide');
-                                mQuery('#contactclient_jsoneditor').removeClass('hide');
+                                mQuery('#api_payload_jsoneditor').removeClass('hide');
                             }
                             else {
                                 mQuery(this).toggleClass('active');
@@ -187,7 +188,7 @@ Mautic.contactclientApiPayload = function () {
                             }
                             if (!error) {
                                 $apiPayloadCodeMirror.removeClass('hide');
-                                mQuery('#contactclient_jsoneditor').addClass('hide');
+                                mQuery('#api_payload_jsoneditor').addClass('hide');
                                 apiPayloadCodeMirror.refresh();
                             }
                             else {

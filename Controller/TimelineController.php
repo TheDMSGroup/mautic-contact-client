@@ -16,6 +16,10 @@ use Mautic\CoreBundle\Helper\InputHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Class TimelineController
+ * @package MauticPlugin\MauticContactClientBundle\Controller
+ */
 class TimelineController extends CommonController
 {
     use ContactClientAccessTrait;
@@ -196,6 +200,8 @@ class TimelineController extends CommonController
 
     /**
      * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+     *
+     * @todo - Needs refactoring to function.
      */
     public function batchExportAction(Request $request, $contactClientId)
     {
