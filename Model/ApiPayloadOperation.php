@@ -12,7 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use stdClass;
-use Mautic\PluginBundle\Exception\ApiErrorException;
+use Mautic\PluginBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
@@ -123,7 +123,7 @@ class ApiPayloadOperation
         try {
             $this->setValid($apiResponse->validate());
             $this->setLogs($this->getValid(), 'valid');
-        } catch (ApiErrorException $e) {
+        } catch (ContactClientRetryException $e) {
             $this->setValid(false);
             $this->setLogs($this->getValid(), 'valid');
             $this->setLogs($e->getMessage(), 'filter');

@@ -12,7 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
-use Mautic\PluginBundle\Exception\ApiErrorException;
+use Mautic\PluginBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
@@ -271,20 +271,20 @@ class ApiPayloadResponse
      * Given the recent response, evaluate it for success based on the expected success validator.
      *
      * @return bool
-     * @throws ApiErrorException
+     * @throws ContactClientRetryException
      */
     public function validate()
     {
 
         if ($this->valid) {
             if (!$this->responseActual) {
-                throw new ApiErrorException('There was no response to parse.');
+                throw new ContactClientRetryException('There was no response to parse.');
             }
 
             // If there is no success definition, than do the default test of a 200 ok status check.
             if (!$this->successDefinition) {
                 if (!$this->responseActual['status'] || $this->responseActual['status'] != 200) {
-                    throw new ApiErrorException('Status code is not 200. Default validation failure.');
+                    throw new ContactClientRetryException('Status code is not 200. Default validation failure.');
                 }
             }
 
@@ -293,12 +293,12 @@ class ApiPayloadResponse
                 $filter = new FilterHelper();
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
                 if (!$this->valid) {
-                    throw new ApiErrorException(
+                    throw new ContactClientRetryException(
                         'Invalid response based on success definition: '.implode(', ', $filter->getErrors())
                     );
                 }
             } catch (\Exception $e) {
-                throw new ApiErrorException(
+                throw new ContactClientRetryException(
                     'Error based on your success definition: '.implode(
                         ', ',
                         !empty($filter) ? $filter->getErrors() : []

@@ -18,8 +18,11 @@ use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ApiErrorException;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
@@ -170,6 +173,7 @@ class ClientIntegration extends AbstractIntegration
      * @param bool $test
      * @param array $overrides
      * @return bool
+     * @throws \Mautic\PluginBundle\Exception\ContactClientRetryException
      */
     public function sendContact(
         ContactClient $client,
@@ -177,6 +181,7 @@ class ClientIntegration extends AbstractIntegration
         $test = false,
         $overrides = []
     ) {
+        $container = $this->dispatcher->getContainer();
 
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
@@ -190,8 +195,6 @@ class ClientIntegration extends AbstractIntegration
                 throw new ApiErrorException('Contact Client appears to not exist.');
             }
             $this->contactClient = $client;
-            /** @var Contact $contactModel */
-            $clientModel = $this->getContactClientModel();
 
             if (!$contact) {
                 throw new ApiErrorException('Contact appears to not exist.');
@@ -200,11 +203,10 @@ class ClientIntegration extends AbstractIntegration
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
-            // @todo - Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
-            $clientModel->evaluateScheduleHours($this->contactClient);
-            $clientModel->evaluateScheduleExclusions($this->contactClient);
-
-            // @todo - If out of schedule window, requeue to contact to be attempted at another time.
+            // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
+            $schedule = new Schedule($this->contactClient, $container);
+            $schedule->evaluateHours($this->contactClient);
+            $schedule->evaluateExclusions($this->contactClient);
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
 
@@ -214,7 +216,7 @@ class ClientIntegration extends AbstractIntegration
 
             // @todo - Duplicates - Check duplicate cache to ensure we have not already sent this contact.
 
-            $this->payload = new ApiPayload($this->contactClient, $contact, $this->dispatcher->getContainer(), $test);
+            $this->payload = new ApiPayload($this->contactClient, $contact, $container, $test);
 
             if ($overrides) {
                 $this->payload->setOverrides($overrides);
@@ -228,6 +230,11 @@ class ClientIntegration extends AbstractIntegration
             if ($e instanceof ApiErrorException) {
                 $e->setContact($this->contact);
             }
+            if ($e instanceof ContactClientRetryException) {
+                $e->setContact($this->contact);
+                // @todo - This type of exception indicates that we can requeue the contact (if applicable).
+            }
+
             $this->logIntegrationError($e, $this->contact);
         }
 
