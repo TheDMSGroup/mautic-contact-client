@@ -249,10 +249,10 @@ class ClientIntegration extends AbstractIntegration
             } elseif ($e instanceof ContactClientRetryException) {
                 $e->setContact($this->contact);
                 $this->setStatType($e->getStatType());
-                // @todo - This type of exception indicates that we can requeue the contact (if applicable).
+
+                // This type of exception indicates that we can requeue the contact.
                 $this->logIntegrationError($e, $this->contact);
             }
-            // A true exception should percolate up as a ContactClient Integration error.
         }
 
         // @todo - Revenue - Apply revenue (default or field based) to the Contact and Revenue stats.
