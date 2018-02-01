@@ -12,7 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use Mautic\PluginBundle\Exception\ContactClientRetryException;
+use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
@@ -79,7 +79,7 @@ class ApiPayload
      * @param Contact|null $contact
      * @param Container $container
      * @param bool $test
-     * @throws ContactClientRetryException
+     * @throws ApiErrorException
      */
     public function __construct(ContactClient $contactClient, $contact = null, $container = null, $test = false)
     {
@@ -96,12 +96,12 @@ class ApiPayload
      *
      * @param string $payload
      * @return mixed
-     * @throws ContactClientRetryException
+     * @throws ApiErrorException
      */
     public function setPayload(string $payload)
     {
         if (!$payload) {
-            throw new ContactClientRetryException('API instructions payload is blank.');
+            throw new ApiErrorException('API instructions payload is blank.');
         }
         $payload = json_decode($payload);
         $jsonError = null;
@@ -128,10 +128,10 @@ class ApiPayload
                 break;
         }
         if ($jsonError) {
-            throw new ContactClientRetryException('API instructions payload JSON is invalid: '.$jsonError);
+            throw new ApiErrorException('API instructions payload JSON is invalid: '.$jsonError);
         }
         if (!$payload || !is_object($payload)) {
-            throw new ContactClientRetryException('API instructions payload is invalid.');
+            throw new ApiErrorException('API instructions payload is invalid.');
         }
 
         return $this->payload = $payload;
@@ -156,13 +156,13 @@ class ApiPayload
      * Step through all operations defined.
      *
      * @return bool
-     * @throws ContactClientRetryException
+     * @throws ApiErrorException
      * @throws \Exception
      */
     public function run()
     {
         if (!isset($this->payload->operations) || !count($this->payload->operations)) {
-            throw new ContactClientRetryException('API instructions payload has no operations to run.');
+            throw new ApiErrorException('API instructions payload has no operations to run.');
         }
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $service */

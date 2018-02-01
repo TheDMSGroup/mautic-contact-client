@@ -55,7 +55,7 @@ class ContactClientRetryException extends \Exception
     /**
      * @param mixed $contactId
      *
-     * @return ContactClientException
+     * @return ContactClientRetryException
      */
     public function setContactId($contactId)
     {
@@ -75,7 +75,7 @@ class ContactClientRetryException extends \Exception
     /**
      * @param Contact $contact
      *
-     * @return ContactClientException
+     * @return ContactClientRetryException
      */
     public function setContact(Contact $contact)
     {

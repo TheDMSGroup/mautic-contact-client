@@ -13,21 +13,20 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Entity\LeadEventLog;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
-use MauticPlugin\MauticContactClientBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\Schedule;
+use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\Yaml\Yaml;
-use Mautic\LeadBundle\Entity\LeadEventLog;
 
 /**
  * Class ClientIntegration
@@ -64,6 +63,7 @@ class ClientIntegration extends AbstractIntegration
 
     protected $eventType;
 
+    /** @var contactClientModel */
     protected $contactClientModel;
 
     public function getDisplayName()
@@ -165,6 +165,20 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return contactClientModel
+     */
+    private function getContactClientModel()
+    {
+        if (!$this->contactClientModel) {
+            $container = $this->dispatcher->getContainer();
+            /** @var contactClientModel $contactClientModel */
+            $this->contactClientModel = $container->get('mautic.contactclient.model.contactclient');
+        }
+
+        return $this->contactClientModel;
+    }
+
+    /**
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
      *
@@ -204,9 +218,9 @@ class ClientIntegration extends AbstractIntegration
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
-            $schedule = new Schedule($this->contactClient, $container);
-            $schedule->evaluateHours($this->contactClient);
-            $schedule->evaluateExclusions($this->contactClient);
+//            $schedule = new Schedule($this->contactClient, $container);
+//            $schedule->evaluateHours($this->contactClient);
+//            $schedule->evaluateExclusions($this->contactClient);
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
 
@@ -229,8 +243,7 @@ class ClientIntegration extends AbstractIntegration
             $this->setLogs($e->getMessage(), 'error');
             if ($e instanceof ApiErrorException) {
                 $e->setContact($this->contact);
-            }
-            if ($e instanceof ContactClientRetryException) {
+            } elseif ($e instanceof ContactClientRetryException) {
                 $e->setContact($this->contact);
                 // @todo - This type of exception indicates that we can requeue the contact (if applicable).
             }
@@ -285,18 +298,6 @@ class ClientIntegration extends AbstractIntegration
                 $this->setLogs('Operation successful, but no fields on the Contact needed updating.', 'info');
             }
         }
-    }
-
-    /**
-     * @return contactClientModel
-     */
-    private function getContactClientModel() {
-        if (!$this->contactClientModel) {
-            $container = $this->dispatcher->getContainer();
-            /** @var contactClientModel $clientModel */
-            $this->contactClientModel = $container->get('mautic.contactclient.model.contactclient');
-        }
-        return $this->contactClientModel;
     }
 
     /**
@@ -397,6 +398,36 @@ class ClientIntegration extends AbstractIntegration
         $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().': '.$message);
     }
 
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
+    }
+
+    public function getLogs()
+    {
+        return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value,
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
+    }
+
     /**
      * @param $entity
      * @param $object
@@ -454,36 +485,6 @@ class ClientIntegration extends AbstractIntegration
     public function getValid()
     {
         return $this->valid;
-    }
-
-    public function getLogsYAML()
-    {
-        return Yaml::dump($this->getLogs(), 10, 2);
-    }
-
-    public function getLogs()
-    {
-        return $this->logs;
-    }
-
-    function setLogs($value, $type = null)
-    {
-        if ($type) {
-            if (isset($this->logs[$type])) {
-                if (is_array($this->logs[$type])) {
-                    $this->logs[$type][] = $value;
-                } else {
-                    $this->logs[$type] = [
-                        $this->logs[$type],
-                        $value,
-                    ];
-                }
-            } else {
-                $this->logs[$type] = $value;
-            }
-        } else {
-            $this->logs[] = $value;
-        }
     }
 
     /**
