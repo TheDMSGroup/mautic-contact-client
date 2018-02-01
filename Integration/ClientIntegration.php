@@ -209,12 +209,12 @@ class ClientIntegration extends AbstractIntegration
         try {
 
             if (!$client) {
-                throw new ApiErrorException('Contact Client appears to not exist.');
+                throw new \Exception('Contact Client appears to not exist.');
             }
             $this->contactClient = $client;
 
             if (!$contact) {
-                throw new ApiErrorException('Contact appears to not exist.');
+                throw new \Exception('Contact appears to not exist.');
             }
             $this->contact = $contact;
 
@@ -250,9 +250,9 @@ class ClientIntegration extends AbstractIntegration
                 $e->setContact($this->contact);
                 $this->setStatType($e->getStatType());
                 // @todo - This type of exception indicates that we can requeue the contact (if applicable).
+                $this->logIntegrationError($e, $this->contact);
             }
-
-            $this->logIntegrationError($e, $this->contact);
+            // A true exception should percolate up as a ContactClient Integration error.
         }
 
         // @todo - Revenue - Apply revenue (default or field based) to the Contact and Revenue stats.
@@ -274,6 +274,9 @@ class ClientIntegration extends AbstractIntegration
      */
     private function updateContact()
     {
+        if (!$this->payload) {
+            return;
+        }
         $responseMap = $this->payload->getResponseMap();
         if ($this->valid) {
             $updated = false;
@@ -335,7 +338,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function logResults()
     {
-        $integration_entity_id = $this->payload->getExternalId();
+        $integration_entity_id = !empty($this->payload) ? $this->payload->getExternalId() : null;
 
         /** @var contactClientModel $clientModel */
         $clientModel = $this->getContactClientModel();

@@ -45,7 +45,7 @@ class ContactClientRetryException extends \Exception
      * @param string $statType
      */
     public function __construct(
-        $message = 'Client retry error',
+        $message = 'Contact Client retry error',
         $code = 0,
         \Exception $previous = null,
         $statType = null

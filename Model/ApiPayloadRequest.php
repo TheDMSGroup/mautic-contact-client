@@ -232,7 +232,6 @@ class ApiPayloadRequest
                     throw new ApiErrorException(
                         'A required field is missing/empty: '.$key
                     );
-                    break;
                 }
             }
             $result[$key] = $value;
