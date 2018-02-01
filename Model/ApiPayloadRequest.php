@@ -150,6 +150,7 @@ class ApiPayloadRequest
 
         $method = trim(strtolower($request->method ?? 'post'));
         $this->setLogs($method, 'method');
+        $startTime = microtime(true);
         switch ($method) {
             case 'delete':
                 $this->setLogs($options, 'options');
@@ -187,6 +188,7 @@ class ApiPayloadRequest
                 $service->put($uri, $options);
                 break;
         }
+        $this->setLogs(microtime(true) - $startTime, 'duration');
     }
 
     /**
