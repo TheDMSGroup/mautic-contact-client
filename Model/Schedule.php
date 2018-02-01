@@ -66,10 +66,11 @@ class Schedule
     /**
      * @param ContactClient $contactClient
      * @throws ContactClientRetryException
+     * @throws \Exception
      */
     public function evaluateHours(ContactClient $contactClient)
     {
-        $hours = json_decode($contactClient->getScheduleHours() ?: null);
+        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours() ?: null);
         if (is_array($hours) && $hours) {
             $now = $this->getNow();
             $timezone = $this->getTimezone();
@@ -90,12 +91,56 @@ class Schedule
                     $endDate = \DateTime::createFromFormat('h:i', $timeTill, $timezone);
                     if (!($now > $startDate && $now < $endDate)) {
                         throw new ContactClientRetryException(
-                            'This contact client does not allow contacts during this time of day.', 0, null, Stat::TYPE_SCHEDULE
+                            'This contact client does not allow contacts during this time of day.',
+                            0,
+                            null,
+                            Stat::TYPE_SCHEDULE
                         );
                     }
                 }
             }
         }
+    }
+
+    /**
+     * @param $string
+     * @return mixed
+     * @throws \Exception
+     */
+    private function jsonDecodeArray($string)
+    {
+        $array = json_decode($string);
+        $jsonError = null;
+        switch (json_last_error()) {
+            case JSON_ERROR_NONE:
+                break;
+            case JSON_ERROR_DEPTH:
+                $jsonError = 'Maximum stack depth exceeded';
+                break;
+            case JSON_ERROR_STATE_MISMATCH:
+                $jsonError = 'Underflow or the modes mismatch';
+                break;
+            case JSON_ERROR_CTRL_CHAR:
+                $jsonError = 'Unexpected control character found';
+                break;
+            case JSON_ERROR_SYNTAX:
+                $jsonError = 'Syntax error, malformed JSON';
+                break;
+            case JSON_ERROR_UTF8:
+                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
+                break;
+            default:
+                $jsonError = 'Unknown error';
+                break;
+        }
+        if ($jsonError) {
+            throw new \Exception('Schedule JSON is invalid: '.$jsonError);
+        }
+        if (!$array || !is_array($array)) {
+            throw new \Exception('Schedule is invalid.');
+        }
+
+        return $array;
     }
 
     /**
@@ -123,11 +168,12 @@ class Schedule
     /**
      * @param ContactClient $contactClient
      * @throws ContactClientRetryException
+     * @throws \Exception
      */
     public function evaluateExclusions(ContactClient $contactClient)
     {
         // Check dates of exclusion (if there are any).
-        $exclusions = json_decode($contactClient->getScheduleExclusions() ?: null);
+        $exclusions = $this->jsonDecodeArray($contactClient->getScheduleExclusions() ?: null);
         if (is_array($exclusions) && $exclusions) {
             $now = $this->getNow();
 

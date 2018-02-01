@@ -11,8 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Mautic\PluginBundle\Exception\ApiErrorException;
 use stdClass;
+use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
