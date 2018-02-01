@@ -16,13 +16,46 @@ Mautic.contactclientSchedule = function () {
             }
             if (typeof operationTime !== 'object') {
                 operationTime = [
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    {}
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    }
                 ];
             }
             var scheduleHours = $scheduleHoursTarget.businessHours({
@@ -31,8 +64,10 @@ Mautic.contactclientSchedule = function () {
                 uncheckedColorClass: 'btn-danger',
                 postInit: function () {
                     mQuery('.operationTimeFrom, .operationTimeTill').timepicker({
-                        'timeFormat': 'H:i',
-                        'step': 15
+                        timeFormat: 'H:i',
+                        step: function (i) {
+                            return (i < 48) ? 30 : 29;
+                        }
                     });
                 },
                 dayTmpl: '<div class="dayContainer">' +

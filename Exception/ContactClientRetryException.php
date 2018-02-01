@@ -23,7 +23,7 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 class ContactClientRetryException extends \Exception
 {
     /**
-     * @var
+     * @var string
      */
     private $contactId;
 
@@ -33,14 +33,26 @@ class ContactClientRetryException extends \Exception
     private $contact;
 
     /**
-     * ApiErrorException constructor.
-     *
+     * @var string
+     */
+    private $statType;
+
+    /**
+     * ContactClientRetryException constructor.
      * @param string $message
      * @param int $code
      * @param \Exception|null $previous
+     * @param string $statType
      */
-    public function __construct($message = 'Client retry error', $code = 0, \Exception $previous = null)
-    {
+    public function __construct(
+        $message = 'Client retry error',
+        $code = 0,
+        \Exception $previous = null,
+        $statType = null
+    ) {
+        if ($statType) {
+            $this->setStatType($statType);
+        }
         parent::__construct($message, $code, $previous);
     }
 
@@ -60,6 +72,26 @@ class ContactClientRetryException extends \Exception
     public function setContactId($contactId)
     {
         $this->contactId = $contactId;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatType()
+    {
+        return $this->statType;
+    }
+
+    /**
+     * @param string $statType
+     *
+     * @return ContactClientRetryException
+     */
+    public function setStatType($statType)
+    {
+        $this->statType = $statType;
 
         return $this;
     }

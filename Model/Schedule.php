@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 
 /**
  * Class Schedule
@@ -89,9 +90,7 @@ class Schedule
                     $endDate = \DateTime::createFromFormat('h:i', $timeTill, $timezone);
                     if (!($now > $startDate && $now < $endDate)) {
                         throw new ContactClientRetryException(
-                            'This contact client does not allow contacts during this time of day on a '.$now->format(
-                                'l'
-                            ).'.'
+                            'This contact client does not allow contacts during this time of day.', 0, null, Stat::TYPE_SCHEDULE
                         );
                     }
                 }
@@ -153,7 +152,10 @@ class Schedule
                     $dateString = $year.'-'.$month.'-'.$day;
                     if ($dateString == $todaysDateString) {
                         throw new ContactClientRetryException(
-                            'This contact client does not allow contacts on the date '.$dateString.'.'
+                            'This contact client does not allow contacts on the date '.$dateString.'.',
+                            0,
+                            null,
+                            Stat::TYPE_SCHEDULE
                         );
                     }
                 }

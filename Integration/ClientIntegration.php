@@ -63,6 +63,9 @@ class ClientIntegration extends AbstractIntegration
 
     protected $eventType;
 
+    /** @var string */
+    protected $statType;
+
     /** @var contactClientModel */
     protected $contactClientModel;
 
@@ -218,9 +221,9 @@ class ClientIntegration extends AbstractIntegration
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
-//            $schedule = new Schedule($this->contactClient, $container);
-//            $schedule->evaluateHours($this->contactClient);
-//            $schedule->evaluateExclusions($this->contactClient);
+            $schedule = new Schedule($this->contactClient, $container);
+            $schedule->evaluateHours($this->contactClient);
+            $schedule->evaluateExclusions($this->contactClient);
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
 
@@ -245,6 +248,7 @@ class ClientIntegration extends AbstractIntegration
                 $e->setContact($this->contact);
             } elseif ($e instanceof ContactClientRetryException) {
                 $e->setContact($this->contact);
+                $this->setStatType($e->getStatType());
                 // @todo - This type of exception indicates that we can requeue the contact (if applicable).
             }
 
@@ -301,6 +305,27 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return string
+     */
+    public function getStatType()
+    {
+        return $this->statType;
+    }
+
+    /**
+     * @param string $statType
+     *
+     * @return ClientIntegration
+     */
+    public function setStatType($statType = null)
+    {
+        if (!empty($statType)) {
+            $this->statType = $statType;
+        }
+        return $this;
+    }
+
+    /**
      * Log to:
      *      contactclient_stats
      *      contactclient_events
@@ -331,7 +356,7 @@ class ClientIntegration extends AbstractIntegration
             $statLevel = 'INFO';
             $message = 'Contact was sent successfully.';
         } else {
-            $statType = Stat::TYPE_ERROR;
+            $statType = $this->statType ?: Stat::TYPE_ERROR;
             $statLevel = 'ERROR';
             $message = $operation['error'] ?? 'An unexpected error occurred.';
             // Check for a filter-based rejection.
