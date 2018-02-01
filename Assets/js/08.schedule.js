@@ -2,8 +2,8 @@
 Mautic.contactclientSchedule = function () {
     mQuery(document).ready(function () {
 
-        var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget'),
-            $scheduleHoursSource = mQuery('#contactclient_schedule_hours');
+        var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget:first'),
+            $scheduleHoursSource = mQuery('#contactclient_schedule_hours:first');
         if ($scheduleHoursTarget.length && $scheduleHoursSource.length) {
             var operationTime = $scheduleHoursSource.val();
             if (operationTime.length) {
@@ -14,16 +14,48 @@ Mautic.contactclientSchedule = function () {
                     console.warn('Invalid JSON');
                 }
             }
-            // @todo - More sane defaults.
             if (typeof operationTime !== 'object') {
                 operationTime = [
-                    {},
-                    {},
-                    {},
-                    {},
-                    {},
-                    {isActive: false},
-                    {isActive: false}
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    },
+                    {
+                        isActive: true,
+                        timeFrom: '00:00',
+                        timeTill: '23:59'
+                    }
                 ];
             }
             var scheduleHours = $scheduleHoursTarget.businessHours({
@@ -32,8 +64,10 @@ Mautic.contactclientSchedule = function () {
                 uncheckedColorClass: 'btn-danger',
                 postInit: function () {
                     mQuery('.operationTimeFrom, .operationTimeTill').timepicker({
-                        'timeFormat': 'H:i',
-                        'step': 15
+                        timeFormat: 'H:i',
+                        step: function (i) {
+                            return (i < 48) ? 30 : 29;
+                        }
                     });
                 },
                 dayTmpl: '<div class="dayContainer">' +
@@ -47,6 +81,66 @@ Mautic.contactclientSchedule = function () {
             $scheduleHoursSource.addClass('hide');
             mQuery('#contactclient_schedule_hours_widget .operationState, #contactclient_schedule_hours_widget input').change(function () {
                 mQuery('#contactclient_schedule_hours').val(JSON.stringify(scheduleHours.serialize()));
+            });
+
+        }
+
+        var $exclusions = mQuery('#contactclient_schedule_exclusions:first');
+        if ($exclusions.length) {
+            var exclusionsJSONEditor;
+
+            // Grab the JSON Schema to begin rendering the form with
+            // JSONEditor.
+            mQuery.ajax({
+                dataType: 'json',
+                cache: true,
+                url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/exclusions.json',
+                success: function (data) {
+                    var schema = data;
+
+                    // Create our widget container for the JSON Editor.
+                    var $exclusionsJSONEditor = mQuery('<div>', {
+                        class: 'contactclient_jsoneditor'
+                    }).insertBefore($exclusions);
+
+                    // Instantiate the JSON Editor based on our schema.
+                    exclusionsJSONEditor = new JSONEditor($exclusionsJSONEditor[0], {
+                        schema: schema,
+                        disable_collapse: true
+                    });
+
+                    $exclusions.change(function () {
+                        // Load the initial value if applicable.
+                        var raw = mQuery(this).val(),
+                            obj;
+                        if (raw.length) {
+                            try {
+                                obj = mQuery.parseJSON(raw);
+                                if (typeof obj === 'object') {
+                                    exclusionsJSONEditor.setValue(obj);
+                                }
+                            }
+                            catch (e) {
+                                console.warn(e);
+                            }
+                        }
+                    }).trigger('change');
+
+                    // Persist the value to the JSON Editor.
+                    exclusionsJSONEditor.on('change', function () {
+                        var obj = exclusionsJSONEditor.getValue();
+                        if (typeof obj === 'object') {
+                            var raw = JSON.stringify(obj, null, '  ');
+                            if (raw.length) {
+                                // Set the textarea.
+                                $exclusions.val(raw);
+                            }
+                        }
+                    });
+
+                    $exclusions.addClass('hide');
+                    $exclusionsJSONEditor.show();
+                }
             });
         }
     });

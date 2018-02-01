@@ -12,7 +12,6 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
@@ -48,6 +47,7 @@ class ApiPayload
     /** @var ContactClient */
     protected $contactClient;
 
+    /** @var Contact */
     protected $contact;
 
     protected $payload;
@@ -76,10 +76,10 @@ class ApiPayload
     /**
      * ApiPayload constructor.
      * @param ContactClient $contactClient
-     * @param Contact|null $contact
-     * @param Container $container
+     * @param null $contact
+     * @param null $container
      * @param bool $test
-     * @throws ApiErrorException
+     * @throws \Exception
      */
     public function __construct(ContactClient $contactClient, $contact = null, $container = null, $test = false)
     {
@@ -96,12 +96,12 @@ class ApiPayload
      *
      * @param string $payload
      * @return mixed
-     * @throws ApiErrorException
+     * @throws \Exception
      */
     public function setPayload(string $payload)
     {
         if (!$payload) {
-            throw new ApiErrorException('API instructions payload is blank.');
+            throw new \Exception('API instructions payload is blank.');
         }
         $payload = json_decode($payload);
         $jsonError = null;
@@ -128,10 +128,10 @@ class ApiPayload
                 break;
         }
         if ($jsonError) {
-            throw new ApiErrorException('API instructions payload JSON is invalid: '.$jsonError);
+            throw new \Exception('API instructions payload JSON is invalid: '.$jsonError);
         }
         if (!$payload || !is_object($payload)) {
-            throw new ApiErrorException('API instructions payload is invalid.');
+            throw new \Exception('API instructions payload is invalid.');
         }
 
         return $this->payload = $payload;
@@ -156,13 +156,12 @@ class ApiPayload
      * Step through all operations defined.
      *
      * @return bool
-     * @throws ApiErrorException
      * @throws \Exception
      */
     public function run()
     {
         if (!isset($this->payload->operations) || !count($this->payload->operations)) {
-            throw new ApiErrorException('API instructions payload has no operations to run.');
+            throw new \Exception('API instructions payload has no operations to run.');
         }
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $service */
@@ -182,10 +181,7 @@ class ApiPayload
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
             $this->setLogs($logs, $id);
-//            $filter = $apiOperation->getFilter();
-//            if ($filter) {
-//                $this->setLogs($filter, 'filter');
-//            }
+
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;
@@ -237,8 +233,8 @@ class ApiPayload
                 // Set the timezones for date/time conversion.
                 $tza = $this->container->get('mautic.helper.core_parameters')->getParameter(
                     'default_timezone'
-                ) ?: 'UTC';
-                $tzb = $this->contactClient->getScheduleTimezone() ?: 'UTC';
+                ) ?: date_default_timezone_get();
+                $tzb = $this->contactClient->getScheduleTimezone() ?: date_default_timezone_get();
                 $this->tokenHelper->setTimezones($tza, $tzb);
 
                 // Add the Contact as context for field replacement.

@@ -11,8 +11,7 @@ Mautic.contactclientApiPayload = function () {
             var apiPayloadCodeMirror,
                 apiPayloadJSONEditor;
 
-            // Grab the JSON Schema to begin rendering the form with
-            // JSONEditor.
+            // Grab the JSON Schema to begin rendering the form with JSONEditor.
             mQuery.ajax({
                 dataType: 'json',
                 cache: true,

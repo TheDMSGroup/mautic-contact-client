@@ -12,12 +12,12 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Doctrine\DBAL\Query\QueryBuilder;
-use Mautic\CoreBundle\Event\TokenReplacementEvent;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
 use Mautic\CoreBundle\Model\FormModel;
-use Mautic\LeadBundle\Model\LeadModel;
+use Mautic\LeadBundle\Model\LeadModel as ContactModel;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PageBundle\Model\TrackableModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
@@ -28,7 +28,6 @@ use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
@@ -60,7 +59,7 @@ class ContactClientModel extends FormModel
     /**
      * @var
      */
-    protected $leadModel;
+    protected $contactModel;
 
     /**
      * ContactClientModel constructor.
@@ -69,20 +68,20 @@ class ContactClientModel extends FormModel
      * @param TrackableModel $trackableModel
      * @param TemplatingHelper $templating
      * @param EventDispatcherInterface $dispatcher
-     * @param LeadModel $leadModel
+     * @param ContactModel $contactModel
      */
     public function __construct(
         \Mautic\FormBundle\Model\FormModel $formModel,
         TrackableModel $trackableModel,
         TemplatingHelper $templating,
         EventDispatcherInterface $dispatcher,
-        LeadModel $leadModel
+        ContactModel $contactModel
     ) {
         $this->formModel = $formModel;
         $this->trackableModel = $trackableModel;
         $this->templating = $templating;
         $this->dispatcher = $dispatcher;
-        $this->leadModel = $leadModel;
+        $this->contactModel = $contactModel;
     }
 
     /**
@@ -328,7 +327,7 @@ class ContactClientModel extends FormModel
     /**
      * Get engagement counts by time unit.
      *
-     * @param Lead            $lead
+     * @param Contact         $contact
      * @param \DateTime|null  $dateFrom
      * @param \DateTime|null  $dateTo
      * @param string          $unit
@@ -336,9 +335,9 @@ class ContactClientModel extends FormModel
      *
      * @return array
      */
-    public function getEngagementCount(Lead $lead, \DateTime $dateFrom = null, \DateTime $dateTo = null, $unit = 'm', ChartQuery $chartQuery = null)
+    public function getEngagementCount(Contact $contact, \DateTime $dateFrom = null, \DateTime $dateTo = null, $unit = 'm', ChartQuery $chartQuery = null)
     {
-        $event = new ContactClientTimelineEvent($lead);
+        $event = new ContactClientTimelineEvent($contact);
         $event->setCountOnly($dateFrom, $dateTo, $unit, $chartQuery);
 
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
@@ -361,7 +360,7 @@ class ContactClientModel extends FormModel
     /**
      * {@inheritdoc}
      *
-     * @return bool|ContactClientEvent|void
+     * @return bool|ContactClientEvent
      *
      * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
      */

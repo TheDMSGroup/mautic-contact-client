@@ -1,0 +1,44 @@
+{
+  "title": "Exclusions",
+  "$schema": "exclusions.json",
+  "type": "array",
+  "format": "table",
+  "options": {
+    "disable_collapse": true
+  },
+  "items": {
+    "title": "Date",
+    "$ref": "#/definitions/exclusionField"
+  },
+  "definitions": {
+    "exclusionField": {
+      "title": "Date",
+      "headerTemplate": "{{ self.key }}",
+      "type": "object",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "properties": {
+        "value": {
+          "propertyOrder": 10,
+          "type": "string",
+          "format": "datestring",
+          "title": "Date",
+          "default": ""
+        },
+        "description": {
+          "propertyOrder": 20,
+          "type": "string",
+          "title": "Description",
+          "options": {
+            "infoText": ""
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        }
+      }
+    }
+  }
+}

@@ -13,19 +13,20 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Entity\LeadEventLog;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\Schedule;
+use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\Yaml\Yaml;
-use Mautic\LeadBundle\Entity\LeadEventLog;
-
 
 /**
  * Class ClientIntegration
@@ -62,6 +63,12 @@ class ClientIntegration extends AbstractIntegration
 
     protected $eventType;
 
+    /** @var string */
+    protected $statType;
+
+    /** @var contactClientModel */
+    protected $contactClientModel;
+
     public function getDisplayName()
     {
         return 'Clients';
@@ -94,7 +101,6 @@ class ClientIntegration extends AbstractIntegration
      */
     public function pushLead($contact, $config = [])
     {
-        $container = $this->dispatcher->getContainer();
 
         $config = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
@@ -102,7 +108,8 @@ class ClientIntegration extends AbstractIntegration
         }
 
         /** @var Contact $contactModel */
-        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        $clientModel = $this->getContactClientModel();
+
         $client = $clientModel->getEntity($config['contactclient']);
         if (!$client || $client->getIsPublished() === false) {
             return false;
@@ -123,7 +130,7 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-        $result = $this->sendContact($client, $contact, $container, false, $overrides);
+        $result = $this->sendContact($client, $contact, false, $overrides);
 
         return $result;
     }
@@ -161,41 +168,70 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return contactClientModel
+     */
+    private function getContactClientModel()
+    {
+        if (!$this->contactClientModel) {
+            $container = $this->dispatcher->getContainer();
+            /** @var contactClientModel $contactClientModel */
+            $this->contactClientModel = $container->get('mautic.contactclient.model.contactclient');
+        }
+
+        return $this->contactClientModel;
+    }
+
+    /**
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
      *
      * @param ContactClient $client
      * @param Contact $contact
-     * @param Container $container
      * @param bool $test
      * @param array $overrides
      * @return bool
+     * @throws \Mautic\PluginBundle\Exception\ContactClientRetryException
      */
     public function sendContact(
         ContactClient $client,
         Contact $contact,
-        Container $container,
         $test = false,
         $overrides = []
     ) {
+        $container = $this->dispatcher->getContainer();
 
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
 
-        $this->container = $container;
+
         $this->test = $test;
 
         try {
 
             if (!$client) {
-                throw new ApiErrorException('Contact Client appears to not exist.');
+                throw new \Exception('Contact Client appears to not exist.');
             }
             $this->contactClient = $client;
 
             if (!$contact) {
-                throw new ApiErrorException('Contact appears to not exist.');
+                throw new \Exception('Contact appears to not exist.');
             }
             $this->contact = $contact;
+
+            // Check all rules that may preclude sending this contact, in order of performance cost.
+
+            // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
+            $schedule = new Schedule($this->contactClient, $container);
+            $schedule->evaluateHours($this->contactClient);
+            $schedule->evaluateExclusions($this->contactClient);
+
+            // @todo - Filtering - Check filter rules to ensure this contact is applicable.
+
+            // @todo - Limits - Check limit rules to ensure we have not sent too many contacts in our window.
+
+            // @todo - Exclusivity - Check exclusivity rules to ensure this contact hasn't been sent to a competitor.
+
+            // @todo - Duplicates - Check duplicate cache to ensure we have not already sent this contact.
 
             $this->payload = new ApiPayload($this->contactClient, $contact, $container, $test);
 
@@ -210,11 +246,20 @@ class ClientIntegration extends AbstractIntegration
             $this->setLogs($e->getMessage(), 'error');
             if ($e instanceof ApiErrorException) {
                 $e->setContact($this->contact);
+            } elseif ($e instanceof ContactClientRetryException) {
+                $e->setContact($this->contact);
+                $this->setStatType($e->getStatType());
+
+                // This type of exception indicates that we can requeue the contact.
+                $this->logIntegrationError($e, $this->contact);
             }
-            $this->logIntegrationError($e, $this->contact);
         }
 
-        $this->setLogs($this->payload->getLogs(), 'operations');
+        // @todo - Revenue - Apply revenue (default or field based) to the Contact and Revenue stats.
+
+        if (isset($this->payload)) {
+            $this->setLogs($this->payload->getLogs(), 'operations');
+        }
 
         $this->updateContact();
 
@@ -229,6 +274,9 @@ class ClientIntegration extends AbstractIntegration
      */
     private function updateContact()
     {
+        if (!$this->payload) {
+            return;
+        }
         $responseMap = $this->payload->getResponseMap();
         if ($this->valid) {
             $updated = false;
@@ -245,7 +293,7 @@ class ClientIntegration extends AbstractIntegration
             if ($updated) {
                 try {
                     /** @var Contact $contactModel */
-                    $contactModel = $this->container->get('mautic.lead.model.lead');
+                    $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
                     $contactModel->saveEntity($this->contact);
                     $this->setLogs('Operation successful. The Contact was updated.', 'updated');
                 } catch (Exception $e) {
@@ -260,22 +308,40 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return string
+     */
+    public function getStatType()
+    {
+        return $this->statType;
+    }
+
+    /**
+     * @param string $statType
+     *
+     * @return ClientIntegration
+     */
+    public function setStatType($statType = null)
+    {
+        if (!empty($statType)) {
+            $this->statType = $statType;
+        }
+        return $this;
+    }
+
+    /**
      * Log to:
      *      contactclient_stats
      *      contactclient_events
-     *      contactclient_contact_event_log             ?
-     *      contactclient_contact_event_failed_log      ?
      *      integration_entity
      *
      * Use LeadTimelineEvent
      */
     private function logResults()
     {
-        $integration_entity_id = $this->payload->getExternalId();
+        $integration_entity_id = !empty($this->payload) ? $this->payload->getExternalId() : null;
 
-        $container = $this->dispatcher->getContainer();
         /** @var contactClientModel $clientModel */
-        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        $clientModel = $this->getContactClientModel();
 
         // Stats - contactclient_stats
 
@@ -293,7 +359,7 @@ class ClientIntegration extends AbstractIntegration
             $statLevel = 'INFO';
             $message = 'Contact was sent successfully.';
         } else {
-            $statType = Stat::TYPE_ERROR;
+            $statType = $this->statType ?: Stat::TYPE_ERROR;
             $statLevel = 'ERROR';
             $message = $operation['error'] ?? 'An unexpected error occurred.';
             // Check for a filter-based rejection.
@@ -360,6 +426,36 @@ class ClientIntegration extends AbstractIntegration
         $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().': '.$message);
     }
 
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
+    }
+
+    public function getLogs()
+    {
+        return $this->logs;
+    }
+
+    function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value,
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
+    }
+
     /**
      * @param $entity
      * @param $object
@@ -419,50 +515,18 @@ class ClientIntegration extends AbstractIntegration
         return $this->valid;
     }
 
-    public function getLogsYAML()
-    {
-        return Yaml::dump($this->getLogs(), 10, 2);
-    }
-
-    public function getLogs()
-    {
-        return $this->logs;
-    }
-
-    function setLogs($value, $type = null)
-    {
-        if ($type) {
-            if (isset($this->logs[$type])) {
-                if (is_array($this->logs[$type])) {
-                    $this->logs[$type][] = $value;
-                } else {
-                    $this->logs[$type] = [
-                        $this->logs[$type],
-                        $value,
-                    ];
-                }
-            } else {
-                $this->logs[$type] = $value;
-            }
-        } else {
-            $this->logs[] = $value;
-        }
-    }
-
     /**
      * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
      * @param array $data
      * @param string $formArea
-     * @throws ApiErrorException
      */
     public function appendToForm(&$builder, $data, $formArea)
     {
         if ($formArea == 'integration') {
             if ($this->isAuthorized()) {
 
-                $container = $this->dispatcher->getContainer();
                 /** @var contactClientModel $clientModel */
-                $clientModel = $container->get('mautic.contactclient.model.contactclient');
+                $clientModel = $this->getContactClientModel();
 
                 /** @var contactClientRepository $contactClientRepo */
                 $contactClientRepo = $clientModel->getRepository();
