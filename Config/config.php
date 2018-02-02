@@ -32,13 +32,6 @@ return [
                     'contactClientId' => '\d+',
                 ],
             ],
-            'mautic_contactclient_test_action' => [
-                'path'       => '/contactclient/test/{contactClientId}',
-                'controller' => 'MauticContactClientBundle:Test:index',
-                'requirements' => [
-                    'contactClientId' => '\d+',
-                ],
-            ],
         ],
     ],
 

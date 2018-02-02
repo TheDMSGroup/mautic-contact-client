@@ -136,6 +136,24 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @param $apiPayload
+     * @return array
+     */
+    public function sendTest($apiPayload)
+    {
+        $client = new ContactClient();
+        $client->setAPIPayload($apiPayload);
+        $contact = new Contact();
+
+        $this->sendContact($client, $contact, true);
+
+        return [
+            'valid' => $this->valid,
+            'payload' => $client->getAPIPayload(),
+        ];
+    }
+
+    /**
      * Merges a config from integration_list with feature settings.
      *
      * @param array $config
@@ -207,12 +225,12 @@ class ClientIntegration extends AbstractIntegration
 
         try {
 
-            if (!$client) {
+            if (!$client && !$this->test) {
                 throw new \InvalidArgumentException('Contact Client appears to not exist.');
             }
             $this->contactClient = $client;
 
-            if (!$contact) {
+            if (!$contact && !$this->test) {
                 throw new \InvalidArgumentException('Contact appears to not exist.');
             }
             $this->contact = $contact;
@@ -220,9 +238,11 @@ class ClientIntegration extends AbstractIntegration
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
-            $schedule = new Schedule($this->contactClient, $container);
-            $schedule->evaluateHours($this->contactClient);
-            $schedule->evaluateExclusions($this->contactClient);
+            if (!$this->test) {
+                $schedule = new Schedule($this->contactClient, $container);
+                $schedule->evaluateHours($this->contactClient);
+                $schedule->evaluateExclusions($this->contactClient);
+            }
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
 
@@ -232,7 +252,7 @@ class ClientIntegration extends AbstractIntegration
 
             // @todo - Duplicates - Check duplicate cache to ensure we have not already sent this contact.
 
-            $this->payload = new ApiPayload($this->contactClient, $contact, $container, $test);
+            $this->payload = new ApiPayload($this->contactClient, $this->contact, $container, $test);
 
             if ($overrides) {
                 $this->payload->setOverrides($overrides);
@@ -273,7 +293,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function updateContact()
     {
-        if (!$this->payload) {
+        if (!$this->test && !$this->payload) {
             return;
         }
         $responseMap = $this->payload->getResponseMap();
@@ -337,6 +357,10 @@ class ClientIntegration extends AbstractIntegration
      */
     private function logResults()
     {
+        // Do not log the results of a test?
+        if ($this->test) {
+            return;
+        }
         $integration_entity_id = !empty($this->payload) ? $this->payload->getExternalId() : null;
 
         /** @var contactClientModel $clientModel */

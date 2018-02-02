@@ -199,6 +199,72 @@ Mautic.contactclientApiPayload = function () {
                 })
                 // Since it's functional now, unhide the widget.
                 .parent().parent().removeClass('hide');
+
+            /**
+             * Test Ajax.
+             */
+            if (typeof Mautic.contactclientTestAction !== 'undefined') {
+                var apiPayloadTestCodeMirror;
+                mQuery('#api_payload_test').click(function(){
+                    var $button = mQuery(this);
+                    if ($button.hasClass('active')) {
+                        // Test Deactivation.
+                        Mautic.removeButtonLoadingIndicator($button);
+                    } else {
+                        // Test Activation.
+                        var data = {
+                            action: 'plugin:mauticContactClient:getApiPayloadTest',
+                            apiPayload: $apiPayload.val()
+                        };
+                        mQuery.ajax({
+                            url: mauticAjaxUrl,
+                            type: "POST",
+                            data: data,
+                            dataType: "json",
+                            success: function (response) {
+                                if (typeof response.html !== 'undefined') {
+
+                                    var $result = mQuery('#api_payload_test_result');
+                                    // mQuery('#api_payload_test_result').html(response.html);
+
+                                    // sends markup through core js parsers
+                                    if (response.html !== '') {
+                                        Mautic.onPageLoad('#api_payload_test_result', response);
+
+                                        if (!apiPayloadTestCodeMirror) {
+                                            // var $apiPayloadTestCodeMirror = mQuery('<div>', {
+                                            //     // id: 'contactclient_api_payload_codemirror',
+                                            //     class: 'codeMirror-yaml'
+                                            // }).insertBefore($result);
+                                            // $result.css({'display': 'none'});
+                                            apiPayloadTestCodeMirror = CodeMirror($result[0], {
+                                                value: response.html,
+                                                mode: 'yaml',
+                                                theme: 'material',
+                                                gutters: [],
+                                                lineNumbers: false,
+                                                lineWrapping: true,
+                                                readOnly: true
+                                            });
+                                        } else {
+                                            apiPayloadTestCodeMirror.setValue(response.html, -1);
+                                        }
+                                    }
+                                }
+                                if (typeof response.payload !== 'undefined' && response.payload.length) {
+                                    $apiPayload.val(response.payload);
+                                }
+                            },
+                            error: function (request, textStatus, errorThrown) {
+                                Mautic.processAjaxError(request, textStatus, errorThrown);
+                            },
+                            complete: function () {
+                                Mautic.removeButtonLoadingIndicator($button);
+                            }
+                        });
+                    }
+                });
+            }
         }
     });
 };

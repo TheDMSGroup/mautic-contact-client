@@ -261,13 +261,15 @@ class ApiPayload
             if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
                 $this->contactClient->setAPIPayload($payloadJSON);
 
-                try {
-                    /** @var ContactClientModel $contactClientModel */
-                    $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
-                    $contactClientModel->saveEntity($this->contactClient);
-                    $this->setLogs('Updated our response payload expectations.', 'payload');
-                } catch (Exception $e) {
-                    $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
+                if ($this->contactClient->getId()) {
+                    try {
+                        /** @var ContactClientModel $contactClientModel */
+                        $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
+                        $contactClientModel->saveEntity($this->contactClient);
+                        $this->setLogs('Updated our response payload expectations.', 'payload');
+                    } catch (Exception $e) {
+                        $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
+                    }
                 }
             } else {
                 $this->setLogs('Payload responses matched expectations, no updates necessary.', 'payload');
