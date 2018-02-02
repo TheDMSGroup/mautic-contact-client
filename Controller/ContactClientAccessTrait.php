@@ -21,12 +21,11 @@ trait ContactClientAccessTrait
     /**
      * Determines if the user has access to the contactClient the note is for.
      *
-     * @param $contactClient
+     * @param $contactClientId
      * @param $action
      * @param bool $isPlugin
-     * @param string $intgegration
-     *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+     * @param string $integration
+     * @return ContactClient
      */
     protected function checkContactClientAccess($contactClientId, $action, $isPlugin = false, $integration = '')
     {

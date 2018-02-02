@@ -11,6 +11,21 @@ Mautic.contactclientApiPayload = function () {
             var apiPayloadCodeMirror,
                 apiPayloadJSONEditor;
 
+            function setJSONEditorValue(raw){
+                var obj;
+                if (raw.length) {
+                    try {
+                        obj = mQuery.parseJSON(raw);
+                        if (typeof obj === 'object') {
+                            apiPayloadJSONEditor.setValue(obj);
+                        }
+                    }
+                    catch (e) {
+                        console.warn(e);
+                    }
+                }
+            }
+
             // Grab the JSON Schema to begin rendering the form with JSONEditor.
             mQuery.ajax({
                 dataType: 'json',
@@ -21,7 +36,8 @@ Mautic.contactclientApiPayload = function () {
 
                     // Create our widget container for the JSON Editor.
                     var $apiPayloadJSONEditor = mQuery('<div>', {
-                        class: 'contactclient_jsoneditor'
+                        class: 'contactclient_jsoneditor',
+                        id: 'api_payload_jsoneditor'
                     }).insertBefore($apiPayload);
 
                     // Instantiate the JSON Editor based on our schema.
@@ -30,19 +46,7 @@ Mautic.contactclientApiPayload = function () {
                     });
 
                     // Load the initial value if applicable.
-                    var raw = $apiPayload.val(),
-                        obj;
-                    if (raw.length) {
-                        try {
-                            obj = mQuery.parseJSON(raw);
-                            if (typeof obj === 'object') {
-                                apiPayloadJSONEditor.setValue(obj);
-                            }
-                        }
-                        catch (e) {
-                            console.warn(e);
-                        }
-                    }
+                    setJSONEditorValue($apiPayload.val());
 
                     // Persist the value to the JSON Editor.
                     apiPayloadJSONEditor.on('change', function () {
@@ -64,7 +68,8 @@ Mautic.contactclientApiPayload = function () {
                                         // If there is a header array...
                                         if (typeof obj.operations[i].response.headers === 'object') {
                                             for (var j = 0, lenj = obj.operations[i].response.headers.length; j < lenj; j++) {
-                                                // Grab the keys from each header field.
+                                                // Grab the keys from each
+                                                // header field.
                                                 if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length) {
                                                     additionalFilters.push({
                                                         id: 'headers.' + obj.operations[i].response.headers[j].key,
@@ -79,7 +84,8 @@ Mautic.contactclientApiPayload = function () {
                                         // If there is a body array...
                                         if (typeof obj.operations[i].response.body === 'object') {
                                             for (var k = 0, lenk = obj.operations[i].response.body.length; k < lenk; k++) {
-                                                // Grab the keys from each body field.
+                                                // Grab the keys from each body
+                                                // field.
                                                 if (typeof obj.operations[i].response.body[k].key !== 'undefined' && obj.operations[i].response.body[k].key.length) {
                                                     additionalFilters.push({
                                                         id: 'body.' + obj.operations[i].response.body[k].key,
@@ -140,7 +146,7 @@ Mautic.contactclientApiPayload = function () {
             });
 
             // API Payload advanced button.
-            mQuery('#api_payload_advanced .btn')
+            mQuery('.btn#api_payload_advanced')
                 .click(function () {
                     var raw = $apiPayload.val(),
                         error = false;
@@ -162,7 +168,7 @@ Mautic.contactclientApiPayload = function () {
                             }
                             if (!error) {
                                 $apiPayloadCodeMirror.addClass('hide');
-                                mQuery('#contactclient_jsoneditor').removeClass('hide');
+                                mQuery('#api_payload_jsoneditor').removeClass('hide');
                             }
                             else {
                                 mQuery(this).toggleClass('active');
@@ -187,7 +193,7 @@ Mautic.contactclientApiPayload = function () {
                             }
                             if (!error) {
                                 $apiPayloadCodeMirror.removeClass('hide');
-                                mQuery('#contactclient_jsoneditor').addClass('hide');
+                                mQuery('#api_payload_jsoneditor').addClass('hide');
                                 apiPayloadCodeMirror.refresh();
                             }
                             else {
@@ -198,6 +204,72 @@ Mautic.contactclientApiPayload = function () {
                 })
                 // Since it's functional now, unhide the widget.
                 .parent().parent().removeClass('hide');
+
+            /**
+             * Test Ajax.
+             */
+            var apiPayloadTestCodeMirror;
+            mQuery('#api_payload_test').click(function () {
+                var $button = mQuery(this),
+                    $resultContainer = mQuery('#api_payload_test_result'),
+                    $result = $resultContainer.find('#api_payload_test_result_yaml');
+                if ($button.hasClass('active')) {
+                    // Test Deactivation.
+                }
+                else {
+                    // Test Activation.
+                    var data = {
+                        action: 'plugin:mauticContactClient:getApiPayloadTest',
+                        apiPayload: $apiPayload.val()
+                    };
+                    $resultContainer.addClass('hide');
+                    $result.addClass('hide');
+                    mQuery.ajax({
+                        url: mauticAjaxUrl,
+                        type: 'POST',
+                        data: data,
+                        dataType: 'json',
+                        success: function (response) {
+                            if (typeof response.html !== 'undefined') {
+                                $resultContainer.removeClass('hide');
+                                $result.removeClass('hide');
+
+                                // sends markup through core js parsers
+                                if (response.html !== '') {
+                                    if (!apiPayloadTestCodeMirror) {
+                                        apiPayloadTestCodeMirror = CodeMirror($result[0], {
+                                            value: response.html,
+                                            mode: 'yaml',
+                                            theme: 'material',
+                                            gutters: [],
+                                            lineNumbers: false,
+                                            lineWrapping: true,
+                                            readOnly: true
+                                        });
+                                    }
+                                    else {
+                                        apiPayloadTestCodeMirror.setValue(response.html, -1);
+                                    }
+                                    Mautic.onPageLoad('#api_payload_test_result', response);
+                                }
+                            }
+                            if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue == 'function') {
+                                setJSONEditorValue(response.payload);
+                            }
+                        },
+                        error: function (request, textStatus, errorThrown) {
+                            Mautic.processAjaxError(request, textStatus, errorThrown);
+                        },
+                        complete: function () {
+                            Mautic.removeButtonLoadingIndicator($button);
+                            mQuery('html, body').stop().animate({
+                                scrollTop: $resultContainer.first().offset().top
+                            }, 500);
+                            $button.removeClass('active');
+                        }
+                    });
+                }
+            });
         }
     });
 };

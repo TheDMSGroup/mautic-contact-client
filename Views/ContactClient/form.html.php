@@ -27,7 +27,6 @@ echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Asset
 echo $view['form']->start($form);
 ?>
 
-
 <!-- start: box layout -->
 <div class="box-layout">
 
@@ -167,14 +166,25 @@ echo $view['form']->start($form);
                     <div class="form-group mb-0">
                         <div class="row api_payload hide">
                             <div class="col-md-12">
-                                <div id="api_payload_advanced" class="form-group hide">
-                                    <div class="choice-wrapper">
-                                        <button type="button" class="btn btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide">
+                                    <div class="btn-group hidden-xs">
+                                        <button type="button" class="btn btn-default" id="api_payload_test" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            <i class="fa fa-check-circle text-success"></i>
+                                            <?php echo $view['translator']->trans('mautic.contactclient.form.test'); ?>
+                                        </button>
+                                        <button type="button" class="btn btn-default btn-nospin" id="api_payload_advanced" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                            <i class="fa fa-low-vision"></i>
                                             <?php echo $view['translator']->trans('mautic.contactclient.form.advanced'); ?>
                                         </button>
                                     </div>
                                 </div>
                                 <?php echo $view['form']->row($form['api_payload']); ?>
+                                <div id="api_payload_test_result" class="hide">
+                                    <hr/>
+                                    <strong><?php echo $view['translator']->trans('mautic.contactclient.form.test_results'); ?></strong>
+                                    <div id="api_payload_test_result_yaml">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row file_payload hide">
@@ -219,11 +229,5 @@ echo $view['form']->start($form);
     <!--/ container -->
 </div>
 <!--/ box layout -->
-
-
-
-
-
-
 
 <?php echo $view['form']->end($form); ?>

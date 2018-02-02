@@ -20,6 +20,9 @@
         "headerTemplate": "{{ i1 }}) {{ self.name }}",
         "type": "object",
         "format": "grid",
+        "options": {
+          "collapsed": true
+        },
         "properties": {
           "name": {
             "propertyOrder": 10,

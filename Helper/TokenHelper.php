@@ -176,24 +176,27 @@ class TokenHelper
         }
 
         // Add UTM data.
-        foreach ($contact->getUtmTags() as $utmTag) {
-            if (!isset($context['utmTags'])) {
-                $context['utmTags'] = [];
+        $utmTags = $contact->getUtmTags();
+        if ($utmTags) {
+            foreach ($utmTags as $utmTag) {
+                if (!isset($context['utmTags'])) {
+                    $context['utmTags'] = [];
+                }
+                $tags = [
+                    'query' => $utmTag->getQuery(),
+                    'referrer' => $utmTag->getReferer(),
+                    'remoteHost' => $utmTag->getRemoteHost(),
+                    'url' => $utmTag->getUrl(),
+                    'userAgent' => $utmTag->getUserAgent(),
+                    'campaign' => $utmTag->getUtmCampaign(),
+                    'content' => $utmTag->getUtmContent(),
+                    'medium' => $utmTag->getUtmMedium(),
+                    'source' => $utmTag->getUtmSource(),
+                    'term' => $utmTag->getUtmTerm(),
+                ];
+                $context['utmTags'][] = $tags;
+                $context['utmTag'] = $tags;
             }
-            $tags = [
-                'query' => $utmTag->getQuery(),
-                'referrer' => $utmTag->getReferer(),
-                'remoteHost' => $utmTag->getRemoteHost(),
-                'url' => $utmTag->getUrl(),
-                'userAgent' => $utmTag->getUserAgent(),
-                'campaign' => $utmTag->getUtmCampaign(),
-                'content' => $utmTag->getUtmContent(),
-                'medium' => $utmTag->getUtmMedium(),
-                'source' => $utmTag->getUtmSource(),
-                'term' => $utmTag->getUtmTerm(),
-            ];
-            $context['utmTags'][] = $tags;
-            $context['utmTag'] = $tags;
         }
 
         // Add all other fields.

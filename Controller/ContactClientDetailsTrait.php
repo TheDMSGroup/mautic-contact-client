@@ -18,6 +18,10 @@ use Mautic\CoreBundle\Model\AuditLogModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
+/**
+ * Trait ContactClientDetailsTrait
+ * @package MauticPlugin\MauticContactClientBundle\Controller
+ */
 trait ContactClientDetailsTrait
 {
 
