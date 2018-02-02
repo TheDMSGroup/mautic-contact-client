@@ -26,9 +26,6 @@ echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Asset
 
 echo $view['form']->start($form);
 ?>
-<script type="text/javascript">
-    Mautic.contactclientTestAction = '<?php echo $view['router']->path('mautic_contactclient_test_action', ['contactClientId' => $entity->getId()]); ?>';
-</script>
 
 <!-- start: box layout -->
 <div class="box-layout">
@@ -182,8 +179,11 @@ echo $view['form']->start($form);
                                     </div>
                                 </div>
                                 <?php echo $view['form']->row($form['api_payload']); ?>
-                                <div id="api_payload_test_result">
-                                    <!-- Test results to go here -->
+                                <div id="api_payload_test_result" class="hide">
+                                    <hr/>
+                                    <strong><?php echo $view['translator']->trans('mautic.contactclient.form.test_results'); ?></strong>
+                                    <div id="api_payload_test_result_yaml">
+                                    </div>
                                 </div>
                             </div>
                         </div>

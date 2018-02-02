@@ -11,6 +11,21 @@ Mautic.contactclientApiPayload = function () {
             var apiPayloadCodeMirror,
                 apiPayloadJSONEditor;
 
+            function setJSONEditorValue(raw){
+                var obj;
+                if (raw.length) {
+                    try {
+                        obj = mQuery.parseJSON(raw);
+                        if (typeof obj === 'object') {
+                            apiPayloadJSONEditor.setValue(obj);
+                        }
+                    }
+                    catch (e) {
+                        console.warn(e);
+                    }
+                }
+            }
+
             // Grab the JSON Schema to begin rendering the form with JSONEditor.
             mQuery.ajax({
                 dataType: 'json',
@@ -31,19 +46,7 @@ Mautic.contactclientApiPayload = function () {
                     });
 
                     // Load the initial value if applicable.
-                    var raw = $apiPayload.val(),
-                        obj;
-                    if (raw.length) {
-                        try {
-                            obj = mQuery.parseJSON(raw);
-                            if (typeof obj === 'object') {
-                                apiPayloadJSONEditor.setValue(obj);
-                            }
-                        }
-                        catch (e) {
-                            console.warn(e);
-                        }
-                    }
+                    setJSONEditorValue($apiPayload.val());
 
                     // Persist the value to the JSON Editor.
                     apiPayloadJSONEditor.on('change', function () {
@@ -65,7 +68,8 @@ Mautic.contactclientApiPayload = function () {
                                         // If there is a header array...
                                         if (typeof obj.operations[i].response.headers === 'object') {
                                             for (var j = 0, lenj = obj.operations[i].response.headers.length; j < lenj; j++) {
-                                                // Grab the keys from each header field.
+                                                // Grab the keys from each
+                                                // header field.
                                                 if (typeof obj.operations[i].response.headers[j].key !== 'undefined' && obj.operations[i].response.headers[j].key.length) {
                                                     additionalFilters.push({
                                                         id: 'headers.' + obj.operations[i].response.headers[j].key,
@@ -80,7 +84,8 @@ Mautic.contactclientApiPayload = function () {
                                         // If there is a body array...
                                         if (typeof obj.operations[i].response.body === 'object') {
                                             for (var k = 0, lenk = obj.operations[i].response.body.length; k < lenk; k++) {
-                                                // Grab the keys from each body field.
+                                                // Grab the keys from each body
+                                                // field.
                                                 if (typeof obj.operations[i].response.body[k].key !== 'undefined' && obj.operations[i].response.body[k].key.length) {
                                                     additionalFilters.push({
                                                         id: 'body.' + obj.operations[i].response.body[k].key,
@@ -203,68 +208,68 @@ Mautic.contactclientApiPayload = function () {
             /**
              * Test Ajax.
              */
-            if (typeof Mautic.contactclientTestAction !== 'undefined') {
-                var apiPayloadTestCodeMirror;
-                mQuery('#api_payload_test').click(function(){
-                    var $button = mQuery(this);
-                    if ($button.hasClass('active')) {
-                        // Test Deactivation.
-                        Mautic.removeButtonLoadingIndicator($button);
-                    } else {
-                        // Test Activation.
-                        var data = {
-                            action: 'plugin:mauticContactClient:getApiPayloadTest',
-                            apiPayload: $apiPayload.val()
-                        };
-                        mQuery.ajax({
-                            url: mauticAjaxUrl,
-                            type: "POST",
-                            data: data,
-                            dataType: "json",
-                            success: function (response) {
-                                if (typeof response.html !== 'undefined') {
+            var apiPayloadTestCodeMirror;
+            mQuery('#api_payload_test').click(function () {
+                var $button = mQuery(this),
+                    $resultContainer = mQuery('#api_payload_test_result'),
+                    $result = $resultContainer.find('#api_payload_test_result_yaml');
+                if ($button.hasClass('active')) {
+                    // Test Deactivation.
+                }
+                else {
+                    // Test Activation.
+                    var data = {
+                        action: 'plugin:mauticContactClient:getApiPayloadTest',
+                        apiPayload: $apiPayload.val()
+                    };
+                    $resultContainer.addClass('hide');
+                    $result.addClass('hide');
+                    mQuery.ajax({
+                        url: mauticAjaxUrl,
+                        type: 'POST',
+                        data: data,
+                        dataType: 'json',
+                        success: function (response) {
+                            if (typeof response.html !== 'undefined') {
+                                $resultContainer.removeClass('hide');
+                                $result.removeClass('hide');
 
-                                    var $result = mQuery('#api_payload_test_result');
-                                    // mQuery('#api_payload_test_result').html(response.html);
-
-                                    // sends markup through core js parsers
-                                    if (response.html !== '') {
-                                        Mautic.onPageLoad('#api_payload_test_result', response);
-
-                                        if (!apiPayloadTestCodeMirror) {
-                                            // var $apiPayloadTestCodeMirror = mQuery('<div>', {
-                                            //     // id: 'contactclient_api_payload_codemirror',
-                                            //     class: 'codeMirror-yaml'
-                                            // }).insertBefore($result);
-                                            // $result.css({'display': 'none'});
-                                            apiPayloadTestCodeMirror = CodeMirror($result[0], {
-                                                value: response.html,
-                                                mode: 'yaml',
-                                                theme: 'material',
-                                                gutters: [],
-                                                lineNumbers: false,
-                                                lineWrapping: true,
-                                                readOnly: true
-                                            });
-                                        } else {
-                                            apiPayloadTestCodeMirror.setValue(response.html, -1);
-                                        }
+                                // sends markup through core js parsers
+                                if (response.html !== '') {
+                                    if (!apiPayloadTestCodeMirror) {
+                                        apiPayloadTestCodeMirror = CodeMirror($result[0], {
+                                            value: response.html,
+                                            mode: 'yaml',
+                                            theme: 'material',
+                                            gutters: [],
+                                            lineNumbers: false,
+                                            lineWrapping: true,
+                                            readOnly: true
+                                        });
                                     }
+                                    else {
+                                        apiPayloadTestCodeMirror.setValue(response.html, -1);
+                                    }
+                                    Mautic.onPageLoad('#api_payload_test_result', response);
                                 }
-                                if (typeof response.payload !== 'undefined' && response.payload.length) {
-                                    $apiPayload.val(response.payload);
-                                }
-                            },
-                            error: function (request, textStatus, errorThrown) {
-                                Mautic.processAjaxError(request, textStatus, errorThrown);
-                            },
-                            complete: function () {
-                                Mautic.removeButtonLoadingIndicator($button);
                             }
-                        });
-                    }
-                });
-            }
+                            if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue == 'function') {
+                                setJSONEditorValue(response.payload);
+                            }
+                        },
+                        error: function (request, textStatus, errorThrown) {
+                            Mautic.processAjaxError(request, textStatus, errorThrown);
+                        },
+                        complete: function () {
+                            Mautic.removeButtonLoadingIndicator($button);
+                            mQuery('html, body').stop().animate({
+                                scrollTop: $resultContainer.first().offset().top
+                            }, 500);
+                            $button.removeClass('active');
+                        }
+                    });
+                }
+            });
         }
     });
 };

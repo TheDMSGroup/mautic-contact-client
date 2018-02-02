@@ -45,18 +45,12 @@ class AjaxController extends CommonAjaxController
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
-
             $result = $clientIntegration->sendTest($apiPayload);
 
-            // get the network type form
-//             $form = $this->get('form.factory')->create($type, [], ['label' => false, 'csrf_protection' => false]);
-
-//            $html = $this->renderView(
-//                'MauticSocialBundle:FormTheme:'.$type.'_widget.html.php',
-//                ['form' => $form->createView()]
-//            );
-
             $html = $clientIntegration->getLogsYAML();
+//            $html = $this->renderView(
+//                'MauticSocialBundle:FormTheme:'.$type.'_widget.html.php'
+//            );
 
             $dataArray['html']    = $html;
             $dataArray['success'] = $result['valid'];
