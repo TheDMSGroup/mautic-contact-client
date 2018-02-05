@@ -43,16 +43,16 @@ class Revenue
     }
 
     /**
-     * @param $apiPayload
+     * @param ApiPayload $apiPayload
      */
-    public function setApiPayload($apiPayload)
+    public function setApiPayload(ApiPayload $apiPayload)
     {
         $this->apiPayload = $apiPayload;
     }
 
     /**
      * Apply revenue to the current contact based on payload and settings of the Contact Client.
-     * This assumes the Payload was successfully delivered.
+     * This assumes the Payload was successfully delivered (valid = true).
      */
     public function applyRevenue()
     {
@@ -60,16 +60,21 @@ class Revenue
         $alias = 'attribution';
 
         $revenueDefault = $this->contactClient->getRevenueDefault();
-        $revenueSettings = $this->jsonDecodeArray($this->contactClient->getRevenueSettings());
+
+        $revenueSettings = $this->jsonDecodeObject($this->contactClient->getRevenueSettings());
+        if ($revenueSettings && is_object($revenueSettings->mode) && !empty($revenueSettings->mode->key)) {
+            // Dynamic mode.
+            $key = $revenueSettings->mode->key;
+            $sign = $revenueSettings->mode->sign ?? '+';
+            $math = $revenueSettings->mode->math ?? null;
+        }
 
 
-
-
-//        // If we have a value to apply, do the math now and apply to the Contact.
-//        $oldValue = $this->contact->getFieldValue($alias);
-//        $this->contact->addUpdatedField($alias, $value, $oldValue);
-//        $this->setLogs('Updating Contact attribution: '.$alias.' = '.$value);
-//        $updated = true;
+        // If we have a value to apply, do the math now and apply to the Contact.
+        $oldValue = $this->contact->getFieldValue('attribution');
+        $this->contact->addUpdatedField('attribution', $value, $oldValue);
+        $this->setLogs('Updating Contact attribution: '.$alias.' = '.$value);
+        $updated = true;
 
         return $updated;
     }
@@ -79,9 +84,9 @@ class Revenue
      * @return mixed
      * @throws \Exception
      */
-    private function jsonDecodeArray($string)
+    private function jsonDecodeObject($string)
     {
-        $array = json_decode($string ?: '[]');
+        $object = json_decode($string ?: '{}');
         $jsonError = null;
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
@@ -108,11 +113,11 @@ class Revenue
         if ($jsonError) {
             throw new \Exception('Schedule JSON is invalid: '.$jsonError);
         }
-        if (!$array || !is_array($array)) {
-            throw new \Exception('Schedule is invalid.');
+        if (!$object || !is_object($object)) {
+            throw new \Exception('Revenue is invalid.');
         }
 
-        return $array;
+        return $object;
     }
 
 }

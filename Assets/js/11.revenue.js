@@ -51,22 +51,44 @@ Mautic.contactclientRevenue = function () {
                     }
                 }
             }
-            // Convert objects to unique, sorted array, include the example
-            // values.
-            var key, result = [];
+
+            // Sort our keys alphabetically (already de-duped).
+            var keyKeys = Object.keys(keys),
+                result = [];
+            keyKeys.sort();
+            for (var l = 0, keyKeyslen = keyKeys.length; l < keyKeyslen; l++) {
+                result[keyKeys[l]] = keys[keyKeys[l]];
+            }
+            keys = result;
+
+            // Convert our keys to the enum structure needed.
+            var source = [], key;
             for (key in keys) {
                 if (keys.hasOwnProperty(key)) {
                     if (keys[key].length) {
-                        result.push(key + ' (' + keys[key] + ')');
+                        source.push({
+                            'value': key,
+                            'title': key + ' (' + keys[key] + ')'
+                        });
                     }
                     else {
-                        result.push(key);
+                        source.push({
+                            'value': key,
+                            'title': key
+                        });
                     }
                 }
             }
-            keys = result.sort();
-            return keys;
+
+            return [
+                {
+                    'source': source,
+                    'title': '{{item.title}}',
+                    'value': '{{item.value}}'
+                }
+            ];
         };
+        getApiPayloadFields();
 
         var revenueJSONEditor;
 
@@ -78,7 +100,7 @@ Mautic.contactclientRevenue = function () {
             success: function (data) {
                 var schema = data;
                 // Insert possible API fields from API Payload.
-                schema.properties.mode.oneOf[1].properties.key.enum = getApiPayloadFields();
+                schema.properties.mode.oneOf[1].properties.key.enumSource = getApiPayloadFields();
 
                 // Create our widget container for the JSON Editor.
                 var $revenueJSONEditor = mQuery('<div>', {
@@ -121,12 +143,11 @@ Mautic.contactclientRevenue = function () {
                 });
 
                 // Update fields on tab click.
-                // mQuery('#payload-tab .contactclient-tab:first').click(function () {
-                //     var key = revenueJSONEditor.getEditor('root.properties.mode.oneOf[1].properties.key.enum');
-                //     if (typeof key !== 'undefined') {
-                //         key.setValue(getApiPayloadFields());
-                //     }
-                // });
+                // mQuery('#payload-tab
+                // .contactclient-tab:first').click(function () { var key =
+                // revenueJSONEditor.getEditor('root.properties.mode.oneOf[1].properties.key.enum');
+                // if (typeof key !== 'undefined') {
+                // key.setValue(getApiPayloadFields()); } });
 
                 $revenue.addClass('hide');
                 $revenueJSONEditor.show();

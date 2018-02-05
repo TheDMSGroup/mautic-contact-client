@@ -35,30 +35,57 @@
                 "infoText": "Select a field/key being sent by an API response to be used for revenue. This can come to us by way of a header or a footer field."
               }
             },
-            "treatment": {
-              "title": "Treatment",
+            "sign": {
+              "title": "Sign",
               "type": "string",
               "uniqueItems": true,
-              "enum": [
-                "Revenue",
-                "Cost"
-              ],
               "options": {
-                "infoText": "Should we treat the value from the API as a positive number (revenue) or a negative number (cost)."
-              }
+                "infoText": "Should we treat the value from the API as a positive signed number (revenue) or a negative signed number (cost)."
+              },
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "-",
+                      "title": "Cost"
+                    },
+                    {
+                      "value": "+",
+                      "title": "Revenue"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
             },
-            "modification": {
-              "title": "Modification",
+            "math": {
+              "title": "Math",
               "type": "string",
               "uniqueItems": true,
-              "enum": [
-                "None",
-                "Multiply by 100",
-                "Divide by 100"
-              ],
               "options": {
-                "infoText": "Should it be needed we can modify the value from the API to match your standard currency notation of choice."
-              }
+                "infoText": "Should it be needed we can do some basic math on the value from the API to match your standard currency notation of choice."
+              },
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "",
+                      "title": "No modification"
+                    },
+                    {
+                      "value": "/100",
+                      "title": "Divide by 100"
+                    },
+                    {
+                      "value": "*100",
+                      "title": "Multiply by 100"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
             }
           }
         }
