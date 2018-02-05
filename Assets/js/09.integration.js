@@ -2,7 +2,9 @@
 Mautic.contactclientIntegration = function () {
     var $client = mQuery('#campaignevent_properties_config_contactclient:first'),
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:first');
-    if ($client.length && $overrides.length) {
+    if (typeof window.contactclientIntegrationLoaded === 'undefined' && $client.length && $overrides.length) {
+
+        window.contactclientIntegrationLoaded = true;
 
         // Get the JSON from the client selector, if not already present.
         $client.change(function(){

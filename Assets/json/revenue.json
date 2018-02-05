@@ -7,7 +7,7 @@
     "disable_collapse": true
   },
   "properties": {
-    "dynamic": {
+    "mode": {
       "title": "Cost/Revenue is ",
       "options": {
         "collapsed": false,
@@ -25,19 +25,12 @@
           }
         },
         {
-          "title": "Dynamic (Determined by API)",
+          "title": "Dynamic (Determined by API Payload)",
           "properties": {
             "key": {
               "title": "Key",
               "type": "string",
               "uniqueItems": true,
-              "enum": [
-                "cat",
-                "dog",
-                "bird",
-                "reptile",
-                "other"
-              ],
               "options": {
                 "infoText": "Select a field/key being sent by an API response to be used for revenue. This can come to us by way of a header or a footer field."
               }
