@@ -1,6 +1,6 @@
 // Schedule - Hours of Operation.
 Mautic.contactclientRevenue = function () {
-    var $revenue = mQuery('#contactclient_revenueSettings:first');
+    var $revenue = mQuery('#contactclient_revenue_settings:first');
     if (typeof window.contactclientRevenueLoaded === 'undefined' && $revenue.length) {
 
         window.contactclientRevenueLoaded = true;
@@ -130,7 +130,7 @@ Mautic.contactclientRevenue = function () {
 
                 $revenue.addClass('hide');
                 $revenueJSONEditor.show();
-                mQuery('label[for=contactclient_revenueSettings]').addClass('hide');
+                mQuery('label[for=contactclient_revenue_settings]').addClass('hide');
             }
         });
     }

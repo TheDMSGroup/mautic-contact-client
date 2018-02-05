@@ -105,8 +105,8 @@ echo $view['form']->start($form);
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-sm-6">
-                                <?php echo $view['form']->row($form['revenueDefault']); ?>
-                                <?php echo $view['form']->row($form['revenueSettings']); ?>
+                                <?php echo $view['form']->row($form['revenue_default']); ?>
+                                <?php echo $view['form']->row($form['revenue_settings']); ?>
                             </div>
                         </div>
                         <hr class="mnr-md mnl-md">

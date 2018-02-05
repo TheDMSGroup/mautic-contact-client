@@ -291,7 +291,7 @@ class ApiPayload
                 } else {
                     $this->logs[$type] = [
                         $this->logs[$type],
-                        $value
+                        $value,
                     ];
                 }
             } else {
@@ -303,12 +303,43 @@ class ApiPayload
     }
 
     /**
+     * Apply the responsemap to update a contact entity.
+     * @return bool
+     */
+    public function applyResponseMap()
+    {
+        $updated = false;
+        $responseMap = $this->getResponseMap();
+        // Check the responseMap to discern where field values should go.
+        if (count($responseMap)) {
+            foreach ($responseMap as $alias => $value) {
+                $oldValue = $this->contact->getFieldValue($alias);
+                if ($oldValue !== $value) {
+                    $this->contact->addUpdatedField($alias, $value, $oldValue);
+                    $this->setLogs('Updating Contact: '.$alias.' = '.$value);
+                    $updated = true;
+                }
+            }
+        }
+
+        return $updated;
+    }
+
+    /**
      * Return the aggregate responsemap of all valid operations.
      * @return array
      */
     public function getResponseMap()
     {
         return $this->responseMap;
+    }
+
+    /**
+     * @return Contact|null
+     */
+    public function getContact()
+    {
+        return $this->contact;
     }
 
     /**
@@ -332,7 +363,7 @@ class ApiPayload
                                     unset($field->test_only);
                                     unset($field->overridable);
                                     unset($field->required);
-                                    $result[(string) $field->key] = $field;
+                                    $result[(string)$field->key] = $field;
                                 }
                             }
                         }
@@ -340,6 +371,7 @@ class ApiPayload
                 }
             }
         }
+
         return $result;
     }
 
@@ -348,7 +380,8 @@ class ApiPayload
      *
      * @param array $overrides Key value pair array.
      */
-    public function setOverrides($overrides){
+    public function setOverrides($overrides)
+    {
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $id => &$operation) {
                 if (isset($operation->request)) {
@@ -375,7 +408,8 @@ class ApiPayload
      * Get the external ID acquired/assumed by the last successful API operation.
      * @return mixed
      */
-    public function getExternalId() {
+    public function getExternalId()
+    {
         return $this->externalId;
     }
 }

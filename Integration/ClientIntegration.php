@@ -22,6 +22,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\Revenue;
 use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\DependencyInjection\Container;
@@ -55,6 +56,7 @@ class ClientIntegration extends AbstractIntegration
      */
     protected $test = false;
 
+    /** @var ApiPayload */
     protected $payload;
 
     protected $valid = true;
@@ -239,6 +241,7 @@ class ClientIntegration extends AbstractIntegration
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
             if (!$this->test) {
+                /** @var Schedule $schedule */
                 $schedule = new Schedule($this->contactClient, $container);
                 $schedule->evaluateHours($this->contactClient);
                 $schedule->evaluateExclusions($this->contactClient);
@@ -296,19 +299,17 @@ class ClientIntegration extends AbstractIntegration
         if (!$this->test && !$this->payload) {
             return;
         }
-        $responseMap = $this->payload->getResponseMap();
         if ($this->valid) {
-            $updated = false;
-            if (count($responseMap)) {
-                foreach ($responseMap as $alias => $value) {
-                    $oldValue = $this->contact->getFieldValue($alias);
-                    if ($oldValue !== $value) {
-                        $this->contact->addUpdatedField($alias, $value, $oldValue);
-                        $this->setLogs('Updating Contact: '.$alias.' = '.$value);
-                        $updated = true;
-                    }
-                }
+            $updated = $this->payload->applyResponseMap();
+            if ($updated) {
+                $this->contact = $this->payload->getContact();
             }
+
+            /** @var Revenue $revenue */
+            $revenue = new Revenue($this->contactClient, $this->contact);
+            $revenue->applyRevenue();
+
+            // Check the Revenue setting to see if we should apply to "attribution"
             if ($updated) {
                 try {
                     /** @var Contact $contactModel */

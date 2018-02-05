@@ -214,6 +214,8 @@ class ContactClient extends FormEntity
                     'exclusive',
                     'filter',
                     'limits',
+                    'revenue_default',
+                    'revenue_settings',
                     'schedule_timezone',
                     'schedule_hours',
                     'schedule_exclusions',
@@ -447,6 +449,19 @@ class ContactClient extends FormEntity
     }
 
     /**
+     * @param $revenue_default
+     * @return $this
+     */
+    public function setRevenueDefault($revenue_default)
+    {
+        $this->isChanged('revenueDefault', $revenue_default);
+
+        $this->revenue_default = $revenue_default;
+
+        return $this;
+    }
+
+    /**
      * @return mixed
      */
     public function getRevenueSettings()
@@ -455,47 +470,24 @@ class ContactClient extends FormEntity
     }
 
     /**
+     * @param $revenue_settings
+     * @return $this
+     */
+    public function setRevenueSettings($revenue_settings)
+    {
+        $this->isChanged('revenueSettings', $revenue_settings);
+
+        $this->revenue_settings = $revenue_settings;
+
+        return $this;
+    }
+
+    /**
      * @return mixed
      */
     public function getDuplicate()
     {
         return $this->duplicate;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getExclusive()
-    {
-        return $this->exclusive;
-    }
-
-    /**
-     * @param mixed $revenueDefault
-     *
-     * @return ContactClient
-     */
-    public function setRevenueDefault($revenueDefault)
-    {
-        $this->isChanged('revenue_default', $revenueDefault);
-
-        $this->revenueDefault = $revenueDefault;
-
-        return $this;
-    }
-
-    /**
-     * @param mixed $revenueSettings
-     *
-     * @return ContactClient
-     */
-    public function setRevenueSettings($revenueSettings)
-    {
-        $this->isChanged('revenue_settings', $revenueSettings);
-
-        $this->revenueSettings = $revenueSettings;
-
-        return $this;
     }
 
     /**
@@ -510,6 +502,14 @@ class ContactClient extends FormEntity
         $this->duplicate = $duplicate;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getExclusive()
+    {
+        return $this->exclusive;
     }
 
     /**

@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class Schedule
@@ -33,6 +34,7 @@ class Schedule
     /** @var ContactClient $contactClient */
     protected $contactClient;
 
+    /** @var Container */
     protected $container;
 
     /**
@@ -70,7 +72,7 @@ class Schedule
      */
     public function evaluateHours(ContactClient $contactClient)
     {
-        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours() ?: null);
+        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours() );
         if (is_array($hours) && $hours) {
             $now = $this->getNow();
             $timezone = $this->getTimezone();
@@ -109,7 +111,7 @@ class Schedule
      */
     private function jsonDecodeArray($string)
     {
-        $array = json_decode($string);
+        $array = json_decode($string ?: '[]');
         $jsonError = null;
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
@@ -173,7 +175,7 @@ class Schedule
     public function evaluateExclusions(ContactClient $contactClient)
     {
         // Check dates of exclusion (if there are any).
-        $exclusions = $this->jsonDecodeArray($contactClient->getScheduleExclusions() ?: null);
+        $exclusions = $this->jsonDecodeArray($contactClient->getScheduleExclusions() );
         if (is_array($exclusions) && $exclusions) {
             $now = $this->getNow();
 
