@@ -187,6 +187,15 @@
     background-color: #fff !important;
 }
 
+.contactclient_jsoneditor div[data-schemapath^="root.mode"] > select {
+    font-style: normal !important;
+    background-color: #fff !important;
+}
+
+.contactclient_jsoneditor div[data-schemapath^="root.settings.autoUpdate"] > div {
+    padding-top: 20px;
+}
+
 .contactclient_jsoneditor div[data-schemapath*=".request.body"] > div > div > h3 {
     display: none;
 }

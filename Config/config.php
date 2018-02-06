@@ -12,7 +12,7 @@
 return [
     'name'        => 'Mautic Contact Client',
     'description' => 'Send contacts to third party APIs or enhance your contacts without code.',
-    'version'     => '0.1',
+    'version'     => '0.2',
     'author'      => 'Mautic',
 
     'routes' => [

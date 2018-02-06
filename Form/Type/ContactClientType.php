@@ -112,7 +112,7 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
-            'revenueDefault',
+            'revenue_default',
             'number',
             [
                 'label'      => 'mautic.contactclient.form.revenue.default',
@@ -127,7 +127,7 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
-            'revenueSettings',
+            'revenue_settings',
             'textarea',
             [
                 'label'      => 'mautic.contactclient.form.revenue.settings',

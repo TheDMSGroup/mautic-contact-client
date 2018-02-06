@@ -24,7 +24,6 @@ $view['slots']->set(
         ]
     )
 );
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/js/contactclient.js');
 ?>
 
 <div class="panel panel-default bdr-t-wdh-0 mb-0">

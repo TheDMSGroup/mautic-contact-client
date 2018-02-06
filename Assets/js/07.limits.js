@@ -1,6 +1,8 @@
 // @todo - Limits field.
 Mautic.contactclientLimits = function () {
-    mQuery(document).ready(function () {
+    var $limits = mQuery('#contactclient_limits');
+    if (typeof window.contactclientLimitsLoaded === 'undefined' && $limits.length) {
 
-    });
+        window.contactclientLimitsLoaded = true;
+    }
 };

@@ -1,0 +1,95 @@
+{
+  "title": "Revenue Settings",
+  "$schema": "revenue.json",
+  "type": "object",
+  "format": "grid",
+  "options": {
+    "disable_collapse": true
+  },
+  "properties": {
+    "mode": {
+      "title": "Cost/Revenue is ",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "default": true,
+      "oneOf": [
+        {
+          "title": "Static",
+          "type": "boolean",
+          "format": "checkbox",
+          "default": true,
+          "options": {
+            "disabled": true
+          }
+        },
+        {
+          "title": "Dynamic (Determined by API Payload)",
+          "properties": {
+            "key": {
+              "title": "Key",
+              "type": "string",
+              "uniqueItems": true,
+              "options": {
+                "infoText": "Select a field/key being sent by an API response to be used for revenue. This can come to us by way of a header or a footer field."
+              }
+            },
+            "sign": {
+              "title": "Sign",
+              "type": "string",
+              "uniqueItems": true,
+              "options": {
+                "infoText": "Should we treat the value from the API as a positive signed number (revenue) or a negative signed number (cost)."
+              },
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "-",
+                      "title": "Cost"
+                    },
+                    {
+                      "value": "+",
+                      "title": "Revenue"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
+            },
+            "math": {
+              "title": "Math",
+              "type": "string",
+              "uniqueItems": true,
+              "options": {
+                "infoText": "Should it be needed we can do some basic math on the value from the API to match your standard currency notation of choice."
+              },
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "",
+                      "title": "No modification"
+                    },
+                    {
+                      "value": "/100",
+                      "title": "Divide by 100"
+                    },
+                    {
+                      "value": "*100",
+                      "title": "Multiply by 100"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

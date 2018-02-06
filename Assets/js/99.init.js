@@ -9,12 +9,12 @@ Mautic.contactclientOnLoad = function () {
             Mautic.contactclientFilter();
             Mautic.contactclientLimits();
             Mautic.contactclientSchedule();
+            Mautic.contactclientRevenue();
             return;
         }
 
         if (mQuery('#contactclient-timeline').length){
             Mautic.contactclientTimelineOnLoad();
-            return;
         }
     });
 };

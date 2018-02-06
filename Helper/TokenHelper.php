@@ -118,7 +118,7 @@ class TokenHelper
         
         // Append contact ID.
         $contactId = $contact->getId();
-        $context['id'] = $contactId ?? 0;
+        $context['id'] = isset($contactId) ? $contactId : 0;
 
         // Append contact owner data.
         $owner = $contact->getOwner();
@@ -135,7 +135,7 @@ class TokenHelper
 
         // Append points value.
         $points = $contact->getPoints();
-        $context['points'] = $points ?? 0;
+        $context['points'] = isset($points) ? $points : 0;
 
         // Append IP Addresses.
         $ips = $contact->getIpAddresses()->toArray();
@@ -204,7 +204,7 @@ class TokenHelper
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
-                    $value = $field['value'] ?: null;
+                    $value = !empty($field['value']) ? $field['value'] : null;
                     if ($value && $field['type'] == 'datetime') {
                         $value = $this->dateFormatHelper->iso8601($value);
                     }

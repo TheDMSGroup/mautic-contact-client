@@ -72,7 +72,7 @@ class ApiPayloadRequest
         if (!empty($request->body) && !is_string($request->body)) {
             $requestFields = $this->fieldValues($request->body);
         }
-        $requestFormat = strtolower($request->format ?? 'form');
+        $requestFormat = strtolower(isset($request->format) ? $request->format : 'form');
         $this->setLogs($requestFormat, 'format');
         switch ($requestFormat) {
             case 'form':
@@ -148,7 +148,7 @@ class ApiPayloadRequest
             }
         }
 
-        $method = trim(strtolower($request->method ?? 'post'));
+        $method = trim(strtolower(isset($request->method) ? $request->method : 'post'));
         $this->setLogs($method, 'method');
         $startTime = microtime(true);
         switch ($method) {
@@ -202,11 +202,11 @@ class ApiPayloadRequest
     {
         $result = [];
         foreach ($fields as $field) {
-            if (!$this->test && ($field->test_only ?? false)) {
+            if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = $this->renderTokens($field->key ?? null);
+            $key = $this->renderTokens(isset($field->key) ? $field->key : null);
             if (empty($key)) {
                 // Skip if we have an empty key.
                 continue;
@@ -227,7 +227,7 @@ class ApiPayloadRequest
             }
             if (empty($value)) {
                 // The field value is empty.
-                if (($field->required ?? false) === true) {
+                if ((isset($field->required) ? $field->required : false) === true) {
                     // The field is required. Abort.
                     throw new ApiErrorException(
                         'A required field is missing/empty: '.$key
