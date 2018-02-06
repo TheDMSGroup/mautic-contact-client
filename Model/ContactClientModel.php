@@ -188,6 +188,16 @@ class ContactClientModel extends FormModel
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
+     */
+    public function getStatRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:Stat');
+    }
+
+    /**
      * Add transactional log in contactclient_events
      *
      * @param ContactClient $contactClient
@@ -197,8 +207,14 @@ class ContactClientModel extends FormModel
      * @param null $message
      * @param null $integration_entity_id
      */
-    public function addEvent(ContactClient $contactClient, $type, $contact = null, $logs = null, $message = null, $integration_entity_id = null)
-    {
+    public function addEvent(
+        ContactClient $contactClient,
+        $type,
+        $contact = null,
+        $logs = null,
+        $message = null,
+        $integration_entity_id = null
+    ) {
         $event = new EventEntity();
         $event->setContactClient($contactClient)
             ->setDateAdded(new \DateTime())
@@ -217,16 +233,6 @@ class ContactClientModel extends FormModel
         }
 
         $this->getEventRepository()->saveEntity($event);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
-     */
-    public function getStatRepository()
-    {
-        return $this->em->getRepository('MauticContactClientBundle:Stat');
     }
 
     /**
@@ -278,8 +284,8 @@ class ContactClientModel extends FormModel
             }
             $data = $query->loadAndBuildTimeData($q);
             foreach ($data as $val) {
-                if ($val != 0) {
-                    $chart->setDataset($this->translator->trans('mautic.contactclient.graph.' . $type), $data);
+                if ($val !== 0) {
+                    $chart->setDataset($this->translator->trans('mautic.contactclient.graph.'.$type), $data);
                     break;
                 }
             }
@@ -291,16 +297,32 @@ class ContactClientModel extends FormModel
         if (!$canViewOthers) {
             $this->limitQueryToCreator($q);
         }
-        $q->select('SUM(t.attribution) AS count');
+        $dbUnit = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
+        $dbUnit = $query->translateTimeUnit($dbUnit);
+        $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
+        $q->select($dateConstruct.' AS date, SUM(t.attribution) AS count')
+            ->groupBy($dateConstruct);
         $data = $query->loadAndBuildTimeData($q);
         foreach ($data as $val) {
-            if ($val != 0) {
+            if ($val !== 0) {
                 $chart->setDataset($this->translator->trans('mautic.contactclient.graph.revenue'), $data);
                 break;
             }
         }
 
         return $chart->render();
+    }
+
+    /**
+     * Joins the email table and limits created_by to currently logged in user.
+     *
+     * @param QueryBuilder $q
+     */
+    public function limitQueryToCreator(QueryBuilder $q)
+    {
+        $q->join('t', MAUTIC_TABLE_PREFIX.'contactclient', 'm', 'e.id = t.contactclient_id')
+            ->andWhere('m.created_by = :userId')
+            ->setParameter('userId', $this->userHelper->getUser()->getId());
     }
 
     /**
@@ -314,24 +336,38 @@ class ContactClientModel extends FormModel
      * @param bool $forTimeline
      * @return array
      */
-    public function getEngagements(ContactClient $contactClient = null, $filters = [], $orderBy = null, $page = 1, $limit = 25, $forTimeline = true)
-    {
+    public function getEngagements(
+        ContactClient $contactClient = null,
+        $filters = [],
+        $orderBy = null,
+        $page = 1,
+        $limit = 25,
+        $forTimeline = true
+    ) {
         $event = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,
-            new ContactClientTimelineEvent($contactClient, $filters, $orderBy, $page, $limit, $forTimeline, $this->coreParametersHelper->getParameter('site_url'))
+            new ContactClientTimelineEvent(
+                $contactClient,
+                $filters,
+                $orderBy,
+                $page,
+                $limit,
+                $forTimeline,
+                $this->coreParametersHelper->getParameter('site_url')
+            )
         );
 
         if (!isset($filters['search'])) {
             $filters['search'] = null;
         }
         $payload = [
-            'events'   => $event->getEvents(),
-            'filters'  => $filters,
-            'order'    => $orderBy,
-            'types'    => $event->getEventTypes(),
-            'total'    => $event->getEventCounter()['total'],
-            'page'     => $page,
-            'limit'    => $limit,
+            'events' => $event->getEvents(),
+            'filters' => $filters,
+            'order' => $orderBy,
+            'types' => $event->getEventTypes(),
+            'total' => $event->getEventCounter()['total'],
+            'page' => $page,
+            'limit' => $limit,
             'maxPages' => $event->getMaxPage(),
         ];
 
@@ -354,34 +390,27 @@ class ContactClientModel extends FormModel
     /**
      * Get engagement counts by time unit.
      *
-     * @param Contact         $contact
-     * @param \DateTime|null  $dateFrom
-     * @param \DateTime|null  $dateTo
-     * @param string          $unit
+     * @param Contact $contact
+     * @param \DateTime|null $dateFrom
+     * @param \DateTime|null $dateTo
+     * @param string $unit
      * @param ChartQuery|null $chartQuery
      *
      * @return array
      */
-    public function getEngagementCount(Contact $contact, \DateTime $dateFrom = null, \DateTime $dateTo = null, $unit = 'm', ChartQuery $chartQuery = null)
-    {
+    public function getEngagementCount(
+        Contact $contact,
+        \DateTime $dateFrom = null,
+        \DateTime $dateTo = null,
+        $unit = 'm',
+        ChartQuery $chartQuery = null
+    ) {
         $event = new ContactClientTimelineEvent($contact);
         $event->setCountOnly($dateFrom, $dateTo, $unit, $chartQuery);
 
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
-    }
-
-    /**
-     * Joins the email table and limits created_by to currently logged in user.
-     *
-     * @param QueryBuilder $q
-     */
-    public function limitQueryToCreator(QueryBuilder $q)
-    {
-        $q->join('t', MAUTIC_TABLE_PREFIX.'contactclient', 'm', 'e.id = t.contactclient_id')
-            ->andWhere('m.created_by = :userId')
-            ->setParameter('userId', $this->userHelper->getUser()->getId());
     }
 
     /**
