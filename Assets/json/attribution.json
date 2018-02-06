@@ -40,18 +40,18 @@
               "type": "string",
               "uniqueItems": true,
               "options": {
-                "infoText": "Should we treat the value from the API as a positive signed number (attribution) or a negative signed number (cost)."
+                "infoText": "Should we treat the value from the API as a positive signed number (revenue) or a negative signed number (cost)."
               },
               "enumSource": [
                 {
                   "source": [
                     {
                       "value": "-",
-                      "title": "Cost"
+                      "title": "Cost (-)"
                     },
                     {
                       "value": "+",
-                      "title": "Revenue"
+                      "title": "Revenue (+)"
                     }
                   ],
                   "title": "{{item.title}}",
