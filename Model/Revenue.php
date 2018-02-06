@@ -128,7 +128,7 @@ class Revenue
      */
     private function jsonDecodeObject($string)
     {
-        $object = json_decode(!empty($string) ? : '{}');
+        $object = json_decode(!empty($string) ? $string : '{}');
         $jsonError = null;
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
