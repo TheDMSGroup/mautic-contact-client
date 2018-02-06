@@ -63,7 +63,9 @@ class Revenue
     public function applyRevenue()
     {
         $update = false;
-        $newAttribution = $originalAttribution = $this->contact->getFieldValue('attribution') ?: 0;
+        $originalAttribution = $this->contact->getFieldValue('attribution');
+        $originalAttribution = !empty($originalAttribution) ? $originalAttribution : 0;
+        $newAttribution = $originalAttribution;
 
         if ($this->payload) {
             $revenueSettings = $this->jsonDecodeObject($this->contactClient->getRevenueSettings());
@@ -126,7 +128,7 @@ class Revenue
      */
     private function jsonDecodeObject($string)
     {
-        $object = json_decode($string ?: '{}');
+        $object = json_decode(!empty($string) ? : '{}');
         $jsonError = null;
         switch (json_last_error()) {
             case JSON_ERROR_NONE:

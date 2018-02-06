@@ -353,7 +353,7 @@ class ClientIntegration extends AbstractIntegration
             $statLevel = 'INFO';
             $message = 'Contact was sent successfully.';
         } else {
-            $statType = $this->statType ?: Stat::TYPE_ERROR;
+            $statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
             $statLevel = 'ERROR';
             $message = isset($this->logs['error']) ? $this->logs['error'] : 'An unexpected error occurred.';
             // Check for a filter-based rejection.

@@ -237,8 +237,10 @@ class ApiPayload
                 // Set the timezones for date/time conversion.
                 $tza = $this->container->get('mautic.helper.core_parameters')->getParameter(
                     'default_timezone'
-                ) ?: date_default_timezone_get();
-                $tzb = $this->contactClient->getScheduleTimezone() ?: date_default_timezone_get();
+                );
+                $tza = !empty($tza) ? $tza : date_default_timezone_get();
+                $tzb = $this->contactClient->getScheduleTimezone();
+                $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
                 $this->tokenHelper->setTimezones($tza, $tzb);
 
                 // Add the Contact as context for field replacement.

@@ -204,7 +204,7 @@ class TokenHelper
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
-                    $value = $field['value'] ?: null;
+                    $value = !empty($field['value']) ? $field['value'] : null;
                     if ($value && $field['type'] == 'datetime') {
                         $value = $this->dateFormatHelper->iso8601($value);
                     }

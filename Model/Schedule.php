@@ -59,7 +59,8 @@ class Schedule
             if (!$timezone) {
                 $timezone = $this->container->get('mautic.helper.core_parameters')->getParameter(
                     'default_timezone'
-                ) ?: date_default_timezone_get();
+                );
+                $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();
             }
             $this->timezone = new \DateTimeZone($timezone);
         }
@@ -111,7 +112,7 @@ class Schedule
      */
     private function jsonDecodeArray($string)
     {
-        $array = json_decode($string ?: '[]');
+        $array = json_decode(!empty($string) ? $string : '[]');
         $jsonError = null;
         switch (json_last_error()) {
             case JSON_ERROR_NONE:
