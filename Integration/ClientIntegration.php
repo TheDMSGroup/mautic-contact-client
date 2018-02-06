@@ -300,17 +300,24 @@ class ClientIntegration extends AbstractIntegration
             return;
         }
         if ($this->valid) {
-            $updated = $this->payload->applyResponseMap();
-            if ($updated) {
+            /** @var bool $updatedFields */
+            $updatedFields = $this->payload->applyResponseMap();
+            if ($updatedFields) {
                 $this->contact = $this->payload->getContact();
             }
 
             /** @var Revenue $revenue */
             $revenue = new Revenue($this->contactClient, $this->contact);
-            $revenue->applyRevenue();
+            $revenue->setPayload($this->payload);
+            /** @var bool $updatedRevenue */
+            $updatedRevenue = $revenue->applyRevenue();
+            if ($updatedRevenue) {
+                $this->contact = $revenue->getContact();
+                $this->setLogs('Updating Contact cost/revenue attribution = '.$this->contact->getAttribution());
+            }
 
             // Check the Revenue setting to see if we should apply to "attribution"
-            if ($updated) {
+            if ($updatedFields || $updatedRevenue) {
                 try {
                     /** @var Contact $contactModel */
                     $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');

@@ -142,13 +142,6 @@ Mautic.contactclientRevenue = function () {
                     }
                 });
 
-                // Update fields on tab click.
-                // mQuery('#payload-tab
-                // .contactclient-tab:first').click(function () { var key =
-                // revenueJSONEditor.getEditor('root.properties.mode.oneOf[1].properties.key.enum');
-                // if (typeof key !== 'undefined') {
-                // key.setValue(getApiPayloadFields()); } });
-
                 $revenue.addClass('hide');
                 $revenueJSONEditor.show();
                 mQuery('label[for=contactclient_revenue_settings]').addClass('hide');

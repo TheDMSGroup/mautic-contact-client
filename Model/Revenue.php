@@ -26,10 +26,13 @@ class Revenue
     protected $contactClient;
 
     /** @var ApiPayload */
-    protected $apiPayload;
+    protected $payload;
 
     /** @var Contact */
     protected $contact;
+
+    /** @var double */
+    protected $newAttribution;
 
     /**
      * Revenue constructor.
@@ -43,11 +46,11 @@ class Revenue
     }
 
     /**
-     * @param ApiPayload $apiPayload
+     * @param ApiPayload $payload
      */
-    public function setApiPayload(ApiPayload $apiPayload)
+    public function setPayload(ApiPayload $payload)
     {
-        $this->apiPayload = $apiPayload;
+        $this->payload = $payload;
     }
 
     /**
@@ -56,27 +59,61 @@ class Revenue
      */
     public function applyRevenue()
     {
-        $updated = false;
-        $alias = 'attribution';
+        $update = false;
+        $newAttribution = $originalAttribution = $this->contact->getFieldValue('attribution') ?: 0;
 
-        $revenueDefault = $this->contactClient->getRevenueDefault();
+        if ($this->payload) {
+            $revenueSettings = $this->jsonDecodeObject($this->contactClient->getRevenueSettings());
+            if ($revenueSettings && is_object($revenueSettings->mode) && !empty($revenueSettings->mode->key)) {
+                // Dynamic mode.
+                $key = $revenueSettings->mode->key;
 
-        $revenueSettings = $this->jsonDecodeObject($this->contactClient->getRevenueSettings());
-        if ($revenueSettings && is_object($revenueSettings->mode) && !empty($revenueSettings->mode->key)) {
-            // Dynamic mode.
-            $key = $revenueSettings->mode->key;
-            $sign = $revenueSettings->mode->sign ?? '+';
-            $math = $revenueSettings->mode->math ?? null;
+                // Attempt to get this field value from the response operations.
+                $responseFieldValue = $this->payload->getResponseFieldValue($key);
+                if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
+
+                    // We have a value, apply sign.
+                    $sign = $revenueSettings->mode->sign ?? '+';
+                    if ($sign == '+') {
+                        $newAttribution = abs($responseFieldValue);
+                    } elseif ($sign == '-') {
+                        $newAttribution = abs($responseFieldValue) * -1;
+                    } else {
+                        $newAttribution = $responseFieldValue;
+                    }
+
+                    // Apply maths.
+                    $math = $revenueSettings->mode->math ?? null;
+                    if ($math == '/100') {
+                        $newAttribution = $newAttribution / 100;
+                    } elseif ($math == '*100') {
+                        $newAttribution = $newAttribution * 100;
+                    }
+
+                    // Apply new cost/revenue to the original value.
+                    $newAttribution = $originalAttribution + $newAttribution;
+                    $update = true;
+                }
+            }
         }
 
+        // If we were not able to apply a dynamic cost/revenue, then fall back to the default (if set).
+        if (!$update) {
+            $revenueDefault = $this->contactClient->getRevenueDefault();
+            if (!empty($revenueDefault) && is_numeric($revenueDefault)) {
+                $newAttribution = $originalAttribution + $revenueDefault;
+                $update = true;
+            }
+        }
 
-        // If we have a value to apply, do the math now and apply to the Contact.
-        $oldValue = $this->contact->getFieldValue('attribution');
-        $this->contact->addUpdatedField('attribution', $value, $oldValue);
-        $this->setLogs('Updating Contact attribution: '.$alias.' = '.$value);
-        $updated = true;
+        if ($update && $originalAttribution != $newAttribution) {
+            $this->setNewAttribution($newAttribution);
+            $this->contact->addUpdatedField('attribution', $newAttribution, $originalAttribution);
+            // Unsure if we should keep this next line for BC.
+            $this->contact->addUpdatedField('attribution_date', (new \DateTime())->format('Y-m-d H:i:s'));
+        }
 
-        return $updated;
+        return $update;
     }
 
     /**
@@ -120,4 +157,30 @@ class Revenue
         return $object;
     }
 
+    /**
+     * @return float
+     */
+    public function getNewAttribution()
+    {
+        return $this->newAttribution;
+    }
+
+    /**
+     * @param $newAttribution
+     * @return $this
+     */
+    public function setNewAttribution($newAttribution)
+    {
+        $this->newAttribution = $newAttribution;
+
+        return $this;
+    }
+
+    /**
+     * @return Contact|null
+     */
+    public function getContact()
+    {
+        return $this->contact;
+    }
 }

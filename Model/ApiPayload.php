@@ -66,6 +66,9 @@ class ApiPayload
 
     protected $responseMap = [];
 
+    protected $responseAggregate = [];
+
+
     /**
      * @var Container $container
      */
@@ -188,6 +191,7 @@ class ApiPayload
             } else {
                 // Aggregate successful responses that are mapped to Contact fields.
                 $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
+                $this->responseAggregate = array_merge($this->responseAggregate, $apiOperation->getResponseActual());
             }
         }
 
@@ -373,6 +377,32 @@ class ApiPayload
         }
 
         return $result;
+    }
+
+    /**
+     * Get the most recent non-empty response value by field name, ignoring validity.
+     *
+     * @param $fieldName
+     * @param array $types
+     * @return null
+     */
+    public function getResponseFieldValue($fieldName, $types = ['headers', 'body'])
+    {
+        if ($this->valid) {
+            if (isset($this->responseAggregate)) {
+                foreach ($types as $type) {
+                    if (!empty($this->responseAggregate[$type])) {
+                        foreach ($this->responseAggregate[$type] as $key => $field) {
+                            if ($key == $fieldName && !empty($field)) {
+                                return $field;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
