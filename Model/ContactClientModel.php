@@ -291,7 +291,7 @@ class ContactClientModel extends FormModel
             }
         }
 
-        // Add revenue to the chart.
+        // Add attribution to the chart.
         // @todo - This should really be in it's own chart in the future.
         $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_SUCCESS]);
         if (!$canViewOthers) {
@@ -305,7 +305,7 @@ class ContactClientModel extends FormModel
         $data = $query->loadAndBuildTimeData($q);
         foreach ($data as $val) {
             if ($val !== 0) {
-                $chart->setDataset($this->translator->trans('mautic.contactclient.graph.revenue'), $data);
+                $chart->setDataset($this->translator->trans('mautic.contactclient.graph.attribution'), $data);
                 break;
             }
         }

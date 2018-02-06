@@ -77,12 +77,12 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
-    private $revenue_default;
+    private $attribution_default;
 
     /**
      * @var int
      */
-    private $revenue_settings;
+    private $attribution_settings;
 
     /**
      * @var int
@@ -163,11 +163,11 @@ class ContactClient extends FormEntity
 
         $builder->addPublishDates();
 
-        $builder->createField('revenue_default', 'float')
-            ->columnDefinition('double DEFAULT NULL')
+        $builder->createField('attribution_default', 'decimal')
+            ->columnDefinition('DECIMAL(19, 4) DEFAULT NULL')
             ->build();
 
-        $builder->addNullableField('revenue_settings', 'text');
+        $builder->addNullableField('attribution_settings', 'text');
 
         $builder->addNullableField('duplicate', 'text');
 
@@ -214,8 +214,8 @@ class ContactClient extends FormEntity
                     'exclusive',
                     'filter',
                     'limits',
-                    'revenue_default',
-                    'revenue_settings',
+                    'attribution_default',
+                    'attribution_settings',
                     'schedule_timezone',
                     'schedule_hours',
                     'schedule_exclusions',
@@ -443,20 +443,20 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getRevenueDefault()
+    public function getAttributionDefault()
     {
-        return $this->revenue_default;
+        return $this->attribution_default;
     }
 
     /**
-     * @param $revenue_default
+     * @param $attribution_default
      * @return $this
      */
-    public function setRevenueDefault($revenue_default)
+    public function setAttributionDefault($attribution_default)
     {
-        $this->isChanged('revenueDefault', $revenue_default);
+        $this->isChanged('attributionDefault', $attribution_default);
 
-        $this->revenue_default = $revenue_default;
+        $this->attribution_default = $attribution_default;
 
         return $this;
     }
@@ -464,20 +464,20 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
-    public function getRevenueSettings()
+    public function getAttributionSettings()
     {
-        return $this->revenue_settings;
+        return $this->attribution_settings;
     }
 
     /**
-     * @param $revenue_settings
+     * @param $attribution_settings
      * @return $this
      */
-    public function setRevenueSettings($revenue_settings)
+    public function setAttributionSettings($attribution_settings)
     {
-        $this->isChanged('revenueSettings', $revenue_settings);
+        $this->isChanged('attributionSettings', $attribution_settings);
 
-        $this->revenue_settings = $revenue_settings;
+        $this->attribution_settings = $attribution_settings;
 
         return $this;
     }

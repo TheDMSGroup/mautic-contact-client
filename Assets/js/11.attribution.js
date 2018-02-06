@@ -1,9 +1,9 @@
 // Schedule - Hours of Operation.
-Mautic.contactclientRevenue = function () {
-    var $revenue = mQuery('#contactclient_revenue_settings:first');
-    if (typeof window.contactclientRevenueLoaded === 'undefined' && $revenue.length) {
+Mautic.contactclientAttribution = function () {
+    var $attribution = mQuery('#contactclient_attribution_settings:first');
+    if (typeof window.contactclientAttributionLoaded === 'undefined' && $attribution.length) {
 
-        window.contactclientRevenueLoaded = true;
+        window.contactclientAttributionLoaded = true;
 
         /**
          * Get all keys/fields from the API Payload responses.
@@ -90,30 +90,30 @@ Mautic.contactclientRevenue = function () {
         };
         getApiPayloadFields();
 
-        var revenueJSONEditor;
+        var attributionJSONEditor;
 
         // Grab the JSON Schema to begin rendering the form with JSONEditor.
         mQuery.ajax({
             dataType: 'json',
             cache: true,
-            url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/revenue.json',
+            url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/attribution.json',
             success: function (data) {
                 var schema = data;
                 // Insert possible API fields from API Payload.
                 schema.properties.mode.oneOf[1].properties.key.enumSource = getApiPayloadFields();
 
                 // Create our widget container for the JSON Editor.
-                var $revenueJSONEditor = mQuery('<div>', {
+                var $attributionJSONEditor = mQuery('<div>', {
                     class: 'contactclient_jsoneditor'
-                }).insertBefore($revenue);
+                }).insertBefore($attribution);
 
                 // Instantiate the JSON Editor based on our schema.
-                revenueJSONEditor = new JSONEditor($revenueJSONEditor[0], {
+                attributionJSONEditor = new JSONEditor($attributionJSONEditor[0], {
                     schema: schema,
                     disable_collapse: true
                 });
 
-                $revenue.change(function () {
+                $attribution.change(function () {
                     // Load the initial value if applicable.
                     var raw = mQuery(this).val(),
                         obj;
@@ -121,7 +121,7 @@ Mautic.contactclientRevenue = function () {
                         try {
                             obj = mQuery.parseJSON(raw);
                             if (typeof obj === 'object') {
-                                revenueJSONEditor.setValue(obj);
+                                attributionJSONEditor.setValue(obj);
                             }
                         }
                         catch (e) {
@@ -131,20 +131,20 @@ Mautic.contactclientRevenue = function () {
                 }).trigger('change');
 
                 // Persist the value to the JSON Editor.
-                revenueJSONEditor.on('change', function () {
-                    var obj = revenueJSONEditor.getValue();
+                attributionJSONEditor.on('change', function () {
+                    var obj = attributionJSONEditor.getValue();
                     if (typeof obj === 'object') {
                         var raw = JSON.stringify(obj, null, '  ');
                         if (raw.length) {
                             // Set the textarea.
-                            $revenue.val(raw);
+                            $attribution.val(raw);
                         }
                     }
                 });
 
-                $revenue.addClass('hide');
-                $revenueJSONEditor.show();
-                mQuery('label[for=contactclient_revenue_settings]').addClass('hide');
+                $attribution.addClass('hide');
+                $attributionJSONEditor.show();
+                mQuery('label[for=contactclient_attribution_settings]').addClass('hide');
             }
         });
     }

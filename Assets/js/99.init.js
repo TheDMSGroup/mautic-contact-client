@@ -9,7 +9,7 @@ Mautic.contactclientOnLoad = function () {
             Mautic.contactclientFilter();
             Mautic.contactclientLimits();
             Mautic.contactclientSchedule();
-            Mautic.contactclientRevenue();
+            Mautic.contactclientAttribution();
             return;
         }
 

@@ -23,7 +23,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-use MauticPlugin\MauticContactClientBundle\Model\Revenue;
+use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Symfony\Component\DependencyInjection\Container;
@@ -286,15 +286,15 @@ class ClientIntegration extends AbstractIntegration
                     $this->contact = $this->payload->getContact();
                 }
 
-                // Update attribution based on revenue settings.
-                /** @var Revenue $revenue */
-                $revenue = new Revenue($this->contactClient, $this->contact);
-                $revenue->setPayload($this->payload);
-                /** @var bool $updatedRevenue */
-                $updatedRevenue = $revenue->applyRevenue();
-                if ($updatedRevenue) {
-                    $this->contact = $revenue->getContact();
-                    $this->setLogs($revenue->getNewAttribution(), 'attribution');
+                // Update attribution based on attribution settings.
+                /** @var Attribution $attribution */
+                $attribution = new Attribution($this->contactClient, $this->contact);
+                $attribution->setPayload($this->payload);
+                /** @var bool $updatedAttribution */
+                $updatedAttribution = $attribution->applyAttribution();
+                if ($updatedAttribution) {
+                    $this->contact = $attribution->getContact();
+                    $this->setLogs($attribution->getNewAttribution(), 'attribution');
                     $this->setLogs($this->contact->getAttribution(), 'attributionTotal');
                 } else {
                     $this->setLogs(0, 'attribution');
@@ -302,7 +302,7 @@ class ClientIntegration extends AbstractIntegration
                 }
 
                 // If any fields were updated, save the Contact entity.
-                if ($updatedFields || $updatedRevenue) {
+                if ($updatedFields || $updatedAttribution) {
                     /** @var \Mautic\LeadBundle\Model\LeadModel $model */
                     $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
                     $contactModel->getRepository()->saveEntity($this->contact);

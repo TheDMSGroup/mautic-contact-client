@@ -1,6 +1,6 @@
 {
-  "title": "Revenue Settings",
-  "$schema": "revenue.json",
+  "title": "Attribution Settings",
+  "$schema": "attribution.json",
   "type": "object",
   "format": "grid",
   "options": {
@@ -32,7 +32,7 @@
               "type": "string",
               "uniqueItems": true,
               "options": {
-                "infoText": "Select a field/key being sent by an API response to be used for revenue. This can come to us by way of a header or a footer field."
+                "infoText": "Select a field/key being sent by an API response to be used for attribution. This can come to us by way of a header or a footer field."
               }
             },
             "sign": {
@@ -40,7 +40,7 @@
               "type": "string",
               "uniqueItems": true,
               "options": {
-                "infoText": "Should we treat the value from the API as a positive signed number (revenue) or a negative signed number (cost)."
+                "infoText": "Should we treat the value from the API as a positive signed number (attribution) or a negative signed number (cost)."
               },
               "enumSource": [
                 {

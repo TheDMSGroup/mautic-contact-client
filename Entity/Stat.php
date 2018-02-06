@@ -69,7 +69,9 @@ class Stat
 
         $builder->addNamedField('dateAdded', 'datetime', 'date_added');
 
-        $builder->addField('attribution', 'float');
+        $builder->createField('attribution', 'decimal')
+            ->columnDefinition('DECIMAL(19, 4) DEFAULT NULL')
+            ->build();
 
         $builder->addContact(true, 'SET NULL');
 

@@ -16,10 +16,10 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 
 /**
- * Class Revenue
+ * Class Attribution
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
-class Revenue
+class Attribution
 {
 
     /** @var ContactClient $contactClient */
@@ -35,7 +35,7 @@ class Revenue
     protected $newAttribution;
 
     /**
-     * Revenue constructor.
+     * Attribution constructor.
      * @param ContactClient $contactClient
      * @param Contact $contact
      */
@@ -54,13 +54,13 @@ class Revenue
     }
 
     /**
-     * Apply revenue to the current contact based on payload and settings of the Contact Client.
+     * Apply attribution to the current contact based on payload and settings of the Contact Client.
      * This assumes the Payload was successfully delivered (valid = true).
      *
      * @return bool
      * @throws \Exception
      */
-    public function applyRevenue()
+    public function applyAttribution()
     {
         $update = false;
         $originalAttribution = $this->contact->getFieldValue('attribution');
@@ -68,17 +68,19 @@ class Revenue
         $newAttribution = 0;
 
         if ($this->payload) {
-            $revenueSettings = $this->jsonDecodeObject($this->contactClient->getRevenueSettings());
-            if ($revenueSettings && is_object($revenueSettings->mode) && !empty($revenueSettings->mode->key)) {
+            $attributionSettings = $this->jsonDecodeObject($this->contactClient->getAttributionSettings());
+            if ($attributionSettings && is_object(
+                    $attributionSettings->mode
+                ) && !empty($attributionSettings->mode->key)) {
                 // Dynamic mode.
-                $key = $revenueSettings->mode->key;
+                $key = $attributionSettings->mode->key;
 
                 // Attempt to get this field value from the response operations.
                 $responseFieldValue = $this->payload->getAggregateResponseFieldValue($key);
                 if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
 
                     // We have a value, apply sign.
-                    $sign = isset($revenueSettings->mode->sign) ? $revenueSettings->mode->sign : '+';
+                    $sign = isset($attributionSettings->mode->sign) ? $attributionSettings->mode->sign : '+';
                     if ($sign == '+') {
                         $newAttribution = abs($responseFieldValue);
                     } elseif ($sign == '-') {
@@ -88,7 +90,7 @@ class Revenue
                     }
 
                     // Apply maths.
-                    $math = isset($revenueSettings->mode->math) ? $revenueSettings->mode->math : null;
+                    $math = isset($attributionSettings->mode->math) ? $attributionSettings->mode->math : null;
                     if ($math == '/100') {
                         $newAttribution = $newAttribution / 100;
                     } elseif ($math == '*100') {
@@ -99,18 +101,22 @@ class Revenue
             }
         }
 
-        // If we were not able to apply a dynamic cost/revenue, then fall back to the default (if set).
+        // If we were not able to apply a dynamic cost/attribution, then fall back to the default (if set).
         if (!$update) {
-            $revenueDefault = $this->contactClient->getRevenueDefault();
-            if (!empty($revenueDefault) && is_numeric($revenueDefault)) {
-                $newAttribution = $revenueDefault;
+            $attributionDefault = $this->contactClient->getAttributionDefault();
+            if (!empty($attributionDefault) && is_numeric($attributionDefault)) {
+                $newAttribution = $attributionDefault;
                 $update = true;
             }
         }
 
         if ($update && $newAttribution) {
             $this->setNewAttribution($newAttribution);
-            $this->contact->addUpdatedField('attribution', $originalAttribution + $newAttribution, $originalAttribution);
+            $this->contact->addUpdatedField(
+                'attribution',
+                $originalAttribution + $newAttribution,
+                $originalAttribution
+            );
             // Unsure if we should keep this next line for BC.
             $this->contact->addUpdatedField('attribution_date', (new \DateTime())->format('Y-m-d H:i:s'));
         }
@@ -153,7 +159,7 @@ class Revenue
             throw new \Exception('Schedule JSON is invalid: '.$jsonError);
         }
         if (!$object || !is_object($object)) {
-            throw new \Exception('Revenue is invalid.');
+            throw new \Exception('Attribution is invalid.');
         }
 
         return $object;

@@ -65,8 +65,8 @@ echo $view['form']->start($form);
                     </a>
                 </li>
                 <li>
-                    <a href="#revenue" role="tab" data-toggle="tab" class="contactclient-tab">
-                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.revenue'); ?>
+                    <a href="#attribution" role="tab" data-toggle="tab" class="contactclient-tab">
+                        <?php echo $view['translator']->trans('mautic.contactclient.form.group.attribution'); ?>
                     </a>
                 </li>
                 <li>
@@ -100,13 +100,13 @@ echo $view['form']->start($form);
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="revenue">
+            <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="attribution">
                 <div class="pa-md">
                     <div class="form-group mb-0">
                         <div class="row">
                             <div class="col-sm-6">
-                                <?php echo $view['form']->row($form['revenue_default']); ?>
-                                <?php echo $view['form']->row($form['revenue_settings']); ?>
+                                <?php echo $view['form']->row($form['attribution_default']); ?>
+                                <?php echo $view['form']->row($form['attribution_settings']); ?>
                             </div>
                         </div>
                         <hr class="mnr-md mnl-md">
