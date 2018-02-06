@@ -73,7 +73,7 @@ class Schedule
      */
     public function evaluateHours(ContactClient $contactClient)
     {
-        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours() );
+        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours());
         if (is_array($hours) && $hours) {
             $now = $this->getNow();
             $timezone = $this->getTimezone();
@@ -90,8 +90,8 @@ class Schedule
                 } else {
                     $timeFrom = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
                     $timeTill = !empty($hours[$day]->timeTill) ? $hours[$day]->timeTill : '23:59';
-                    $startDate = \DateTime::createFromFormat('h:i', $timeFrom, $timezone);
-                    $endDate = \DateTime::createFromFormat('h:i', $timeTill, $timezone);
+                    $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $timezone);
+                    $endDate = \DateTime::createFromFormat('H:i', $timeTill, $timezone);
                     if (!($now > $startDate && $now < $endDate)) {
                         throw new ContactClientRetryException(
                             'This contact client does not allow contacts during this time of day.',
