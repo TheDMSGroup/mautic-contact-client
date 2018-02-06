@@ -130,7 +130,7 @@ class SendCommand extends ModeratedCommand
 
                 return 0;
             }
-            $integrationObject->sendContact($client, $contact, $container, $options['test']);
+            $integrationObject->sendContact($client, $contact, $options['test']);
             if ($integrationObject->getValid()) {
                 $output->writeln('<info>Contact sent and accepted.</info>');
                 if (isset($options['verbose']) && $options['verbose']) {
