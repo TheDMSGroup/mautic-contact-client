@@ -91,7 +91,7 @@ class ApiPayload
         $this->contact = $contact;
         $this->test = $test;
         $this->setPayload($this->contactClient->getApiPayload());
-        $this->setSettings($this->payload->settings ?? null);
+        $this->setSettings(!empty($this->payload->settings) ? $this->payload->settings : null);
     }
 
     /**

@@ -75,10 +75,10 @@ class ApiPayloadOperation
     ) {
         $this->operation = &$operation;
         $this->service = $service;
-        $this->name = $operation->name ?? $operation->id ?? 'Unknown';
-        $this->request = $operation->request ?? [];
-        $this->responseExpected = $operation->response ?? [];
-        $this->successDefinition = $operation->response->success->definition ?? [];
+        $this->name = !empty($operation->name) ? $operation->name : (isset($operation->id) ? $operation->id : 'Unknown');
+        $this->request = isset($operation->request) ? $operation->request : [];
+        $this->responseExpected = isset($operation->response) ? $operation->response : [];
+        $this->successDefinition = isset($operation->response->success->definition) ? $operation->response->success->definition : [];
         $this->tokenHelper = $tokenHelper;
         $this->test = $test;
         $this->updatePayload = $updatePayload;
@@ -96,7 +96,7 @@ class ApiPayloadOperation
 
             return true;
         }
-        $uri = $this->request->url ?? null;
+        $uri = isset($this->request->url) ? $this->request->url : null;
         if ($this->test && !empty($this->request->testUrl)) {
             $uri = $this->request->testUrl;
         }
@@ -158,7 +158,7 @@ class ApiPayloadOperation
                         $result->{$type} = [];
                     }
                     // Check if header/body field is unexpected.
-                    $fieldId = $fieldKeys[$key] ?? -1;
+                    $fieldId = isset($fieldKeys[$key]) ? $fieldKeys[$key] : -1;
                     if ($fieldId == -1) {
                         // This is a new field.
                         $newField = new stdClass();

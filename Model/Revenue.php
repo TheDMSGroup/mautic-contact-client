@@ -56,6 +56,9 @@ class Revenue
     /**
      * Apply revenue to the current contact based on payload and settings of the Contact Client.
      * This assumes the Payload was successfully delivered (valid = true).
+     *
+     * @return bool
+     * @throws \Exception
      */
     public function applyRevenue()
     {
@@ -73,7 +76,7 @@ class Revenue
                 if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
 
                     // We have a value, apply sign.
-                    $sign = $revenueSettings->mode->sign ?? '+';
+                    $sign = isset($revenueSettings->mode->sign) ? $revenueSettings->mode->sign : '+';
                     if ($sign == '+') {
                         $newAttribution = abs($responseFieldValue);
                     } elseif ($sign == '-') {
@@ -83,7 +86,7 @@ class Revenue
                     }
 
                     // Apply maths.
-                    $math = $revenueSettings->mode->math ?? null;
+                    $math = isset($revenueSettings->mode->math) ? $revenueSettings->mode->math : null;
                     if ($math == '/100') {
                         $newAttribution = $newAttribution / 100;
                     } elseif ($math == '*100') {

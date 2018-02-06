@@ -32,30 +32,23 @@ class Stat
     const TYPE_REJECT = 'reject';
     const TYPE_ERROR = 'error';
 
-    /**
-     * @var int
-     */
+    /** @var int $id */
     private $id;
 
-    /**
-     * @var ContactClient
-     */
+    /** @var ContactClient $contactClient */
     private $contactClient;
 
-    /**
-     * @var string
-     */
+    /** @var string $type */
     private $type;
 
-    /**
-     * @var \DateTime
-     */
+    /** @var \DateTime $dateAdded */
     private $dateAdded;
 
-    /**
-     * @var
-     */
+    /** @var Contact $contact */
     private $contact;
+
+    /** @var float $attribution */
+    private $attribution;
 
     /**
      * @param ORM\ClassMetadata $metadata
@@ -65,9 +58,7 @@ class Stat
         $builder = new ClassMetadataBuilder($metadata);
 
         $builder->setTable('contactclient_stats')
-            ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\StatRepository')
-            ->addIndex(['type'], 'contactclient_type')
-            ->addIndex(['date_added'], 'contactclient_date_added');
+            ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\StatRepository');
 
         $builder->addId();
 
@@ -79,7 +70,14 @@ class Stat
 
         $builder->addNamedField('dateAdded', 'datetime', 'date_added');
 
+        $builder->addField('attribution', 'float');
+
         $builder->addContact(true, 'SET NULL');
+
+        $builder->addIndex(
+            ['contactclient_id', 'type', 'date_added'],
+            'contactclient_type_date_added'
+        );
     }
 
     /**
@@ -119,18 +117,6 @@ class Stat
     }
 
     /**
-     * @return array
-     */
-    public function getAllTypes() {
-        $result = [];
-        try {
-            $reflection = new \ReflectionClass(__CLASS__);
-            $result = $reflection->getConstants();
-        } catch (\ReflectionException $e){};
-        return $result;
-    }
-
-    /**
      * @param mixed $type
      *
      * @return Stat
@@ -140,6 +126,40 @@ class Stat
         $this->type = $type;
 
         return $this;
+    }
+
+    /**
+     * @return float
+     */
+    public function getAttribution()
+    {
+        return $this->attribution;
+    }
+
+    /**
+     * @param $attribution
+     * @return $this
+     */
+    public function setAttribution($attribution)
+    {
+        $this->attribution = $attribution;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllTypes()
+    {
+        $result = [];
+        try {
+            $reflection = new \ReflectionClass(__CLASS__);
+            $result = $reflection->getConstants();
+        } catch (\ReflectionException $e) {
+        };
+
+        return $result;
     }
 
     /**

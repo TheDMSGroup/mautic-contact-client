@@ -82,7 +82,7 @@ class ApiPayloadResponse
         $this->setLogs($result['bodyRaw'], 'bodyRaw');
 
         // Format the body response.
-        $responseExpectedFormat = trim(strtolower($this->responseExpected->format ?? 'auto'));
+        $responseExpectedFormat = trim(strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto'));
         $this->setLogs($responseExpectedFormat, 'format');
 
         $result['body'] = [];
@@ -316,7 +316,7 @@ class ApiPayloadResponse
      */
     public function getResponse()
     {
-        return $this->responseActual ?? [];
+        return isset($this->responseActual) ? $this->responseActual : [];
     }
 
     public function getLogs()

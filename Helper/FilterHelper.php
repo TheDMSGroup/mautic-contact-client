@@ -72,7 +72,7 @@ class FilterHelper
             return false;
         }
 
-        return $this->loopThroughRules($query->rules, $context, $query->condition ?? 'AND');
+        return $this->loopThroughRules($query->rules, $context, isset($query->condition) ? $query->condition : 'AND');
     }
 
     /**

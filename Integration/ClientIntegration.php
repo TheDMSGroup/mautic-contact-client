@@ -13,7 +13,8 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use Mautic\LeadBundle\Entity\LeadEventLog;
+// use Mautic\LeadBundle\Entity\LeadEventLog;
+use Mautic\PluginBundle\Entity\IntegrationEntityRepository;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -36,36 +37,30 @@ use Symfony\Component\Yaml\Yaml;
 class ClientIntegration extends AbstractIntegration
 {
 
-    /**
-     * @var ContactClient client we are about to send this Contact to.
-     */
+    /** @var ContactClient client we are about to send this Contact to. */
     protected $contactClient;
 
-    /**
-     * @var array Of temporary log entries.
-     */
+    /** @var array Of temporary log entries. */
     protected $logs = [];
 
-    /**
-     * @var Contact The contact we wish to send and update.
-     */
+    /** @var Contact $contact The contact we wish to send and update. */
     protected $contact;
 
     /**
-     * @var bool Test mode.
+     * @var bool $test Test mode.
      */
     protected $test = false;
 
-    /** @var ApiPayload */
+    /** @var ApiPayload $payload */
     protected $payload;
 
+    /** @var bool $valid */
     protected $valid = true;
 
+    /** @var Container $container */
     protected $container;
 
-    protected $eventType;
-
-    /** @var string */
+    /** @var string $statType */
     protected $statType;
 
     /** @var contactClientModel */
@@ -138,24 +133,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param $apiPayload
-     * @return array
-     */
-    public function sendTest($apiPayload)
-    {
-        $client = new ContactClient();
-        $client->setAPIPayload($apiPayload);
-        $contact = new Contact();
-
-        $this->sendContact($client, $contact, true);
-
-        return [
-            'valid' => $this->valid,
-            'payload' => $client->getAPIPayload(),
-        ];
-    }
-
-    /**
      * Merges a config from integration_list with feature settings.
      *
      * @param array $config
@@ -217,11 +194,11 @@ class ClientIntegration extends AbstractIntegration
         $test = false,
         $overrides = []
     ) {
+        /** @var Container $container */
         $container = $this->dispatcher->getContainer();
 
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
-
 
         $this->test = $test;
 
@@ -277,8 +254,6 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-        // @todo - Revenue - Apply revenue (default or field based) to the Contact and Revenue stats.
-
         if (isset($this->payload)) {
             $this->setLogs($this->payload->getLogs(), 'operations');
         }
@@ -296,63 +271,51 @@ class ClientIntegration extends AbstractIntegration
      */
     private function updateContact()
     {
+        // Do not update contacts for test runs.
         if (!$this->test && !$this->payload) {
             return;
         }
+        // Only update contacts if success definitions are met.
         if ($this->valid) {
-            /** @var bool $updatedFields */
-            $updatedFields = $this->payload->applyResponseMap();
-            if ($updatedFields) {
-                $this->contact = $this->payload->getContact();
-            }
 
-            /** @var Revenue $revenue */
-            $revenue = new Revenue($this->contactClient, $this->contact);
-            $revenue->setPayload($this->payload);
-            /** @var bool $updatedRevenue */
-            $updatedRevenue = $revenue->applyRevenue();
-            if ($updatedRevenue) {
-                $this->contact = $revenue->getContact();
-                $this->setLogs('Updating Contact cost/revenue attribution = '.$this->contact->getAttribution());
-            }
-
-            // Check the Revenue setting to see if we should apply to "attribution"
-            if ($updatedFields || $updatedRevenue) {
-                try {
-                    /** @var Contact $contactModel */
-                    $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
-                    $contactModel->saveEntity($this->contact);
-                    $this->setLogs('Operation successful. The Contact was updated.', 'updated');
-                } catch (Exception $e) {
-                    $this->setLogs('Failure to update our Contact. '.$e->getMessage(), 'error');
-                    $this->valid = false;
-                    $this->logIntegrationError($e, $this->contact);
+            try {
+                // Update any fields based on the response map.
+                /** @var bool $updatedFields */
+                $updatedFields = $this->payload->applyResponseMap();
+                if ($updatedFields) {
+                    $this->contact = $this->payload->getContact();
                 }
-            } else {
-                $this->setLogs('Operation successful, but no fields on the Contact needed updating.', 'info');
+
+                // Update attribution based on revenue settings.
+                /** @var Revenue $revenue */
+                $revenue = new Revenue($this->contactClient, $this->contact);
+                $revenue->setPayload($this->payload);
+                /** @var bool $updatedRevenue */
+                $updatedRevenue = $revenue->applyRevenue();
+                if ($updatedRevenue) {
+                    $this->contact = $revenue->getContact();
+                    $this->setLogs($revenue->getNewAttribution(), 'attribution');
+                    $this->setLogs($this->contact->getAttribution(), 'attributionTotal');
+                } else {
+                    $this->setLogs(0, 'attribution');
+                    $this->setLogs($this->contact->getAttribution(), 'attributionTotal');
+                }
+
+                // If any fields were updated, save the Contact entity.
+                if ($updatedFields || $updatedRevenue) {
+                    /** @var \Mautic\LeadBundle\Model\LeadModel $model */
+                    $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
+                    $contactModel->getRepository()->saveEntity($this->contact);
+                    $this->setLogs('Operation successful. The contact was updated.', 'updated');
+                } else {
+                    $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');
+                }
+            } catch (\Exception $e) {
+                $this->valid = false;
+                $this->setLogs('Operation completed, but we failed to update our Contact. '.$e->getMessage(), 'error');
+                $this->logIntegrationError($e, $this->contact);
             }
         }
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatType()
-    {
-        return $this->statType;
-    }
-
-    /**
-     * @param string $statType
-     *
-     * @return ClientIntegration
-     */
-    public function setStatType($statType = null)
-    {
-        if (!empty($statType)) {
-            $this->statType = $statType;
-        }
-        return $this;
     }
 
     /**
@@ -392,7 +355,7 @@ class ClientIntegration extends AbstractIntegration
         } else {
             $statType = $this->statType ?: Stat::TYPE_ERROR;
             $statLevel = 'ERROR';
-            $message = $operation['error'] ?? 'An unexpected error occurred.';
+            $message = isset($this->logs['error']) ? $this->logs['error'] : 'An unexpected error occurred.';
             // Check for a filter-based rejection.
             if (isset($this->logs['operations'])) {
                 foreach ($this->logs['operations'] as $operation) {
@@ -408,7 +371,8 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Add log entry for statistics / charts.
-        $clientModel->addStat($this->contactClient, $statType, $this->contact);
+        $attribution = !empty($this->logs['attribution']) ? $this->logs['attribution'] : 0;
+        $clientModel->addStat($this->contactClient, $statType, $this->contact, $attribution);
 
         // Add transactional event for deep dive into logs.
         $clientModel->addEvent(
@@ -525,6 +489,46 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @param $apiPayload
+     * @return array
+     */
+    public function sendTest($apiPayload)
+    {
+        $client = new ContactClient();
+        $client->setAPIPayload($apiPayload);
+        $contact = new Contact();
+
+        $this->sendContact($client, $contact, true);
+
+        return [
+            'valid' => $this->valid,
+            'payload' => $client->getAPIPayload(),
+        ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatType()
+    {
+        return $this->statType;
+    }
+
+    /**
+     * @param string $statType
+     *
+     * @return ClientIntegration
+     */
+    public function setStatType($statType = null)
+    {
+        if (!empty($statType)) {
+            $this->statType = $statType;
+        }
+
+        return $this;
+    }
+
+    /**
      * @todo - Push multiple contacts by Campaign Action.
      * @param array $params
      *
@@ -550,6 +554,7 @@ class ClientIntegration extends AbstractIntegration
      * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
      * @param array $data
      * @param string $formArea
+     * @throws Exception
      */
     public function appendToForm(&$builder, $data, $formArea)
     {

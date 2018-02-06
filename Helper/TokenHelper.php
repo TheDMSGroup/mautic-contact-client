@@ -118,7 +118,7 @@ class TokenHelper
         
         // Append contact ID.
         $contactId = $contact->getId();
-        $context['id'] = $contactId ?? 0;
+        $context['id'] = isset($contactId) ? $contactId : 0;
 
         // Append contact owner data.
         $owner = $contact->getOwner();
@@ -135,7 +135,7 @@ class TokenHelper
 
         // Append points value.
         $points = $contact->getPoints();
-        $context['points'] = $points ?? 0;
+        $context['points'] = isset($points) ? $points : 0;
 
         // Append IP Addresses.
         $ips = $contact->getIpAddresses()->toArray();
