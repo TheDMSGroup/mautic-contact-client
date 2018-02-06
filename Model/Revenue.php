@@ -65,7 +65,7 @@ class Revenue
         $update = false;
         $originalAttribution = $this->contact->getFieldValue('attribution');
         $originalAttribution = !empty($originalAttribution) ? $originalAttribution : 0;
-        $newAttribution = $originalAttribution;
+        $newAttribution = 0;
 
         if ($this->payload) {
             $revenueSettings = $this->jsonDecodeObject($this->contactClient->getRevenueSettings());
@@ -94,9 +94,6 @@ class Revenue
                     } elseif ($math == '*100') {
                         $newAttribution = $newAttribution * 100;
                     }
-
-                    // Apply new cost/revenue to the original value.
-                    $newAttribution = $originalAttribution + $newAttribution;
                     $update = true;
                 }
             }
@@ -106,14 +103,14 @@ class Revenue
         if (!$update) {
             $revenueDefault = $this->contactClient->getRevenueDefault();
             if (!empty($revenueDefault) && is_numeric($revenueDefault)) {
-                $newAttribution = $originalAttribution + $revenueDefault;
+                $newAttribution = $revenueDefault;
                 $update = true;
             }
         }
 
-        if ($update && $originalAttribution != $newAttribution) {
+        if ($update && $newAttribution) {
             $this->setNewAttribution($newAttribution);
-            $this->contact->addUpdatedField('attribution', $newAttribution, $originalAttribution);
+            $this->contact->addUpdatedField('attribution', $originalAttribution + $newAttribution, $originalAttribution);
             // Unsure if we should keep this next line for BC.
             $this->contact->addUpdatedField('attribution_date', (new \DateTime())->format('Y-m-d H:i:s'));
         }

@@ -277,7 +277,27 @@ class ContactClientModel extends FormModel
                 $this->limitQueryToCreator($q);
             }
             $data = $query->loadAndBuildTimeData($q);
-            $chart->setDataset($this->translator->trans('mautic.contactclient.graph.' . $type), $data);
+            foreach ($data as $val) {
+                if ($val != 0) {
+                    $chart->setDataset($this->translator->trans('mautic.contactclient.graph.' . $type), $data);
+                    break;
+                }
+            }
+        }
+
+        // Add revenue to the chart.
+        // @todo - This should really be in it's own chart in the future.
+        $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_SUCCESS]);
+        if (!$canViewOthers) {
+            $this->limitQueryToCreator($q);
+        }
+        $q->select('SUM(t.attribution) AS count');
+        $data = $query->loadAndBuildTimeData($q);
+        foreach ($data as $val) {
+            if ($val != 0) {
+                $chart->setDataset($this->translator->trans('mautic.contactclient.graph.revenue'), $data);
+                break;
+            }
         }
 
         return $chart->render();

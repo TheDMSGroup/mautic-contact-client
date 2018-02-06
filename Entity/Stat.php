@@ -26,7 +26,6 @@ class Stat
     const TYPE_EXCLUSIVE = 'exclusive';
     const TYPE_FILTER = 'filter';
     const TYPE_LIMITS = 'limits';
-    const TYPE_REVENUE = 'revenue';
     const TYPE_SCHEDULE = 'schedule';
     const TYPE_SUCCESS = 'success';
     const TYPE_REJECT = 'reject';
