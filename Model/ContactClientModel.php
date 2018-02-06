@@ -300,7 +300,7 @@ class ContactClientModel extends FormModel
         $dbUnit = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
         $dbUnit = $query->translateTimeUnit($dbUnit);
         $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
-        $q->select($dateConstruct.' AS date, SUM(t.attribution) AS count')
+        $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
             ->groupBy($dateConstruct);
         $data = $query->loadAndBuildTimeData($q);
         foreach ($data as $val) {

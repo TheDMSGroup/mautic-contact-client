@@ -66,7 +66,7 @@ class ApiPayload
 
     protected $responseMap = [];
 
-    protected $responseAggregate = [];
+    protected $aggregateActualResponses = [];
 
 
     /**
@@ -191,7 +191,7 @@ class ApiPayload
             } else {
                 // Aggregate successful responses that are mapped to Contact fields.
                 $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
-                $this->responseAggregate = array_merge($this->responseAggregate, $apiOperation->getResponseActual());
+                $this->setAggregateActualResponses($apiOperation->getResponseActual());
             }
         }
 
@@ -255,6 +255,25 @@ class ApiPayload
         }
 
         return $this->tokenHelper;
+    }
+
+    /**
+     * @param $responseActual
+     * @param array $types
+     * @return $this
+     */
+    public function setAggregateActualResponses($responseActual, $types = ['headers', 'body'])
+    {
+        foreach ($types as $type) {
+            if (!isset($this->aggregateActualResponses[$type])) {
+                $this->aggregateActualResponses[$type] = [];
+            }
+            if (isset($responseActual[$type])) {
+                $this->aggregateActualResponses[$type] = array_merge($this->aggregateActualResponses[$type], $responseActual[$type]);
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -388,17 +407,16 @@ class ApiPayload
      * @param array $types
      * @return null
      */
-    public function getResponseFieldValue($fieldName, $types = ['headers', 'body'])
+    public function getAggregateResponseFieldValue($fieldName, $types = ['headers', 'body'])
     {
         if ($this->valid) {
-            if (isset($this->responseAggregate)) {
+            if (isset($this->aggregateActualResponses)) {
                 foreach ($types as $type) {
-                    if (!empty($this->responseAggregate[$type])) {
-                        foreach ($this->responseAggregate[$type] as $key => $field) {
-                            if ($key == $fieldName && !empty($field)) {
-                                return $field;
-                            }
-                        }
+                    if (
+                        !empty($this->aggregateActualResponses[$type])
+                        && !empty($this->aggregateActualResponses[$type][$fieldName])
+                    ) {
+                        return $this->aggregateActualResponses[$type][$fieldName];
                     }
                 }
             }

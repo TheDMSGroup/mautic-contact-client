@@ -74,7 +74,7 @@ class Revenue
                 $key = $revenueSettings->mode->key;
 
                 // Attempt to get this field value from the response operations.
-                $responseFieldValue = $this->payload->getResponseFieldValue($key);
+                $responseFieldValue = $this->payload->getAggregateResponseFieldValue($key);
                 if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
 
                     // We have a value, apply sign.
