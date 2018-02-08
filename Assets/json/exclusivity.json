@@ -1,0 +1,205 @@
+{
+  "title": "Exclusivity Settings",
+  "$schema": "exclusivity.json",
+  "type": "object",
+  "format": "grid",
+  "options": {
+    "disable_collapse": true
+  },
+  "properties": {
+    "mode": {
+      "title": "Exclusivity",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "default": true,
+      "oneOf": [
+        {
+          "title": "Not Exclusive",
+          "type": "boolean",
+          "format": "checkbox",
+          "default": false,
+          "options": {
+            "disabled": true
+          }
+        },
+        {
+          "title": "Exclusive",
+          "properties": {
+            "rules": {
+              "type": "array",
+              "format": "table",
+              "options": {
+                "disable_collapse": true,
+                "infoText": "To make this client exclusive, you must add at least one exclusivity rule."
+              },
+              "items": {
+                "title": "Exclusivity Rule",
+                "$ref": "#/definitions/cacheField"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "cacheField": {
+      "headerTemplate": "{{ self.scope }}",
+      "type": "object",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "properties": {
+        "scope": {
+          "title": "Scope",
+          "propertyOrder": 10,
+          "type": "integer",
+          "uniqueItems": true,
+          "default": "global",
+          "options": {
+            "infoText": "How wide do you want this exclusivity to reach. Global for exclusivity to all clients. Category to be exclusive to clients within the same category."
+          },
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": 1,
+                  "title": "Global"
+                },
+                {
+                  "value": 2,
+                  "title": "Category"
+                }
+              ],
+              "title": "{{ item.title }}",
+              "value": "{{ item.value }}"
+            }
+          ]
+        },
+        "matching": {
+          "title": "Matching",
+          "options": {
+            "collapsed": false,
+            "disable_collapse": true,
+            "infoText": "You can optionally make this exclusivity apply to other contacts that closely match."
+          },
+          "oneOf": [
+            {
+              "title": "Explicit",
+              "type": "integer",
+              "default": 1,
+              "options": {
+                "disabled": true
+              }
+            },
+            {
+              "title": "Soft",
+              "type": "integer",
+              "default": "email",
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": 2,
+                      "title": "Email"
+                    },
+                    {
+                      "value": 4,
+                      "title": "Home Phone"
+                    },
+                    {
+                      "value": 8,
+                      "title": "Mobile Phone"
+                    },
+                    {
+                      "value": 16,
+                      "title": "Complete Address"
+                    },
+                    {
+                      "value": 21,
+                      "title": "UTM Source"
+                    }
+                  ],
+                  "title": "{{ item.title }}",
+                  "value": "{{ item.value }}"
+                }
+              ]
+            }
+          ]
+        },
+        "duration": {
+          "propertyOrder": 30,
+          "title": "Duration",
+          "type": "integer",
+          "options": {
+            "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope."
+          },
+          "default": 86400,
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": 3600,
+                  "title": "1 Hour"
+                },
+                {
+                  "value": 21600,
+                  "title": "6 Hours"
+                },
+                {
+                  "value": 43200,
+                  "title": "12 Hours"
+                },
+                {
+                  "value": 86400,
+                  "title": "1 Day"
+                },
+                {
+                  "value": 172800,
+                  "title": "2 Days"
+                },
+                {
+                  "value": 259200,
+                  "title": "3 Days"
+                },
+                {
+                  "value": 345600,
+                  "title": "4 Days"
+                },
+                {
+                  "value": 432000,
+                  "title": "5 Days"
+                },
+                {
+                  "value": 518400,
+                  "title": "6 Days"
+                },
+                {
+                  "value": 604800,
+                  "title": "1 Week"
+                },
+                {
+                  "value": 1209600,
+                  "title": "2 Weeks"
+                },
+                {
+                  "value": 1814400,
+                  "title": "3 Weeks"
+                },
+                {
+                  "value": 2592000,
+                  "title": "30 Days"
+                }
+              ],
+              "title": "{{ item.title }}",
+              "value": "{{ item.value }}"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
