@@ -77,18 +77,21 @@ class Schedule
         $jsonHelper = new JSONHelper();
         $hours = $jsonHelper->decodeArray($contactClient->getScheduleHours(), 'ScheduleHours');
 
-        if (is_array($hours) && $hours) {
+        if ($hours) {
             $now = $this->getNow();
             $timezone = $this->getTimezone();
 
-            $day = intval($now->format('w'));
+            $day = intval($now->format('N')) - 1;
             if (isset($hours[$day])) {
                 if (
                     isset($hours[$day]->isActive)
                     && !$hours[$day]->isActive
                 ) {
                     throw new ContactClientRetryException(
-                        'This contact client does not allow contacts on a '.$now->format('l').'.'
+                        'This contact client does not allow contacts on a '.$now->format('l').'.',
+                        0,
+                        null,
+                        Stat::TYPE_SCHEDULE
                     );
                 } else {
                     $timeFrom = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
