@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
 use Symfony\Component\DependencyInjection\Container;
@@ -106,36 +107,9 @@ class ApiPayload
         if (!$payload) {
             throw new \Exception('API instructions payload is blank.');
         }
-        $payload = json_decode($payload);
-        $jsonError = null;
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                break;
-            case JSON_ERROR_DEPTH:
-                $jsonError = 'Maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $jsonError = 'Underflow or the modes mismatch';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $jsonError = 'Unexpected control character found';
-                break;
-            case JSON_ERROR_SYNTAX:
-                $jsonError = 'Syntax error, malformed JSON';
-                break;
-            case JSON_ERROR_UTF8:
-                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            default:
-                $jsonError = 'Unknown error';
-                break;
-        }
-        if ($jsonError) {
-            throw new \Exception('API instructions payload JSON is invalid: '.$jsonError);
-        }
-        if (!$payload || !is_object($payload)) {
-            throw new \Exception('API instructions payload is invalid.');
-        }
+
+        $jsonHelper = new JSONHelper();
+        $payload = $jsonHelper->decodeObject($payload, 'Payload');
 
         return $this->payload = $payload;
     }

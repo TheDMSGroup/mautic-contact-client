@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -73,7 +74,9 @@ class Schedule
      */
     public function evaluateHours(ContactClient $contactClient)
     {
-        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours());
+        $jsonHelper = new JSONHelper();
+        $hours = $jsonHelper->decodeArray($contactClient->getScheduleHours(), 'ScheduleHours');
+
         if (is_array($hours) && $hours) {
             $now = $this->getNow();
             $timezone = $this->getTimezone();
@@ -106,47 +109,6 @@ class Schedule
     }
 
     /**
-     * @param $string
-     * @return mixed
-     * @throws \Exception
-     */
-    private function jsonDecodeArray($string)
-    {
-        $array = json_decode(!empty($string) ? $string : '[]');
-        $jsonError = null;
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                break;
-            case JSON_ERROR_DEPTH:
-                $jsonError = 'Maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $jsonError = 'Underflow or the modes mismatch';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $jsonError = 'Unexpected control character found';
-                break;
-            case JSON_ERROR_SYNTAX:
-                $jsonError = 'Syntax error, malformed JSON';
-                break;
-            case JSON_ERROR_UTF8:
-                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            default:
-                $jsonError = 'Unknown error';
-                break;
-        }
-        if ($jsonError) {
-            throw new \Exception('Schedule JSON is invalid: '.$jsonError);
-        }
-        if (!$array || !is_array($array)) {
-            throw new \Exception('Schedule is invalid.');
-        }
-
-        return $array;
-    }
-
-    /**
      * @return \Datetime
      */
     private function getNow()
@@ -175,9 +137,11 @@ class Schedule
      */
     public function evaluateExclusions(ContactClient $contactClient)
     {
+
         // Check dates of exclusion (if there are any).
-        $exclusions = $this->jsonDecodeArray($contactClient->getScheduleExclusions() );
-        if (is_array($exclusions) && $exclusions) {
+        $jsonHelper = new JSONHelper();
+        $exclusions = $jsonHelper->decodeArray($contactClient->getScheduleExclusions(), 'ScheduleExclusions');
+        if ($exclusions) {
             $now = $this->getNow();
 
             // Fastest way to compare dates is by string.

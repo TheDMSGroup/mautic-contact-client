@@ -21,6 +21,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
@@ -93,6 +94,7 @@ class ClientIntegration extends AbstractIntegration
      * @param Contact $contact
      * @param array $config
      * @return bool
+     * @throws Exception
      */
     public function pushLead($contact, $config = [])
     {
@@ -114,8 +116,8 @@ class ClientIntegration extends AbstractIntegration
         $overrides = [];
         if (!empty($config['contactclient_overrides'])) {
             // Flatten overrides to key-value pairs.
-            $obj = json_decode($config['contactclient_overrides']);
-            $overrides = [];
+            $jsonHelper = new JSONHelper();
+            $obj = $jsonHelper->decodeObject($config['contactclient_overrides'], 'Overrides');
             if ($obj) {
                 foreach ($obj as $field) {
                     if (!empty($field->key) && !empty($field->value)) {
