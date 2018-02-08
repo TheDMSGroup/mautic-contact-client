@@ -11,6 +11,7 @@
       "title": "Exclusivity Rules",
       "type": "array",
       "format": "table",
+      "uniqueItems": true,
       "options": {
         "disable_collapse": true
       },
@@ -29,25 +30,36 @@
         "disable_collapse": true
       },
       "properties": {
-        "scope": {
-          "title": "Scope",
+        "matching": {
+          "title": "Contact Matching",
           "propertyOrder": 10,
           "type": "integer",
-          "uniqueItems": true,
-          "default": "global",
+          "default": 1,
           "options": {
-            "infoText": "How wide do you want this exclusivity to reach. Global for exclusivity to all clients. Category to be exclusive to clients within the same category."
+            "infoText": "You can make the exclusivity rule apply to the explicit contact in question, or to all contacts that are similar based on some select fields."
           },
           "enumSource": [
             {
               "source": [
                 {
                   "value": 1,
-                  "title": "Global"
+                  "title": "Unique contacts"
                 },
                 {
                   "value": 2,
-                  "title": "Category"
+                  "title": "Contacts matching email"
+                },
+                {
+                  "value": 4,
+                  "title": "Contacts matching home phone"
+                },
+                {
+                  "value": 8,
+                  "title": "Contacts matching mobile phone"
+                },
+                {
+                  "value": 16,
+                  "title": "Contacts matching address"
                 }
               ],
               "title": "{{ item.title }}",
@@ -55,32 +67,24 @@
             }
           ]
         },
-        "matching": {
-          "title": "Matching",
-          "default": 1,
+        "scope": {
+          "title": "Scope",
+          "propertyOrder": 20,
           "type": "integer",
+          "default": "global",
+          "options": {
+            "infoText": "How wide do you want this exclusivity to reach."
+          },
           "enumSource": [
             {
               "source": [
                 {
                   "value": 1,
-                  "title": "explicitly"
+                  "title": "are to be exclusive globally"
                 },
                 {
                   "value": 2,
-                  "title": "by email"
-                },
-                {
-                  "value": 4,
-                  "title": "by home phone"
-                },
-                {
-                  "value": 8,
-                  "title": "by mobile phone"
-                },
-                {
-                  "value": 16,
-                  "title": "by address"
+                  "title": "are to be exclusive per client category"
                 }
               ],
               "title": "{{ item.title }}",
@@ -89,8 +93,8 @@
           ]
         },
         "duration": {
-          "propertyOrder": 30,
           "title": "Duration",
+          "propertyOrder": 30,
           "type": "integer",
           "options": {
             "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope."
@@ -101,55 +105,55 @@
               "source": [
                 {
                   "value": 3600,
-                  "title": "1 Hour"
+                  "title": "for 1 Hour"
                 },
                 {
                   "value": 21600,
-                  "title": "6 Hours"
+                  "title": "for 6 Hours"
                 },
                 {
                   "value": 43200,
-                  "title": "12 Hours"
+                  "title": "for 12 Hours"
                 },
                 {
                   "value": 86400,
-                  "title": "1 Day"
+                  "title": "for 1 Day"
                 },
                 {
                   "value": 172800,
-                  "title": "2 Days"
+                  "title": "for 2 Days"
                 },
                 {
                   "value": 259200,
-                  "title": "3 Days"
+                  "title": "for 3 Days"
                 },
                 {
                   "value": 345600,
-                  "title": "4 Days"
+                  "title": "for 4 Days"
                 },
                 {
                   "value": 432000,
-                  "title": "5 Days"
+                  "title": "for 5 Days"
                 },
                 {
                   "value": 518400,
-                  "title": "6 Days"
+                  "title": "for 6 Days"
                 },
                 {
                   "value": 604800,
-                  "title": "1 Week"
+                  "title": "for 1 Week"
                 },
                 {
                   "value": 1209600,
-                  "title": "2 Weeks"
+                  "title": "for 2 Weeks"
                 },
                 {
                   "value": 1814400,
-                  "title": "3 Weeks"
+                  "title": "for 3 Weeks"
                 },
                 {
                   "value": 2592000,
-                  "title": "30 Days"
+                  "title": "for 30 Days"
                 }
               ],
               "title": "{{ item.title }}",
