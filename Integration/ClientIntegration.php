@@ -46,9 +46,7 @@ class ClientIntegration extends AbstractIntegration
     /** @var Contact $contact The contact we wish to send and update. */
     protected $contact;
 
-    /**
-     * @var bool $test Test mode.
-     */
+    /** @var bool $test */
     protected $test = false;
 
     /** @var ApiPayload $payload */
