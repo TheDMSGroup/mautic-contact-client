@@ -7,41 +7,17 @@
     "disable_collapse": true
   },
   "properties": {
-    "mode": {
-      "title": "Exclusivity",
+    "rules": {
+      "title": "Exclusivity Rules",
+      "type": "array",
+      "format": "table",
       "options": {
-        "collapsed": false,
         "disable_collapse": true
       },
-      "default": true,
-      "oneOf": [
-        {
-          "title": "Not Exclusive",
-          "type": "boolean",
-          "format": "checkbox",
-          "default": false,
-          "options": {
-            "disabled": true
-          }
-        },
-        {
-          "title": "Exclusive",
-          "properties": {
-            "rules": {
-              "type": "array",
-              "format": "table",
-              "options": {
-                "disable_collapse": true,
-                "infoText": "To make this client exclusive, you must add at least one exclusivity rule."
-              },
-              "items": {
-                "title": "Exclusivity Rule",
-                "$ref": "#/definitions/cacheField"
-              }
-            }
-          }
-        }
-      ]
+      "items": {
+        "title": "Rule",
+        "$ref": "#/definitions/cacheField"
+      }
     }
   },
   "definitions": {
@@ -81,52 +57,34 @@
         },
         "matching": {
           "title": "Matching",
-          "options": {
-            "collapsed": false,
-            "disable_collapse": true,
-            "infoText": "You can optionally make this exclusivity apply to other contacts that closely match."
-          },
-          "oneOf": [
+          "default": 1,
+          "type": "integer",
+          "enumSource": [
             {
-              "title": "Explicit",
-              "type": "integer",
-              "default": 1,
-              "options": {
-                "disabled": true
-              }
-            },
-            {
-              "title": "Soft",
-              "type": "integer",
-              "default": "email",
-              "enumSource": [
+              "source": [
                 {
-                  "source": [
-                    {
-                      "value": 2,
-                      "title": "Email"
-                    },
-                    {
-                      "value": 4,
-                      "title": "Home Phone"
-                    },
-                    {
-                      "value": 8,
-                      "title": "Mobile Phone"
-                    },
-                    {
-                      "value": 16,
-                      "title": "Complete Address"
-                    },
-                    {
-                      "value": 21,
-                      "title": "UTM Source"
-                    }
-                  ],
-                  "title": "{{ item.title }}",
-                  "value": "{{ item.value }}"
+                  "value": 1,
+                  "title": "explicitly"
+                },
+                {
+                  "value": 2,
+                  "title": "by email"
+                },
+                {
+                  "value": 4,
+                  "title": "by home phone"
+                },
+                {
+                  "value": 8,
+                  "title": "by mobile phone"
+                },
+                {
+                  "value": 16,
+                  "title": "by address"
                 }
-              ]
+              ],
+              "title": "{{ item.title }}",
+              "value": "{{ item.value }}"
             }
           ]
         },

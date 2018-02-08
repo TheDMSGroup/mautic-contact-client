@@ -5,7 +5,7 @@ Mautic.contactclientOnLoad = function () {
         // Default behavior for Contact Client edit/details screens:
         if (mQuery('input[name="contactclient[type]"]').length) {
             Mautic.contactclientType();
-            Mautic.contactclientExclusivity();
+            Mautic.contactclientExclusive();
             Mautic.contactclientFilter();
             Mautic.contactclientLimits();
             Mautic.contactclientSchedule();
