@@ -12,7 +12,7 @@
 return [
     'name'        => 'Mautic Contact Client',
     'description' => 'Send contacts to third party APIs or enhance your contacts without code.',
-    'version'     => '0.2',
+    'version'     => '0.3',
     'author'      => 'Mautic',
 
     'routes' => [
@@ -127,18 +127,19 @@ return [
 
     'menu' => [
         'main' => [
-//            'mautic.contactclient' => [
-//                'route'    => 'mautic_contactclient_index',
-//                'access'   => 'plugin:contactclient:items:view',
-//                 'parent'  => 'mautic.core.channels',
-//                'priority' => 10,
-//            ],
             'mautic.contactclient' => [
                 'route'     => 'mautic_contactclient_index',
                 'access'    => 'plugin:contactclient:items:view',
                 'id'        => 'mautic_contactclient_root',
                 'iconClass' => 'fa-cloud-upload',
                 'priority'  => 35,
+                'checks'    => [
+                    'integration' => [
+                        'Client' => [
+                            'enabled' => true,
+                        ],
+                    ],
+                ],
             ],
         ],
     ],
