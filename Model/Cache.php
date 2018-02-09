@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\CoreBundle\Model\AbstractCommonModel;
+use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\Cache as CacheEntity;
@@ -31,6 +32,9 @@ class Cache extends AbstractCommonModel
     /** @var Contact */
     protected $contact;
 
+    /** @var PhoneNumberHelper */
+    protected $phoneHelper;
+
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
      * @throws \Exception
@@ -42,7 +46,7 @@ class Cache extends AbstractCommonModel
         if (count($exclusive)) {
             // Create an entry for *each* exclusivity rule as they will end up with different dates of exclusivity
             // expiration. Any of these entries will suffice for duplicate checking and limit checking.
-            foreach ($exclusive as $duration => $rule) {
+            foreach ($exclusive as $rule) {
                 if (!isset($entity)) {
                     $entity = $this->new();
                 } else {
@@ -51,7 +55,7 @@ class Cache extends AbstractCommonModel
                 }
                 // Each entry may have different exclusion expiration.
                 $expireDate = new \DateTime();
-                $expireDate->add(new \DateInterval($duration));
+                $expireDate->add(new \DateInterval($rule['duration']));
                 $entity->setExclusiveExpireDate($expireDate);
                 $entity->setExclusivePattern($rule['matching']);
                 $entity->setExclusiveScope($rule['scope']);
@@ -97,13 +101,15 @@ class Cache extends AbstractCommonModel
                     && !empty($rule->duration)
                 ) {
                     $duration = $rule->duration;
-                    if (!isset($newRules[$duration])) {
-                        $newRules[$duration] = [];
-                        $newRules[$duration]['matching'] = intval($rule->matching);
-                        $newRules[$duration]['scope'] = intval($rule->scope);
+                    $scope = intval($rule->scope);
+                    $key = $duration.'-'.$scope;
+                    if (!isset($newRules[$key])) {
+                        $newRules[$key] = [];
+                        $newRules[$key]['matching'] = intval($rule->matching);
+                        $newRules[$key]['scope'] = $scope;
+                        $newRules[$key]['duration'] = $duration;
                     } else {
-                        $newRules[$duration]['matching'] += intval($rule->matching);
-                        $newRules[$duration]['scope'] += intval($rule->scope);
+                        $newRules[$key]['matching'] += intval($rule->matching);
                     }
                 }
             }
@@ -135,20 +141,13 @@ class Cache extends AbstractCommonModel
         $entity->setCountry(trim(ucwords($this->contact->getCountry())));
         $entity->setZipcode(trim($this->contact->getZipcode()));
         $entity->setEmail(trim($this->contact->getEmail()));
-        $phoneHelper = new PhoneNumberHelper();
-        $phone = trim($this->contact->getPhone());
+        $phone = $this->phoneValidate($this->contact->getPhone());
         if (!empty($phone)) {
-            try {
-                $entity->setPhone($phoneHelper->format($phone));
-            } catch (\Exception $e) {
-            }
+            $entity->setPhone($phone);
         }
-        $mobile = trim($this->contact->getMobile());
+        $mobile = $this->phoneValidate($this->contact->getMobile());
         if (!empty($mobile)) {
-            try {
-                $entity->setMobile($phoneHelper->format($mobile));
-            } catch (\Exception $e) {
-            }
+            $entity->setMobile($mobile);
         }
         $utmTags = $this->contact->getUtmTags();
         if ($utmTags) {
@@ -165,13 +164,58 @@ class Cache extends AbstractCommonModel
     }
 
     /**
-     * @return bool|\Doctrine\ORM\EntityRepository|\Mautic\CoreBundle\Entity\CommonRepository
+     * @param $phone
+     * @return string
      */
-//    public function getRepository()
-//    {
-//        return $this->em->getRepository('MauticContactClientBundle:Cache');
-//    }
+    private function phoneValidate($phone)
+    {
+        $result = null;
+        $phone = trim($phone);
+        if (!empty($phone)) {
+            if (!$this->phoneHelper) {
+                $this->phoneHelper = new PhoneNumberHelper();
+            }
+            try {
+                $phone = $this->phoneHelper->format($phone);
+                if (!empty($phone)) {
+                    $result = $phone;
+                }
+            } catch (\Exception $e) {
+            }
+        }
 
+        return $result;
+    }
+
+    /**
+     * Given the Contact and Contact Client, get the rules used to evaluate duplicates.
+     *
+     * @throws \Exception
+     */
+    public function getDuplicateRules()
+    {
+        $jsonHelper = new JSONHelper();
+        $duplicate = $jsonHelper->decodeObject($this->contactClient->getDuplicate(), 'Duplicate');
+
+        return $this->mergeRules($duplicate);
+    }
+
+    public function evaluateExclusive()
+    {
+        // @todo - Evaluate exclusivity
+    }
+
+    public function evaluateDuplicate()
+    {
+        /** @var CacheRepository $repo */
+        $repo = $this->getCacheRepository();
+        $duplicate = $repo->findDuplicate(
+            $this->contact,
+            $this->contactClient,
+            $this->getDuplicateRules()
+        );
+        return (bool) $duplicate;
+    }
 
     /**
      * @return Contact
@@ -212,4 +256,5 @@ class Cache extends AbstractCommonModel
 
         return $this;
     }
+
 }

@@ -238,7 +238,10 @@ class ClientIntegration extends AbstractIntegration
                 // $this->getCacheModel()->evaluateExclusive();
             }
 
-            // @todo - Duplicates - Check duplicate cache to ensure we have not already sent this contact.
+            // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
+            if (!$this->test) {
+                 $this->getCacheModel()->evaluateDuplicate();
+            }
 
             // Configure the payload.
             $this->payload = $container->get('mautic.contactclient.model.apipayload');
