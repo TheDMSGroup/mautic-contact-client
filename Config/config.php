@@ -100,6 +100,9 @@ return [
                     'mautic.helper.core_parameters',
                 ],
             ],
+            'mautic.contactclient.model.cache' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Model\Cache',
+            ],
         ],
         'integrations' => [
             'mautic.contactclient.integration' => [

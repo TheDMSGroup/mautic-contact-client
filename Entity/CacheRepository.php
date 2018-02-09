@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
  * Trait CacheEntityRepositoryTrait
@@ -38,7 +39,8 @@ class CacheRepository extends CommonRepository
     const SCOPE_CATEGORY = 2;
 
     /**
-     * Given a matching pattern and a contact, discern if there is a living match in the cache.
+     * Given a matching pattern and a contact, discern if there is a match in the cache.
+     * Used for exclusivity and duplicate checking.
      *
      * @param Contact $contact
      * @param int $matchingPattern
@@ -48,16 +50,18 @@ class CacheRepository extends CommonRepository
      * @return bool|\Doctrine\ORM\Tools\Pagination\Paginator
      * @throws \Exception
      */
-    public function findMatch(Contact $contact, $matchingPattern = 1, $scope = 1, $durationSeconds = 86400, $args = [])
+    public function findDuplicate(Contact $contact, $matchingPattern = 1, $scope = 1, $durationSeconds = 86400, $args = [])
     {
-        return false;
 
         // @todo - Match explicit
+        if ($matchingPattern & self::MATCHING_EXPLICIT) {
+
+        }
         // @todo - Match email
         // @todo - Match phone
         // @todo - Match mobile
         // @todo - Match address
-        // @todo - Match utm_source
+        // @todo - Match utm_source (for limits only)
 
         // @todo - Scope Global
         // @todo - Scope Category
@@ -87,4 +91,8 @@ class CacheRepository extends CommonRepository
         );
     }
 
+    public function findExclusive(Contact $contact, ContactClient $contactClient, $args = [])
+    {
+
+    }
 }

@@ -265,13 +265,13 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-        if (isset($this->payload)) {
+        if ($this->payload) {
             $this->setLogs($this->payload->getLogs(), 'operations');
         }
 
         $this->updateContact();
 
-        // $this->createCache();
+        $this->createCache();
 
         $this->logResults();
 
@@ -329,6 +329,44 @@ class ClientIntegration extends AbstractIntegration
                 $this->logIntegrationError($e, $this->contact);
             }
         }
+    }
+
+    /**
+     * If all went well, and a contact was sent, create a cache entity for later correlation on exclusive/duplicate/
+     * limit rules.
+     */
+    private function createCache()
+    {
+        if (!$this->test && $this->valid) {
+            try {
+                $this->getCacheModel()->create();
+            } catch (Exception $e) {
+                // Do not log this as an error, because the contact was sent successfully.
+                $this->setLogs(
+                    'Caching issue which may impact duplicates/exclusivity/limits: '.$e->getMessage(),
+                    'warning'
+                );
+            }
+        }
+    }
+
+    /**
+     * Get the Cache model for duplicate/exclusive/limit checking.
+     *
+     * @return Cache|object
+     * @throws Exception
+     */
+    private function getCacheModel()
+    {
+        if (!$this->cacheModel) {
+            $container = $this->dispatcher->getContainer();
+            /** @var cacheModel $cacheModel */
+            $this->cacheModel = $container->get('mautic.contactclient.model.cache');
+            $this->cacheModel->setContact($this->contact);
+            $this->cacheModel->setContactClient($this->contactClient);
+        }
+
+        return $this->cacheModel;
     }
 
     /**
@@ -499,39 +537,6 @@ class ClientIntegration extends AbstractIntegration
         $integrationEntity->setLastSyncDate(new \DateTime());
 
         return $integrationEntity;
-    }
-
-    /**
-     * If all went well, and a contact was sent, create a cache entity for later correlation on exclusive/duplicate/
-     * limit rules.
-     */
-    private function createCache()
-    {
-        if (!$this->test && $this->valid) {
-            try {
-                $this->getCacheModel()->create();
-            } catch (Exception $e) {
-                // Do not log this as an error, because the contact was sent successfully.
-                $this->setLogs(
-                    'Caching issue which may impact duplicates/exclusivity/limits: '.$e->getMessage(),
-                    'warning'
-                );
-            }
-        }
-    }
-
-    /**
-     * Get the Cache model for duplicate/exclusive/limit checking.
-     *
-     * @return Cache
-     */
-    private function getCacheModel()
-    {
-        if (!$this->cacheModel) {
-            $this->cacheModel = new Cache($this->contactClient, $this->contact);
-        }
-
-        return $this->cacheModel;
     }
 
     /**

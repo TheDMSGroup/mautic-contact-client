@@ -32,10 +32,10 @@ class Cache
     /** @var Contact $contact */
     private $contact;
 
-    /** @var int $contactClient */
+    /** @var integer $contactClient */
     private $contactClient;
 
-    /** @var int $category */
+    /** @var integer $category */
     private $category;
 
     /** @var string $email */
@@ -67,6 +67,15 @@ class Cache
 
     /** @var string $dateAdded */
     private $utmSource;
+
+    /** @var integer $exclusivityPattern */
+    private $exclusivePattern;
+
+    /** @var \DateTime $exclusivityExpireDate */
+    private $exclusiveExpireDate;
+
+    /** @var integer $exclusivityScope */
+    private $exclusiveScope;
 
     /** @var \DateTime $dateAdded */
     private $dateAdded;
@@ -108,13 +117,19 @@ class Cache
 
         $builder->addNullableField('country', 'string');
 
+        $builder->addNamedField('utmSource', 'string', 'utm_source');
+
         $builder->addNamedField('contactClient', 'integer', 'contactclient_id');
 
         $builder->addNamedField('contact', 'integer', 'contact_id');
 
-        $builder->addNamedField('utmSource', 'string', 'utm_source');
+        $builder->addNamedField('category', 'integer', 'category_id');
 
-        $builder->addCategory();
+        $builder->addNamedField('exclusivePattern', 'integer', 'exclusive_pattern', true);
+
+        $builder->addNamedField('exclusiveExpireDate', 'datetime', 'exclusive_expire_date', true);
+
+        $builder->addNamedField('exclusiveScope', 'integer', 'exclusive_scope', true);
 
         $builder->addDateAdded();
 
@@ -171,6 +186,83 @@ class Cache
             'contactclient_cache_country'
         );
 
+        $builder->addIndex(
+            [
+                'exclusive_pattern',
+                'exclusive_expire_date',
+                'exclusive_scope',
+            ],
+            'contactclient_cache_exclusivity'
+        );
+
+    }
+
+    /**
+     * Clone entity.
+     */
+    public function __clone()
+    {
+        $this->id = null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getExclusivePattern()
+    {
+        return $this->exclusivePattern;
+    }
+
+    /**
+     * @param int $exclusivePattern
+     *
+     * @return $this
+     */
+    public function setExclusivePattern($exclusivePattern)
+    {
+        $this->exclusivePattern = $exclusivePattern;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getExclusiveExpireDate()
+    {
+        return $this->exclusiveExpireDate;
+    }
+
+    /**
+     * @param \DateTime $exclusiveExpireDate
+     *
+     * @return $this
+     */
+    public function setExclusiveExpireDate($exclusiveExpireDate)
+    {
+        $this->exclusiveExpireDate = $exclusiveExpireDate;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getExclusiveScope()
+    {
+        return $this->exclusiveScope;
+    }
+
+    /**
+     * @param int $exclusiveScope
+     *
+     * @return $this
+     */
+    public function setExclusiveScope($exclusiveScope)
+    {
+        $this->exclusiveScope = $exclusiveScope;
+
+        return $this;
     }
 
     /**
@@ -382,7 +474,7 @@ class Cache
     }
 
     /**
-     * @param Contact $contact
+     * @param int $contact
      *
      * @return $this
      */
@@ -414,7 +506,7 @@ class Cache
     }
 
     /**
-     * @return int
+     * @return integer
      */
     public function getCategory()
     {
@@ -422,7 +514,7 @@ class Cache
     }
 
     /**
-     * @param \Mautic\CategoryBundle\Entity\Category $category
+     * @param integer $category
      *
      * @return $this
      */
