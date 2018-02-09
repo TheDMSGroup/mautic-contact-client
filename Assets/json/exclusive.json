@@ -102,15 +102,15 @@
             {
               "source": [
                 {
-                  "value": "P1H",
+                  "value": "PT1H",
                   "title": "for 1 Hour"
                 },
                 {
-                  "value": "P6H",
+                  "value": "PT6H",
                   "title": "for 6 Hours"
                 },
                 {
-                  "value": "P12H",
+                  "value": "PT12H",
                   "title": "for 12 Hours"
                 },
                 {
