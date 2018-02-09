@@ -94,15 +94,16 @@ return [
             'mautic.contactclient.model.apipayload' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ApiPayload',
                 'arguments' => [
-                    'mautic.lead.model.lead',
+                    'mautic.contactclient.model.contactclient',
+                    'mautic.contactclient.service.transport',
+                    'mautic.contactclient.helper.token',
+                    'mautic.helper.core_parameters',
                 ],
             ],
         ],
         'integrations' => [
             'mautic.contactclient.integration' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration',
-                'arguments' => [
-                ],
             ],
         ],
         'other' => [

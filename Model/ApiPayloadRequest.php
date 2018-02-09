@@ -30,7 +30,7 @@ class ApiPayloadRequest
 
     protected $request;
 
-    protected $service;
+    protected $transport;
 
     protected $tokenHelper;
 
@@ -42,15 +42,15 @@ class ApiPayloadRequest
      * ApiRequest constructor.
      * @param $uri
      * @param $request
-     * @param Transport $service
+     * @param Transport $transport
      * @param TokenHelper $tokenHelper
      * @param bool $test
      */
-    public function __construct($uri, $request, Transport $service, TokenHelper $tokenHelper, $test = false)
+    public function __construct($uri, $request, Transport $transport, TokenHelper $tokenHelper, $test = false)
     {
         $this->uri = $uri;
         $this->request = $request;
-        $this->service = $service;
+        $this->transport = $transport;
         $this->tokenHelper = $tokenHelper;
         $this->test = $test;
     }
@@ -64,7 +64,7 @@ class ApiPayloadRequest
         $this->setLogs($uri, 'uri');
 
         $request = $this->request;
-        $service = $this->service;
+        $transport = $this->transport;
         $options = [];
 
         // Retrieve/filter/tokenize the Request Body Field values if present.
@@ -154,7 +154,7 @@ class ApiPayloadRequest
         switch ($method) {
             case 'delete':
                 $this->setLogs($options, 'options');
-                $service->delete($uri, $options);
+                $transport->delete($uri, $options);
                 break;
 
             case 'get':
@@ -164,28 +164,28 @@ class ApiPayloadRequest
                     unset($options['form_params']);
                 }
                 $this->setLogs($options, 'options');
-                $service->get($uri, $options);
+                $transport->get($uri, $options);
                 break;
 
             case 'head':
                 $this->setLogs($options, 'options');
-                $service->head($uri, $options);
+                $transport->head($uri, $options);
                 break;
 
             case 'patch':
                 $this->setLogs($options, 'options');
-                $service->patch($uri, $options);
+                $transport->patch($uri, $options);
                 break;
 
             case 'post':
             default:
                 $this->setLogs($options, 'options');
-                $service->post($uri, $options);
+                $transport->post($uri, $options);
                 break;
 
             case 'put':
                 $this->setLogs($options, 'options');
-                $service->put($uri, $options);
+                $transport->put($uri, $options);
                 break;
         }
         $this->setLogs(microtime(true) - $startTime, 'duration');

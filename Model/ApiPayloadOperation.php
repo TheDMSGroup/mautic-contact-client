@@ -40,7 +40,7 @@ class ApiPayloadOperation
 
     protected $logs = [];
 
-    protected $service;
+    protected $transport;
 
     protected $updatePayload;
 
@@ -68,13 +68,13 @@ class ApiPayloadOperation
     public function __construct(
         $id,
         &$operation,
-        Transport $service,
+        Transport $transport,
         $tokenHelper,
         $test = false,
         $updatePayload = true
     ) {
         $this->operation = &$operation;
-        $this->service = $service;
+        $this->transport = $transport;
         $this->name = !empty($operation->name) ? $operation->name : (isset($operation->id) ? $operation->id : 'Unknown');
         $this->request = isset($operation->request) ? $operation->request : [];
         $this->responseExpected = isset($operation->response) ? $operation->response : [];
@@ -110,12 +110,12 @@ class ApiPayloadOperation
         $this->setLogs(($this->test ? 'TEST' : 'PROD'), 'mode');
 
         // Send the API request.
-        $apiRequest = new ApiRequest($uri, $this->request, $this->service, $this->tokenHelper, $this->test);
+        $apiRequest = new ApiRequest($uri, $this->request, $this->transport, $this->tokenHelper, $this->test);
         $apiRequest->send();
         $this->setLogs($apiRequest->getLogs(), 'request');
 
         // Parse the API response.
-        $apiResponse = new ApiResponse($this->responseExpected, $this->successDefinition, $this->service, $this->test);
+        $apiResponse = new ApiResponse($this->responseExpected, $this->successDefinition, $this->transport, $this->test);
         $this->responseActual = $apiResponse->parse()->getResponse();
         $this->setLogs($apiResponse->getLogs(), 'response');
 

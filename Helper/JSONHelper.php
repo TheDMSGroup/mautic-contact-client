@@ -27,6 +27,9 @@ class JSONHelper
      */
     public function decodeArray($string, $fieldName = 'Unknown', $assoc = false)
     {
+        if (empty($string)) {
+            return [];
+        }
         $array = self::decode(!empty($string) ? $string : '[]', $fieldName, $assoc);
         if (!$array || !is_array($array)) {
             throw new \Exception('The field ' . $fieldName . ' is not a JSON array as expected.');
@@ -43,7 +46,10 @@ class JSONHelper
      */
     public function decodeObject($string, $fieldName = 'Unknown')
     {
-        $object = self::decode(!empty($string) ? $string : '{}', $fieldName);
+        if (empty($string)) {
+            return new \stdClass();
+        }
+        $object = self::decode($string, $fieldName);
         if (!$object || !is_object($object)) {
             throw new \Exception('The field ' . $fieldName . ' is not a JSON object as expected.');
         }
