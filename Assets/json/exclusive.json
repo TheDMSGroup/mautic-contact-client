@@ -23,7 +23,7 @@
   },
   "definitions": {
     "cacheField": {
-      "headerTemplate": "{{ self.scope }}",
+      "headerTemplate": "{{self.scope}}",
       "type": "object",
       "options": {
         "collapsed": false,
@@ -33,7 +33,6 @@
         "matching": {
           "title": "Contact Matching",
           "propertyOrder": 10,
-          "type": "integer",
           "default": 1,
           "options": {
             "infoText": "You can make the exclusivity rule apply to the explicit contact in question, or to all contacts that are similar based on some select fields."
@@ -62,16 +61,15 @@
                   "title": "Contacts matching address"
                 }
               ],
-              "title": "{{ item.title }}",
-              "value": "{{ item.value }}"
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
             }
           ]
         },
         "scope": {
           "title": "Scope",
           "propertyOrder": 20,
-          "type": "integer",
-          "default": "global",
+          "default": 1,
           "options": {
             "infoText": "How wide do you want this exclusivity to reach."
           },
@@ -87,77 +85,77 @@
                   "title": "are to be exclusive per client category"
                 }
               ],
-              "title": "{{ item.title }}",
-              "value": "{{ item.value }}"
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
             }
           ]
         },
         "duration": {
           "title": "Duration",
           "propertyOrder": 30,
-          "type": "integer",
+          "type": "string",
           "options": {
             "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope."
           },
-          "default": 86400,
+          "default": "P1D",
           "enumSource": [
             {
               "source": [
                 {
-                  "value": 3600,
+                  "value": "P1H",
                   "title": "for 1 Hour"
                 },
                 {
-                  "value": 21600,
+                  "value": "P6H",
                   "title": "for 6 Hours"
                 },
                 {
-                  "value": 43200,
+                  "value": "P12H",
                   "title": "for 12 Hours"
                 },
                 {
-                  "value": 86400,
+                  "value": "P1D",
                   "title": "for 1 Day"
                 },
                 {
-                  "value": 172800,
+                  "value": "P2D",
                   "title": "for 2 Days"
                 },
                 {
-                  "value": 259200,
+                  "value": "P3D",
                   "title": "for 3 Days"
                 },
                 {
-                  "value": 345600,
+                  "value": "P4D",
                   "title": "for 4 Days"
                 },
                 {
-                  "value": 432000,
+                  "value": "P5D",
                   "title": "for 5 Days"
                 },
                 {
-                  "value": 518400,
+                  "value": "P6D",
                   "title": "for 6 Days"
                 },
                 {
-                  "value": 604800,
+                  "value": "P1W",
                   "title": "for 1 Week"
                 },
                 {
-                  "value": 1209600,
+                  "value": "P2W",
                   "title": "for 2 Weeks"
                 },
                 {
-                  "value": 1814400,
+                  "value": "P3W",
                   "title": "for 3 Weeks"
                 },
                 {
-                  "value": 2592000,
+                  "value": "P30D",
                   "title": "for 30 Days"
                 }
               ],
-              "title": "{{ item.title }}",
-              "value": "{{ item.value }}"
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
             }
           ]
         }
