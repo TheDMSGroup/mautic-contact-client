@@ -33,7 +33,7 @@
         "matching": {
           "title": "Matching",
           "propertyOrder": 10,
-          "default": 1,
+          "default": 2,
           "options": {
             "infoText": "You can make the duplicate rule apply to the explicit contact in question, or to all contacts that are similar based on some select fields."
           },
@@ -97,7 +97,7 @@
           "options": {
             "infoText": "Specify how long this duplicate rule should last, before expiring and allowing the contact to go to other clients within the scope."
           },
-          "default": "P1D",
+          "default": "P30D",
           "enumSource": [
             {
               "source": [
