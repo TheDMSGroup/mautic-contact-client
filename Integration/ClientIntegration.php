@@ -21,7 +21,7 @@ use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
-use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
@@ -258,13 +258,17 @@ class ClientIntegration extends AbstractIntegration
             $this->valid = false;
             $this->setLogs($e->getMessage(), 'error');
             if ($e instanceof ApiErrorException) {
+
+                // Critical issue with the API. This will be logged but not retried.
                 $e->setContact($this->contact);
-            } elseif ($e instanceof ContactClientRetryException) {
+            } elseif ($e instanceof ContactClientException) {
                 $e->setContact($this->contact);
                 $this->setStatType($e->getStatType());
 
-                // This type of exception indicates that we can requeue the contact.
-                $this->logIntegrationError($e, $this->contact);
+                if ($e->getRetry()) {
+                    // This type of exception indicates that we can requeue the contact.
+                    $this->logIntegrationError($e, $this->contact);
+                }
             }
         }
 

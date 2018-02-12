@@ -14,45 +14,46 @@ namespace MauticPlugin\MauticContactClientBundle\Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
- * Class ContactClientRetryException
+ * Class ContactClientException
  *
- * This form of exception indicates that we can re-try the send at a later date or time.
+ * This form of exception indicates that we may re-try the send at a later date or time.
+ * Also can indicate a Stat type for logging.
  *
  * @package MauticPlugin\MauticContactClientBundle\Exception
  */
-class ContactClientRetryException extends \Exception
+class ContactClientException extends \Exception
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $contactId;
 
-    /**
-     * @var Contact
-     */
+    /** @var Contact */
     private $contact;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $statType;
 
+    /** @var bool */
+    private $retry;
+
     /**
-     * ContactClientRetryException constructor.
+     * ContactClientException constructor.
      * @param string $message
      * @param int $code
      * @param \Exception|null $previous
-     * @param string $statType
+     * @param null $statType
+     * @param bool $retry
      */
     public function __construct(
         $message = 'Contact Client retry error',
         $code = 0,
         \Exception $previous = null,
-        $statType = null
+        $statType = null,
+        $retry = true
     ) {
         if ($statType) {
             $this->setStatType($statType);
         }
+        $this->retry = $retry;
         parent::__construct($message, $code, $previous);
     }
 
@@ -67,7 +68,7 @@ class ContactClientRetryException extends \Exception
     /**
      * @param mixed $contactId
      *
-     * @return ContactClientRetryException
+     * @return ContactClientException
      */
     public function setContactId($contactId)
     {
@@ -87,7 +88,7 @@ class ContactClientRetryException extends \Exception
     /**
      * @param string $statType
      *
-     * @return ContactClientRetryException
+     * @return ContactClientException
      */
     public function setStatType($statType)
     {
@@ -107,11 +108,31 @@ class ContactClientRetryException extends \Exception
     /**
      * @param Contact $contact
      *
-     * @return ContactClientRetryException
+     * @return ContactClientException
      */
     public function setContact(Contact $contact)
     {
         $this->contact = $contact;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getRetry()
+    {
+        return $this->retry;
+    }
+
+    /**
+     * @param bool $retry
+     *
+     * @return ContactClientException
+     */
+    public function setRetry($retry)
+    {
+        $this->retry = $retry;
 
         return $this;
     }

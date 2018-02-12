@@ -11,7 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
@@ -69,7 +69,7 @@ class Schedule
 
     /**
      * @param ContactClient $contactClient
-     * @throws ContactClientRetryException
+     * @throws ContactClientException
      * @throws \Exception
      */
     public function evaluateHours(ContactClient $contactClient)
@@ -87,7 +87,7 @@ class Schedule
                     isset($hours[$day]->isActive)
                     && !$hours[$day]->isActive
                 ) {
-                    throw new ContactClientRetryException(
+                    throw new ContactClientException(
                         'This contact client does not allow contacts on a '.$now->format('l').'.',
                         0,
                         null,
@@ -99,7 +99,7 @@ class Schedule
                     $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $timezone);
                     $endDate = \DateTime::createFromFormat('H:i', $timeTill, $timezone);
                     if (!($now > $startDate && $now < $endDate)) {
-                        throw new ContactClientRetryException(
+                        throw new ContactClientException(
                             'This contact client does not allow contacts during this time of day.',
                             0,
                             null,
@@ -135,7 +135,7 @@ class Schedule
 
     /**
      * @param ContactClient $contactClient
-     * @throws ContactClientRetryException
+     * @throws ContactClientException
      * @throws \Exception
      */
     public function evaluateExclusions(ContactClient $contactClient)
@@ -167,7 +167,7 @@ class Schedule
                     }
                     $dateString = $year.'-'.$month.'-'.$day;
                     if ($dateString == $todaysDateString) {
-                        throw new ContactClientRetryException(
+                        throw new ContactClientException(
                             'This contact client does not allow contacts on the date '.$dateString.'.',
                             0,
                             null,

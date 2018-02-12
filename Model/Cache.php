@@ -12,12 +12,15 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\CoreBundle\Model\AbstractCommonModel;
+// use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\Cache as CacheEntity;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 
 /**
  * Class Cache
@@ -66,8 +69,7 @@ class Cache extends AbstractCommonModel
             $entities[] = $this->new();
         }
         if (count($entities)) {
-            $cacheRepository = $this->getCacheRepository();
-            $cacheRepository->saveEntities($entities);
+            $this->getRepository()->saveEntities($entities);
         }
     }
 
@@ -188,6 +190,44 @@ class Cache extends AbstractCommonModel
     }
 
     /**
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\CacheRepository
+     */
+    public function getRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:Cache');
+    }
+
+    public function evaluateExclusive()
+    {
+        // @todo - Evaluate exclusivity
+    }
+
+    /**
+     * Using the duplicate rules, evaluate if the current contact matches any entry in the cache.
+     *
+     * @throws ContactClientException
+     * @throws \Exception
+     */
+    public function evaluateDuplicate()
+    {
+        $duplicate = $this->getRepository()->findDuplicate(
+            $this->contact,
+            $this->contactClient,
+            $this->getDuplicateRules()
+        );
+        if ($duplicate) {
+            throw new ContactClientException(
+                'Skipping duplicate. A contact matching this one was already accepted by this client: '.
+                json_encode($duplicate),
+                0,
+                null,
+                Stat::TYPE_DUPLICATE,
+                false
+            );
+        }
+    }
+
+    /**
      * Given the Contact and Contact Client, get the rules used to evaluate duplicates.
      *
      * @throws \Exception
@@ -198,23 +238,6 @@ class Cache extends AbstractCommonModel
         $duplicate = $jsonHelper->decodeObject($this->contactClient->getDuplicate(), 'Duplicate');
 
         return $this->mergeRules($duplicate);
-    }
-
-    public function evaluateExclusive()
-    {
-        // @todo - Evaluate exclusivity
-    }
-
-    public function evaluateDuplicate()
-    {
-        /** @var CacheRepository $repo */
-        $repo = $this->getCacheRepository();
-        $duplicate = $repo->findDuplicate(
-            $this->contact,
-            $this->contactClient,
-            $this->getDuplicateRules()
-        );
-        return (bool) $duplicate;
     }
 
     /**

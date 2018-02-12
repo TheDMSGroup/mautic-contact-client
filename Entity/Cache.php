@@ -195,6 +195,8 @@ class Cache
             'contactclient_cache_exclusivity'
         );
 
+        $builder->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\CacheRepository');
+
     }
 
     /**

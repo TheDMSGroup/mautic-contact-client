@@ -24,7 +24,7 @@ class CacheRepository extends CommonRepository
 {
 
     /**
-     * Bitwise operators for $matches.
+     * Bitwise operators for $matching.
      */
     const MATCHING_EXPLICIT = 1;
     const MATCHING_EMAIL = 2;
@@ -61,17 +61,17 @@ class CacheRepository extends CommonRepository
         $filters = [];
         foreach ($rules as $rule) {
             $orx = [];
-            $matches = $rule['matches'];
+            $matching = $rule['matching'];
             $scope = $rule['scope'];
             $duration = $rule['duration'];
 
             // Match explicit
-            if ($matches & self::MATCHING_EXPLICIT) {
+            if ($matching & self::MATCHING_EXPLICIT) {
                 $orx['contact_id'] = (int)$contact->getId();
             }
 
             // Match email
-            if ($matches & self::MATCHING_EMAIL) {
+            if ($matching & self::MATCHING_EMAIL) {
                 $email = trim($contact->getEmail());
                 if ($email) {
                     $orx['email'] = $email;
@@ -79,7 +79,7 @@ class CacheRepository extends CommonRepository
             }
 
             // Match phone
-            if ($matches & self::MATCHING_PHONE) {
+            if ($matching & self::MATCHING_PHONE) {
                 $phone = $this->phoneValidate($contact->getPhone());
                 if (!empty($phone)) {
                     $orx['phone'] = $phone;
@@ -87,7 +87,7 @@ class CacheRepository extends CommonRepository
             }
 
             // Match mobile
-            if ($matches & self::MATCHING_MOBILE) {
+            if ($matching & self::MATCHING_MOBILE) {
                 $mobile = $this->phoneValidate($contact->getMobile());
                 if (!empty($mobile)) {
                     $orx['mobile'] = $mobile;
@@ -95,7 +95,7 @@ class CacheRepository extends CommonRepository
             }
 
             // Match address
-            if ($matches & self::MATCHING_ADDRESS) {
+            if ($matching & self::MATCHING_ADDRESS) {
                 $address1 = trim(ucwords($contact->getAddress1()));
                 if (!empty($address1)) {
                     $city = trim(ucwords($contact->getCity()));
@@ -132,7 +132,7 @@ class CacheRepository extends CommonRepository
             }
 
             // Match utm_source (for limits only)
-            if ($matches & self::MATCHING_UTM_SOURCE) {
+            if ($matching & self::MATCHING_UTM_SOURCE) {
                 $utmTags = $contact->getUtmTags();
                 if ($utmTags) {
                     $utmTags = $utmTags->toArray();
@@ -163,7 +163,7 @@ class CacheRepository extends CommonRepository
                 $oldest->sub(new \DateInterval($duration));
                 $filters[] = [
                     'orx' => $orx,
-                    'date_added' => $oldest,
+                    'date_added' => $oldest->format('Y-m-d H:i:s'),
                 ];
             }
         }
@@ -183,7 +183,6 @@ class CacheRepository extends CommonRepository
             $query = $this->getEntityManager()->getConnection()->createQueryBuilder();
             $query
                 ->select('*')
-                ->setFirstResult(0)
                 ->setMaxResults(1)
                 ->from(MAUTIC_TABLE_PREFIX.'contactclient_cache', $alias);
 
