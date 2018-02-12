@@ -197,9 +197,27 @@ class Cache extends AbstractCommonModel
         return $this->em->getRepository('MauticContactClientBundle:Cache');
     }
 
+    /**
+     * Given a contact, evaluate exclusivity rules of all cache entries against it.
+     *
+     * @throws ContactClientException
+     * @throws \Exception
+     */
     public function evaluateExclusive()
     {
-        // @todo - Evaluate exclusivity
+        $exclusive = $this->getRepository()->findExclusive(
+            $this->contact,
+            $this->contactClient
+        );
+        if ($exclusive) {
+            throw new ContactClientException(
+                'Skipping exclusive. A contact matching this has been accepted by a competing client: '.
+                json_encode($exclusive),
+                0,
+                null,
+                Stat::TYPE_EXCLUSIVE
+            );
+        }
     }
 
     /**

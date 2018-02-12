@@ -233,14 +233,14 @@ class ClientIntegration extends AbstractIntegration
 
             // @todo - Limits - Check limit rules to ensure we have not sent too many contacts in our window.
 
-            // @todo - Exclusivity - Check exclusivity rules to ensure this contact hasn't been sent to a disallowed competitor.
-            if (!$this->test) {
-                // $this->getCacheModel()->evaluateExclusive();
-            }
-
             // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
             if (!$this->test) {
                  $this->getCacheModel()->evaluateDuplicate();
+            }
+
+            // Exclusivity - Check exclusivity rules on the cache to ensure this contact hasn't been sent to a disallowed competitor.
+            if (!$this->test) {
+                $this->getCacheModel()->evaluateExclusive();
             }
 
             // Configure the payload.

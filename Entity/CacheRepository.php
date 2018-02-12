@@ -31,13 +31,19 @@ class CacheRepository extends CommonRepository
     const MATCHING_PHONE = 4;
     const MATCHING_MOBILE = 8;
     const MATCHING_ADDRESS = 16;
-    const MATCHING_UTM_SOURCE = 21;
+    const MATCHING_UTM_SOURCE = 32;
+
+    /** @var int Number of matching patterns above */
+    const MATCHING_COUNT = 6;
 
     /**
      * Bitwise operators for $scope.
      */
     const SCOPE_GLOBAL = 1;
     const SCOPE_CATEGORY = 2;
+
+    /** @var int Number of scope patterns above */
+    const SCOPE_COUNT = 2;
 
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
@@ -150,7 +156,7 @@ class CacheRepository extends CommonRepository
                 // Scope Category
                 $category = $contactClient->getCategory();
                 if ($category) {
-                    $category = $contactClient->getId();
+                    $category = $category->getId();
                     if ($category) {
                         $orx['category_id'] = $category;
                     }
@@ -169,46 +175,6 @@ class CacheRepository extends CommonRepository
         }
 
         return $this->applyFilters($filters);
-    }
-
-    /**
-     * @param array $filters
-     * @return mixed|null
-     */
-    private function applyFilters($filters = []) {
-        $result = null;
-        // Convert our filters into a query.
-        if ($filters) {
-            $alias = $this->getTableAlias();
-            $query = $this->getEntityManager()->getConnection()->createQueryBuilder();
-            $query
-                ->select('*')
-                ->setMaxResults(1)
-                ->from(MAUTIC_TABLE_PREFIX.'contactclient_cache', $alias);
-
-            foreach ($filters as $k => $set) {
-                $orxExpr = $query->expr()->orX();
-                foreach ($set['orx'] as $property => $value) {
-                    $orxExpr->add(
-                        $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
-                    );
-                    $query->setParameter($property.$k, $value);
-                }
-                $query->add(
-                    'where',
-                    $query->expr()->andX(
-                        $query->expr()->gte($alias.'.date_added', ':dateAdded'.$k),
-                        $orxExpr
-                    )
-                );
-                $query->setParameter('dateAdded'.$k, $set['date_added']);
-            }
-
-            // $q = $query->getSQL();
-
-            $result = $query->execute()->fetch();
-        }
-        return $result;
     }
 
     /**
@@ -237,8 +203,243 @@ class CacheRepository extends CommonRepository
         return $result;
     }
 
-    public function findExclusive(Contact $contact, ContactClient $contactClient)
+    /**
+     * @param array $filters
+     * @return mixed|null
+     */
+    private function applyFilters($filters = [])
     {
-        // @todo - Exclusivity finder (applies to the matching rules of all in the cache)
+        $result = null;
+        // Convert our filters into a query.
+        if ($filters) {
+            $alias = $this->getTableAlias();
+            $query = $this->getEntityManager()->getConnection()->createQueryBuilder();
+            $query
+                ->select('*')
+                ->setMaxResults(1)
+                ->from(MAUTIC_TABLE_PREFIX.'contactclient_cache', $alias);
+
+            foreach ($filters as $k => $set) {
+                // Expect orx, anx, or neither.
+                if (isset($set['orx'])) {
+                    $expr = $query->expr()->orX();
+                    $properties = $set['orx'];
+                } elseif (isset($set['andx'])) {
+                    $expr = $query->expr()->andX();
+                    $properties = $set['andx'];
+                } else {
+                    $expr = $query->expr();
+                    $properties = $set;
+                }
+                foreach ($properties as $property => $value) {
+                    if (is_array($value)) {
+                        $expr->add(
+                            $query->expr()->in($alias.'.'.$property, $value)
+                        );
+                    } else {
+                        $expr->add(
+                            $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                        );
+                        $query->setParameter($property.$k, $value);
+                    }
+                }
+                if (isset($set['date_added'])) {
+                    $query->add(
+                        'where',
+                        $query->expr()->andX(
+                            $query->expr()->gte($alias.'.date_added', ':dateAdded'.$k),
+                            $expr
+                        )
+                    );
+                    $query->setParameter('dateAdded'.$k, $set['date_added']);
+                } elseif (isset($set['exclusive_expire_date'])) {
+                    // Expiration/Exclusions will require an extra outer AND expression.
+                    if (!isset($exprOuter)) {
+                        $exprOuter = $query->expr()->orX();
+                        $expireDate = $set['exclusive_expire_date'];
+                    }
+                    $exprOuter->add(
+                        $query->expr()->orX($expr)
+                    );
+                }
+            }
+
+            // Expiration can always be applied globally.
+            if (isset($exprOuter) && isset($expireDate)) {
+                $query->add(
+                    'where',
+                    $query->expr()->andX(
+                        $query->expr()->gte($alias.'.exclusive_expire_date', ':exclusiveExpireDate'),
+                        $exprOuter
+                    )
+                );
+                $query->setParameter('exclusiveExpireDate', $expireDate);
+            }
+
+            $result = $query->execute()->fetch();
+        }
+
+        return $result;
     }
+
+    /**
+     * @param Contact $contact
+     * @param \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $contactClient
+     * @return mixed|null
+     */
+    public function findExclusive(
+        Contact $contact,
+        ContactClient $contactClient
+    ) {
+        // Generate our filters based on all rules possibly in play.
+
+        // Match explicit
+        $filters[] = [
+            'andx' => [
+                'contact_id' => (int)$contact->getId(),
+                'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_EXPLICIT),
+            ],
+        ];
+
+        // Match email
+        $email = trim($contact->getEmail());
+        if ($email) {
+            $filters[] = [
+                'andx' => [
+                    'email' => $email,
+                    'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_EMAIL),
+                ],
+            ];
+        }
+
+        // Match phone
+        $phone = $this->phoneValidate($contact->getPhone());
+        if (!empty($phone)) {
+            $filters[] = [
+                'andx' => [
+                    'phone' => $phone,
+                    'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_MOBILE),
+                ],
+            ];
+        }
+
+        // Match mobile
+        $mobile = $this->phoneValidate($contact->getMobile());
+        if (!empty($mobile)) {
+            $filters[] = [
+                'andx' => [
+                    'phone' => $phone,
+                    'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_PHONE),
+                ],
+            ];
+        }
+
+        // Due to high overhead, we've left out address-based exclusivity for now.
+        // Match address
+        //$address1 = trim(ucwords($contact->getAddress1()));
+        //if (!empty($address1)) {
+        //    $filter = [];
+        //    $city = trim(ucwords($contact->getCity()));
+        //    $zipcode = trim(ucwords($contact->getZipcode()));
+        //
+        //    // Only support this level of matching if we have enough for a valid address.
+        //    if (!empty($zipcode) || !empty($city)) {
+        //        $filter['address1'] = $address1;
+        //
+        //        $address2 = trim(ucwords($contact->getAddress2()));
+        //        if (!empty($address2)) {
+        //            $filter['address2'] = $address2;
+        //        }
+        //
+        //        if (!empty($city)) {
+        //            $filter['city'] = $city;
+        //        }
+        //
+        //        $state = trim(ucwords($contact->getState()));
+        //        if (!empty($state)) {
+        //            $filter['state'] = $state;
+        //        }
+        //
+        //        if (!empty($zipcode)) {
+        //            $filter['zipcode'] = $zipcode;
+        //        }
+        //
+        //        $country = trim(ucwords($contact->getCountry()));
+        //        if (!empty($country)) {
+        //            $filter['country'] = $country;
+        //        }
+        //
+        //        $filter['exclusive_pattern'] = $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_ADDRESS);
+        //        $filters[] = [
+        //            'andx' => $filter
+        //        ];
+        //    }
+        //}
+
+        // Scope Global
+        $scopePattern = $this->bitwiseIn(self::SCOPE_COUNT, self::SCOPE_GLOBAL);
+        foreach ($filters as &$filter) {
+            $filter['andx']['exclusive_scope'] = $scopePattern;
+        }
+
+        // Scope Category
+        $category = $contactClient->getCategory();
+        if ($category) {
+            $category = $category->getId();
+            if ($category) {
+                $newFilters = [];
+                $scopePattern = $this->bitwiseIn(self::SCOPE_COUNT, self::SCOPE_CATEGORY);
+                foreach ($filters as $filter) {
+                    $filter['andx']['category_id'] = $category;
+                    $filter['andx']['exclusive_scope'] = $scopePattern;
+                    $newFilters[] = $filter;
+                }
+                $filters = array_merge($filters, $newFilters);
+            }
+        }
+
+        $this->addExpiration($filters);
+
+        return $this->applyFilters($filters);
+    }
+
+    /**
+     * Given a number of bitwise operators, and the value we want to match against,
+     * generate an array for an IN query.
+     *
+     * @param $count
+     * @param $matching
+     * @return array
+     */
+    private function bitwiseIn($count, $matching)
+    {
+        $max = base_convert(str_repeat('1', $count), 2, 10);
+        $result = [];
+
+        for ($i = 1; $i <= $max; $i++) {
+            if ($i & $matching) {
+                $result[] = $i;
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Add Expiration date to all filters.
+     *
+     * @param array $filters
+     */
+    private function addExpiration(&$filters = [])
+    {
+        if ($filters) {
+            $expiration = new \DateTime();
+            $expiration = $expiration->format('Y-m-d H:i:s');
+            foreach ($filters as &$filter) {
+                $filter['exclusive_expire_date'] = $expiration;
+            }
+        }
+    }
+
 }
