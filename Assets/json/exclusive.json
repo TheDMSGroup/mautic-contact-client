@@ -1,0 +1,125 @@
+{
+  "title": "Exclusivity Settings",
+  "$schema": "exclusivity.json",
+  "type": "object",
+  "format": "grid",
+  "options": {
+    "disable_collapse": true
+  },
+  "properties": {
+    "rules": {
+      "title": "Exclusivity Rules",
+      "type": "array",
+      "format": "table",
+      "uniqueItems": true,
+      "options": {
+        "disable_collapse": true
+      },
+      "items": {
+        "title": "Rule",
+        "$ref": "#/definitions/cacheField"
+      }
+    }
+  },
+  "definitions": {
+    "cacheField": {
+      "headerTemplate": "{{self.scope}}",
+      "type": "object",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "properties": {
+        "matching": {
+          "title": "Matching",
+          "propertyOrder": 10,
+          "default": 1,
+          "options": {
+            "infoText": "You can make the exclusivity rule apply to the explicit contact in question, or to all contacts that are similar based on some select fields."
+          },
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": 1,
+                  "title": "Unique contacts"
+                },
+                {
+                  "value": 2,
+                  "title": "Contacts matching email"
+                },
+                {
+                  "value": 4,
+                  "title": "Contacts matching home phone"
+                },
+                {
+                  "value": 8,
+                  "title": "Contacts matching mobile phone"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
+        },
+        "scope": {
+          "title": "Scope",
+          "propertyOrder": 20,
+          "default": 1,
+          "options": {
+            "infoText": "How wide do you want this exclusivity to reach?"
+          },
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": 1,
+                  "title": "are to be exclusive"
+                },
+                {
+                  "value": 2,
+                  "title": "are to be exclusive by category"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
+        },
+        "duration": {
+          "title": "Duration",
+          "propertyOrder": 30,
+          "type": "string",
+          "options": {
+            "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope. There are intentionally few options here to reduce overhead when matching exclusivity."
+          },
+          "default": "P1W",
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": "PT1H",
+                  "title": "for 1 Hour"
+                },
+                {
+                  "value": "P1D",
+                  "title": "for 1 Day"
+                },
+                {
+                  "value": "P1W",
+                  "title": "for 1 Week"
+                },
+                {
+                  "value": "P30D",
+                  "title": "for 30 Days"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

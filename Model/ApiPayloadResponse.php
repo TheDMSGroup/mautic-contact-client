@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use DOMDocument;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 
@@ -113,6 +114,7 @@ class ApiPayloadResponse
      * @param mixed $data
      * @param string $responseExpectedFormat
      * @return array|bool Return false if there is an error or we are unable to parse.
+     * @throws \Exception
      */
     private function getResponseArray($data, $responseExpectedFormat = 'json')
     {
@@ -142,7 +144,8 @@ class ApiPayloadResponse
                 break;
 
             case 'json':
-                $hierarchy = json_decode($data, true);
+                $jsonHelper = new JSONHelper();
+                $hierarchy = $jsonHelper->decodeArray($data, 'API Response', true);
                 break;
 
             case 'text':

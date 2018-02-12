@@ -11,12 +11,13 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
-use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class ApiPayload
@@ -33,7 +34,8 @@ class ApiPayload
     const SETTING_DEF_AUTOUPDATE = true;
 
     /**
-     * @var array Simple settings for this integration instance from the payload.
+     * Simple settings for this integration instance from the payload.
+     * @var array $settings
      */
     protected $settings = [
         'limit' => self::SETTING_DEF_LIMIT,
@@ -50,48 +52,100 @@ class ApiPayload
     /** @var Contact */
     protected $contact;
 
+    /** @var array */
     protected $payload;
 
+    /** @var array */
     protected $operations = [];
 
+    /** @var bool */
     protected $test = false;
 
+    /** @var array */
     protected $logs = [];
 
-    protected $service;
+    /** @var Transport */
+    protected $transport;
 
+    /** @var bool */
     protected $valid = true;
 
+    /** @var TokenHelper */
     protected $tokenHelper;
 
+    /** @var array */
     protected $responseMap = [];
 
+    /** @var array */
     protected $aggregateActualResponses = [];
 
-
-    /**
-     * @var Container $container
-     */
-    protected $container;
-
+    /** @var string */
     protected $externalId = null;
+
+    /** @var CoreParametersHelper */
+    protected $coreParametersHelper;
+
+    /** @var contactClientModel */
+    protected $contactClientModel;
 
     /**
      * ApiPayload constructor.
+     * @param contactClientModel $contactClientModel
+     * @param Transport $transport
+     * @param TokenHelper $tokenHelper
+     * @param CoreParametersHelper $coreParametersHelper
+     */
+    public function __construct(
+        contactClientModel $contactClientModel,
+        Transport $transport,
+        tokenHelper $tokenHelper,
+        CoreParametersHelper $coreParametersHelper
+    ) {
+        $this->contactClientModel = $contactClientModel;
+        $this->transport = $transport;
+        $this->tokenHelper = $tokenHelper;
+        $this->coreParametersHelper = $coreParametersHelper;
+    }
+
+    /**
+     * @return Contact
+     */
+    public function getContact()
+    {
+        return $this->contact;
+    }
+
+    /**
+     * @param Contact $contact
+     *
+     * @return $this
+     */
+    public function setContact(Contact $contact)
+    {
+        $this->contact = $contact;
+
+        return $this;
+    }
+
+    /**
+     * @return ContactClient
+     */
+    public function getContactClient()
+    {
+        return $this->contactClient;
+    }
+
+    /**
      * @param ContactClient $contactClient
-     * @param null $contact
-     * @param null $container
-     * @param bool $test
+     * @return $this
      * @throws \Exception
      */
-    public function __construct(ContactClient $contactClient, $contact = null, $container = null, $test = false)
+    public function setContactClient(ContactClient $contactClient)
     {
         $this->contactClient = $contactClient;
-        $this->container = $container;
-        $this->contact = $contact;
-        $this->test = $test;
         $this->setPayload($this->contactClient->getApiPayload());
-        $this->setSettings(!empty($this->payload->settings) ? $this->payload->settings : null);
+
+        return $this;
     }
 
     /**
@@ -101,50 +155,24 @@ class ApiPayload
      * @return mixed
      * @throws \Exception
      */
-    public function setPayload(string $payload)
+    private function setPayload(string $payload)
     {
         if (!$payload) {
             throw new \Exception('API instructions payload is blank.');
         }
-        $payload = json_decode($payload);
-        $jsonError = null;
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                break;
-            case JSON_ERROR_DEPTH:
-                $jsonError = 'Maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $jsonError = 'Underflow or the modes mismatch';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $jsonError = 'Unexpected control character found';
-                break;
-            case JSON_ERROR_SYNTAX:
-                $jsonError = 'Syntax error, malformed JSON';
-                break;
-            case JSON_ERROR_UTF8:
-                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            default:
-                $jsonError = 'Unknown error';
-                break;
-        }
-        if ($jsonError) {
-            throw new \Exception('API instructions payload JSON is invalid: '.$jsonError);
-        }
-        if (!$payload || !is_object($payload)) {
-            throw new \Exception('API instructions payload is invalid.');
-        }
 
-        return $this->payload = $payload;
+        $jsonHelper = new JSONHelper();
+        $this->payload = $jsonHelper->decodeObject($payload, 'Payload');
+        $this->setSettings(!empty($this->payload->settings) ? $this->payload->settings : null);
+
+        return $this;
     }
 
     /**
      * Retrieve API settings from the payload to override our defaults.
      * @param object $settings
      */
-    public function setSettings($settings)
+    private function setSettings($settings)
     {
         if ($settings) {
             foreach ($this->settings as $key => &$value) {
@@ -153,6 +181,18 @@ class ApiPayload
                 }
             }
         }
+    }
+
+    public function getTest()
+    {
+        return $this->test;
+    }
+
+    public function setTest($test)
+    {
+        $this->test = $test;
+
+        return $this;
     }
 
     /**
@@ -167,14 +207,14 @@ class ApiPayload
             throw new \Exception('API instructions payload has no operations to run.');
         }
         // We will create and reuse the same Transport session throughout our operations.
-        /** @var Transport $service */
-        $service = $this->getService();
+        /** @var Transport $transport */
+        $transport = $this->getTransport();
         $tokenHelper = $this->getTokenHelper();
         $updatePayload = (bool)$this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
             $logs = [];
-            $apiOperation = new ApiOperation($id, $operation, $service, $tokenHelper, $this->test, $updatePayload);
+            $apiOperation = new ApiOperation($id, $operation, $transport, $tokenHelper, $this->test, $updatePayload);
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
@@ -210,17 +250,15 @@ class ApiPayload
 
     /**
      * Retrieve the transport service for API interaction.
+     *
+     * @return Transport
      */
-    private function getService()
+    private function getTransport()
     {
-        if (!$this->service) {
-            /** @var Transport service */
-            $this->service = $this->container->get('mautic.contactclient.service.transport');
-            // Set our internal settings that are pertinent.
-            $this->service->setSettings($this->settings);
-        }
+        // Set our internal settings that are pertinent.
+        $this->transport->setSettings($this->settings);
 
-        return $this->service;
+        return $this->transport;
     }
 
     /**
@@ -229,30 +267,20 @@ class ApiPayload
      */
     private function getTokenHelper()
     {
-        if (!$this->tokenHelper) {
-            try {
-                /** @var tokenHelper $tokenHelper */
-                $this->tokenHelper = $this->container->get('mautic.contactclient.helper.token');
+        // Set the timezones for date/time conversion.
+        $tza = $this->coreParametersHelper->getParameter(
+            'default_timezone'
+        );
+        $tza = !empty($tza) ? $tza : date_default_timezone_get();
+        $tzb = $this->contactClient->getScheduleTimezone();
+        $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
+        $this->tokenHelper->setTimezones($tza, $tzb);
 
-                // Set the timezones for date/time conversion.
-                $tza = $this->container->get('mautic.helper.core_parameters')->getParameter(
-                    'default_timezone'
-                );
-                $tza = !empty($tza) ? $tza : date_default_timezone_get();
-                $tzb = $this->contactClient->getScheduleTimezone();
-                $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
-                $this->tokenHelper->setTimezones($tza, $tzb);
+        // Add the Contact as context for field replacement.
+        $this->tokenHelper->addContextContact($this->contact);
 
-                // Add the Contact as context for field replacement.
-                $this->tokenHelper->addContextContact($this->contact);
-
-                // Include the payload as additional context.
-                $this->tokenHelper->addContext(['payload' => $this->payload]);
-
-            } catch (\Exception $e) {
-                // @todo - not sure what could go wrong here yet
-            }
-        }
+        // Include the payload as additional context.
+        $this->tokenHelper->addContext(['payload' => $this->payload]);
 
         return $this->tokenHelper;
     }
@@ -269,7 +297,10 @@ class ApiPayload
                 $this->aggregateActualResponses[$type] = [];
             }
             if (isset($responseActual[$type])) {
-                $this->aggregateActualResponses[$type] = array_merge($this->aggregateActualResponses[$type], $responseActual[$type]);
+                $this->aggregateActualResponses[$type] = array_merge(
+                    $this->aggregateActualResponses[$type],
+                    $responseActual[$type]
+                );
             }
         }
 
@@ -288,9 +319,7 @@ class ApiPayload
 
                 if ($this->contactClient->getId()) {
                     try {
-                        /** @var ContactClientModel $contactClientModel */
-                        $contactClientModel = $this->container->get('mautic.contactclient.model.contactclient');
-                        $contactClientModel->saveEntity($this->contactClient);
+                        $this->contactClientModel->saveEntity($this->contactClient);
                         $this->setLogs('Updated our response payload expectations.', 'payload');
                     } catch (Exception $e) {
                         $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
@@ -360,14 +389,6 @@ class ApiPayload
     }
 
     /**
-     * @return Contact|null
-     */
-    public function getContact()
-    {
-        return $this->contact;
-    }
-
-    /**
      * Retrieve from the payload all outgoing fields that are set to overridable.
      *
      * @return array
@@ -428,7 +449,8 @@ class ApiPayload
     /**
      * Override the default field values, if allowed.
      *
-     * @param array $overrides Key value pair array.
+     * @param $overrides
+     * @return $this
      */
     public function setOverrides($overrides)
     {
@@ -452,6 +474,8 @@ class ApiPayload
                 }
             }
         }
+
+        return $this;
     }
 
     /**

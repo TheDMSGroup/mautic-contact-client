@@ -12,7 +12,7 @@
 return [
     'name'        => 'Mautic Contact Client',
     'description' => 'Send contacts to third party APIs or enhance your contacts without code.',
-    'version'     => '0.2',
+    'version'     => '0.3',
     'author'      => 'Mautic',
 
     'routes' => [
@@ -94,15 +94,19 @@ return [
             'mautic.contactclient.model.apipayload' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ApiPayload',
                 'arguments' => [
-                    'mautic.lead.model.lead',
+                    'mautic.contactclient.model.contactclient',
+                    'mautic.contactclient.service.transport',
+                    'mautic.contactclient.helper.token',
+                    'mautic.helper.core_parameters',
                 ],
+            ],
+            'mautic.contactclient.model.cache' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Model\Cache',
             ],
         ],
         'integrations' => [
             'mautic.contactclient.integration' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration',
-                'arguments' => [
-                ],
             ],
         ],
         'other' => [
@@ -127,18 +131,19 @@ return [
 
     'menu' => [
         'main' => [
-//            'mautic.contactclient' => [
-//                'route'    => 'mautic_contactclient_index',
-//                'access'   => 'plugin:contactclient:items:view',
-//                 'parent'  => 'mautic.core.channels',
-//                'priority' => 10,
-//            ],
             'mautic.contactclient' => [
                 'route'     => 'mautic_contactclient_index',
                 'access'    => 'plugin:contactclient:items:view',
                 'id'        => 'mautic_contactclient_root',
                 'iconClass' => 'fa-cloud-upload',
                 'priority'  => 35,
+                'checks'    => [
+                    'integration' => [
+                        'Client' => [
+                            'enabled' => true,
+                        ],
+                    ],
+                ],
             ],
         ],
     ],

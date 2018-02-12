@@ -1,4 +1,4 @@
-// Schedule - Hours of Operation.
+// Attribition (cost/revenue/finances)
 Mautic.contactclientAttribution = function () {
     var $attribution = mQuery('#contactclient_attribution_settings:first');
     if (typeof window.contactclientAttributionLoaded === 'undefined' && $attribution.length) {
@@ -88,7 +88,6 @@ Mautic.contactclientAttribution = function () {
                 }
             ];
         };
-        getApiPayloadFields();
 
         var attributionJSONEditor;
 

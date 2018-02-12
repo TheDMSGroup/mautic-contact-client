@@ -17,6 +17,8 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
  * Class Stat.
+ *
+ * Entity is used to track statistics around Contact Clients.
  */
 class Stat
 {

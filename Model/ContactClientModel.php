@@ -36,29 +36,19 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
  */
 class ContactClientModel extends FormModel
 {
-    /**
-     * @var ContainerAwareEventDispatcher
-     */
+    /** @var ContainerAwareEventDispatcher */
     protected $dispatcher;
 
-    /**
-     * @var \Mautic\FormBundle\Model\FormModel
-     */
+    /** @var FormModel */
     protected $formModel;
 
-    /**
-     * @var TrackableModel
-     */
+    /** @var TrackableModel */
     protected $trackableModel;
 
-    /**
-     * @var TemplatingHelper
-     */
+    /** @var TemplatingHelper */
     protected $templating;
 
-    /**
-     * @var
-     */
+    /** @var ContactModel */
     protected $contactModel;
 
     /**

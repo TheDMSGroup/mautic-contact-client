@@ -30,7 +30,6 @@
             "key": {
               "title": "Key",
               "type": "string",
-              "uniqueItems": true,
               "options": {
                 "infoText": "Select a field/key being sent by an API response to be used for attribution. This can come to us by way of a header or a footer field."
               }
@@ -38,20 +37,19 @@
             "sign": {
               "title": "Sign",
               "type": "string",
-              "uniqueItems": true,
               "options": {
-                "infoText": "Should we treat the value from the API as a positive signed number (attribution) or a negative signed number (cost)."
+                "infoText": "Should we treat the value from the API as a positive signed number (revenue) or a negative signed number (cost)."
               },
               "enumSource": [
                 {
                   "source": [
                     {
                       "value": "-",
-                      "title": "Cost"
+                      "title": "Cost (-)"
                     },
                     {
                       "value": "+",
-                      "title": "Revenue"
+                      "title": "Revenue (+)"
                     }
                   ],
                   "title": "{{item.title}}",
@@ -62,7 +60,6 @@
             "math": {
               "title": "Math",
               "type": "string",
-              "uniqueItems": true,
               "options": {
                 "infoText": "Should it be needed we can do some basic math on the value from the API to match your standard currency notation of choice."
               },

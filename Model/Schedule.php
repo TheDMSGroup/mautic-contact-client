@@ -11,8 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use MauticPlugin\MauticContactClientBundle\Exception\ContactClientRetryException;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -68,24 +69,29 @@ class Schedule
 
     /**
      * @param ContactClient $contactClient
-     * @throws ContactClientRetryException
+     * @throws ContactClientException
      * @throws \Exception
      */
     public function evaluateHours(ContactClient $contactClient)
     {
-        $hours = $this->jsonDecodeArray($contactClient->getScheduleHours());
-        if (is_array($hours) && $hours) {
+        $jsonHelper = new JSONHelper();
+        $hours = $jsonHelper->decodeArray($contactClient->getScheduleHours(), 'ScheduleHours');
+
+        if ($hours) {
             $now = $this->getNow();
             $timezone = $this->getTimezone();
 
-            $day = intval($now->format('w'));
+            $day = intval($now->format('N')) - 1;
             if (isset($hours[$day])) {
                 if (
                     isset($hours[$day]->isActive)
                     && !$hours[$day]->isActive
                 ) {
-                    throw new ContactClientRetryException(
-                        'This contact client does not allow contacts on a '.$now->format('l').'.'
+                    throw new ContactClientException(
+                        'This contact client does not allow contacts on a '.$now->format('l').'.',
+                        0,
+                        null,
+                        Stat::TYPE_SCHEDULE
                     );
                 } else {
                     $timeFrom = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
@@ -93,7 +99,7 @@ class Schedule
                     $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $timezone);
                     $endDate = \DateTime::createFromFormat('H:i', $timeTill, $timezone);
                     if (!($now > $startDate && $now < $endDate)) {
-                        throw new ContactClientRetryException(
+                        throw new ContactClientException(
                             'This contact client does not allow contacts during this time of day.',
                             0,
                             null,
@@ -103,47 +109,6 @@ class Schedule
                 }
             }
         }
-    }
-
-    /**
-     * @param $string
-     * @return mixed
-     * @throws \Exception
-     */
-    private function jsonDecodeArray($string)
-    {
-        $array = json_decode(!empty($string) ? $string : '[]');
-        $jsonError = null;
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                break;
-            case JSON_ERROR_DEPTH:
-                $jsonError = 'Maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $jsonError = 'Underflow or the modes mismatch';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $jsonError = 'Unexpected control character found';
-                break;
-            case JSON_ERROR_SYNTAX:
-                $jsonError = 'Syntax error, malformed JSON';
-                break;
-            case JSON_ERROR_UTF8:
-                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            default:
-                $jsonError = 'Unknown error';
-                break;
-        }
-        if ($jsonError) {
-            throw new \Exception('Schedule JSON is invalid: '.$jsonError);
-        }
-        if (!$array || !is_array($array)) {
-            throw new \Exception('Schedule is invalid.');
-        }
-
-        return $array;
     }
 
     /**
@@ -170,14 +135,16 @@ class Schedule
 
     /**
      * @param ContactClient $contactClient
-     * @throws ContactClientRetryException
+     * @throws ContactClientException
      * @throws \Exception
      */
     public function evaluateExclusions(ContactClient $contactClient)
     {
+
         // Check dates of exclusion (if there are any).
-        $exclusions = $this->jsonDecodeArray($contactClient->getScheduleExclusions() );
-        if (is_array($exclusions) && $exclusions) {
+        $jsonHelper = new JSONHelper();
+        $exclusions = $jsonHelper->decodeArray($contactClient->getScheduleExclusions(), 'ScheduleExclusions');
+        if ($exclusions) {
             $now = $this->getNow();
 
             // Fastest way to compare dates is by string.
@@ -200,7 +167,7 @@ class Schedule
                     }
                     $dateString = $year.'-'.$month.'-'.$day;
                     if ($dateString == $todaysDateString) {
-                        throw new ContactClientRetryException(
+                        throw new ContactClientException(
                             'This contact client does not allow contacts on the date '.$dateString.'.',
                             0,
                             null,

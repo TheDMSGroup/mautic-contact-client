@@ -1,6 +1,6 @@
 {
-  "title": "Limits",
-  "$schema": "limits.json",
+  "title": "Duplicate Settings",
+  "$schema": "duplicate.json",
   "type": "object",
   "format": "grid",
   "options": {
@@ -8,7 +8,7 @@
   },
   "properties": {
     "rules": {
-      "title": "Limits",
+      "title": "Duplicate Checking Rules",
       "type": "array",
       "format": "table",
       "uniqueItems": true,
@@ -16,7 +16,7 @@
         "disable_collapse": true
       },
       "items": {
-        "title": "Limit",
+        "title": "Rule",
         "$ref": "#/definitions/cacheField"
       }
     }
@@ -25,20 +25,46 @@
     "cacheField": {
       "headerTemplate": "{{self.scope}}",
       "type": "object",
-      "id": "cache",
       "options": {
         "collapsed": false,
         "disable_collapse": true
       },
       "properties": {
-        "quantity": {
-          "title": "Quantity",
-          "type": "integer",
+        "matching": {
+          "title": "Matching",
           "propertyOrder": 10,
-          "default": 10000,
+          "default": 2,
           "options": {
-            "infoText": "The maximum number of acceptable contacts for this limit."
-          }
+            "infoText": "You can make the duplicate rule apply to the explicit contact in question, or to all contacts that are similar based on some select fields."
+          },
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": 1,
+                  "title": "Unique contacts"
+                },
+                {
+                  "value": 2,
+                  "title": "Contacts matching email"
+                },
+                {
+                  "value": 4,
+                  "title": "Contacts matching home phone"
+                },
+                {
+                  "value": 8,
+                  "title": "Contacts matching mobile phone"
+                },
+                {
+                  "value": 16,
+                  "title": "Contacts matching address"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
         },
         "scope": {
           "title": "Scope",
@@ -52,15 +78,11 @@
               "source": [
                 {
                   "value": 1,
-                  "title": "total contacts"
+                  "title": "are considered duplicate"
                 },
                 {
                   "value": 2,
-                  "title": "contacts where the category is"
-                },
-                {
-                  "value": 3,
-                  "title": "contacts where the UTM Source is"
+                  "title": "are considered duplicate by category"
                 }
               ],
               "title": "{{item.title}}",
@@ -68,20 +90,12 @@
             }
           ]
         },
-        "value": {
-          "title": "Value",
-          "type": "string",
-          "propertyOrder": 30,
-          "options": {
-            "infoText": "Only applicable if scope is not set to total."
-          }
-        },
         "duration": {
           "title": "Duration",
-          "propertyOrder": 40,
+          "propertyOrder": 30,
           "type": "string",
           "options": {
-            "infoText": "Specify how long this limit should last, before expiring and allowing the contact to go to other clients within the scope."
+            "infoText": "Specify how long this duplicate rule should last, before expiring and allowing the contact to go to other clients within the scope."
           },
           "default": "P30D",
           "enumSource": [
@@ -89,55 +103,55 @@
               "source": [
                 {
                   "value": "PT1H",
-                  "title": "per Hour"
+                  "title": "for 1 Hour"
                 },
                 {
                   "value": "PT6H",
-                  "title": "per 6 Hours"
+                  "title": "for 6 Hours"
                 },
                 {
                   "value": "PT12H",
-                  "title": "per 12 Hours"
+                  "title": "for 12 Hours"
                 },
                 {
                   "value": "P1D",
-                  "title": "per Day"
+                  "title": "for 1 Day"
                 },
                 {
                   "value": "P2D",
-                  "title": "per 2 Days"
+                  "title": "for 2 Days"
                 },
                 {
                   "value": "P3D",
-                  "title": "per 3 Days"
+                  "title": "for 3 Days"
                 },
                 {
                   "value": "P4D",
-                  "title": "per 4 Days"
+                  "title": "for 4 Days"
                 },
                 {
                   "value": "P5D",
-                  "title": "per 5 Days"
+                  "title": "for 5 Days"
                 },
                 {
                   "value": "P6D",
-                  "title": "per 6 Days"
+                  "title": "for 6 Days"
                 },
                 {
                   "value": "P1W",
-                  "title": "per Week"
+                  "title": "for 1 Week"
                 },
                 {
                   "value": "P2W",
-                  "title": "per 2 Weeks"
+                  "title": "for 2 Weeks"
                 },
                 {
                   "value": "P3W",
-                  "title": "per 3 Weeks"
+                  "title": "for 3 Weeks"
                 },
                 {
                   "value": "P30D",
-                  "title": "per 30 Days"
+                  "title": "for 30 Days"
                 }
               ],
               "title": "{{item.title}}",

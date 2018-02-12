@@ -15,6 +15,10 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\LeadBundle\Entity\TimelineTrait;
 
+/**
+ * Class EventRepository
+ * @package MauticPlugin\MauticContactClientBundle\Entity
+ */
 class EventRepository extends CommonRepository
 {
     use TimelineTrait;

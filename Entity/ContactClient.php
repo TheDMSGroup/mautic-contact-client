@@ -15,12 +15,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
-use Mautic\FormBundle\Entity\Form;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
  * Class ContactClient.
+ *
+ * Entity is used to contain all the rules necessary to create a dynamic integration called a Contact Client.
  */
 class ContactClient extends FormEntity
 {

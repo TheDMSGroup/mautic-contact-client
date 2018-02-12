@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 
 /**
@@ -68,7 +69,10 @@ class Attribution
         $newAttribution = 0;
 
         if ($this->payload) {
-            $attributionSettings = $this->jsonDecodeObject($this->contactClient->getAttributionSettings());
+
+            $jsonHelper = new JSONHelper();
+            $attributionSettings = $jsonHelper->decodeObject($this->contactClient->getAttributionSettings(), 'AttributionSettings');
+
             if ($attributionSettings && is_object(
                     $attributionSettings->mode
                 ) && !empty($attributionSettings->mode->key)) {
@@ -122,47 +126,6 @@ class Attribution
         }
 
         return $update;
-    }
-
-    /**
-     * @param $string
-     * @return mixed
-     * @throws \Exception
-     */
-    private function jsonDecodeObject($string)
-    {
-        $object = json_decode(!empty($string) ? $string : '{}');
-        $jsonError = null;
-        switch (json_last_error()) {
-            case JSON_ERROR_NONE:
-                break;
-            case JSON_ERROR_DEPTH:
-                $jsonError = 'Maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $jsonError = 'Underflow or the modes mismatch';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $jsonError = 'Unexpected control character found';
-                break;
-            case JSON_ERROR_SYNTAX:
-                $jsonError = 'Syntax error, malformed JSON';
-                break;
-            case JSON_ERROR_UTF8:
-                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            default:
-                $jsonError = 'Unknown error';
-                break;
-        }
-        if ($jsonError) {
-            throw new \Exception('Schedule JSON is invalid: '.$jsonError);
-        }
-        if (!$object || !is_object($object)) {
-            throw new \Exception('Attribution is invalid.');
-        }
-
-        return $object;
     }
 
     /**

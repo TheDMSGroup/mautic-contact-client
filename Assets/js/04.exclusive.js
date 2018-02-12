@@ -1,32 +1,32 @@
-// Limits field.
-Mautic.contactclientLimits = function () {
-    var $limits = mQuery('#contactclient_limits');
-    if (typeof window.contactclientLimitsLoaded === 'undefined' && $limits.length) {
+// Exclusive field.
+Mautic.contactclientExclusive = function () {
+    var $exclusive = mQuery('#contactclient_exclusive');
+    if (typeof window.contactclientExclusiveLoaded === 'undefined' && $exclusive.length) {
 
-        window.contactclientLimitsLoaded = true;
+        window.contactclientExclusiveLoaded = true;
 
-        var limitsJSONEditor;
+        var exclusiveJSONEditor;
 
         // Grab the JSON Schema to begin rendering the form with JSONEditor.
         mQuery.ajax({
             dataType: 'json',
             cache: true,
-            url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/limits.json',
+            url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/exclusive.json',
             success: function (data) {
                 var schema = data;
 
                 // Create our widget container for the JSON Editor.
-                var $limitsJSONEditor = mQuery('<div>', {
+                var $exclusiveJSONEditor = mQuery('<div>', {
                     class: 'contactclient_jsoneditor'
-                }).insertBefore($limits);
+                }).insertBefore($exclusive);
 
                 // Instantiate the JSON Editor based on our schema.
-                limitsJSONEditor = new JSONEditor($limitsJSONEditor[0], {
+                exclusiveJSONEditor = new JSONEditor($exclusiveJSONEditor[0], {
                     schema: schema,
                     disable_collapse: true
                 });
 
-                $limits.change(function () {
+                $exclusive.change(function () {
                     // Load the initial value if applicable.
                     var raw = mQuery(this).val(),
                         obj;
@@ -34,7 +34,7 @@ Mautic.contactclientLimits = function () {
                         try {
                             obj = mQuery.parseJSON(raw);
                             if (typeof obj === 'object') {
-                                limitsJSONEditor.setValue(obj);
+                                exclusiveJSONEditor.setValue(obj);
                             }
                         }
                         catch (e) {
@@ -44,20 +44,20 @@ Mautic.contactclientLimits = function () {
                 }).trigger('change');
 
                 // Persist the value to the JSON Editor.
-                limitsJSONEditor.on('change', function () {
-                    var obj = limitsJSONEditor.getValue();
+                exclusiveJSONEditor.on('change', function () {
+                    var obj = exclusiveJSONEditor.getValue();
                     if (typeof obj === 'object') {
                         var raw = JSON.stringify(obj, null, '  ');
                         if (raw.length) {
                             // Set the textarea.
-                            $limits.val(raw);
+                            $exclusive.val(raw);
                         }
                     }
                 });
 
-                $limits.addClass('hide');
-                $limitsJSONEditor.show();
-                // mQuery('label[for=contactclient_limits]').addClass('hide');
+                $exclusive.addClass('hide');
+                $exclusiveJSONEditor.show();
+                // mQuery('label[for=contactclient_exclusive]').addClass('hide');
             }
         });
 

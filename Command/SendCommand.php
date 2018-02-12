@@ -152,5 +152,7 @@ class SendCommand extends ModeratedCommand
         }
 
         $this->completeRun();
+
+        return 0;
     }
 }
