@@ -31,19 +31,19 @@ class CacheRepository extends CommonRepository
     const MATCHING_PHONE = 4;
     const MATCHING_MOBILE = 8;
     const MATCHING_ADDRESS = 16;
-    const MATCHING_UTM_SOURCE = 32;
 
     /** @var int Number of matching patterns above */
-    const MATCHING_COUNT = 6;
+    const MATCHING_COUNT = 5;
 
     /**
      * Bitwise operators for $scope.
      */
     const SCOPE_GLOBAL = 1;
     const SCOPE_CATEGORY = 2;
+    const SCOPE_UTM_SOURCE = 3;
 
     /** @var int Number of scope patterns above */
-    const SCOPE_COUNT = 2;
+    const SCOPE_COUNT = 3;
 
     /** @var PhoneNumberHelper */
     protected $phoneHelper;

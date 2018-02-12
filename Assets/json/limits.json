@@ -7,5 +7,145 @@
     "disable_collapse": true
   },
   "properties": {
+    "rules": {
+      "title": "Limits",
+      "type": "array",
+      "format": "table",
+      "uniqueItems": true,
+      "options": {
+        "disable_collapse": true
+      },
+      "items": {
+        "title": "Limit",
+        "$ref": "#/definitions/cacheField"
+      }
+    }
+  },
+  "definitions": {
+    "cacheField": {
+      "headerTemplate": "{{self.scope}}",
+      "type": "object",
+      "id": "cache",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "properties": {
+        "quantity": {
+          "title": "Quantity",
+          "type": "integer",
+          "propertyOrder": 10,
+          "default": 10000,
+          "options": {
+            "infoText": "The maximum number of acceptable contacts for this limit."
+          }
+        },
+        "scope": {
+          "title": "Scope",
+          "propertyOrder": 20,
+          "default": 1,
+          "options": {
+            "infoText": "How wide do you want this duplicate check to reach?"
+          },
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": 1,
+                  "title": "total contacts"
+                },
+                {
+                  "value": 2,
+                  "title": "contacts where the category is"
+                },
+                {
+                  "value": 3,
+                  "title": "contacts where the UTM Source is"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
+        },
+        "value": {
+          "title": "Value",
+          "type": "string",
+          "propertyOrder": 30,
+          "options": {
+            "infoText": "Only applicable if scope is not set to total."
+          }
+        },
+        "duration": {
+          "title": "Duration",
+          "propertyOrder": 40,
+          "type": "string",
+          "options": {
+            "infoText": "Specify how long this limit should last, before expiring and allowing the contact to go to other clients within the scope."
+          },
+          "default": "P30D",
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": "PT1H",
+                  "title": "per Hour"
+                },
+                {
+                  "value": "PT6H",
+                  "title": "per 6 Hours"
+                },
+                {
+                  "value": "PT12H",
+                  "title": "per 12 Hours"
+                },
+                {
+                  "value": "P1D",
+                  "title": "per Day"
+                },
+                {
+                  "value": "P2D",
+                  "title": "per 2 Days"
+                },
+                {
+                  "value": "P3D",
+                  "title": "per 3 Days"
+                },
+                {
+                  "value": "P4D",
+                  "title": "per 4 Days"
+                },
+                {
+                  "value": "P5D",
+                  "title": "per 5 Days"
+                },
+                {
+                  "value": "P6D",
+                  "title": "per 6 Days"
+                },
+                {
+                  "value": "P1W",
+                  "title": "per Week"
+                },
+                {
+                  "value": "P2W",
+                  "title": "per 2 Weeks"
+                },
+                {
+                  "value": "P3W",
+                  "title": "per 3 Weeks"
+                },
+                {
+                  "value": "P30D",
+                  "title": "per 30 Days"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
+        }
+      }
+    }
   }
 }
