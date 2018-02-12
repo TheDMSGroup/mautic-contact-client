@@ -32,18 +32,13 @@ class CacheRepository extends CommonRepository
     const MATCHING_MOBILE = 8;
     const MATCHING_ADDRESS = 16;
 
-    /** @var int Number of matching patterns above */
-    const MATCHING_COUNT = 5;
-
     /**
      * Bitwise operators for $scope.
      */
     const SCOPE_GLOBAL = 1;
     const SCOPE_CATEGORY = 2;
+    // For limits only:
     const SCOPE_UTM_SOURCE = 3;
-
-    /** @var int Number of scope patterns above */
-    const SCOPE_COUNT = 3;
 
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
@@ -137,8 +132,8 @@ class CacheRepository extends CommonRepository
                 }
             }
 
-            // Match utm_source (for limits only)
-            if ($matching & self::MATCHING_UTM_SOURCE) {
+            // Scope UTM Source
+            if ($scope & self::SCOPE_UTM_SOURCE) {
                 $utmTags = $contact->getUtmTags();
                 if ($utmTags) {
                     $utmTags = $utmTags->toArray();
@@ -153,11 +148,10 @@ class CacheRepository extends CommonRepository
 
             // Scope Category
             if ($scope & self::SCOPE_CATEGORY) {
-                // Scope Category
                 $category = $contactClient->getCategory();
                 if ($category) {
                     $category = $category->getId();
-                    if ($category) {
+                    if (!empty($category)) {
                         $orx['category_id'] = $category;
                     }
                 }
@@ -283,101 +277,119 @@ class CacheRepository extends CommonRepository
     }
 
     /**
+     * Check the entire cache for matching contacts given all possible Exclusivity rules.
+     *
+     * Only the first 4 matching rules are allowed for exclusivity (by default).
+     * Only the first two scopes are allowed for exclusivity.
+     *
      * @param Contact $contact
      * @param \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $contactClient
+     * @param int $matching
      * @return mixed|null
      */
     public function findExclusive(
         Contact $contact,
-        ContactClient $contactClient
+        ContactClient $contactClient,
+        $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE
     ) {
+
         // Generate our filters based on all rules possibly in play.
 
         // Match explicit
-        $filters[] = [
-            'andx' => [
-                'contact_id' => (int)$contact->getId(),
-                'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_EXPLICIT),
-            ],
-        ];
-
-        // Match email
-        $email = trim($contact->getEmail());
-        if ($email) {
+        if ($matching & self::MATCHING_EXPLICIT) {
             $filters[] = [
                 'andx' => [
-                    'email' => $email,
-                    'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_EMAIL),
+                    'contact_id' => (int)$contact->getId(),
+                    'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_EXPLICIT),
                 ],
             ];
+        }
+
+        // Match email
+        if ($matching & self::MATCHING_EMAIL) {
+            $email = trim($contact->getEmail());
+            if ($email) {
+                $filters[] = [
+                    'andx' => [
+                        'email' => $email,
+                        'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_EMAIL),
+                    ],
+                ];
+            }
         }
 
         // Match phone
-        $phone = $this->phoneValidate($contact->getPhone());
-        if (!empty($phone)) {
-            $filters[] = [
-                'andx' => [
-                    'phone' => $phone,
-                    'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_MOBILE),
-                ],
-            ];
+        if ($matching & self::MATCHING_PHONE) {
+            $phone = $this->phoneValidate($contact->getPhone());
+            if (!empty($phone)) {
+                $filters[] = [
+                    'andx' => [
+                        'phone' => $phone,
+                        'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_MOBILE),
+                    ],
+                ];
+            }
         }
 
         // Match mobile
-        $mobile = $this->phoneValidate($contact->getMobile());
-        if (!empty($mobile)) {
-            $filters[] = [
-                'andx' => [
-                    'phone' => $phone,
-                    'exclusive_pattern' => $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_PHONE),
-                ],
-            ];
+        if ($matching & self::MATCHING_MOBILE) {
+            $mobile = $this->phoneValidate($contact->getMobile());
+            if (!empty($mobile)) {
+                $filters[] = [
+                    'andx' => [
+                        'phone' => $phone,
+                        'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_PHONE),
+                    ],
+                ];
+            }
         }
 
         // Due to high overhead, we've left out address-based exclusivity for now.
         // Match address
-        //$address1 = trim(ucwords($contact->getAddress1()));
-        //if (!empty($address1)) {
-        //    $filter = [];
-        //    $city = trim(ucwords($contact->getCity()));
-        //    $zipcode = trim(ucwords($contact->getZipcode()));
-        //
-        //    // Only support this level of matching if we have enough for a valid address.
-        //    if (!empty($zipcode) || !empty($city)) {
-        //        $filter['address1'] = $address1;
-        //
-        //        $address2 = trim(ucwords($contact->getAddress2()));
-        //        if (!empty($address2)) {
-        //            $filter['address2'] = $address2;
-        //        }
-        //
-        //        if (!empty($city)) {
-        //            $filter['city'] = $city;
-        //        }
-        //
-        //        $state = trim(ucwords($contact->getState()));
-        //        if (!empty($state)) {
-        //            $filter['state'] = $state;
-        //        }
-        //
-        //        if (!empty($zipcode)) {
-        //            $filter['zipcode'] = $zipcode;
-        //        }
-        //
-        //        $country = trim(ucwords($contact->getCountry()));
-        //        if (!empty($country)) {
-        //            $filter['country'] = $country;
-        //        }
-        //
-        //        $filter['exclusive_pattern'] = $this->bitwiseIn(self::MATCHING_COUNT, self::MATCHING_ADDRESS);
-        //        $filters[] = [
-        //            'andx' => $filter
-        //        ];
-        //    }
-        //}
+        if ($matching & self::MATCHING_ADDRESS) {
+            $address1 = trim(ucwords($contact->getAddress1()));
+            if (!empty($address1)) {
+                $filter = [];
+                $city = trim(ucwords($contact->getCity()));
+                $zipcode = trim(ucwords($contact->getZipcode()));
+
+                // Only support this level of matching if we have enough for a valid address.
+                if (!empty($zipcode) || !empty($city)) {
+                    $filter['address1'] = $address1;
+
+                    $address2 = trim(ucwords($contact->getAddress2()));
+                    if (!empty($address2)) {
+                        $filter['address2'] = $address2;
+                    }
+
+                    if (!empty($city)) {
+                        $filter['city'] = $city;
+                    }
+
+                    $state = trim(ucwords($contact->getState()));
+                    if (!empty($state)) {
+                        $filter['state'] = $state;
+                    }
+
+                    if (!empty($zipcode)) {
+                        $filter['zipcode'] = $zipcode;
+                    }
+
+                    $country = trim(ucwords($contact->getCountry()));
+                    if (!empty($country)) {
+                        $filter['country'] = $country;
+                    }
+
+                    $filter['exclusive_pattern'] = $this->bitwiseIn($matching, self::MATCHING_ADDRESS);
+                    $filters[] = [
+                        'andx' => $filter,
+                    ];
+                }
+            }
+        }
 
         // Scope Global
-        $scopePattern = $this->bitwiseIn(self::SCOPE_COUNT, self::SCOPE_GLOBAL);
+        $scopePattern = $this->bitwiseIn($matching, self::SCOPE_GLOBAL);
         foreach ($filters as &$filter) {
             $filter['andx']['exclusive_scope'] = $scopePattern;
         }
@@ -388,7 +400,7 @@ class CacheRepository extends CommonRepository
             $category = $category->getId();
             if ($category) {
                 $newFilters = [];
-                $scopePattern = $this->bitwiseIn(self::SCOPE_COUNT, self::SCOPE_CATEGORY);
+                $scopePattern = $this->bitwiseIn($matching, self::SCOPE_CATEGORY);
                 foreach ($filters as $filter) {
                     $filter['andx']['category_id'] = $category;
                     $filter['andx']['exclusive_scope'] = $scopePattern;
@@ -404,18 +416,16 @@ class CacheRepository extends CommonRepository
     }
 
     /**
-     * Given a number of bitwise operators, and the value we want to match against,
-     * generate an array for an IN query.
+     * Given bitwise operators, and the value we want to match against,
+     * generate a minimal array for an IN query.
      *
-     * @param $count
+     * @param int $max
      * @param $matching
      * @return array
      */
-    private function bitwiseIn($count, $matching)
+    private function bitwiseIn($max, $matching)
     {
-        $max = base_convert(str_repeat('1', $count), 2, 10);
         $result = [];
-
         for ($i = 1; $i <= $max; $i++) {
             if ($i & $matching) {
                 $result[] = $i;
