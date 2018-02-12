@@ -91,9 +91,9 @@
           "propertyOrder": 30,
           "type": "string",
           "options": {
-            "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope."
+            "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope. There are intentionally few options here to reduce overhead when matching exclusivity."
           },
-          "default": "P1D",
+          "default": "P1W",
           "enumSource": [
             {
               "source": [
@@ -102,48 +102,12 @@
                   "title": "for 1 Hour"
                 },
                 {
-                  "value": "PT6H",
-                  "title": "for 6 Hours"
-                },
-                {
-                  "value": "PT12H",
-                  "title": "for 12 Hours"
-                },
-                {
                   "value": "P1D",
                   "title": "for 1 Day"
                 },
                 {
-                  "value": "P2D",
-                  "title": "for 2 Days"
-                },
-                {
-                  "value": "P3D",
-                  "title": "for 3 Days"
-                },
-                {
-                  "value": "P4D",
-                  "title": "for 4 Days"
-                },
-                {
-                  "value": "P5D",
-                  "title": "for 5 Days"
-                },
-                {
-                  "value": "P6D",
-                  "title": "for 6 Days"
-                },
-                {
                   "value": "P1W",
                   "title": "for 1 Week"
-                },
-                {
-                  "value": "P2W",
-                  "title": "for 2 Weeks"
-                },
-                {
-                  "value": "P3W",
-                  "title": "for 3 Weeks"
                 },
                 {
                   "value": "P30D",
