@@ -17,7 +17,7 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
- * Trait CacheEntityRepositoryTrait
+ * Class CacheRepository
  * @package MauticPlugin\MauticContactClientBundle\Entity
  */
 class CacheRepository extends CommonRepository

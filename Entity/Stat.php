@@ -69,7 +69,7 @@ class Stat
 
         $builder->addField('type', 'string');
 
-        $builder->addNamedField('dateAdded', 'datetime', 'date_added');
+        $builder->addDateAdded();
 
         $builder->createField('attribution', 'decimal')
             ->columnDefinition('DECIMAL(19, 4) DEFAULT NULL')

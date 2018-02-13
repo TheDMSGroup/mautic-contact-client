@@ -105,9 +105,11 @@ class Event
             ->nullable()
             ->build();
 
-        $builder->addNamedField('dateAdded', 'datetime', 'date_added');
-        $builder->addContact();
         $builder->addNamedField('logs', 'text', 'logs');
+
+        $builder->addDateAdded();
+
+        $builder->addContact();
     }
 
     /**
