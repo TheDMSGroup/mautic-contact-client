@@ -55,6 +55,22 @@ JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend
     }
 });
 
+// Extend the fontawesome icon kit for minor changes.
+JSONEditor.defaults.iconlibs.custom = JSONEditor.AbstractIconLib.extend({
+    mapping: {
+        collapse: 'caret-down',
+        expand: 'caret-right',
+        delete: 'times',
+        edit: 'pencil',
+        add: 'plus',
+        cancel: 'ban',
+        save: 'save',
+        moveup: 'arrow-up',
+        movedown: 'arrow-down'
+    },
+    icon_prefix: 'fa fa-'
+});
+
 // Add a "query" field type using the Query Builder.
 JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
     postBuild: function () {
@@ -129,7 +145,7 @@ JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
 // Override default settings.
 JSONEditor.defaults.options.ajax = false;
 JSONEditor.defaults.options.theme = 'custom';
-JSONEditor.defaults.options.iconlib = 'fontawesome4';
+JSONEditor.defaults.options.iconlib = 'custom';
 JSONEditor.defaults.options.disable_edit_json = true;
 JSONEditor.defaults.options.disable_properties = true;
 JSONEditor.defaults.options.disable_array_delete_all_rows = true;

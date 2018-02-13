@@ -55,6 +55,10 @@
     font-size: 15px;
 }
 
+.contactclient_jsoneditor i.fa-caret-right,
+.contactclient_jsoneditor i.fa-caret-down {
+    font-size: 20px;
+}
 .contactclient_jsoneditor i.fa-caret-square-o-right,
 .contactclient_jsoneditor i.fa-caret-square-o-down {
     font-size: 16px;
