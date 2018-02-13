@@ -1,8 +1,10 @@
 ![](./Assets/img/client.png)
 # Mautic Contact Client 
 
-This plugin allows you to create an integration (or enhancer) without touching code.
+Create integrations/enhancers without touching code.
+
 Designed for use by performance marketers who enhance/sell/buy contacts in mass quantitites.
+Can optionally be used in tandem with it's sibling, the  [Mautic Contact Server](https://github.com/TheDMSGroup/mautic-contact-server) plugin.
 
 ## Features
 - [x] Campaign: Queue a contact to be sent within a Campaign as you would any integration.
