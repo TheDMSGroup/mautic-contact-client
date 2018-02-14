@@ -23,7 +23,7 @@ Mautic.contactclientSuccessDefinitionDefaultOps = [
     // 'is_null'
 ];
 
-Mautic.contactclientSuccessDefinitionFiltersDefault = [{
+Mautic.successDefinitionFiltersDefault = [{
     id: 'status',
     label: 'Status Code',
     type: 'string',

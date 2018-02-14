@@ -1,5 +1,12 @@
 // Extend the bootstrap3 theme with some minor aesthetic customizations.
 JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
+    // Support chosen select (which comes with Mautic) by addition of a class.
+    getSelectInput: function(options) {
+        var el = this._super(options);
+        el.className += 'form-control chosen-select';
+        return el;
+    },
+    // Make the buttons smaller and more consistent.
     getButton: function (text, icon, title) {
         var el = this._super(text, icon, title);
         if (title.indexOf('Delete') !== -1) {
@@ -72,75 +79,77 @@ JSONEditor.defaults.iconlibs.custom = JSONEditor.AbstractIconLib.extend({
 });
 
 // Add a "query" field type using the Query Builder.
-JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
-    postBuild: function () {
-        // Default success rules (if the status
-        // code is 200).
-        var element = this,
-            successDefinitionRules = {
-                condition: 'AND',
-                rules: [{
-                    id: 'status',
-                    operator: 'equal',
-                    value: '200'
-                }]
-            };
+if (typeof Mautic.successDefinitionFiltersDefault !== 'undefined') {
+    JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
+        postBuild: function () {
+            // Default success rules (if the status
+            // code is 200).
+            var element = this,
+                successDefinitionRules = {
+                    condition: 'AND',
+                    rules: [{
+                        id: 'status',
+                        operator: 'equal',
+                        value: '200'
+                    }]
+                };
 
-        // Load a saved value if relevant.
-        if (this.input.value) {
-            if (typeof this.input.value === 'object') {
-                successDefinitionRules = this.input.value;
+            // Load a saved value if relevant.
+            if (this.input.value) {
+                if (typeof this.input.value === 'object') {
+                    successDefinitionRules = this.input.value;
+                }
+                else {
+                    try {
+                        var obj = mQuery.parseJSON(this.input.value);
+                    }
+                    catch (e) {
+                        console.warn('Invalid JSON in success definition');
+                    }
+                    if (typeof obj === 'object' && obj.length > 0) {
+                        successDefinitionRules = obj;
+                    }
+                }
             }
-            else {
-                try {
-                    var obj = mQuery.parseJSON(this.input.value);
-                }
-                catch (e) {
-                    console.warn('Invalid JSON in success definition');
-                }
-                if (typeof obj === 'object' && obj.length > 0) {
-                    successDefinitionRules = obj;
-                }
-            }
-        }
-        // Progressively Enhance the textarea into
-        // a Query Builder.
-        mQuery('<div>', {
-            id: 'success-definition-' + this.parent.parent.parent.key,
-            class: 'query-builder'
-        }).insertAfter(element.input)
-            .queryBuilder({
-                plugins: {
-                    'sortable': {
-                        icon: 'fa fa-sort'
+            // Progressively Enhance the textarea into
+            // a Query Builder.
+            mQuery('<div>', {
+                id: 'success-definition-' + this.parent.parent.parent.key,
+                class: 'query-builder'
+            }).insertAfter(element.input)
+                .queryBuilder({
+                    plugins: {
+                        'sortable': {
+                            icon: 'fa fa-sort'
+                        },
+                        'bt-tooltip-errors': null
                     },
-                    'bt-tooltip-errors': null
-                },
-                filters: Mautic.contactclientSuccessDefinitionFiltersDefault,
-                icons: {
-                    add_group: 'fa fa-plus',
-                    add_rule: 'fa fa-plus',
-                    remove_group: 'fa fa-times',
-                    remove_rule: 'fa fa-times',
-                    sort: 'fa fa-sort',
-                    error: 'fa fa-exclamation-triangle'
-                },
-                rules: successDefinitionRules
-            })
-            // On any change to Success Definition:
-            .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
-                // Save the value to the hidden
-                // textarea.
-                var rules = mQuery(this).queryBuilder('getRules', {
-                    get_flags: true,
-                    skip_empty: true,
-                    allow_invalid: true
-                });
-                element.setValue(rules);
-            })
-            .parent().find('textarea').addClass('hide');
-    }
-});
+                    filters: Mautic.successDefinitionFiltersDefault,
+                    icons: {
+                        add_group: 'fa fa-plus',
+                        add_rule: 'fa fa-plus',
+                        remove_group: 'fa fa-times',
+                        remove_rule: 'fa fa-times',
+                        sort: 'fa fa-sort',
+                        error: 'fa fa-exclamation-triangle'
+                    },
+                    rules: successDefinitionRules
+                })
+                // On any change to Success Definition:
+                .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
+                    // Save the value to the hidden
+                    // textarea.
+                    var rules = mQuery(this).queryBuilder('getRules', {
+                        get_flags: true,
+                        skip_empty: true,
+                        allow_invalid: true
+                    });
+                    element.setValue(rules);
+                })
+                .parent().find('textarea').addClass('hide');
+        }
+    });
+}
 
 // Override default settings.
 JSONEditor.defaults.options.ajax = false;
@@ -165,6 +174,10 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 message: 'Dates should be in ISO format as YYYY-MM-DD or MM-DD for repeating dates'
             });
         }
+    }
+    // Activate the jQuery Chosen plugin which comes with Mautic for all select fields.
+    if (schema.format === 'select') {
+        mQuery('.chosen-select').chosen();
     }
     return errors;
 });

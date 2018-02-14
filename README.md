@@ -47,4 +47,3 @@ If you have success/issues with other versions please report.
 * [jQuery BusinessHours](https://github.com/gEndelf/jquery.businessHours)
 * [JSON Editor](https://github.com/json-editor/json-editor)
 * [JSON Lint](https://github.com/zaach/jsonlint)
-* [Selectize.js](https://github.com/selectize/selectize.js)

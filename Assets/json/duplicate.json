@@ -17,13 +17,13 @@
       },
       "items": {
         "title": "Rule",
-        "$ref": "#/definitions/cacheField"
+        "$ref": "#/definitions/duplicate"
       }
     }
   },
   "definitions": {
-    "cacheField": {
-      "headerTemplate": "{{self.scope}}",
+    "duplicate": {
+      "headerTemplate": "{{self.matching}} {{self.scope}} {{self.duration}}",
       "type": "object",
       "options": {
         "collapsed": false,

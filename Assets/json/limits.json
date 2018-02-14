@@ -17,13 +17,13 @@
       },
       "items": {
         "title": "Limit",
-        "$ref": "#/definitions/cacheField"
+        "$ref": "#/definitions/limit"
       }
     }
   },
   "definitions": {
-    "cacheField": {
-      "headerTemplate": "{{self.scope}}",
+    "limit": {
+      "headerTemplate": "{{self.quantity}} {{self.scope}} {{self.value}}",
       "type": "object",
       "id": "cache",
       "options": {

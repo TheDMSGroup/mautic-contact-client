@@ -101,7 +101,7 @@ Mautic.contactclientApiPayload = function () {
                                     if (additionalFilters.length) {
                                         var $queryBuilder = mQuery('#success-definition-' + i);
                                         if ($queryBuilder.length) {
-                                            $queryBuilder.queryBuilder('setFilters', true, Mautic.contactclientSuccessDefinitionFiltersDefault.concat(additionalFilters));
+                                            $queryBuilder.queryBuilder('setFilters', true, Mautic.successDefinitionFiltersDefault.concat(additionalFilters));
                                         }
                                     }
                                 }

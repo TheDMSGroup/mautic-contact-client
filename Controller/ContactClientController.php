@@ -157,12 +157,12 @@ class ContactClientController extends FormController
             $args['viewParameters']['events'] = $model->getEngagements($item);
             $args['viewParameters']['dateRangeForm'] = $dateRangeForm->createView();
 
-            if ('link' == $item->getType()) {
-                $args['viewParameters']['trackables'] = $this->getModel('page.trackable')->getTrackableList(
-                    'contactclient',
-                    $item->getId()
-                );
-            }
+//            if ('link' == $item->getType()) {
+//                $args['viewParameters']['trackables'] = $this->getModel('page.trackable')->getTrackableList(
+//                    'contactclient',
+//                    $item->getId()
+//                );
+//            }
         }
 
         return $args;
