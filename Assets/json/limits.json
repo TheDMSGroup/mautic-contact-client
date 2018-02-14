@@ -89,40 +89,52 @@
             {
               "source": [
                 {
+                  "value": "PT1I",
+                  "title": "per minute"
+                },
+                {
+                  "value": "PT10I",
+                  "title": "per 10 minutes"
+                },
+                {
+                  "value": "PT30I",
+                  "title": "per 30 minutes"
+                },
+                {
                   "value": "PT1H",
-                  "title": "per Hour"
+                  "title": "per hour"
                 },
                 {
                   "value": "PT6H",
-                  "title": "per 6 Hours"
+                  "title": "per 6 hours"
                 },
                 {
                   "value": "PT12H",
-                  "title": "per 12 Hours"
+                  "title": "per 12 hours"
                 },
                 {
                   "value": "P1D",
-                  "title": "per Day"
+                  "title": "per day"
                 },
                 {
                   "value": "P2D",
-                  "title": "per 2 Days"
+                  "title": "per 2 days"
                 },
                 {
                   "value": "P3D",
-                  "title": "per 3 Days"
+                  "title": "per 3 days"
                 },
                 {
                   "value": "P4D",
-                  "title": "per 4 Days"
+                  "title": "per 4 days"
                 },
                 {
                   "value": "P5D",
-                  "title": "per 5 Days"
+                  "title": "per 5 days"
                 },
                 {
                   "value": "P6D",
-                  "title": "per 6 Days"
+                  "title": "per 6 days"
                 },
                 {
                   "value": "P1W",
@@ -138,7 +150,7 @@
                 },
                 {
                   "value": "P30D",
-                  "title": "per 30 Days"
+                  "title": "per 30 days"
                 }
               ],
               "title": "{{item.title}}",

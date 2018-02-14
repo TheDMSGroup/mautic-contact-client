@@ -99,19 +99,19 @@
               "source": [
                 {
                   "value": "PT1H",
-                  "title": "for 1 Hour"
+                  "title": "for hour"
                 },
                 {
                   "value": "P1D",
-                  "title": "for 1 Day"
+                  "title": "for day"
                 },
                 {
                   "value": "P1W",
-                  "title": "for 1 Week"
+                  "title": "for week"
                 },
                 {
                   "value": "P30D",
-                  "title": "for 30 Days"
+                  "title": "for 30 days"
                 }
               ],
               "title": "{{item.title}}",
