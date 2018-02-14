@@ -265,3 +265,7 @@
     border: 0;
 }
 
+.slider-horizontal {
+    max-width: 95%;
+    margin-top: .5em;
+}

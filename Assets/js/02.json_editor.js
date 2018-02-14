@@ -1,5 +1,11 @@
 // Extend the bootstrap3 theme with some minor aesthetic customizations.
 JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
+    // Support bootstrap-slider.
+    getRangeInput: function (min, max, step) {
+        var el = this._super(min, max, step);
+        el.className = el.className.replace('form-control', '');
+        return el;
+    },
     // Make the buttons smaller and more consistent.
     getButton: function (text, icon, title) {
         var el = this._super(text, icon, title);
@@ -173,8 +179,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     // 8 elements. Use "format": "select" to activate.
     if (schema.format === 'select') {
         // Get the element based on schema path.
-        var selector = 'select[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.chosen-checked)';
-        mQuery(selector).each(function () {
+        mQuery('select[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.chosen-checked)').each(function () {
             if (mQuery(this).children('option').length > 8) {
                 var $select = mQuery(this),
                     changed = false;
@@ -197,13 +202,54 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         else {
                             $select[0].fireEvent('onchange');
                         }
-                    } else {
+                    }
+                    else {
                         changed = false;
                     }
                 });
             }
-            mQuery(this).addClass('chosen-checked');
-        });
+        }).addClass('chosen-checked');
     }
+    // Improve the range slider with bootstrap sliders.
+    if (schema.format === 'range') {
+        // Get the element based on schema path.
+        mQuery('input[type=\'range\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.slider-checked)').each(function () {
+            var $slider = mQuery(this),
+                min = parseInt(mQuery(this).attr('min')),
+                max = parseInt(mQuery(this).attr('max')),
+                step = parseInt(mQuery(this).attr('step')),
+                value = parseInt(mQuery(this).val()),
+                options = {
+                    'min': min,
+                    'max': max,
+                    'value': value,
+                    'step': step
+                },
+                changed = false;
+            if (min === 0 && max === 100) {
+                options.formatter = function (val) {
+                    return val + '%';
+                };
+            }
+            var slider = new Slider(mQuery(this)[0], options);
+            slider.on('change', function (o) {
+                if (!changed) {
+                    if ('createEvent' in document) {
+                        // changed = true;
+                        var event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', false, true);
+                        $slider[0].dispatchEvent(event);
+                    }
+                    else {
+                        $slider[0].fireEvent('onchange');
+                    }
+                }
+                else {
+                    changed = false;
+                }
+            });
+        }).addClass('slider-checked');
+    }
+
     return errors;
 });
