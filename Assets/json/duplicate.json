@@ -94,6 +94,7 @@
           "title": "Duration",
           "propertyOrder": 30,
           "type": "string",
+          "format": "select",
           "options": {
             "infoText": "Specify how long this duplicate rule should last, before expiring and allowing the contact to go to other clients within the scope."
           },

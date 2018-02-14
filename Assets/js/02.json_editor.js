@@ -1,11 +1,5 @@
 // Extend the bootstrap3 theme with some minor aesthetic customizations.
 JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
-    // Support chosen select (which comes with Mautic) by addition of a class.
-    getSelectInput: function(options) {
-        var el = this._super(options);
-        el.className += 'form-control chosen-select';
-        return el;
-    },
     // Make the buttons smaller and more consistent.
     getButton: function (text, icon, title) {
         var el = this._super(text, icon, title);
@@ -175,9 +169,39 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
         }
     }
-    // Activate the jQuery Chosen plugin which comes with Mautic for all select fields.
+    // Activate the jQuery Chosen plugin for all select fields with more than
+    // 8 elements. Use "format": "select" to activate.
     if (schema.format === 'select') {
-        mQuery('.chosen-select').chosen();
+        // Get the element based on schema path.
+        var selector = 'select[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.chosen-checked)';
+        mQuery(selector).each(function () {
+            if (mQuery(this).children('option').length > 8) {
+                var $select = mQuery(this),
+                    changed = false;
+                $select.chosen({
+                    width: '100%',
+                    allow_single_deselect: false,
+                    include_group_label_in_selected: false,
+                    search_contains: true
+                }).change(function (e) {
+                    // Feed back the change to JSONEditor (little tricky).
+                    if (!changed) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        if ('createEvent' in document) {
+                            changed = true;
+                            var event = document.createEvent('HTMLEvents');
+                            event.initEvent('change', false, true);
+                            $select[0].dispatchEvent(event);
+                        }
+                        else {
+                            $select[0].fireEvent('onchange');
+                        }
+                    }
+                });
+            }
+            mQuery(this).addClass('chosen-checked');
+        });
     }
     return errors;
 });
