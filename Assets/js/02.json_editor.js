@@ -197,6 +197,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         else {
                             $select[0].fireEvent('onchange');
                         }
+                    } else {
+                        changed = false;
                     }
                 });
             }
