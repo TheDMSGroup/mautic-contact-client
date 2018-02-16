@@ -398,7 +398,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getType()
     {
@@ -406,7 +406,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @param mixed $type
+     * @param string $type
      *
      * @return ContactClient
      */
