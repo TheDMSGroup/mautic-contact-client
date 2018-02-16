@@ -123,7 +123,7 @@ class Cache
 
         $builder->addNamedField('contact', 'integer', 'contact_id');
 
-        $builder->addNamedField('category', 'integer', 'category_id');
+        $builder->addNamedField('category', 'integer', 'category_id', true);
 
         $builder->addNamedField('exclusivePattern', 'integer', 'exclusive_pattern', true);
 
