@@ -122,9 +122,9 @@ class ClientIntegration extends AbstractIntegration
         if (!empty($config['contactclient_overrides'])) {
             // Flatten overrides to key-value pairs.
             $jsonHelper = new JSONHelper();
-            $obj = $jsonHelper->decodeObject($config['contactclient_overrides'], 'Overrides');
-            if ($obj) {
-                foreach ($obj as $field) {
+            $array = $jsonHelper->decodeArray($config['contactclient_overrides'], 'Overrides');
+            if ($array) {
+                foreach ($array as $field) {
                     if (!empty($field->key) && !empty($field->value)) {
                         $overrides[$field->key] = $field->value;
                     }
