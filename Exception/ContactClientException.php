@@ -35,25 +35,33 @@ class ContactClientException extends \Exception
     /** @var bool */
     private $retry;
 
+    /** @var array */
+    private $data;
+
     /**
+     * ContactClientException constructor.
+     *
      * ContactClientException constructor.
      * @param string $message
      * @param int $code
      * @param \Exception|null $previous
      * @param null $statType
      * @param bool $retry
+     * @param array $data
      */
     public function __construct(
         $message = 'Contact Client retry error',
         $code = 0,
         \Exception $previous = null,
         $statType = null,
-        $retry = true
+        $retry = true,
+        $data = []
     ) {
         if ($statType) {
             $this->setStatType($statType);
         }
         $this->retry = $retry;
+        $this->data = $data;
         parent::__construct($message, $code, $previous);
     }
 
@@ -63,6 +71,14 @@ class ContactClientException extends \Exception
     public function getContactId()
     {
         return $this->contactId;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
     }
 
     /**

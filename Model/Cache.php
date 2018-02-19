@@ -211,11 +211,13 @@ class Cache extends AbstractCommonModel
         );
         if ($exclusive) {
             throw new ContactClientException(
-                'Skipping exclusive. A contact matching this has been accepted by a competing client: '.
+                'Skipping exclusive Contact.'.
                 json_encode($exclusive),
                 0,
                 null,
-                Stat::TYPE_EXCLUSIVE
+                Stat::TYPE_EXCLUSIVE,
+                false,
+                $exclusive
             );
         }
     }
@@ -235,12 +237,12 @@ class Cache extends AbstractCommonModel
         );
         if ($duplicate) {
             throw new ContactClientException(
-                'Skipping duplicate. A contact matching this one was already accepted by this client: '.
-                json_encode($duplicate),
+                'Skipping duplicate Contact.',
                 0,
                 null,
                 Stat::TYPE_DUPLICATE,
-                false
+                false,
+                $duplicate
             );
         }
     }

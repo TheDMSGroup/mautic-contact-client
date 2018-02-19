@@ -270,6 +270,10 @@ class ClientIntegration extends AbstractIntegration
             } elseif ($e instanceof ContactClientException) {
                 $e->setContact($this->contact);
                 $this->setStatType($e->getStatType());
+                $errorData = $e->getData();
+                if ($errorData) {
+                    $this->setLogs($errorData, $e->getStatType());
+                }
 
                 if ($e->getRetry()) {
                     // This type of exception indicates that we can requeue the contact.
