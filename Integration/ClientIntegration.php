@@ -49,6 +49,9 @@ class ClientIntegration extends AbstractIntegration
     /** @var Contact $contact The contact we wish to send and update. */
     protected $contact;
 
+    /** @var array */
+    protected $event;
+
     /** @var bool $test */
     protected $test = false;
 
@@ -104,6 +107,7 @@ class ClientIntegration extends AbstractIntegration
     public function pushLead($contact, $config = [])
     {
 
+        $this->event = $config;
         $config = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
             return false;
@@ -185,10 +189,12 @@ class ClientIntegration extends AbstractIntegration
     /**
      * @return Container|\Symfony\Component\DependencyInjection\ContainerInterface
      */
-    private function getContainer(){
+    private function getContainer()
+    {
         if (!$this->container) {
             $this->container = $this->dispatcher->getContainer();
         }
+
         return $this->container;
     }
 
@@ -241,7 +247,7 @@ class ClientIntegration extends AbstractIntegration
 
             // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
             if (!$this->test) {
-                 $this->getCacheModel()->evaluateDuplicate();
+                $this->getCacheModel()->evaluateDuplicate();
             }
 
             // Exclusivity - Check exclusivity rules on the cache to ensure this contact hasn't been sent to a disallowed competitor.
@@ -296,12 +302,32 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Get the Cache model for duplicate/exclusive/limit checking.
+     *
+     * @return Cache|object
+     * @throws Exception
+     */
+    private function getCacheModel()
+    {
+        if (!$this->cacheModel) {
+            /** @var cacheModel $cacheModel */
+            $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
+            $this->cacheModel->setContact($this->contact);
+            $this->cacheModel->setContactClient($this->contactClient);
+        }
+
+        return $this->cacheModel;
+    }
+
+    /**
      * @return ApiPayload
      */
-    private function getApiPayloadModel(){
+    private function getApiPayloadModel()
+    {
         if (!$this->payload) {
             $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
         }
+
         return $this->payload;
     }
 
@@ -378,24 +404,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Get the Cache model for duplicate/exclusive/limit checking.
-     *
-     * @return Cache|object
-     * @throws Exception
-     */
-    private function getCacheModel()
-    {
-        if (!$this->cacheModel) {
-            /** @var cacheModel $cacheModel */
-            $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
-            $this->cacheModel->setContact($this->contact);
-            $this->cacheModel->setContactClient($this->contactClient);
-        }
-
-        return $this->cacheModel;
-    }
-
-    /**
      * Log to:
      *      contactclient_stats
      *      contactclient_events
@@ -445,6 +453,20 @@ class ClientIntegration extends AbstractIntegration
                     }
                 }
             }
+        }
+
+        // Session storage for external plugins (should probably be dispatcher instead).
+        $session = $this->dispatcher->getContainer()->get('session');
+        $eventId = isset($this->event['id']) ? $this->event['id'] : 0;
+        $events = $session->get('contactclient_events', []);
+        $events[$eventId] = array_merge($this->event, [
+            'valid' => $this->valid,
+            'statType' => $statType,
+        ]);
+        $session->set('contactclient_events', $events);
+        // Indicates that a single (or more) valid sends have been made.
+        if ($this->valid) {
+            $session->set('contactclient_valid', true);
         }
 
         // Add log entry for statistics / charts.
