@@ -3,7 +3,7 @@
 
 Create integrations/enhancers without touching code.
 
-Designed for use by performance marketers who enhance/sell/buy contacts in mass quantities.
+Designed for use by performance marketers who enhance/exchange contacts in mass quantities.
 Can optionally be used in tandem with it's sibling [Mautic Contact Server](https://github.com/TheDMSGroup/mautic-contact-server).
 
 ## Features
