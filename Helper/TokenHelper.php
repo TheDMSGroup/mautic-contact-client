@@ -43,7 +43,11 @@ class TokenHelper
      */
     public function __construct()
     {
-        $this->engine = new Engine();
+        try {
+            $this->engine = new Engine();
+        } catch (\Exception $e) {
+            throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
+        }
     }
 
     /**
