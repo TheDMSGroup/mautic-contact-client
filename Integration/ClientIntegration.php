@@ -175,12 +175,21 @@ class ClientIntegration extends AbstractIntegration
     private function getContactClientModel()
     {
         if (!$this->contactClientModel) {
-            $container = $this->dispatcher->getContainer();
             /** @var contactClientModel $contactClientModel */
-            $this->contactClientModel = $container->get('mautic.contactclient.model.contactclient');
+            $this->contactClientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
         }
 
         return $this->contactClientModel;
+    }
+
+    /**
+     * @return Container|\Symfony\Component\DependencyInjection\ContainerInterface
+     */
+    private function getContainer(){
+        if (!$this->container) {
+            $this->container = $this->dispatcher->getContainer();
+        }
+        return $this->container;
     }
 
     /**
@@ -199,11 +208,8 @@ class ClientIntegration extends AbstractIntegration
         $test = false,
         $overrides = []
     ) {
-        /** @var Container $container */
-        $container = $this->dispatcher->getContainer();
-
         // @todo - add translation layer for strings in this method.
-        // $translator = $container->get('translator');
+        // $translator = $this->getContainer()->get('translator');
 
         $this->test = $test;
 
@@ -224,7 +230,7 @@ class ClientIntegration extends AbstractIntegration
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
             if (!$this->test) {
                 /** @var Schedule $schedule */
-                $schedule = new Schedule($this->contactClient, $container);
+                $schedule = new Schedule($this->contactClient, $this->getContainer());
                 $schedule->evaluateHours($this->contactClient);
                 $schedule->evaluateExclusions($this->contactClient);
             }
@@ -244,7 +250,7 @@ class ClientIntegration extends AbstractIntegration
             }
 
             // Configure the payload.
-            $this->payload = $container->get('mautic.contactclient.model.apipayload');
+            $this->getApiPayloadModel();
             $this->payload
                 ->setTest($test)
                 ->setContactClient($this->contactClient)
@@ -283,6 +289,16 @@ class ClientIntegration extends AbstractIntegration
         $this->logResults();
 
         return $this->valid;
+    }
+
+    /**
+     * @return ApiPayload
+     */
+    private function getApiPayloadModel(){
+        if (!$this->payload) {
+            $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+        }
+        return $this->payload;
     }
 
     /**
@@ -366,9 +382,8 @@ class ClientIntegration extends AbstractIntegration
     private function getCacheModel()
     {
         if (!$this->cacheModel) {
-            $container = $this->dispatcher->getContainer();
             /** @var cacheModel $cacheModel */
-            $this->cacheModel = $container->get('mautic.contactclient.model.cache');
+            $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
             $this->cacheModel->setContact($this->contact);
             $this->cacheModel->setContactClient($this->contactClient);
         }
@@ -443,7 +458,7 @@ class ClientIntegration extends AbstractIntegration
         );
 
         // Lead event log (lead_event_log) I've decided to leave this out for now because it's not very useful.
-        //$contactModel = $container->get('mautic.lead.model.lead');
+        //$contactModel = $this->getContainer()->get('mautic.lead.model.lead');
         //$eventLogRepo = $contactModel->getEventLogRepository();
         //$eventLog = new LeadEventLog();
         //$eventLog
@@ -634,7 +649,8 @@ class ClientIntegration extends AbstractIntegration
 
                         // Get overridable fields from the payload of the type needed.
                         if ($contactClientEntity->getType() == 'api') {
-                            $payload = new ApiPayload($contactClientEntity);
+                            $payload = $this->getApiPayloadModel();
+                            $payload->setContactClient($contactClientEntity);
                             $overridableFields[$id] = $payload->getOverridableFields();
                         } else {
                             // @todo - File based payload.
