@@ -4,7 +4,7 @@
 Create integrations/enhancers without touching code.
 
 Designed for use by performance marketers who enhance/exchange contacts in mass quantities.
-Can optionally be used in tandem with it's sibling [Mautic Contact Server](https://github.com/TheDMSGroup/mautic-contact-server).
+Can optionally be used in tandem with it's sibling [Mautic Contact Source](https://github.com/TheDMSGroup/mautic-contact-source).
 
 ## Features
 - [x] Campaign: Queue a contact to be sent within a Campaign as you would any integration.
@@ -18,14 +18,6 @@ Can optionally be used in tandem with it's sibling [Mautic Contact Server](https
 - [x] Schedule: Choose to send based on days/hours/exclusions including multiple timezone support.
 - [x] Logging: Logs the complete transaction, revenue, audit trail and integration (on contacts).
 - [x] Command line: Method provided to pipe a contact through any published client.
-
-## Todo
-- [ ] Filtering: Rules to globally exclude contacts from sending to a client based on fields.
-- [ ] Limits: Rules to limit the quantity of successful contact.
-- [ ] Files: Allow a file payload to send for clients that have no API. Contacts will queued and added to a CSV/XSL batch to be delivered to clients by FTP or email within the given schedule.
-- [ ] Logging: Make the logging screen sortable/searchable. Currently this is pretty minimal (and buggy).
-- [ ] Finance: Store the most recent attribution on a separate field (to be used in Campaign workflows).
-- [ ] Campaign: Provide a better widget for including clients in campaigns (using the integration screen is a bit tedious, and there's not an easy way to divert success/failure).
 
 ## Installation & Usage
 
@@ -55,3 +47,11 @@ Date formatting and other contextual schema is also available (documentation inc
 * [JSON Editor](https://github.com/json-editor/json-editor)
 * [JSON Lint](https://github.com/zaach/jsonlint)
 * [Mustache.php](https://github.com/bobthecow/mustache.php)
+
+## Todo
+- [ ] Filtering: Rules to globally exclude contacts from sending to a client based on fields.
+- [ ] Limits: Rules to limit the quantity of successful contact.
+- [ ] Files: Allow a file payload to send for clients that have no API. Contacts will queued and added to a CSV/XSL batch to be delivered to clients by FTP or email within the given schedule.
+- [ ] Logging: Make the logging screen sortable/searchable. Currently this is pretty minimal (and buggy).
+- [ ] Finance: Store the most recent attribution on a separate field (to be used in Campaign workflows).
+- [ ] Campaign: Provide a better widget for including clients in campaigns (using the integration screen is a bit tedious, and there's not an easy way to divert success/failure).
