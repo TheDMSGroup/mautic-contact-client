@@ -97,17 +97,99 @@ class TokenHelper
     /**
      * @param array $context
      */
+    public function addContext($context = [])
+    {
+        $this->context = array_merge($this->context, $context);
+    }
+
+    /**
+     * @param bool $labeled
+     *
+     * @return array
+     */
+    public function getContext($labeled = false)
+    {
+        if ($labeled) {
+            // When retrieving labels, nested contacts are not needed.
+            unset($this->context['contacts']);
+            $labels     = $this->labels($this->context);
+            $flatLabels = [];
+            $this->flattenArray($labels, $flatLabels);
+
+            return $flatLabels;
+        } else {
+            return $this->context;
+        }
+    }
+
+    /**
+     * @param array $context
+     */
     public function setContext($context = [])
     {
         $this->context = $context;
     }
 
     /**
-     * @param array $context
+     * Given a token array, set the values to the labels of the fields if possible, or generate them.
+     *
+     * @param array  $array
+     * @param string $keys
+     * @param bool   $sort
+     *
+     * @return array
      */
-    public function addContext($context = [])
+    private function labels($array = [], $keys = '', $sort = true)
     {
-        $this->context = array_merge($this->context, $context);
+        foreach ($array as $key => &$value) {
+            if (is_array($value)) {
+                if (count($value) === 0) {
+                    // Currently such groups are undocumented, so labels are not needed.
+                    unset($array[$key]);
+                    continue;
+                } else {
+                    $value = $this->labels($value, $keys.' '.$key);
+                }
+            } else {
+                if (is_bool($value) || $value === null || $value === 0) {
+                    // Discern the "label" given the key and previous keys conjoined.
+                    $totalKey = str_replace('_', ' ', $keys.' '.trim($key));
+                    preg_match_all('/(?:|[A-Z])[a-z]*/', $totalKey, $words);
+                    foreach ($words[0] as &$word) {
+                        if (strlen($word) > 1) {
+                            // Change the case of the first letter without dropping the case of the rest of the word.
+                            $word = strtoupper(substr($word, 0, 1)).substr($word, 1);
+                        }
+                    }
+                    // Combine down to one string without extra whitespace.
+                    $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
+                }
+            }
+        }
+
+        if ($sort) {
+            ksort($array, SORT_NATURAL);
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param        $original
+     * @param array  $new
+     * @param string $delimiter
+     * @param string $keys
+     */
+    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
+    {
+        foreach ($original as $key => $value) {
+            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
+            if (is_array($value)) {
+                $this->flattenArray($value, $new, $delimiter, $k);
+            } else {
+                $new[$k] = $value;
+            }
+        }
     }
 
     /**
@@ -123,88 +205,85 @@ class TokenHelper
 
         // Append contact ID.
         $contactId     = $contact->getId();
-        $context['id'] = isset($contactId) ? $contactId : 0;
+        $context['id'] = isset($contactId) ? $contactId : null;
 
         // Append contact owner data.
-        $owner = $contact->getOwner();
-        if ($owner) {
-            if (!isset($context['owner'])) {
-                $context['owner'] = [];
-            }
-            $context['owner']['id']        = $owner->getId();
-            $context['owner']['username']  = $owner->getUsername();
-            $context['owner']['firstName'] = $owner->getFirstName();
-            $context['owner']['lastName']  = $owner->getLastName();
-            $context['owner']['email']     = $owner->getEmail();
-        }
+        $owner                         = $contact->getOwner();
+        $context['owner']              = [];
+        $context['owner']['id']        = $owner ? $owner->getId() : null;
+        $context['owner']['username']  = $owner ? $owner->getUsername() : null;
+        $context['owner']['firstName'] = $owner ? $owner->getFirstName() : null;
+        $context['owner']['lastName']  = $owner ? $owner->getLastName() : null;
+        $context['owner']['email']     = $owner ? $owner->getEmail() : null;
 
         // Append points value.
         $points            = $contact->getPoints();
-        $context['points'] = isset($points) ? $points : 0;
+        $context['points'] = isset($points) ? $points : null;
 
         // Append IP Addresses.
-        $ips = $contact->getIpAddresses()->toArray();
-        if ($ips) {
-            if (!isset($context['ipAddresses'])) {
-                $context['ipAddresses'] = [];
-            }
-            foreach ($ips as $ip => $value) {
-                $context['ipAddresses'][] = $ip;
-                $context['ipAddress']     = $ip;
-            }
+        $context['ipAddresses'] = [];
+        $context['ip']          = null;
+        foreach ($contact->getIpAddresses()->toArray() as $ip => $value) {
+            $context['ipAddresses'][] = $ip;
+            $context['ip']            = $ip;
         }
 
         // Add Identified date.
         /** @var \DateTime $dateIdentified */
-        $dateIdentified = $contact->getDateIdentified();
-        if ($dateIdentified) {
-            $context['dateIdentified'] = $this->dateFormatHelper->iso8601($dateIdentified);
-        }
+        $dateIdentified            = $contact->getDateIdentified();
+        $context['dateIdentified'] = $dateIdentified ? $this->dateFormatHelper->iso8601($dateIdentified) : null;
 
         // Add Modified date.
         /** @var \DateTime $dateModified */
-        $dateModified = $contact->getDateModified();
-        if ($dateModified) {
-            $context['dateModified'] = $this->dateFormatHelper->iso8601($dateModified);
-        }
+        $dateModified            = $contact->getDateModified();
+        $context['dateModified'] = $dateModified ? $this->dateFormatHelper->iso8601($dateModified) : null;
 
         // Add DNC status.
+        $context['doNotContacts'] = [];
+        $context['doNotContact']  = false;
         /** @var \Mautic\LeadBundle\Model\DoNotContact $record */
         foreach ($contact->getDoNotContact() as $record) {
-            if (!isset($context['doNotContact'])) {
-                $context['doNotContact'] = [];
-            }
-            $context['doNotContact'][$record->getChannel()] = [
+            $context['doNotContacts'][$record->getChannel()] = [
                 'comments' => $record->getComments(),
                 'reason'   => $record->getReason(),
             ];
+            $context['doNotContact']                         = true;
         }
 
         // Add UTM data.
-        $utmTags = $contact->getUtmTags();
+        $utmTags            = $contact->getUtmTags();
+        $context['utmTags'] = [];
+        $context['utm']     = [
+            'campaign'   => null,
+            'content'    => null,
+            'medium'     => null,
+            'query'      => null,
+            'referrer'   => null,
+            'remoteHost' => null,
+            'source'     => null,
+            'term'       => null,
+            'url'        => null,
+            'userAgent'  => null,
+        ];
         if ($utmTags) {
             foreach ($utmTags as $utmTag) {
-                if (!isset($context['utmTags'])) {
-                    $context['utmTags'] = [];
-                }
                 $tags                 = [
-                    'query'      => $utmTag->getQuery(),
-                    'referrer'   => $utmTag->getReferer(),
-                    'remoteHost' => $utmTag->getRemoteHost(),
-                    'url'        => $utmTag->getUrl(),
-                    'userAgent'  => $utmTag->getUserAgent(),
                     'campaign'   => $utmTag->getUtmCampaign(),
                     'content'    => $utmTag->getUtmContent(),
                     'medium'     => $utmTag->getUtmMedium(),
+                    'query'      => $utmTag->getQuery(),
+                    'referrer'   => $utmTag->getReferer(),
+                    'remoteHost' => $utmTag->getRemoteHost(),
                     'source'     => $utmTag->getUtmSource(),
                     'term'       => $utmTag->getUtmTerm(),
+                    'url'        => $utmTag->getUrl(),
+                    'userAgent'  => $utmTag->getUserAgent(),
                 ];
                 $context['utmTags'][] = $tags;
-                $context['utmTag']    = $tags;
+                $context['utm']       = $tags;
             }
         }
 
-        // Add all other fields.
         $fieldGroups = $contact->getFields();
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
