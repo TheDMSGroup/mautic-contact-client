@@ -5,7 +5,7 @@ Mautic.contactclientIntegration = function () {
     if ($client.length && $overrides.length) {
 
         // Get the JSON from the client selector, if not already present.
-        $client.change(function(){
+        $client.change(function () {
             var clientId = parseInt(mQuery(this).val()),
                 $select = clientId ? mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first') : [],
                 json = $select.length ? $select.attr('data-overridable-fields') : null;
@@ -13,7 +13,8 @@ Mautic.contactclientIntegration = function () {
             if (json) {
                 mQuery('#campaignevent_properties_config_contactclient_overrides_button').removeClass('hide');
                 mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
-            } else {
+            }
+            else {
                 mQuery('#campaignevent_properties_config_contactclient_overrides_button').addClass('hide');
                 mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
             }
@@ -49,7 +50,7 @@ Mautic.contactclientIntegration = function () {
                     disable_collapse: true
                 });
 
-                $overrides.change(function(){
+                $overrides.change(function () {
                     // Load the initial value if applicable.
                     var raw = mQuery(this).val(),
                         obj;

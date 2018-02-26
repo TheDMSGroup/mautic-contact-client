@@ -11,43 +11,60 @@
 ?>
 
 <!-- filter form -->
-<form method="post" action="<?php echo $view['router']->path('mautic_contactclient_timeline_action', ['contactClientId' => $contactClient->getId()]); ?>" class="panel" id="timeline-filters">
+<form method="post" action="<?php echo $view['router']->path(
+    'mautic_contactclient_timeline_action',
+    ['contactClientId' => $contactClient->getId()]
+); ?>" class="panel" id="timeline-filters">
     <div class="form-control-icon pa-xs">
-        <input type="text" class="form-control bdr-w-0" name="search" id="search" placeholder="<?php echo $view['translator']->trans('mautic.core.search.placeholder'); ?>" value="<?php echo $events['filters']['search']; ?>">
+        <input type="text" class="form-control bdr-w-0" name="search" id="search"
+               placeholder="<?php echo $view['translator']->trans('mautic.core.search.placeholder'); ?>"
+               value="<?php echo $events['filters']['search']; ?>">
         <span class="the-icon fa fa-search text-muted mt-xs"></span>
     </div>
     <?php if (isset($events['types']) && is_array($events['types'])) : ?>
         <div class="history-search panel-footer text-muted">
             <div class="col-sm-5">
-                <select name="includeEvents[]" multiple="multiple" class="form-control bdr-w-0" data-placeholder="<?php echo $view['translator']->trans('mautic.contactclient.events.filter.include.placeholder'); ?>">
+                <select name="includeEvents[]" multiple="multiple" class="form-control bdr-w-0"
+                        data-placeholder="<?php echo $view['translator']->trans(
+                            'mautic.contactclient.events.filter.include.placeholder'
+                        ); ?>">
                     <?php foreach ($events['types'] as $typeKey => $typeName) : ?>
-                        <option value="<?php echo $typeKey; ?>"<?php echo isset($events['filters']['includeEvents']) && in_array($typeKey, $events['filters']['includeEvents']) ? ' selected' : ''; ?> >
+                        <option value="<?php echo $typeKey; ?>"<?php echo isset($events['filters']['includeEvents']) && in_array(
+                            $typeKey,
+                            $events['filters']['includeEvents']
+                        ) ? ' selected' : ''; ?> >
                             <?php echo $typeName; ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="col-sm-5">
-                <select name="excludeEvents[]" multiple="multiple" class="form-control bdr-w-0" data-placeholder="<?php echo $view['translator']->trans('mautic.contactclient.events.filter.exclude.placeholder'); ?>">
+                <select name="excludeEvents[]" multiple="multiple" class="form-control bdr-w-0"
+                        data-placeholder="<?php echo $view['translator']->trans(
+                            'mautic.contactclient.events.filter.exclude.placeholder'
+                        ); ?>">
                     <?php foreach ($events['types'] as $typeKey => $typeName) : ?>
-                        <option value="<?php echo $typeKey; ?>"<?php echo isset($events['filters']['excludeEvents']) && in_array($typeKey, $events['filters']['excludeEvents']) ? ' selected' : ''; ?> >
+                        <option value="<?php echo $typeKey; ?>"<?php echo isset($events['filters']['excludeEvents']) && in_array(
+                            $typeKey,
+                            $events['filters']['excludeEvents']
+                        ) ? ' selected' : ''; ?> >
                             <?php echo $typeName; ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <?php /* @todo - export action. Doesn't yet have a router/controller config.
-            <div class="col-sm-2">
-                <a class="btn btn-default btn-block" href="<?php echo $view['router']->generate('mautic_contactclient_timeline_export_action', ['contactClientId' => $contactClient->getId()]); ?>" data-toggle="download">
-                    <span>
-                        <i class="fa fa-download"></i> <span class="hidden-xs hidden-sm"><?php echo $view['translator']->trans('mautic.core.export'); ?></span>
-                    </span>
-                </a>
-            </div>*/ ?>
+             * <div class="col-sm-2">
+             * <a class="btn btn-default btn-block" href="<?php echo $view['router']->generate('mautic_contactclient_timeline_export_action', ['contactClientId' => $contactClient->getId()]); ?>" data-toggle="download">
+             * <span>
+             * <i class="fa fa-download"></i> <span class="hidden-xs hidden-sm"><?php echo $view['translator']->trans('mautic.core.export'); ?></span>
+             * </span>
+             * </a>
+             * </div>*/ ?>
         </div>
     <?php endif; ?>
 
-    <input type="hidden" name="leadId" id="leadId" value="<?php echo $contactClient->getId(); ?>" />
+    <input type="hidden" name="leadId" id="leadId" value="<?php echo $contactClient->getId(); ?>"/>
 </form>
 
 <script>

@@ -12,10 +12,10 @@
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 
-use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Entity\LeadEventLog as ContactEventLog;
 use Mautic\LeadBundle\Entity\LeadEventLogRepository as ContactEventLogRepository;
+use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
@@ -40,7 +40,7 @@ class ContactEventLogHelper
 
     public function __construct(LeadModel $leadModel)
     {
-        $this->leadModel = $leadModel;
+        $this->leadModel           = $leadModel;
         $this->ContactEventLogRepo = $leadModel->getEventLogRepository();
     }
 
@@ -48,7 +48,7 @@ class ContactEventLogHelper
      * Save log about errored line.
      *
      * @param ContactEventLog $eventLog
-     * @param string $errorMessage
+     * @param string          $errorMessage
      */
     public function logError(ContactEventLog $eventLog, $errorMessage)
     {
@@ -62,8 +62,9 @@ class ContactEventLogHelper
      * Initialize ContactEventLog object and configure it as the import event.
      *
      * @param ContactClient $client
-     * @param Contact $contact
-     * @param $lineNumber
+     * @param Contact       $contact
+     * @param               $lineNumber
+     *
      * @return ContactEventLog
      */
     public function initEventLog(ContactClient $client, Contact $contact, $lineNumber)

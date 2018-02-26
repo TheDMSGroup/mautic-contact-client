@@ -20,6 +20,7 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class ApiPayloadResponse
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadResponse
@@ -43,17 +44,18 @@ class ApiPayloadResponse
 
     /**
      * ApiPayloadResponse constructor.
-     * @param $responseExpected
-     * @param $successDefinition
+     *
+     * @param           $responseExpected
+     * @param           $successDefinition
      * @param Transport $service
-     * @param bool $test
+     * @param bool      $test
      */
     public function __construct($responseExpected, $successDefinition, Transport $service, $test = false)
     {
-        $this->responseExpected = $responseExpected;
+        $this->responseExpected  = $responseExpected;
         $this->successDefinition = $successDefinition;
-        $this->service = $service;
-        $this->test = $test;
+        $this->service           = $service;
+        $this->test              = $test;
     }
 
     /**
@@ -83,7 +85,9 @@ class ApiPayloadResponse
         $this->setLogs($result['bodyRaw'], 'bodyRaw');
 
         // Format the body response.
-        $responseExpectedFormat = trim(strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto'));
+        $responseExpectedFormat = trim(
+            strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto')
+        );
         $this->setLogs($responseExpectedFormat, 'format');
 
         $result['body'] = [];
@@ -103,7 +107,7 @@ class ApiPayloadResponse
         }
         $this->setLogs($result['body'], 'body');
 
-        $this->valid = (bool)$result['status'];
+        $this->valid          = (bool) $result['status'];
         $this->responseActual = $result;
 
         return $this;
@@ -111,8 +115,10 @@ class ApiPayloadResponse
 
     /**
      * Given a headers array or body of text and a format, parse to a flat key=value array.
-     * @param mixed $data
+     *
+     * @param mixed  $data
      * @param string $responseExpectedFormat
+     *
      * @return array|bool Return false if there is an error or we are unable to parse.
      * @throws \Exception
      */
@@ -129,7 +135,7 @@ class ApiPayloadResponse
 
             case 'xml':
             case 'html':
-                $doc = new DOMDocument();
+                $doc          = new DOMDocument();
                 $doc->recover = true;
                 // Ensure UTF-8 encoding is handled correctly.
                 if (preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches) == true) {
@@ -145,7 +151,7 @@ class ApiPayloadResponse
 
             case 'json':
                 $jsonHelper = new JSONHelper();
-                $hierarchy = $jsonHelper->decodeArray($data, 'API Response', true);
+                $hierarchy  = $jsonHelper->decodeArray($data, 'API Response', true);
                 break;
 
             case 'text':
@@ -197,7 +203,7 @@ class ApiPayloadResponse
             } elseif ($value === false) {
                 $value = 'false';
             }
-            $value = (string)$value;
+            $value = (string) $value;
         }
 
         return $result;
@@ -205,7 +211,9 @@ class ApiPayloadResponse
 
     /**
      * Convert a DOM Document into a nested array.
+     *
      * @param $root
+     *
      * @return array|mixed
      */
     private function domDocumentArray($root)
@@ -229,13 +237,13 @@ class ApiPayloadResponse
                         : $result;
                 }
             }
-            $groups = array();
+            $groups = [];
             foreach ($children as $child) {
                 if (!isset($result[$child->nodeName])) {
                     $result[$child->nodeName] = $this->domDocumentArray($child);
                 } else {
                     if (!isset($groups[$child->nodeName])) {
-                        $result[$child->nodeName] = array($result[$child->nodeName]);
+                        $result[$child->nodeName] = [$result[$child->nodeName]];
                         $groups[$child->nodeName] = 1;
                     }
                     $result[$child->nodeName][] = $this->domDocumentArray($child);
@@ -248,8 +256,10 @@ class ApiPayloadResponse
 
     /**
      * Recursively flatten an structure to an array including only key/value pairs.
-     * @param $subject
+     *
+     * @param       $subject
      * @param array $result
+     *
      * @return array
      */
     private function flattenStructure($subject, &$result = [])
@@ -293,7 +303,7 @@ class ApiPayloadResponse
 
             // Standard success definition validation.
             try {
-                $filter = new FilterHelper();
+                $filter      = new FilterHelper();
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
                 if (!$this->valid) {
                     throw new ApiErrorException(
@@ -315,6 +325,7 @@ class ApiPayloadResponse
 
     /**
      * Get the parsed API response array.
+     *
      * @return array
      */
     public function getResponse()
@@ -336,7 +347,7 @@ class ApiPayloadResponse
                 } else {
                     $this->logs[$type] = [
                         $this->logs[$type],
-                        $value
+                        $value,
                     ];
                 }
             } else {

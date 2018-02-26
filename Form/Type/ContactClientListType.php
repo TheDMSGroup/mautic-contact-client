@@ -9,6 +9,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Class ContactClientListType
+ *
  * @package MauticPlugin\MauticContactClientBundle\Form\Type
  */
 class ContactClientListType extends AbstractType
@@ -26,7 +27,7 @@ class ContactClientListType extends AbstractType
     public function __construct(ContactClientModel $contactclientModel)
     {
         $this->contactclientModel = $contactclientModel;
-        $this->repo       = $this->contactclientModel->getRepository();
+        $this->repo               = $this->contactclientModel->getRepository();
     }
 
     /**
@@ -36,7 +37,7 @@ class ContactClientListType extends AbstractType
     {
         $resolver->setDefaults(
             [
-                'choices' => function (Options $options) {
+                'choices'        => function (Options $options) {
                     $choices = [];
 
                     $list = $this->repo->getContactClientList($options['data']);
@@ -49,13 +50,13 @@ class ContactClientListType extends AbstractType
 
                     return $choices;
                 },
-                'expanded'    => false,
-                'multiple'    => true,
-                'required'    => false,
-                'empty_value' => function (Options $options) {
+                'expanded'       => false,
+                'multiple'       => true,
+                'required'       => false,
+                'empty_value'    => function (Options $options) {
                     return (empty($options['choices'])) ? 'mautic.contactclient.no.contactclientitem.note' : 'mautic.core.form.chooseone';
                 },
-                'disabled' => function (Options $options) {
+                'disabled'       => function (Options $options) {
                     return empty($options['choices']);
                 },
                 'top_level'      => 'variant',

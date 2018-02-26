@@ -20,6 +20,7 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * Class ContactClientType
+ *
  * @package MauticPlugin\MauticContactClientBundle\Form\Type
  */
 class ContactClientType extends AbstractType
@@ -76,10 +77,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.api_payload',
                 'label_attr' => ['class' => 'control-label api-payload'],
                 'attr'       => [
-                    'class'        => 'form-control api-payload',
-                    'rows'         => 12,
+                    'class' => 'form-control api-payload',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -90,10 +91,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.file_payload',
                 'label_attr' => ['class' => 'control-label file-payload'],
                 'attr'       => [
-                    'class'        => 'form-control file-payload',
-                    'rows'         => 12,
+                    'class' => 'form-control file-payload',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -107,7 +108,7 @@ class ContactClientType extends AbstractType
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.form.website.tooltip',
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -120,9 +121,9 @@ class ContactClientType extends AbstractType
                 'attr'       => [
                     'class'    => 'form-control',
                     'preaddon' => 'fa fa-money',
-                    'tooltip' => 'mautic.contactclient.form.attribution.default.tooltip',
+                    'tooltip'  => 'mautic.contactclient.form.attribution.default.tooltip',
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -133,10 +134,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.attribution.settings',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
+                    'class' => 'form-control',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -147,10 +148,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.duplicate',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
+                    'class' => 'form-control',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -161,10 +162,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.exclusive',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
+                    'class' => 'form-control',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -175,10 +176,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.filter',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
+                    'class' => 'form-control',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -189,10 +190,10 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.limits',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
+                    'class' => 'form-control',
+                    'rows'  => 12,
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -200,11 +201,11 @@ class ContactClientType extends AbstractType
             'schedule_timezone',
             'timezone',
             [
-                'label'      => 'mautic.contactclient.form.schedule_timezone',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.schedule_timezone',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class'   => 'form-control',
-                    'tooltip'      => 'mautic.contactclient.form.schedule_timezone.tooltip',
+                    'tooltip' => 'mautic.contactclient.form.schedule_timezone.tooltip',
                 ],
                 'multiple'    => false,
                 'empty_value' => 'mautic.user.user.form.defaulttimezone',
@@ -219,11 +220,11 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.schedule_hours',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
-                    'tooltip'      => 'mautic.contactclient.form.schedule_hours.tooltip',
+                    'class'   => 'form-control',
+                    'rows'    => 12,
+                    'tooltip' => 'mautic.contactclient.form.schedule_hours.tooltip',
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -234,11 +235,11 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.schedule_exclusions',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'        => 'form-control',
-                    'rows'         => 12,
-                    'tooltip'      => 'mautic.contactclient.form.schedule_exclusions.tooltip',
+                    'class'   => 'form-control',
+                    'rows'    => 12,
+                    'tooltip' => 'mautic.contactclient.form.schedule_exclusions.tooltip',
                 ],
-                'required' => false,
+                'required'   => false,
             ]
         );
 
@@ -282,8 +283,8 @@ class ContactClientType extends AbstractType
                     'class'       => 'form-control',
                     'data-toggle' => 'datetime',
                 ],
-                'format'   => 'yyyy-MM-dd HH:mm',
-                'required' => false,
+                'format'     => 'yyyy-MM-dd HH:mm',
+                'required'   => false,
             ]
         );
 
@@ -298,8 +299,8 @@ class ContactClientType extends AbstractType
                     'class'       => 'form-control',
                     'data-toggle' => 'datetime',
                 ],
-                'format'   => 'yyyy-MM-dd HH:mm',
-                'required' => false,
+                'format'     => 'yyyy-MM-dd HH:mm',
+                'required'   => false,
             ]
         );
 
@@ -307,18 +308,18 @@ class ContactClientType extends AbstractType
             'type',
             'button_group',
             [
-                'label' => 'mautic.contactclient.form.type',
-                'label_attr' => ['class' => 'control-label contactclient-type'],
-                'choices' => [
-                    'mautic.contactclient.form.type.api' => 'api',
+                'label'             => 'mautic.contactclient.form.type',
+                'label_attr'        => ['class' => 'control-label contactclient-type'],
+                'choices'           => [
+                    'mautic.contactclient.form.type.api'  => 'api',
                     'mautic.contactclient.form.type.file' => 'file',
                 ],
                 'choices_as_values' => true,
-                'required' => true,
-                'attr'       => [
-                    'class'       => 'form-control',
-                    'tooltip'     => 'mautic.contactclient.form.type.tooltip',
-                    'onchange'    => 'Mautic.contactclientTypeChange(this);'
+                'required'          => true,
+                'attr'              => [
+                    'class'    => 'form-control',
+                    'tooltip'  => 'mautic.contactclient.form.type.tooltip',
+                    'onchange' => 'Mautic.contactclientTypeChange(this);',
                 ],
             ]
         );

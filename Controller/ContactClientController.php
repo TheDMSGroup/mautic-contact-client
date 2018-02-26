@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class ContactClientController
+ *
  * @package MauticPlugin\MauticContactClientBundle\Controller
  */
 class ContactClientController extends FormController
@@ -60,8 +61,9 @@ class ContactClientController extends FormController
     /**
      * Generates edit form and processes post data.
      *
-     * @param $objectId
+     * @param      $objectId
      * @param bool $ignorePost
+     *
      * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
      * @throws \Exception
      */
@@ -119,6 +121,7 @@ class ContactClientController extends FormController
     /**
      * @param $args
      * @param $view
+     *
      * @return array
      */
     public function customizeViewArguments($args, $view)
@@ -129,7 +132,7 @@ class ContactClientController extends FormController
 
             // For line graphs in the view
             $dateRangeValues = $this->request->get('daterange', []);
-            $dateRangeForm = $this->get('form.factory')->create(
+            $dateRangeForm   = $this->get('form.factory')->create(
                 'daterange',
                 $dateRangeValues,
                 [
@@ -137,7 +140,7 @@ class ContactClientController extends FormController
                         'mautic_contactclient_action',
                         [
                             'objectAction' => 'view',
-                            'objectId' => $item->getId(),
+                            'objectId'     => $item->getId(),
                         ]
                     ),
                 ]
@@ -152,9 +155,9 @@ class ContactClientController extends FormController
                 new \DateTime($dateRangeForm->get('date_to')->getData())
             );
 
-            $args['viewParameters']['auditlog'] = $this->getAuditlogs($item);
-            $args['viewParameters']['stats'] = $stats;
-            $args['viewParameters']['events'] = $model->getEngagements($item);
+            $args['viewParameters']['auditlog']      = $this->getAuditlogs($item);
+            $args['viewParameters']['stats']         = $stats;
+            $args['viewParameters']['events']        = $model->getEngagements($item);
             $args['viewParameters']['dateRangeForm'] = $dateRangeForm->createView();
 
 //            if ('link' == $item->getType()) {
@@ -186,13 +189,13 @@ class ContactClientController extends FormController
             switch ($action) {
                 case 'new':
                 case 'edit':
-                    $passthrough = $args['passthroughVars'];
-                    $passthrough = array_merge(
+                    $passthrough             = $args['passthroughVars'];
+                    $passthrough             = array_merge(
                         $passthrough,
                         [
                             'updateSelect' => $updateSelect,
-                            'id' => $args['entity']->getId(),
-                            'name' => $args['entity']->getName(),
+                            'id'           => $args['entity']->getId(),
+                            'name'         => $args['entity']->getName(),
                         ]
                     );
                     $args['passthroughVars'] = $passthrough;
@@ -224,8 +227,8 @@ class ContactClientController extends FormController
      *
      * @param string $updateSelect HTML id of the select
      * @param object $entity
-     * @param string $nameMethod name of the entity method holding the name
-     * @param string $groupMethod name of the entity method holding the select group
+     * @param string $nameMethod   name of the entity method holding the name
+     * @param string $groupMethod  name of the entity method holding the select group
      *
      * @return array
      */
@@ -237,8 +240,8 @@ class ContactClientController extends FormController
     ) {
         $options = [
             'updateSelect' => $updateSelect,
-            'id' => $entity->getId(),
-            'name' => $entity->$nameMethod(),
+            'id'           => $entity->getId(),
+            'name'         => $entity->$nameMethod(),
         ];
 
         return $options;

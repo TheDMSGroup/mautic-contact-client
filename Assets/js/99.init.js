@@ -14,7 +14,7 @@ Mautic.contactclientOnLoad = function () {
             return;
         }
 
-        if (mQuery('#contactclient-timeline').length){
+        if (mQuery('#contactclient-timeline').length) {
             Mautic.contactclientTimelineOnLoad();
         }
     });

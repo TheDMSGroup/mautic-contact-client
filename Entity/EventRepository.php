@@ -17,6 +17,7 @@ use Mautic\LeadBundle\Entity\TimelineTrait;
 
 /**
  * Class EventRepository
+ *
  * @package MauticPlugin\MauticContactClientBundle\Entity
  */
 class EventRepository extends CommonRepository
@@ -26,9 +27,10 @@ class EventRepository extends CommonRepository
     /**
      * Fetch the base event data from the database.
      *
-     * @param $contactClientId
-     * @param $eventType
+     * @param                $contactClientId
+     * @param                $eventType
      * @param \DateTime|null $dateAdded
+     *
      * @return array
      */
     public function getEvents($contactClientId, $eventType = null, \DateTime $dateAdded = null)
@@ -39,7 +41,7 @@ class EventRepository extends CommonRepository
 
         $expr = $q->expr()->eq('c.contactclient_id', ':contactClient');
         $q->where($expr)
-            ->setParameter('contactClient', (int)$contactClientId);
+            ->setParameter('contactClient', (int) $contactClientId);
 
         if ($dateAdded) {
             $expr->add(
@@ -54,13 +56,15 @@ class EventRepository extends CommonRepository
             );
             $q->setParameter('type', $eventType);
         }
+
         return $q->execute()->fetchAll();
     }
 
     /**
-     * @param $contactClientId
-     * @param null $contactId
+     * @param       $contactClientId
+     * @param null  $contactId
      * @param array $options
+     *
      * @return array
      */
     public function getEventsForTimeline($contactClientId, $contactId = null, array $options = [])
@@ -85,7 +89,7 @@ class EventRepository extends CommonRepository
         }
 
         if ($contactId) {
-            $query->andWhere('c.contact_id = '.(int)$contactId);
+            $query->andWhere('c.contact_id = '.(int) $contactId);
         }
 
         if (isset($options['search']) && $options['search']) {

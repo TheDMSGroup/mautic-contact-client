@@ -84,7 +84,7 @@ if ($tmpl == 'index') {
                             [
                                 'item'            => $item,
                                 'templateButtons' => [
-                                    'edit' => $view['security']->hasEntityAccess(
+                                    'edit'   => $view['security']->hasEntityAccess(
                                         $permissions['plugin:contactclient:items:editown'],
                                         $permissions['plugin:contactclient:items:editother'],
                                         $item->getCreatedBy()
@@ -96,14 +96,17 @@ if ($tmpl == 'index') {
                                         $item->getCreatedBy()
                                     ),
                                 ],
-                                'routeBase' => 'contactclient',
+                                'routeBase'       => 'contactclient',
                             ]
                         );
                         ?>
                     </td>
                     <td>
                         <div>
-                            <?php echo $view->render('MauticCoreBundle:Helper:publishstatus_icon.html.php', ['item' => $item, 'model' => 'contactclient']); ?>
+                            <?php echo $view->render(
+                                'MauticCoreBundle:Helper:publishstatus_icon.html.php',
+                                ['item' => $item, 'model' => 'contactclient']
+                            ); ?>
                             <a data-toggle="ajax" href="<?php echo $view['router']->path(
                                 'mautic_contactclient_action',
                                 ['objectId' => $item->getId(), 'objectAction' => 'view']
@@ -119,11 +122,16 @@ if ($tmpl == 'index') {
                     </td>
                     <td class="visible-md visible-lg">
                         <?php $category = $item->getCategory(); ?>
-                        <?php $catName  = ($category) ? $category->getTitle() : $view['translator']->trans('mautic.core.form.uncategorized'); ?>
-                        <?php $color    = ($category) ? '#'.$category->getColor() : 'inherit'; ?>
-                        <span style="white-space: nowrap;"><span class="label label-default pa-4" style="border: 1px solid #d5d5d5; background: <?php echo $color; ?>;"> </span> <span><?php echo $catName; ?></span></span>
+                        <?php $catName = ($category) ? $category->getTitle() : $view['translator']->trans(
+                            'mautic.core.form.uncategorized'
+                        ); ?>
+                        <?php $color = ($category) ? '#'.$category->getColor() : 'inherit'; ?>
+                        <span style="white-space: nowrap;"><span class="label label-default pa-4"
+                                                                 style="border: 1px solid #d5d5d5; background: <?php echo $color; ?>;"> </span> <span><?php echo $catName; ?></span></span>
                     </td>
-                    <td class="visible-md visible-lg"><?php echo $view['translator']->trans('mautic.contactclient.type.'.$item->getType()); ?></td>
+                    <td class="visible-md visible-lg"><?php echo $view['translator']->trans(
+                            'mautic.contactclient.type.'.$item->getType()
+                        ); ?></td>
                     <td class="visible-md visible-lg"><?php echo $item->getId(); ?></td>
                 </tr>
             <?php endforeach; ?>
@@ -143,5 +151,8 @@ if ($tmpl == 'index') {
         ); ?>
     </div>
 <?php else: ?>
-    <?php echo $view->render('MauticCoreBundle:Helper:noresults.html.php', ['tip' => 'mautic.contactclient.noresults.tip']); ?>
+    <?php echo $view->render(
+        'MauticCoreBundle:Helper:noresults.html.php',
+        ['tip' => 'mautic.contactclient.noresults.tip']
+    ); ?>
 <?php endif; ?>

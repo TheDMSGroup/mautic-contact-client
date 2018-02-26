@@ -130,12 +130,12 @@ class ContactClientTimelineEvent extends Event
      * ContactClientTimelineEvent constructor.
      *
      * @param ContactClient|null $contactClient
-     * @param array $filters
-     * @param array|null $orderBy
-     * @param int $page
-     * @param int $limit Limit per type
-     * @param bool $forTimeline
-     * @param string|null $siteDomain
+     * @param array              $filters
+     * @param array|null         $orderBy
+     * @param int                $page
+     * @param int                $limit Limit per type
+     * @param bool               $forTimeline
+     * @param string|null        $siteDomain
      */
     public function __construct(
         ContactClient $contactClient = null,
@@ -147,19 +147,19 @@ class ContactClientTimelineEvent extends Event
         $siteDomain = null
     ) {
         $this->contactClient = $contactClient;
-        $this->filters = !empty($filters)
+        $this->filters       = !empty($filters)
             ? $filters
             :
             [
-                'search' => '',
+                'search'        => '',
                 'includeEvents' => [],
                 'excludeEvents' => [],
             ];
-        $this->orderBy = $orderBy;
-        $this->page = $page;
-        $this->limit = $limit;
-        $this->forTimeline = $forTimeline;
-        $this->siteDomain = $siteDomain;
+        $this->orderBy       = $orderBy;
+        $this->page          = $page;
+        $this->limit         = $limit;
+        $this->forTimeline   = $forTimeline;
+        $this->siteDomain    = $siteDomain;
 
         if (!empty($filters['dateFrom'])) {
             $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime) ? $filters['dateFrom'] : new \DateTime(
@@ -191,7 +191,7 @@ class ContactClientTimelineEvent extends Event
             if ($this->groupUnit && $this->chartQuery) {
                 $countData = [
                     [
-                        'date' => $data['timestamp'],
+                        'date'  => $data['timestamp'],
                         'count' => 1,
                     ],
                 ];
@@ -212,15 +212,15 @@ class ContactClientTimelineEvent extends Event
             if (!$this->isForTimeline()) {
                 // standardize the payload
                 $keepThese = [
-                    'event' => true,
-                    'eventId' => true,
-                    'eventLabel' => true,
-                    'eventType' => true,
-                    'timestamp' => true,
-                    'message' => true,
+                    'event'              => true,
+                    'eventId'            => true,
+                    'eventLabel'         => true,
+                    'eventType'          => true,
+                    'timestamp'          => true,
+                    'message'            => true,
                     'integratonEntityId' => true,
-                    'contactId' => true,
-                    'extra' => true,
+                    'contactId'          => true,
+                    'extra'              => true,
                 ];
 
                 $data = array_intersect_key($data, $keepThese);
@@ -272,14 +272,14 @@ class ContactClientTimelineEvent extends Event
                     if (!isset($this->totalEventsByUnit[$key])) {
                         $this->totalEventsByUnit[$key] = 0;
                     }
-                    $this->totalEventsByUnit[$key] += (int)$data;
-                    $this->totalEvents[$eventType] += (int)$data;
+                    $this->totalEventsByUnit[$key] += (int) $data;
+                    $this->totalEvents[$eventType] += (int) $data;
                 }
             } else {
                 $this->totalEvents[$eventType] = array_sum($count);
             }
         } else {
-            $this->totalEvents[$eventType] += (int)$count;
+            $this->totalEvents[$eventType] += (int) $count;
         }
     }
 
@@ -324,7 +324,7 @@ class ContactClientTimelineEvent extends Event
             }
 
             if (strstr($key, '_')) {
-                $newKey = lcfirst(str_replace('_', '', ucwords($key, '_')));
+                $newKey           = lcfirst(str_replace('_', '', ucwords($key, '_')));
                 $details[$newKey] = $details[$key];
                 unset($details[$key]);
             }
@@ -337,6 +337,7 @@ class ContactClientTimelineEvent extends Event
      * Generate something consistent for this event to identify this log entry.
      *
      * @param array $data
+     *
      * @return string
      */
     private function generateEventId(array $data)
@@ -359,7 +360,7 @@ class ContactClientTimelineEvent extends Event
 
         foreach ($events as &$e) {
             if (!$e['timestamp'] instanceof \DateTime) {
-                $dt = new DateTimeHelper($e['timestamp'], 'Y-m-d H:i:s', 'UTC');
+                $dt             = new DateTimeHelper($e['timestamp'], 'Y-m-d H:i:s', 'UTC');
                 $e['timestamp'] = $dt->getDateTime();
                 unset($dt);
             }
@@ -385,8 +386,8 @@ class ContactClientTimelineEvent extends Event
 
                         case 'timestamp':
                             if ($a['timestamp'] == $b['timestamp']) {
-                                $aPriority = isset($a['eventPriority']) ? (int)$a['eventPriority'] : 0;
-                                $bPriority = isset($b['eventPriority']) ? (int)$b['eventPriority'] : 0;
+                                $aPriority = isset($a['eventPriority']) ? (int) $a['eventPriority'] : 0;
+                                $bPriority = isset($b['eventPriority']) ? (int) $b['eventPriority'] : 0;
 
                                 return $aPriority - $bPriority;
                             }
@@ -425,7 +426,7 @@ class ContactClientTimelineEvent extends Event
     /**
      * Add an event type to the container.
      *
-     * @param string $eventTypeKey Identifier of the event type
+     * @param string $eventTypeKey  Identifier of the event type
      * @param string $eventTypeName Name of the event type for humans
      */
     public function addEventType($eventTypeKey, $eventTypeName)
@@ -472,13 +473,13 @@ class ContactClientTimelineEvent extends Event
     {
         return array_merge(
             [
-                'search' => $this->filters['search'],
-                'order' => $this->orderBy,
-                'paginated' => !$this->countOnly,
+                'search'     => $this->filters['search'],
+                'order'      => $this->orderBy,
+                'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
-                'unit' => $this->groupUnit,
-                'fromDate' => $this->dateFrom,
-                'toDate' => $this->dateTo,
+                'unit'       => $this->groupUnit,
+                'fromDate'   => $this->dateFrom,
+                'toDate'     => $this->dateTo,
                 'chartQuery' => $this->chartQuery,
             ],
             $this->getEventLimit()
@@ -494,8 +495,8 @@ class ContactClientTimelineEvent extends Event
     {
         return [
             'contactClientId' => ($this->contactClient instanceof ContactClient) ? $this->contactClient->getId() : null,
-            'limit' => $this->limit,
-            'start' => (1 >= $this->page) ? 0 : ($this->page - 1) * $this->limit,
+            'limit'           => $this->limit,
+            'start'           => (1 >= $this->page) ? 0 : ($this->page - 1) * $this->limit,
         ];
     }
 
@@ -605,9 +606,9 @@ class ContactClientTimelineEvent extends Event
     /**
      * Calculate engagement counts only.
      *
-     * @param \DateTime $dateFrom
-     * @param \DateTime $dateTo
-     * @param null $groupUnit
+     * @param \DateTime       $dateFrom
+     * @param \DateTime       $dateTo
+     * @param null            $groupUnit
      * @param ChartQuery|null $chartQuery
      */
     public function setCountOnly(
@@ -616,10 +617,10 @@ class ContactClientTimelineEvent extends Event
         $groupUnit = null,
         ChartQuery $chartQuery = null
     ) {
-        $this->countOnly = true;
-        $this->dateFrom = $dateFrom;
-        $this->dateTo = $dateTo;
-        $this->groupUnit = $groupUnit;
+        $this->countOnly  = true;
+        $this->dateFrom   = $dateFrom;
+        $this->dateTo     = $dateTo;
+        $this->groupUnit  = $groupUnit;
         $this->chartQuery = $chartQuery;
     }
 

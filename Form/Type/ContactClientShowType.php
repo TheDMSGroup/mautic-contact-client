@@ -19,6 +19,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Class ContactClientShowType
+ *
  * @package MauticPlugin\MauticContactClientBundle\Form\Type
  */
 class ContactClientShowType extends AbstractType
@@ -46,9 +47,9 @@ class ContactClientShowType extends AbstractType
             'contactclient',
             'contactclient_list',
             [
-                'label'      => 'mautic.contactclient.contactclientitem.selectitem',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.contactclientitem.selectitem',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class'    => 'form-control',
                     'tooltip'  => 'mautic.contactclient.contactclientitem.selectitem_descr',
                     'onchange' => 'Mautic.disabledContactClientActions()',
@@ -77,12 +78,12 @@ class ContactClientShowType extends AbstractType
                 'newContactClientButton',
                 'button',
                 [
-                    'attr' => [
+                    'attr'  => [
                         'class'   => 'btn btn-primary btn-nospin',
                         'onclick' => 'Mautic.loadNewWindow({
                         "windowUrl": "'.$windowUrl.'"
                     })',
-                        'icon' => 'fa fa-plus',
+                        'icon'    => 'fa fa-plus',
                     ],
                     'label' => 'mautic.contactclient.show.new.item',
                 ]
@@ -103,7 +104,7 @@ class ContactClientShowType extends AbstractType
                 'editContactClientButton',
                 'button',
                 [
-                    'attr' => [
+                    'attr'  => [
                         'class'    => 'btn btn-primary btn-nospin',
                         'onclick'  => 'Mautic.loadNewWindow(Mautic.standardContactClientUrl({"windowUrl": "'.$windowUrlEdit.'"}))',
                         'disabled' => !isset($options['data']['contactclient']),

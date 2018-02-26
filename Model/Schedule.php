@@ -11,14 +11,15 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class Schedule
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class Schedule
@@ -40,13 +41,14 @@ class Schedule
 
     /**
      * Schedule constructor.
+     *
      * @param ContactClient $contactClient
-     * @param $container
+     * @param               $container
      */
     public function __construct(ContactClient $contactClient, $container)
     {
         $this->contactClient = $contactClient;
-        $this->container = $container;
+        $this->container     = $container;
         $this->setTimezone();
     }
 
@@ -69,16 +71,17 @@ class Schedule
 
     /**
      * @param ContactClient $contactClient
+     *
      * @throws ContactClientException
      * @throws \Exception
      */
     public function evaluateHours(ContactClient $contactClient)
     {
         $jsonHelper = new JSONHelper();
-        $hours = $jsonHelper->decodeArray($contactClient->getScheduleHours(), 'ScheduleHours');
+        $hours      = $jsonHelper->decodeArray($contactClient->getScheduleHours(), 'ScheduleHours');
 
         if ($hours) {
-            $now = $this->getNow();
+            $now      = $this->getNow();
             $timezone = $this->getTimezone();
 
             $day = intval($now->format('N')) - 1;
@@ -94,10 +97,10 @@ class Schedule
                         Stat::TYPE_SCHEDULE
                     );
                 } else {
-                    $timeFrom = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
-                    $timeTill = !empty($hours[$day]->timeTill) ? $hours[$day]->timeTill : '23:59';
+                    $timeFrom  = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
+                    $timeTill  = !empty($hours[$day]->timeTill) ? $hours[$day]->timeTill : '23:59';
                     $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $timezone);
-                    $endDate = \DateTime::createFromFormat('H:i', $timeTill, $timezone);
+                    $endDate   = \DateTime::createFromFormat('H:i', $timeTill, $timezone);
                     if (!($now > $startDate && $now < $endDate)) {
                         throw new ContactClientException(
                             'This contact client does not allow contacts during this time of day.',
@@ -135,6 +138,7 @@ class Schedule
 
     /**
      * @param ContactClient $contactClient
+     *
      * @throws ContactClientException
      * @throws \Exception
      */
@@ -151,17 +155,17 @@ class Schedule
             $todaysDateString = $now->format('Y-m-d');
             foreach ($exclusions as $exclusion) {
                 if (!empty($exclusion->value)) {
-                    $dateString = trim(str_ireplace('yyyy-', '', $exclusion->value));
-                    $segments = explode('-', $dateString);
+                    $dateString   = trim(str_ireplace('yyyy-', '', $exclusion->value));
+                    $segments     = explode('-', $dateString);
                     $segmentCount = count($segments);
                     if ($segmentCount == 3) {
-                        $year = !empty($segments[0]) ? str_pad($segments[0], 4, '0', STR_PAD_LEFT) : $now->format('Y');
+                        $year  = !empty($segments[0]) ? str_pad($segments[0], 4, '0', STR_PAD_LEFT) : $now->format('Y');
                         $month = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('m');
-                        $day = !empty($segments[2]) ? str_pad($segments[2], 2, '0', STR_PAD_LEFT) : $now->format('d');
+                        $day   = !empty($segments[2]) ? str_pad($segments[2], 2, '0', STR_PAD_LEFT) : $now->format('d');
                     } elseif ($segmentCount == 2) {
-                        $year = $now->format('Y');
+                        $year  = $now->format('Y');
                         $month = !empty($segments[0]) ? str_pad($segments[0], 2, '0', STR_PAD_LEFT) : $now->format('m');
-                        $day = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('d');
+                        $day   = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('d');
                     } else {
                         continue;
                     }

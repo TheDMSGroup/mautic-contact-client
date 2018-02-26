@@ -11,7 +11,6 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
-use Mautic\CoreBundle\Entity\AuditLogRepository;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Model\AuditLogModel;
@@ -20,17 +19,19 @@ use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
  * Trait ContactClientDetailsTrait
+ *
  * @package MauticPlugin\MauticContactClientBundle\Controller
  */
 trait ContactClientDetailsTrait
 {
 
     /**
-     * @param array $contactClients
+     * @param array      $contactClients
      * @param array|null $filters
      * @param array|null $orderBy
-     * @param int $page
-     * @param int $limit
+     * @param int        $page
+     * @param int        $limit
+     *
      * @return array
      * @throws InvalidArgumentException
      */
@@ -47,7 +48,7 @@ trait ContactClientDetailsTrait
             $filters = $session->get(
                 'mautic.plugin.timeline.filters',
                 [
-                    'search' => '',
+                    'search'        => '',
                     'includeEvents' => [],
                     'excludeEvents' => [],
                 ]
@@ -69,13 +70,13 @@ trait ContactClientDetailsTrait
 
         // prepare result object
         $result = [
-            'events' => [],
-            'filters' => $filters,
-            'order' => $orderBy,
-            'types' => [],
-            'total' => 0,
-            'page' => $page,
-            'limit' => $limit,
+            'events'   => [],
+            'filters'  => $filters,
+            'order'    => $orderBy,
+            'types'    => [],
+            'total'    => 0,
+            'page'     => $page,
+            'limit'    => $limit,
             'maxPages' => 0,
         ];
 
@@ -84,22 +85,22 @@ trait ContactClientDetailsTrait
             //  if (!$contactClient->getEmail()) continue; // discard contacts without email
 
             /** @var ContactClientModel $model */
-            $model = $this->getModel('contactClient');
+            $model       = $this->getModel('contactClient');
             $engagements = $model->getEngagements($contactClient, $filters, $orderBy, $page, $limit);
-            $events = $engagements['events'];
-            $types = $engagements['types'];
+            $events      = $engagements['events'];
+            $types       = $engagements['types'];
 
             // inject contactClient into events
             foreach ($events as &$event) {
-                $event['contactClientId'] = $contactClient->getId();
+                $event['contactClientId']    = $contactClient->getId();
                 $event['contactClientEmail'] = $contactClient->getEmail();
-                $event['contactClientName'] = $contactClient->getName() ? $contactClient->getName(
+                $event['contactClientName']  = $contactClient->getName() ? $contactClient->getName(
                 ) : $contactClient->getEmail();
             }
 
             $result['events'] = array_merge($result['events'], $events);
-            $result['types'] = array_merge($result['types'], $types);
-            $result['total'] += $engagements['total'];
+            $result['types']  = array_merge($result['types'], $types);
+            $result['total']  += $engagements['total'];
         }
 
         $result['maxPages'] = ($limit <= 0) ? 1 : round(ceil($result['total'] / $limit));
@@ -165,9 +166,9 @@ trait ContactClientDetailsTrait
                         } elseif (!empty($details['region'])) {
                             $name = $details['region'];
                         }
-                        $place = [
+                        $place    = [
                             'latLng' => [$details['latitude'], $details['longitude']],
-                            'name' => $name,
+                            'name'   => $name,
                         ];
                         $places[] = $place;
                     }
@@ -179,7 +180,7 @@ trait ContactClientDetailsTrait
     }
 
     /**
-     * @param ContactClient $contactClient
+     * @param ContactClient  $contactClient
      * @param \DateTime|null $fromDate
      * @param \DateTime|null $toDate
      *
@@ -200,11 +201,11 @@ trait ContactClientDetailsTrait
             $toDate = new \DateTime();
         }
 
-        $lineChart = new LineChart(null, $fromDate, $toDate);
+        $lineChart  = new LineChart(null, $fromDate, $toDate);
         $chartQuery = new ChartQuery($this->getDoctrine()->getConnection(), $fromDate, $toDate);
 
         /** @var ContactClientModel $model */
-        $model = $this->getModel('contactClient');
+        $model       = $this->getModel('contactClient');
         $engagements = $model->getEngagementCount($contactClient, $fromDate, $toDate, 'm', $chartQuery);
         $lineChart->setDataset(
             $translator->trans('mautic.contactClient.graph.line.all_engagements'),
@@ -223,10 +224,10 @@ trait ContactClientDetailsTrait
 
     /**
      * @param ContactClient $contactClient
-     * @param array|null $filters
-     * @param array|null $orderBy
-     * @param int $page
-     * @param int $limit
+     * @param array|null    $filters
+     * @param array|null    $orderBy
+     * @param int           $page
+     * @param int           $limit
      *
      * @return array
      */
@@ -243,7 +244,7 @@ trait ContactClientDetailsTrait
             $filters = $session->get(
                 'mautic.contactClient.'.$contactClient->getId().'.auditlog.filters',
                 [
-                    'search' => '',
+                    'search'        => '',
                     'includeEvents' => [],
                     'excludeEvents' => [],
                 ]
@@ -266,36 +267,40 @@ trait ContactClientDetailsTrait
         /** @var AuditLogModel $auditlogModel */
         $auditlogModel = $this->getModel('core.auditLog');
 
-        $logs = $auditlogModel->getLogForObject('contactclient', $contactClient->getId(), $contactClient->getDateAdded());
+        $logs     = $auditlogModel->getLogForObject(
+            'contactclient',
+            $contactClient->getId(),
+            $contactClient->getDateAdded()
+        );
         $logCount = count($logs);
 
         $types = [
-            'delete' => $this->translator->trans('mautic.contactClient.event.delete'),
-            'create' => $this->translator->trans('mautic.contactClient.event.create'),
+            'delete'     => $this->translator->trans('mautic.contactClient.event.delete'),
+            'create'     => $this->translator->trans('mautic.contactClient.event.create'),
             'identified' => $this->translator->trans('mautic.contactClient.event.identified'),
-            'ipadded' => $this->translator->trans('mautic.contactClient.event.ipadded'),
-            'merge' => $this->translator->trans('mautic.contactClient.event.merge'),
-            'update' => $this->translator->trans('mautic.contactClient.event.update'),
+            'ipadded'    => $this->translator->trans('mautic.contactClient.event.ipadded'),
+            'merge'      => $this->translator->trans('mautic.contactClient.event.merge'),
+            'update'     => $this->translator->trans('mautic.contactClient.event.update'),
         ];
 
         return [
-            'events' => $logs,
-            'filters' => $filters,
-            'order' => $orderBy,
-            'types' => $types,
-            'total' => $logCount,
-            'page' => $page,
-            'limit' => $limit,
+            'events'   => $logs,
+            'filters'  => $filters,
+            'order'    => $orderBy,
+            'types'    => $types,
+            'total'    => $logCount,
+            'page'     => $page,
+            'limit'    => $limit,
             'maxPages' => ceil($logCount / $limit),
         ];
     }
 
     /**
      * @param ContactClient $contactClient
-     * @param array|null $filters
-     * @param array|null $orderBy
-     * @param int $page
-     * @param int $limit
+     * @param array|null    $filters
+     * @param array|null    $orderBy
+     * @param int           $page
+     * @param int           $limit
      *
      * @return array
      */
@@ -312,7 +317,7 @@ trait ContactClientDetailsTrait
             $filters = $session->get(
                 'mautic.contactClient.'.$contactClient->getId().'.timeline.filters',
                 [
-                    'search' => '',
+                    'search'        => '',
                     'includeEvents' => [],
                     'excludeEvents' => [],
                 ]
@@ -352,7 +357,7 @@ trait ContactClientDetailsTrait
         return $contactClientEventLogRepository->getUpcomingEvents(
             [
                 'contactClient' => $contactClient,
-                'eventType' => ['action', 'condition'],
+                'eventType'     => ['action', 'condition'],
             ]
         );
     }

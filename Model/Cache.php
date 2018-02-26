@@ -11,19 +11,20 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\CoreBundle\Model\AbstractCommonModel;
-// use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
-use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
-use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\Cache as CacheEntity;
-use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
-use Mautic\CoreBundle\Helper\PhoneNumberHelper;
-use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
+use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
+
+// use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 
 /**
  * Class Cache
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class Cache extends AbstractCommonModel
@@ -40,11 +41,12 @@ class Cache extends AbstractCommonModel
 
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
+     *
      * @throws \Exception
      */
     public function create()
     {
-        $entities = [];
+        $entities  = [];
         $exclusive = $this->getExclusiveRules();
         if (count($exclusive)) {
             // Create an entry for *each* exclusivity rule as they will end up with different dates of exclusivity
@@ -81,7 +83,7 @@ class Cache extends AbstractCommonModel
     public function getExclusiveRules()
     {
         $jsonHelper = new JSONHelper();
-        $exclusive = $jsonHelper->decodeObject($this->contactClient->getExclusive(), 'Exclusive');
+        $exclusive  = $jsonHelper->decodeObject($this->contactClient->getExclusive(), 'Exclusive');
 
         return $this->mergeRules($exclusive);
     }
@@ -90,6 +92,7 @@ class Cache extends AbstractCommonModel
      * Validate and merge the rules object (exclusivity/duplicate/limits)
      *
      * @param $rules
+     *
      * @return array
      */
     private function mergeRules($rules)
@@ -103,12 +106,12 @@ class Cache extends AbstractCommonModel
                     && !empty($rule->duration)
                 ) {
                     $duration = $rule->duration;
-                    $scope = intval($rule->scope);
-                    $key = $duration.'-'.$scope;
+                    $scope    = intval($rule->scope);
+                    $key      = $duration.'-'.$scope;
                     if (!isset($newRules[$key])) {
-                        $newRules[$key] = [];
+                        $newRules[$key]             = [];
                         $newRules[$key]['matching'] = intval($rule->matching);
-                        $newRules[$key]['scope'] = $scope;
+                        $newRules[$key]['scope']    = $scope;
                         $newRules[$key]['duration'] = $duration;
                     } else {
                         $newRules[$key]['matching'] += intval($rule->matching);
@@ -167,12 +170,13 @@ class Cache extends AbstractCommonModel
 
     /**
      * @param $phone
+     *
      * @return string
      */
     private function phoneValidate($phone)
     {
         $result = null;
-        $phone = trim($phone);
+        $phone  = trim($phone);
         if (!empty($phone)) {
             if (!$this->phoneHelper) {
                 $this->phoneHelper = new PhoneNumberHelper();
@@ -255,7 +259,7 @@ class Cache extends AbstractCommonModel
     public function getDuplicateRules()
     {
         $jsonHelper = new JSONHelper();
-        $duplicate = $jsonHelper->decodeObject($this->contactClient->getDuplicate(), 'Duplicate');
+        $duplicate  = $jsonHelper->decodeObject($this->contactClient->getDuplicate(), 'Duplicate');
 
         return $this->mergeRules($duplicate);
     }
@@ -290,6 +294,7 @@ class Cache extends AbstractCommonModel
 
     /**
      * @param ContactClient $contactClient
+     *
      * @return $this
      * @throws \Exception
      */

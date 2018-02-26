@@ -12,9 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
-use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\LeadBundle\Entity\Lead as Contact;
-// use Mautic\LeadBundle\Entity\LeadEventLog;
+use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Mautic\PluginBundle\Entity\IntegrationEntityRepository;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
@@ -24,17 +23,19 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
-use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use MauticPlugin\MauticContactClientBundle\Model\Cache;
-use Mautic\PluginBundle\Entity\IntegrationEntity;
+use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
 
+// use Mautic\LeadBundle\Entity\LeadEventLog;
+
 /**
  * Class ClientIntegration
+ *
  * @package MauticPlugin\MauticContactClientBundle\Integration
  */
 class ClientIntegration extends AbstractIntegration
@@ -100,7 +101,8 @@ class ClientIntegration extends AbstractIntegration
      * Push a contact to a preconfigured Contact Client.
      *
      * @param Contact $contact
-     * @param array $config
+     * @param array   $config
+     *
      * @return bool
      * @throws Exception
      */
@@ -108,7 +110,7 @@ class ClientIntegration extends AbstractIntegration
     {
 
         $this->event = $config;
-        $config = $this->mergeConfigToFeatureSettings($config);
+        $config      = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
             return false;
         }
@@ -126,7 +128,7 @@ class ClientIntegration extends AbstractIntegration
         if (!empty($config['contactclient_overrides'])) {
             // Flatten overrides to key-value pairs.
             $jsonHelper = new JSONHelper();
-            $array = $jsonHelper->decodeArray($config['contactclient_overrides'], 'Overrides');
+            $array      = $jsonHelper->decodeArray($config['contactclient_overrides'], 'Overrides');
             if ($array) {
                 foreach ($array as $field) {
                     if (!empty($field->key) && !empty($field->value)) {
@@ -203,9 +205,10 @@ class ClientIntegration extends AbstractIntegration
      * Send the lead/contact to the API by following the steps.
      *
      * @param ContactClient $client
-     * @param Contact $contact
-     * @param bool $test
-     * @param array $overrides
+     * @param Contact       $contact
+     * @param bool          $test
+     * @param array         $overrides
+     *
      * @return bool
      */
     public function sendContact(
@@ -434,21 +437,21 @@ class ClientIntegration extends AbstractIntegration
         // Stat::TYPE_SCHEDULE
 
         if ($this->valid) {
-            $statType = Stat::TYPE_SUCCESS;
+            $statType  = Stat::TYPE_SUCCESS;
             $statLevel = 'INFO';
-            $message = 'Contact was sent successfully.';
+            $message   = 'Contact was sent successfully.';
         } else {
-            $statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
+            $statType  = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
             $statLevel = 'ERROR';
-            $message = isset($this->logs['error']) ? $this->logs['error'] : 'An unexpected error occurred.';
+            $message   = isset($this->logs['error']) ? $this->logs['error'] : 'An unexpected error occurred.';
             // Check for a filter-based rejection.
             if (isset($this->logs['operations'])) {
                 foreach ($this->logs['operations'] as $operation) {
                     if (isset($operation['filter'])) {
                         // Contact was rejected due to success definition filters.
-                        $statType = Stat::TYPE_REJECT;
+                        $statType  = Stat::TYPE_REJECT;
                         $statLevel = 'WARNING';
-                        $message = $operation['filter'];
+                        $message   = $operation['filter'];
                         break;
                     }
                 }
@@ -456,13 +459,16 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Session storage for external plugins (should probably be dispatcher instead).
-        $session = $this->dispatcher->getContainer()->get('session');
-        $eventId = isset($this->event['id']) ? $this->event['id'] : 0;
-        $events = $session->get('contactclient_events', []);
-        $events[$eventId] = array_merge($this->event, [
-            'valid' => $this->valid,
-            'statType' => $statType,
-        ]);
+        $session          = $this->dispatcher->getContainer()->get('session');
+        $eventId          = isset($this->event['id']) ? $this->event['id'] : 0;
+        $events           = $session->get('contactclient_events', []);
+        $events[$eventId] = array_merge(
+            $this->event,
+            [
+                'valid'    => $this->valid,
+                'statType' => $statType,
+            ]
+        );
         $session->set('contactclient_events', $events);
         // Indicates that a single (or more) valid sends have been made.
         if ($this->valid) {
@@ -562,7 +568,7 @@ class ClientIntegration extends AbstractIntegration
     {
         /** @var IntegrationEntityRepository $integrationEntityRepo */
         $integrationEntityRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
-        $integrationEntities = $integrationEntityRepo->getIntegrationEntities(
+        $integrationEntities   = $integrationEntityRepo->getIntegrationEntities(
             $this->getName(),
             $object,
             $mauticObjectReference,
@@ -589,6 +595,7 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @param $apiPayload
+     *
      * @return array
      */
     public function sendTest($apiPayload)
@@ -600,7 +607,7 @@ class ClientIntegration extends AbstractIntegration
         $this->sendContact($client, $contact, true);
 
         return [
-            'valid' => $this->valid,
+            'valid'   => $this->valid,
             'payload' => $client->getAPIPayload(),
         ];
     }
@@ -629,6 +636,7 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @todo - Push multiple contacts by Campaign Action.
+     *
      * @param array $params
      *
      * @return mixed
@@ -638,7 +646,7 @@ class ClientIntegration extends AbstractIntegration
         // $limit = (isset($params['limit'])) ? $params['limit'] : 100;
         $totalUpdated = 0;
         $totalCreated = 0;
-        $totalErrors = 0;
+        $totalErrors  = 0;
         $totalIgnored = 0;
 
         return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
@@ -651,8 +659,9 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
-     * @param array $data
-     * @param string $formArea
+     * @param array                                                                     $data
+     * @param string                                                                    $formArea
+     *
      * @throws Exception
      */
     public function appendToForm(&$builder, $data, $formArea)
@@ -664,13 +673,13 @@ class ClientIntegration extends AbstractIntegration
                 $clientModel = $this->getContactClientModel();
 
                 /** @var contactClientRepository $contactClientRepo */
-                $contactClientRepo = $clientModel->getRepository();
+                $contactClientRepo     = $clientModel->getRepository();
                 $contactClientEntities = $contactClientRepo->getEntities();
-                $clients = ['' => ''];
-                $overridableFields = [];
+                $clients               = ['' => ''];
+                $overridableFields     = [];
                 foreach ($contactClientEntities as $contactClientEntity) {
                     if ($contactClientEntity->getIsPublished()) {
-                        $id = $contactClientEntity->getId();
+                        $id           = $contactClientEntity->getId();
                         $clients[$id] = $contactClientEntity->getName();
 
                         // Get overridable fields from the payload of the type needed.
@@ -691,14 +700,14 @@ class ClientIntegration extends AbstractIntegration
                     'contactclient',
                     'choice',
                     [
-                        'choices' => $clients,
-                        'expanded' => false,
-                        'label_attr' => ['class' => 'control-label'],
-                        'multiple' => false,
-                        'label' => 'mautic.contactclient.integration.client',
-                        'attr' => [
-                            'class' => 'form-control',
-                            'tooltip' => 'mautic.contactclient.integration.client.tooltip',
+                        'choices'     => $clients,
+                        'expanded'    => false,
+                        'label_attr'  => ['class' => 'control-label'],
+                        'multiple'    => false,
+                        'label'       => 'mautic.contactclient.integration.client',
+                        'attr'        => [
+                            'class'    => 'form-control',
+                            'tooltip'  => 'mautic.contactclient.integration.client.tooltip',
                             // Auto-set the integration name based on the client.
                             'onchange' =>
                                 "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
@@ -707,7 +716,7 @@ class ClientIntegration extends AbstractIntegration
                                 "    eventName.val(client.text().trim());".
                                 "}",
                         ],
-                        'required' => true,
+                        'required'    => true,
                         'constraints' => [
                             new NotBlank(
                                 ['message' => 'mautic.core.value.required']
@@ -732,8 +741,8 @@ class ClientIntegration extends AbstractIntegration
                     'button',
                     [
                         'label' => 'mautic.contactclient.integration.overrides',
-                        'attr' => [
-                            'class' => 'btn btn-default btn-nospin',
+                        'attr'  => [
+                            'class'   => 'btn btn-default btn-nospin',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                             // Shim to get our javascript over the border and into Integration land.
                             'onclick' =>
@@ -745,7 +754,7 @@ class ClientIntegration extends AbstractIntegration
                                 "} else {".
                                 "    Mautic.contactclientIntegration();".
                                 "}",
-                            'icon' => 'fa fa-wrench',
+                            'icon'    => 'fa fa-wrench',
                         ],
                     ]
                 );
@@ -754,13 +763,13 @@ class ClientIntegration extends AbstractIntegration
                     'contactclient_overrides',
                     'textarea',
                     [
-                        'label' => 'mautic.contactclient.integration.overrides',
+                        'label'      => 'mautic.contactclient.integration.overrides',
                         'label_attr' => ['class' => 'control-label hide'],
-                        'attr' => [
-                            'class' => 'form-control hide',
+                        'attr'       => [
+                            'class'   => 'form-control hide',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                         ],
-                        'required' => false,
+                        'required'   => false,
                     ]
                 );
             }

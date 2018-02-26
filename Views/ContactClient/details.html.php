@@ -22,7 +22,7 @@ $view['slots']->set(
         [
             'item'            => $item,
             'templateButtons' => [
-                'edit' => $view['security']->hasEntityAccess(
+                'edit'   => $view['security']->hasEntityAccess(
                     $permissions['plugin:contactclient:items:editown'],
                     $permissions['plugin:contactclient:items:editother'],
                     $item->getCreatedBy()
@@ -33,10 +33,10 @@ $view['slots']->set(
                     $permissions['plugin:contactclient:items:deleteother'],
                     $item->getCreatedBy()
                 ),
-                'close' => $view['security']->isGranted('plugin:contactclient:items:view'),
+                'close'  => $view['security']->isGranted('plugin:contactclient:items:view'),
             ],
-            'routeBase' => 'contactclient',
-            'langVar'   => 'mautic.contactclient',
+            'routeBase'       => 'contactclient',
+            'langVar'         => 'mautic.contactclient',
         ]
     )
 );
@@ -56,7 +56,10 @@ $website = $item->getWebsite();
                         <div class="text-muted"><?php echo $item->getDescription(); ?></div>
                     </div>
                     <div class="col-xs-2 text-right">
-                        <?php echo $view->render('MauticCoreBundle:Helper:publishstatus_badge.html.php', ['entity' => $item]); ?>
+                        <?php echo $view->render(
+                            'MauticCoreBundle:Helper:publishstatus_badge.html.php',
+                            ['entity' => $item]
+                        ); ?>
                     </div>
                 </div>
             </div>
@@ -68,7 +71,10 @@ $website = $item->getWebsite();
                     <div class="panel shd-none mb-0">
                         <table class="table table-bordered table-striped mb-0">
                             <tbody>
-                            <?php echo $view->render('MauticCoreBundle:Helper:details.html.php', ['entity' => $item]); ?>
+                            <?php echo $view->render(
+                                'MauticCoreBundle:Helper:details.html.php',
+                                ['entity' => $item]
+                            ); ?>
                             </tbody>
                         </table>
                     </div>
@@ -81,7 +87,9 @@ $website = $item->getWebsite();
             <!-- form detail collapseable toggler -->
             <div class="hr-expand nm">
                 <span data-toggle="tooltip" title="<?php echo $view['translator']->trans('mautic.core.details'); ?>">
-                    <a href="javascript:void(0)" class="arrow text-muted collapsed" data-toggle="collapse" data-target="#contactclient-details"><span class="caret"></span> <?php echo $view['translator']->trans(
+                    <a href="javascript:void(0)" class="arrow text-muted collapsed" data-toggle="collapse"
+                       data-target="#contactclient-details"><span
+                                class="caret"></span> <?php echo $view['translator']->trans(
                             'mautic.core.details'
                         ); ?></a>
                 </span>
@@ -150,9 +158,9 @@ $website = $item->getWebsite();
                     <?php echo $view->render(
                         'MauticContactClientBundle:Timeline:list.html.php',
                         [
-                            'events' => $events,
+                            'events'        => $events,
                             'contactClient' => $item,
-                            'tmpl' => 'index',
+                            'tmpl'          => 'index',
                         ]
                     ); ?>
                 </div>
@@ -188,8 +196,11 @@ $website = $item->getWebsite();
             <div class="pa-md">
                 <div class="panel bg-info bg-light-lg bdr-w-0 mb-0">
                     <div class="panel-body">
-                        <h5 class="fw-sb mb-sm"><?php echo $view['translator']->trans('mautic.contactclient.form.website'); ?></h5>
-                        <p class="mb-sm"><a href="<?php echo $website; ?>" target="_blank"><?php echo $website; ?></a></p>
+                        <h5 class="fw-sb mb-sm"><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.website'
+                            ); ?></h5>
+                        <p class="mb-sm"><a href="<?php echo $website; ?>" target="_blank"><?php echo $website; ?></a>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -201,7 +212,10 @@ $website = $item->getWebsite();
         <div class="panel bg-transparent shd-none bdr-rds-0 bdr-w-0 mb-0">
 
             <!-- recent activity -->
-            <?php echo $view->render('MauticCoreBundle:Helper:recentactivity.html.php', ['logs' => $auditlog['events']]); ?>
+            <?php echo $view->render(
+                'MauticCoreBundle:Helper:recentactivity.html.php',
+                ['logs' => $auditlog['events']]
+            ); ?>
 
         </div>
     </div>

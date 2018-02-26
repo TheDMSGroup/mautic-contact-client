@@ -16,13 +16,14 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
  * Class ContactClientEvent
+ *
  * @package MauticPlugin\MauticContactClientBundle\Event
  */
 class ContactClientEvent extends CommonEvent
 {
     /**
-     * @param ContactClient      $contactclient
-     * @param bool|false $isNew
+     * @param ContactClient $contactclient
+     * @param bool|false    $isNew
      */
     public function __construct(ContactClient $contactclient, $isNew = false)
     {

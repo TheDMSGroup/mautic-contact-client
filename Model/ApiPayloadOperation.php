@@ -11,14 +11,15 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use stdClass;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
+use stdClass;
 
 /**
  * Class ApiPayloadOperation
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadOperation
@@ -52,6 +53,7 @@ class ApiPayloadOperation
 
     /**
      * Prioritized list of possible external IDs to search for.
+     *
      * @var array
      */
     protected $externalIds = [
@@ -73,15 +75,15 @@ class ApiPayloadOperation
         $test = false,
         $updatePayload = true
     ) {
-        $this->operation = &$operation;
-        $this->transport = $transport;
-        $this->name = !empty($operation->name) ? $operation->name : (isset($operation->id) ? $operation->id : 'Unknown');
-        $this->request = isset($operation->request) ? $operation->request : [];
-        $this->responseExpected = isset($operation->response) ? $operation->response : [];
+        $this->operation         = &$operation;
+        $this->transport         = $transport;
+        $this->name              = !empty($operation->name) ? $operation->name : (isset($operation->id) ? $operation->id : 'Unknown');
+        $this->request           = isset($operation->request) ? $operation->request : [];
+        $this->responseExpected  = isset($operation->response) ? $operation->response : [];
         $this->successDefinition = isset($operation->response->success->definition) ? $operation->response->success->definition : [];
-        $this->tokenHelper = $tokenHelper;
-        $this->test = $test;
-        $this->updatePayload = $updatePayload;
+        $this->tokenHelper       = $tokenHelper;
+        $this->test              = $test;
+        $this->updatePayload     = $updatePayload;
     }
 
     /**
@@ -115,7 +117,9 @@ class ApiPayloadOperation
         $this->setLogs($apiRequest->getLogs(), 'request');
 
         // Parse the API response.
-        $apiResponse = new ApiResponse($this->responseExpected, $this->successDefinition, $this->transport, $this->test);
+        $apiResponse          = new ApiResponse(
+            $this->responseExpected, $this->successDefinition, $this->transport, $this->test
+        );
         $this->responseActual = $apiResponse->parse()->getResponse();
         $this->setLogs($apiResponse->getLogs(), 'response');
 
@@ -142,7 +146,7 @@ class ApiPayloadOperation
      */
     public function updatePayloadResponse()
     {
-        $result = $this->responseExpected;
+        $result  = $this->responseExpected;
         $updates = false;
         foreach (['headers', 'body'] as $type) {
             if (isset($this->responseActual[$type])) {
@@ -161,8 +165,8 @@ class ApiPayloadOperation
                     $fieldId = isset($fieldKeys[$key]) ? $fieldKeys[$key] : -1;
                     if ($fieldId == -1) {
                         // This is a new field.
-                        $newField = new stdClass();
-                        $newField->key = $key;
+                        $newField          = new stdClass();
+                        $newField->key     = $key;
                         $newField->example = $value;
                         $result->{$type}[] = $newField;
                         $this->setLogs('New '.$type.' field "'.$key.'" added with example: '.$value, 'autoUpdate');
@@ -171,7 +175,7 @@ class ApiPayloadOperation
                         if (!empty($value) && empty($result->{$type}[$fieldId]->example)) {
                             // This is an existing field, but requires an updated example.
                             $result->{$type}[$fieldId]->example = $value;
-                            $updates = true;
+                            $updates                            = true;
                             $this->setLogs(
                                 'Existing '.$type.' field "'.$key.'" now has an example: '.$value,
                                 'autoUpdate'
@@ -238,6 +242,7 @@ class ApiPayloadOperation
 
     /**
      * Get filled responses that have Contact destinations defined.
+     *
      * @return array
      */
     public function getResponseMap()
@@ -266,15 +271,15 @@ class ApiPayloadOperation
     public function getExternalId()
     {
         $externalIds = array_flip($this->externalIds);
-        $id = null;
-        $idIndex = null;
+        $id          = null;
+        $idIndex     = null;
         foreach (['headers', 'body'] as $type) {
             if (isset($this->responseActual[$type]) && isset($this->responseActual[$type])) {
                 foreach ($this->responseActual[$type] as $key => $value) {
                     $key = preg_replace("/[^a-z0-9]/", '', strtolower($key));
                     if (isset($externalIds[$key]) && ($idIndex === null || $externalIds[$key] < $idIndex)) {
                         $idIndex = $externalIds[$key];
-                        $id = $value;
+                        $id      = $value;
                         if ($idIndex == 0) {
                             break;
                         }

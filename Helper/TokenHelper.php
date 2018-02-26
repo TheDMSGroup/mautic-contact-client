@@ -13,10 +13,10 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mustache_Engine as Engine;
-use MauticPlugin\MauticContactClientBundle\Helper\DateFormatHelper;
 
 /**
  * Class TokenHelper
+ *
  * @package MauticPlugin\MauticContactClientBundle\Helper
  */
 class TokenHelper
@@ -54,7 +54,9 @@ class TokenHelper
 
     /**
      * Recursively replaces tokens using an array for context.
+     *
      * @param array $array
+     *
      * @return array
      */
     public function renderArray($array = [])
@@ -79,7 +81,9 @@ class TokenHelper
 
     /**
      * Replace Tokens in a simple string using an array for context.
+     *
      * @param $string
+     *
      * @return string
      */
     public function renderString($string)
@@ -115,15 +119,17 @@ class TokenHelper
 
     /**
      * Given a Contact, flatten the field values a bit into a more user friendly list of token possibilities.
+     *
      * @param Contact $contact
+     *
      * @return mixed
      */
     public function addContextContact(Contact $contact)
     {
         $context = [];
-        
+
         // Append contact ID.
-        $contactId = $contact->getId();
+        $contactId     = $contact->getId();
         $context['id'] = isset($contactId) ? $contactId : 0;
 
         // Append contact owner data.
@@ -132,15 +138,15 @@ class TokenHelper
             if (!isset($context['owner'])) {
                 $context['owner'] = [];
             }
-            $context['owner']['id'] = $owner->getId();
-            $context['owner']['username'] = $owner->getUsername();
+            $context['owner']['id']        = $owner->getId();
+            $context['owner']['username']  = $owner->getUsername();
             $context['owner']['firstName'] = $owner->getFirstName();
-            $context['owner']['lastName'] = $owner->getLastName();
-            $context['owner']['email'] = $owner->getEmail();
+            $context['owner']['lastName']  = $owner->getLastName();
+            $context['owner']['email']     = $owner->getEmail();
         }
 
         // Append points value.
-        $points = $contact->getPoints();
+        $points            = $contact->getPoints();
         $context['points'] = isset($points) ? $points : 0;
 
         // Append IP Addresses.
@@ -151,7 +157,7 @@ class TokenHelper
             }
             foreach ($ips as $ip => $value) {
                 $context['ipAddresses'][] = $ip;
-                $context['ipAddress'] = $ip;
+                $context['ipAddress']     = $ip;
             }
         }
 
@@ -177,7 +183,7 @@ class TokenHelper
             }
             $context['doNotContact'][$record->getChannel()] = [
                 'comments' => $record->getComments(),
-                'reason' => $record->getReason(),
+                'reason'   => $record->getReason(),
             ];
         }
 
@@ -188,20 +194,20 @@ class TokenHelper
                 if (!isset($context['utmTags'])) {
                     $context['utmTags'] = [];
                 }
-                $tags = [
-                    'query' => $utmTag->getQuery(),
-                    'referrer' => $utmTag->getReferer(),
+                $tags                 = [
+                    'query'      => $utmTag->getQuery(),
+                    'referrer'   => $utmTag->getReferer(),
                     'remoteHost' => $utmTag->getRemoteHost(),
-                    'url' => $utmTag->getUrl(),
-                    'userAgent' => $utmTag->getUserAgent(),
-                    'campaign' => $utmTag->getUtmCampaign(),
-                    'content' => $utmTag->getUtmContent(),
-                    'medium' => $utmTag->getUtmMedium(),
-                    'source' => $utmTag->getUtmSource(),
-                    'term' => $utmTag->getUtmTerm(),
+                    'url'        => $utmTag->getUrl(),
+                    'userAgent'  => $utmTag->getUserAgent(),
+                    'campaign'   => $utmTag->getUtmCampaign(),
+                    'content'    => $utmTag->getUtmContent(),
+                    'medium'     => $utmTag->getUtmMedium(),
+                    'source'     => $utmTag->getUtmSource(),
+                    'term'       => $utmTag->getUtmTerm(),
                 ];
                 $context['utmTags'][] = $tags;
-                $context['utmTag'] = $tags;
+                $context['utmTag']    = $tags;
             }
         }
 
@@ -232,7 +238,7 @@ class TokenHelper
         $this->context = $context;
 
         // Support multiple contacts for future batch processing.
-        $this->context['contacts'] = $contacts;
+        $this->context['contacts']                 = $contacts;
         $this->context['contacts'][$context['id']] = $context;
     }
 }

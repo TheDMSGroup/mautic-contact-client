@@ -15,6 +15,7 @@ use GuzzleHttp\Client;
 
 /**
  * Class Transport
+ *
  * @package MauticPlugin\MauticContactClientBundle\Services
  */
 class Transport implements TransportInterface
@@ -39,28 +40,30 @@ class Transport implements TransportInterface
      *    multipart
      *    query
      *  proxy
+     *
      * @var array Default options for transportation.
      */
     private $settings = [
         'allow_redirects' => [
-            'max' => 10,
-            'strict' => false,
-            'referer' => false,
-            'protocols' => ['https', 'http'],
+            'max'             => 10,
+            'strict'          => false,
+            'referer'         => false,
+            'protocols'       => ['https', 'http'],
             'track_redirects' => true,
         ],
         'connect_timeout' => 10,
-        'cookies' => true,
-        'http_errors' => false,
-        'synchronous' => true,
-        'verify' => true,
-        'timeout' => 30,
-        'version' => 1.1,
-        'headers' => null,
+        'cookies'         => true,
+        'http_errors'     => false,
+        'synchronous'     => true,
+        'verify'          => true,
+        'timeout'         => 30,
+        'version'         => 1.1,
+        'headers'         => null,
     ];
 
     /**
      * Transport constructor.
+     *
      * @param Client $client
      */
     public function __construct(Client $client)
@@ -71,6 +74,7 @@ class Transport implements TransportInterface
     /**
      * Establish a new Transport with the options provided if needed.
      * Only options that match the keys of our defaults are to be supported.
+     *
      * @param array $settings
      */
     public function setSettings($settings = [])
@@ -88,7 +92,8 @@ class Transport implements TransportInterface
      * @param array $settingsa
      * @param array $settingsb
      */
-    private function mergeSettings($settingsa, &$settingsb) {
+    private function mergeSettings($settingsa, &$settingsb)
+    {
         foreach ($settingsb as $key => &$value) {
             if (isset($settingsa[$key])) {
                 if (is_array($value)) {

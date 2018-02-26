@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class TimelineController
+ *
  * @package MauticPlugin\MauticContactClientBundle\Controller
  */
 class TimelineController extends CommonController
@@ -41,7 +42,7 @@ class TimelineController extends CommonController
         $session = $this->get('session');
         if ($request->getMethod() == 'POST' && $request->request->has('search')) {
             $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
+                'search'        => InputHelper::clean($request->request->get('search')),
                 'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
                 'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
             ];
@@ -59,13 +60,13 @@ class TimelineController extends CommonController
 
         return $this->delegateView(
             [
-                'viewParameters' => [
+                'viewParameters'  => [
                     'contactClient' => $contactClient,
-                    'page' => $page,
-                    'events' => $events,
+                    'page'          => $page,
+                    'events'        => $events,
                 ],
                 'passthroughVars' => [
-                    'route' => false,
+                    'route'         => false,
                     'mauticContent' => 'contactClientTimeline',
                     'timelineCount' => $events['total'],
                 ],
@@ -76,7 +77,7 @@ class TimelineController extends CommonController
 
     public function pluginIndexAction(Request $request, $integration, $page = 1)
     {
-        $limit = 25;
+        $limit          = 25;
         $contactClients = $this->checkAllAccess('view', $limit);
 
         if ($contactClients instanceof Response) {
@@ -88,7 +89,7 @@ class TimelineController extends CommonController
         $session = $this->get('session');
         if ($request->getMethod() === 'POST' && $request->request->has('search')) {
             $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
+                'search'        => InputHelper::clean($request->request->get('search')),
                 'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
                 'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
             ];
@@ -118,16 +119,16 @@ class TimelineController extends CommonController
 
         return $this->delegateView(
             [
-                'viewParameters' => [
+                'viewParameters'  => [
                     'contactClients' => $contactClients,
-                    'page' => $page,
-                    'events' => $events,
-                    'integration' => $integration,
-                    'tmpl' => (!$this->request->isXmlHttpRequest()) ? 'index' : '',
-                    'newCount' => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
+                    'page'           => $page,
+                    'events'         => $events,
+                    'integration'    => $integration,
+                    'tmpl'           => (!$this->request->isXmlHttpRequest()) ? 'index' : '',
+                    'newCount'       => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
                 ],
                 'passthroughVars' => [
-                    'route' => false,
+                    'route'         => false,
                     'mauticContent' => 'pluginTimeline',
                     'timelineCount' => $events['total'],
                 ],
@@ -152,7 +153,7 @@ class TimelineController extends CommonController
         $session = $this->get('session');
         if ($request->getMethod() === 'POST' && $request->request->has('search')) {
             $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
+                'search'        => InputHelper::clean($request->request->get('search')),
                 'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
                 'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
             ];
@@ -181,15 +182,15 @@ class TimelineController extends CommonController
 
         return $this->delegateView(
             [
-                'viewParameters' => [
+                'viewParameters'  => [
                     'contactClient' => $contactClient,
-                    'page' => $page,
-                    'integration' => $integration,
-                    'events' => $events,
-                    'newCount' => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
+                    'page'          => $page,
+                    'integration'   => $integration,
+                    'events'        => $events,
+                    'newCount'      => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
                 ],
                 'passthroughVars' => [
-                    'route' => false,
+                    'route'         => false,
                     'mauticContent' => 'pluginTimeline',
                     'timelineCount' => $events['total'],
                 ],
@@ -219,7 +220,7 @@ class TimelineController extends CommonController
         $session = $this->get('session');
         if ($request->getMethod() == 'POST' && $request->request->has('search')) {
             $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
+                'search'        => InputHelper::clean($request->request->get('search')),
                 'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
                 'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
             ];
@@ -242,8 +243,8 @@ class TimelineController extends CommonController
             }
 
             return [
-                'eventName' => $eventLabel,
-                'eventType' => isset($event['eventType']) ? $event['eventType'] : '',
+                'eventName'      => $eventLabel,
+                'eventType'      => isset($event['eventType']) ? $event['eventType'] : '',
                 'eventTimestamp' => $this->get('mautic.helper.template.date')->toText(
                     $event['timestamp'],
                     'local',
@@ -253,11 +254,11 @@ class TimelineController extends CommonController
             ];
         };
 
-        $results = $this->getEngagements($contactClient, $filters, $order, 1, 200);
-        $count = $results['total'];
-        $items = $results['events'];
+        $results    = $this->getEngagements($contactClient, $filters, $order, 1, 200);
+        $count      = $results['total'];
+        $items      = $results['events'];
         $iterations = ceil($count / 200);
-        $loop = 1;
+        $loop       = 1;
 
         // Max of 50 iterations for 10K result export
         if ($iterations > 50) {
@@ -273,7 +274,7 @@ class TimelineController extends CommonController
                 }
             } else {
                 foreach ($items as $item) {
-                    $toExport[] = (array)$item;
+                    $toExport[] = (array) $item;
                 }
             }
 

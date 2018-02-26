@@ -14,36 +14,43 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
+use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
 /**
  * Class ApiPayload
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayload
 {
 
-    const SETTING_DEF_LIMIT = 300;
-    const SETTING_DEF_TIMEOUT = 30;
+    const SETTING_DEF_LIMIT           = 300;
+
+    const SETTING_DEF_TIMEOUT         = 30;
+
     const SETTING_DEF_CONNECT_TIMEOUT = 10;
-    const SETTING_DEF_ATTEMPTS = 3;
-    const SETTING_DEF_DELAY = 15;
-    const SETTING_DEF_AUTOUPDATE = true;
+
+    const SETTING_DEF_ATTEMPTS        = 3;
+
+    const SETTING_DEF_DELAY           = 15;
+
+    const SETTING_DEF_AUTOUPDATE      = true;
 
     /**
      * Simple settings for this integration instance from the payload.
+     *
      * @var array $settings
      */
     protected $settings = [
-        'limit' => self::SETTING_DEF_LIMIT,
-        'timeout' => self::SETTING_DEF_TIMEOUT,
+        'limit'           => self::SETTING_DEF_LIMIT,
+        'timeout'         => self::SETTING_DEF_TIMEOUT,
         'connect_timeout' => self::SETTING_DEF_CONNECT_TIMEOUT,
-        'attempts' => self::SETTING_DEF_ATTEMPTS,
-        'delay' => self::SETTING_DEF_DELAY,
-        'autoUpdate' => self::SETTING_DEF_AUTOUPDATE,
+        'attempts'        => self::SETTING_DEF_ATTEMPTS,
+        'delay'           => self::SETTING_DEF_DELAY,
+        'autoUpdate'      => self::SETTING_DEF_AUTOUPDATE,
     ];
 
     /** @var ContactClient */
@@ -90,9 +97,10 @@ class ApiPayload
 
     /**
      * ApiPayload constructor.
-     * @param contactClientModel $contactClientModel
-     * @param Transport $transport
-     * @param TokenHelper $tokenHelper
+     *
+     * @param contactClientModel   $contactClientModel
+     * @param Transport            $transport
+     * @param TokenHelper          $tokenHelper
      * @param CoreParametersHelper $coreParametersHelper
      */
     public function __construct(
@@ -101,9 +109,9 @@ class ApiPayload
         tokenHelper $tokenHelper,
         CoreParametersHelper $coreParametersHelper
     ) {
-        $this->contactClientModel = $contactClientModel;
-        $this->transport = $transport;
-        $this->tokenHelper = $tokenHelper;
+        $this->contactClientModel   = $contactClientModel;
+        $this->transport            = $transport;
+        $this->tokenHelper          = $tokenHelper;
         $this->coreParametersHelper = $coreParametersHelper;
     }
 
@@ -137,6 +145,7 @@ class ApiPayload
 
     /**
      * @param ContactClient $contactClient
+     *
      * @return $this
      * @throws \Exception
      */
@@ -152,6 +161,7 @@ class ApiPayload
      * Take the stored JSON string and parse for use.
      *
      * @param string $payload
+     *
      * @return mixed
      * @throws \Exception
      */
@@ -161,7 +171,7 @@ class ApiPayload
             throw new \Exception('API instructions payload is blank.');
         }
 
-        $jsonHelper = new JSONHelper();
+        $jsonHelper    = new JSONHelper();
         $this->payload = $jsonHelper->decodeObject($payload, 'Payload');
         $this->setSettings(!empty($this->payload->settings) ? $this->payload->settings : null);
 
@@ -170,6 +180,7 @@ class ApiPayload
 
     /**
      * Retrieve API settings from the payload to override our defaults.
+     *
      * @param object $settings
      */
     private function setSettings($settings)
@@ -208,18 +219,18 @@ class ApiPayload
         }
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $transport */
-        $transport = $this->getTransport();
-        $tokenHelper = $this->getTokenHelper();
-        $updatePayload = (bool)$this->settings['autoUpdate'];
+        $transport     = $this->getTransport();
+        $tokenHelper   = $this->getTokenHelper();
+        $updatePayload = (bool) $this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
-            $logs = [];
+            $logs         = [];
             $apiOperation = new ApiOperation($id, $operation, $transport, $tokenHelper, $this->test, $updatePayload);
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
             } catch (\Exception $e) {
-                $logs[] = $e->getMessage();
+                $logs[]      = $e->getMessage();
                 $this->valid = false;
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
@@ -286,8 +297,9 @@ class ApiPayload
     }
 
     /**
-     * @param $responseActual
+     * @param       $responseActual
      * @param array $types
+     *
      * @return $this
      */
     public function setAggregateActualResponses($responseActual, $types = ['headers', 'body'])
@@ -358,11 +370,12 @@ class ApiPayload
 
     /**
      * Apply the responsemap to update a contact entity.
+     *
      * @return bool
      */
     public function applyResponseMap()
     {
-        $updated = false;
+        $updated     = false;
         $responseMap = $this->getResponseMap();
         // Check the responseMap to discern where field values should go.
         if (count($responseMap)) {
@@ -381,6 +394,7 @@ class ApiPayload
 
     /**
      * Return the aggregate responsemap of all valid operations.
+     *
      * @return array
      */
     public function getResponseMap()
@@ -409,7 +423,7 @@ class ApiPayload
                                     unset($field->test_only);
                                     unset($field->overridable);
                                     unset($field->required);
-                                    $result[(string)$field->key] = $field;
+                                    $result[(string) $field->key] = $field;
                                 }
                             }
                         }
@@ -424,8 +438,9 @@ class ApiPayload
     /**
      * Get the most recent non-empty response value by field name, ignoring validity.
      *
-     * @param $fieldName
+     * @param       $fieldName
      * @param array $types
+     *
      * @return null
      */
     public function getAggregateResponseFieldValue($fieldName, $types = ['headers', 'body'])
@@ -450,6 +465,7 @@ class ApiPayload
      * Override the default field values, if allowed.
      *
      * @param $overrides
+     *
      * @return $this
      */
     public function setOverrides($overrides)
@@ -480,6 +496,7 @@ class ApiPayload
 
     /**
      * Get the external ID acquired/assumed by the last successful API operation.
+     *
      * @return mixed
      */
     public function getExternalId()

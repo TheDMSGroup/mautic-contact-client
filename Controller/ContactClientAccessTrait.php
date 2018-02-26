@@ -21,10 +21,11 @@ trait ContactClientAccessTrait
     /**
      * Determines if the user has access to the contactClient the note is for.
      *
-     * @param $contactClientId
-     * @param $action
-     * @param bool $isPlugin
+     * @param        $contactClientId
+     * @param        $action
+     * @param bool   $isPlugin
      * @param string $integration
+     *
      * @return ContactClient
      */
     protected function checkContactClientAccess($contactClientId, $action, $isPlugin = false, $integration = '')
@@ -32,16 +33,16 @@ trait ContactClientAccessTrait
         if (!$contactClientId instanceof ContactClient) {
             //make sure the user has view access to this contactClient
             $contactClientModel = $this->getModel('contactClient');
-            $contactClient = $contactClientModel->getEntity((int)$contactClientId);
+            $contactClient      = $contactClientModel->getEntity((int) $contactClientId);
         } else {
-            $contactClient = $contactClientId;
+            $contactClient   = $contactClientId;
             $contactClientId = $contactClient->getId();
         }
 
         if ($contactClient === null || !$contactClient->getId()) {
             if (method_exists($this, 'postActionRedirect')) {
                 //set the return URL
-                $page = $this->get('session')->get(
+                $page      = $this->get('session')->get(
                     $isPlugin ? 'mautic.'.$integration.'.page' : 'mautic.contactClient.page',
                     1
                 );
@@ -52,17 +53,17 @@ trait ContactClientAccessTrait
 
                 return $this->postActionRedirect(
                     [
-                        'returnUrl' => $returnUrl,
-                        'viewParameters' => ['page' => $page],
+                        'returnUrl'       => $returnUrl,
+                        'viewParameters'  => ['page' => $page],
                         'contentTemplate' => $isPlugin ? 'MauticContactClientBundle:ContactClient:pluginIndex' : 'MauticContactClientBundle:ContactClient:index',
                         'passthroughVars' => [
-                            'activeLink' => $isPlugin ? '#mautic_plugin_timeline_index' : '#mautic_contact_index',
+                            'activeLink'    => $isPlugin ? '#mautic_plugin_timeline_index' : '#mautic_contact_index',
                             'mauticContent' => 'contactClientTimeline',
                         ],
-                        'flashes' => [
+                        'flashes'         => [
                             [
-                                'type' => 'error',
-                                'msg' => 'mautic.contactClient.contactClient.error.notfound',
+                                'type'    => 'error',
+                                'msg'     => 'mautic.contactClient.contactClient.error.notfound',
                                 'msgVars' => ['%id%' => $contactClientId],
                             ],
                         ],
@@ -101,17 +102,17 @@ trait ContactClientAccessTrait
         // order by lastactive, filter
         $contactClients = $repo->getEntities(
             [
-                'filter' => [
+                'filter'         => [
                     'force' => [
                         [
                             'column' => 'l.date_identified',
-                            'expr' => 'isNotNull',
+                            'expr'   => 'isNotNull',
                         ],
                     ],
                 ],
-                'oderBy' => 'r.last_active',
-                'orderByDir' => 'DESC',
-                'limit' => $limit,
+                'oderBy'         => 'r.last_active',
+                'orderByDir'     => 'DESC',
+                'limit'          => $limit,
                 'hydration_mode' => 'HYDRATE_ARRAY',
             ]
         );

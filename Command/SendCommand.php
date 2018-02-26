@@ -12,18 +12,16 @@
 namespace MauticPlugin\MauticContactClientBundle\Command;
 
 use Mautic\CoreBundle\Command\ModeratedCommand;
-
-//use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-//use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-//use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
+use Mautic\PluginBundle\Helper\IntegrationHelper;
+use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use MauticPlugin\MauticSocialBundle\Entity\Lead as Contact;
-
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use Mautic\PluginBundle\Helper\IntegrationHelper;
-use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
+//use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+//use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+//use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 
 /**
  * CLI Command : Sends a contact to a client.
@@ -71,7 +69,7 @@ class SendCommand extends ModeratedCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $options = $input->getOptions();
+        $options   = $input->getOptions();
         $container = $this->getContainer();
         // @todo - add translation layer for strings in this method.
         // $translator = $container->get('translator');
@@ -93,7 +91,7 @@ class SendCommand extends ModeratedCommand
         }
 
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
-        $client = $clientModel->getEntity($options['client']);
+        $client      = $clientModel->getEntity($options['client']);
         if (!$client) {
             $output->writeln('<error>Could not load Client.</error>');
 
@@ -108,7 +106,7 @@ class SendCommand extends ModeratedCommand
 
         /** @var Contact $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
-        $contact = $contactModel->getEntity($options['contact']);
+        $contact      = $contactModel->getEntity($options['contact']);
         if (!$contact) {
             $output->writeln('<error>Could not load Contact.</error>');
 

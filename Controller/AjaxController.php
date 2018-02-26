@@ -14,8 +14,8 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
-use Symfony\Component\HttpFoundation\Request;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class AjaxController.
@@ -26,6 +26,7 @@ class AjaxController extends CommonAjaxController
 
     /**
      * @param Request $request
+     *
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      * @throws \Exception
      */

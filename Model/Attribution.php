@@ -14,10 +14,10 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
-use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 
 /**
  * Class Attribution
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class Attribution
@@ -37,13 +37,14 @@ class Attribution
 
     /**
      * Attribution constructor.
+     *
      * @param ContactClient $contactClient
-     * @param Contact $contact
+     * @param Contact       $contact
      */
     public function __construct(ContactClient $contactClient, Contact $contact)
     {
         $this->contactClient = $contactClient;
-        $this->contact = $contact;
+        $this->contact       = $contact;
     }
 
     /**
@@ -63,15 +64,18 @@ class Attribution
      */
     public function applyAttribution()
     {
-        $update = false;
+        $update              = false;
         $originalAttribution = $this->contact->getFieldValue('attribution');
         $originalAttribution = !empty($originalAttribution) ? $originalAttribution : 0;
-        $newAttribution = 0;
+        $newAttribution      = 0;
 
         if ($this->payload) {
 
-            $jsonHelper = new JSONHelper();
-            $attributionSettings = $jsonHelper->decodeObject($this->contactClient->getAttributionSettings(), 'AttributionSettings');
+            $jsonHelper          = new JSONHelper();
+            $attributionSettings = $jsonHelper->decodeObject(
+                $this->contactClient->getAttributionSettings(),
+                'AttributionSettings'
+            );
 
             if ($attributionSettings && is_object(
                     $attributionSettings->mode
@@ -110,7 +114,7 @@ class Attribution
             $attributionDefault = $this->contactClient->getAttributionDefault();
             if (!empty($attributionDefault) && is_numeric($attributionDefault)) {
                 $newAttribution = $attributionDefault;
-                $update = true;
+                $update         = true;
             }
         }
 
@@ -138,6 +142,7 @@ class Attribution
 
     /**
      * @param $newAttribution
+     *
      * @return $this
      */
     public function setNewAttribution($newAttribution)

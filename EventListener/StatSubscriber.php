@@ -12,15 +12,11 @@
 namespace MauticPlugin\MauticContactClientBundle\EventListener;
 
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
-use Mautic\FormBundle\Event\SubmissionEvent;
-use Mautic\FormBundle\FormEvents;
-use Mautic\PageBundle\Event\PageHitEvent;
-use Mautic\PageBundle\PageEvents;
-use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
  * Class StatSubscriber
+ *
  * @package MauticPlugin\MauticContactClientBundle\EventListener
  */
 class StatSubscriber extends CommonSubscriber

@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 /**
  * Class DateFormatHelper
+ *
  * @package MauticPlugin\MauticContactClientBundle\Helper
  */
 class DateFormatHelper
@@ -31,6 +32,7 @@ class DateFormatHelper
 
     /**
      * DateFormatHelper constructor.
+     *
      * @param string $tza
      * @param string $tzb
      */
@@ -47,7 +49,7 @@ class DateFormatHelper
 
     public function __get($key)
     {
-        return array($this, '_'.$key);
+        return [$this, '_'.$key];
     }
 
     public function atom($date)
@@ -155,6 +157,7 @@ class DateFormatHelper
      *
      * @param string $date
      * @param string $tz Timezone
+     *
      * @return \DateTime
      */
     private function parse($date, $tz = null)
@@ -170,6 +173,7 @@ class DateFormatHelper
      * Parse the difference between the specified date and now, based on the destination timezone.
      *
      * @param string $date
+     *
      * @return bool|\DateInterval
      */
     private function parseDiff($date)
@@ -180,6 +184,7 @@ class DateFormatHelper
     /**
      * @param $date
      * @param $format
+     *
      * @return string
      */
     private function format($date, $format = '')
@@ -196,6 +201,7 @@ class DateFormatHelper
      * Uppercase expressions prepended by 'u'
      *
      * @param $date
+     *
      * @return string
      */
     public function a($date)

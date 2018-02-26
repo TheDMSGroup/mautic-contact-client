@@ -17,6 +17,7 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
  * Class Event
+ *
  * @package MauticPlugin\MauticContactClientBundle\Entity
  */
 class Event
@@ -66,7 +67,7 @@ class Event
     public function __construct()
     {
         $this->dateAdded = new \Datetime();
-        $this->type = 'undefined';
+        $this->type      = 'undefined';
     }
 
     /**
@@ -178,6 +179,7 @@ class Event
 
     /**
      * @param $contactClient
+     *
      * @return $this
      */
     public function setContactClient($contactClient)
@@ -197,6 +199,7 @@ class Event
 
     /**
      * @param $logs
+     *
      * @return $this
      */
     public function setLogs($logs)
@@ -216,6 +219,7 @@ class Event
 
     /**
      * @param $message
+     *
      * @return $this
      */
     public function setMessage($message)
@@ -235,6 +239,7 @@ class Event
 
     /**
      * @param $integration_entity_id
+     *
      * @return $this
      */
     public function setIntegrationEntityId($integration_entity_id)
@@ -254,6 +259,7 @@ class Event
 
     /**
      * @param $dateAdded
+     *
      * @return $this
      */
     public function setDateAdded($dateAdded)

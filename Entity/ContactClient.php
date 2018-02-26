@@ -451,6 +451,7 @@ class ContactClient extends FormEntity
 
     /**
      * @param $attribution_default
+     *
      * @return $this
      */
     public function setAttributionDefault($attribution_default)
@@ -472,6 +473,7 @@ class ContactClient extends FormEntity
 
     /**
      * @param $attribution_settings
+     *
      * @return $this
      */
     public function setAttributionSettings($attribution_settings)

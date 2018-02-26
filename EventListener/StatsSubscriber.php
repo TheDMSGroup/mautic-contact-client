@@ -16,6 +16,7 @@ use Mautic\CoreBundle\EventListener\CommonStatsSubscriber;
 
 /**
  * Class StatsSubscriber
+ *
  * @package MauticPlugin\MauticContactClientBundle\EventListener
  */
 class StatsSubscriber extends CommonStatsSubscriber

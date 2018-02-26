@@ -14,10 +14,10 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
  * Class CacheRepository
+ *
  * @package MauticPlugin\MauticContactClientBundle\Entity
  */
 class CacheRepository extends CommonRepository
@@ -27,16 +27,22 @@ class CacheRepository extends CommonRepository
      * Bitwise operators for $matching.
      */
     const MATCHING_EXPLICIT = 1;
-    const MATCHING_EMAIL = 2;
-    const MATCHING_PHONE = 4;
-    const MATCHING_MOBILE = 8;
-    const MATCHING_ADDRESS = 16;
+
+    const MATCHING_EMAIL    = 2;
+
+    const MATCHING_PHONE    = 4;
+
+    const MATCHING_MOBILE   = 8;
+
+    const MATCHING_ADDRESS  = 16;
 
     /**
      * Bitwise operators for $scope.
      */
-    const SCOPE_GLOBAL = 1;
+    const SCOPE_GLOBAL   = 1;
+
     const SCOPE_CATEGORY = 2;
+
     // For limits only:
     const SCOPE_UTM_SOURCE = 3;
 
@@ -47,9 +53,10 @@ class CacheRepository extends CommonRepository
      * Given a matching pattern and a contact, discern if there is a match in the cache.
      * Used for exclusivity and duplicate checking.
      *
-     * @param Contact $contact
+     * @param Contact       $contact
      * @param ContactClient $contactClient
-     * @param array $rules
+     * @param array         $rules
+     *
      * @return bool|mixed
      * @throws \Exception
      */
@@ -61,14 +68,14 @@ class CacheRepository extends CommonRepository
         // Generate our filters based on the rules provided.
         $filters = [];
         foreach ($rules as $rule) {
-            $orx = [];
+            $orx      = [];
             $matching = $rule['matching'];
-            $scope = $rule['scope'];
+            $scope    = $rule['scope'];
             $duration = $rule['duration'];
 
             // Match explicit
             if ($matching & self::MATCHING_EXPLICIT) {
-                $orx['contact_id'] = (int)$contact->getId();
+                $orx['contact_id'] = (int) $contact->getId();
             }
 
             // Match email
@@ -99,7 +106,7 @@ class CacheRepository extends CommonRepository
             if ($matching & self::MATCHING_ADDRESS) {
                 $address1 = trim(ucwords($contact->getAddress1()));
                 if (!empty($address1)) {
-                    $city = trim(ucwords($contact->getCity()));
+                    $city    = trim(ucwords($contact->getCity()));
                     $zipcode = trim(ucwords($contact->getZipcode()));
 
                     // Only support this level of matching if we have enough for a valid address.
@@ -162,7 +169,7 @@ class CacheRepository extends CommonRepository
                 $oldest = new \DateTime();
                 $oldest->sub(new \DateInterval($duration));
                 $filters[] = [
-                    'orx' => $orx,
+                    'orx'        => $orx,
                     'date_added' => $oldest->format('Y-m-d H:i:s'),
                 ];
             }
@@ -173,6 +180,7 @@ class CacheRepository extends CommonRepository
 
     /**
      * @param $phone
+     *
      * @return string
      *
      * @todo - dedupe this method.
@@ -180,7 +188,7 @@ class CacheRepository extends CommonRepository
     private function phoneValidate($phone)
     {
         $result = null;
-        $phone = trim($phone);
+        $phone  = trim($phone);
         if (!empty($phone)) {
             if (!$this->phoneHelper) {
                 $this->phoneHelper = new PhoneNumberHelper();
@@ -199,6 +207,7 @@ class CacheRepository extends CommonRepository
 
     /**
      * @param array $filters
+     *
      * @return mixed|null
      */
     private function applyFilters($filters = [])
@@ -216,13 +225,13 @@ class CacheRepository extends CommonRepository
             foreach ($filters as $k => $set) {
                 // Expect orx, anx, or neither.
                 if (isset($set['orx'])) {
-                    $expr = $query->expr()->orX();
+                    $expr       = $query->expr()->orX();
                     $properties = $set['orx'];
                 } elseif (isset($set['andx'])) {
-                    $expr = $query->expr()->andX();
+                    $expr       = $query->expr()->andX();
                     $properties = $set['andx'];
                 } else {
-                    $expr = $query->expr();
+                    $expr       = $query->expr();
                     $properties = $set;
                 }
                 foreach ($properties as $property => $value) {
@@ -249,7 +258,7 @@ class CacheRepository extends CommonRepository
                 } elseif (isset($set['exclusive_expire_date'])) {
                     // Expiration/Exclusions will require an extra outer AND expression.
                     if (!isset($exprOuter)) {
-                        $exprOuter = $query->expr()->orX();
+                        $exprOuter  = $query->expr()->orX();
                         $expireDate = $set['exclusive_expire_date'];
                     }
                     $exprOuter->add(
@@ -282,9 +291,10 @@ class CacheRepository extends CommonRepository
      * Only the first 4 matching rules are allowed for exclusivity (by default).
      * Only the first two scopes are allowed for exclusivity.
      *
-     * @param Contact $contact
+     * @param Contact                                                      $contact
      * @param \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $contactClient
-     * @param int $matching
+     * @param int                                                          $matching
+     *
      * @return mixed|null
      */
     public function findExclusive(
@@ -299,7 +309,7 @@ class CacheRepository extends CommonRepository
         if ($matching & self::MATCHING_EXPLICIT) {
             $filters[] = [
                 'andx' => [
-                    'contact_id' => (int)$contact->getId(),
+                    'contact_id'        => (int) $contact->getId(),
                     'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_EXPLICIT),
                 ],
             ];
@@ -311,7 +321,7 @@ class CacheRepository extends CommonRepository
             if ($email) {
                 $filters[] = [
                     'andx' => [
-                        'email' => $email,
+                        'email'             => $email,
                         'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_EMAIL),
                     ],
                 ];
@@ -324,7 +334,7 @@ class CacheRepository extends CommonRepository
             if (!empty($phone)) {
                 $filters[] = [
                     'andx' => [
-                        'phone' => $phone,
+                        'phone'             => $phone,
                         'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_MOBILE),
                     ],
                 ];
@@ -337,7 +347,7 @@ class CacheRepository extends CommonRepository
             if (!empty($mobile)) {
                 $filters[] = [
                     'andx' => [
-                        'phone' => $phone,
+                        'phone'             => $phone,
                         'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_PHONE),
                     ],
                 ];
@@ -349,8 +359,8 @@ class CacheRepository extends CommonRepository
         if ($matching & self::MATCHING_ADDRESS) {
             $address1 = trim(ucwords($contact->getAddress1()));
             if (!empty($address1)) {
-                $filter = [];
-                $city = trim(ucwords($contact->getCity()));
+                $filter  = [];
+                $city    = trim(ucwords($contact->getCity()));
                 $zipcode = trim(ucwords($contact->getZipcode()));
 
                 // Only support this level of matching if we have enough for a valid address.
@@ -381,7 +391,7 @@ class CacheRepository extends CommonRepository
                     }
 
                     $filter['exclusive_pattern'] = $this->bitwiseIn($matching, self::MATCHING_ADDRESS);
-                    $filters[] = [
+                    $filters[]                   = [
                         'andx' => $filter,
                     ];
                 }
@@ -399,12 +409,12 @@ class CacheRepository extends CommonRepository
         if ($category) {
             $category = $category->getId();
             if ($category) {
-                $newFilters = [];
+                $newFilters   = [];
                 $scopePattern = $this->bitwiseIn($matching, self::SCOPE_CATEGORY);
                 foreach ($filters as $filter) {
-                    $filter['andx']['category_id'] = $category;
+                    $filter['andx']['category_id']     = $category;
                     $filter['andx']['exclusive_scope'] = $scopePattern;
-                    $newFilters[] = $filter;
+                    $newFilters[]                      = $filter;
                 }
                 $filters = array_merge($filters, $newFilters);
             }
@@ -420,7 +430,8 @@ class CacheRepository extends CommonRepository
      * generate a minimal array for an IN query.
      *
      * @param int $max
-     * @param $matching
+     * @param     $matching
+     *
      * @return array
      */
     private function bitwiseIn($max, $matching)

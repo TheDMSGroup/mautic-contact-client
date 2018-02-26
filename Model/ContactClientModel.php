@@ -16,15 +16,15 @@ use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
 use Mautic\CoreBundle\Model\FormModel;
-use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use Mautic\PageBundle\Model\TrackableModel;
+use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
-use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -32,6 +32,7 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
  * Class ContactClientModel
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ContactClientModel extends FormModel
@@ -55,10 +56,10 @@ class ContactClientModel extends FormModel
      * ContactClientModel constructor.
      *
      * @param \Mautic\FormBundle\Model\FormModel $formModel
-     * @param TrackableModel $trackableModel
-     * @param TemplatingHelper $templating
-     * @param EventDispatcherInterface $dispatcher
-     * @param ContactModel $contactModel
+     * @param TrackableModel                     $trackableModel
+     * @param TemplatingHelper                   $templating
+     * @param EventDispatcherInterface           $dispatcher
+     * @param ContactModel                       $contactModel
      */
     public function __construct(
         \Mautic\FormBundle\Model\FormModel $formModel,
@@ -67,11 +68,11 @@ class ContactClientModel extends FormModel
         EventDispatcherInterface $dispatcher,
         ContactModel $contactModel
     ) {
-        $this->formModel = $formModel;
+        $this->formModel      = $formModel;
         $this->trackableModel = $trackableModel;
-        $this->templating = $templating;
-        $this->dispatcher = $dispatcher;
-        $this->contactModel = $contactModel;
+        $this->templating     = $templating;
+        $this->dispatcher     = $dispatcher;
+        $this->contactModel   = $contactModel;
     }
 
     /**
@@ -93,10 +94,10 @@ class ContactClientModel extends FormModel
     /**
      * {@inheritdoc}
      *
-     * @param object $entity
+     * @param object                              $entity
      * @param \Symfony\Component\Form\FormFactory $formFactory
-     * @param null $action
-     * @param array $options
+     * @param null                                $action
+     * @param array                               $options
      *
      * @throws NotFoundHttpException
      */
@@ -133,7 +134,7 @@ class ContactClientModel extends FormModel
      * {@inheritdoc}
      *
      * @param ContactClient $entity
-     * @param bool|false $unlock
+     * @param bool|false    $unlock
      */
     public function saveEntity($entity, $unlock = true)
     {
@@ -156,9 +157,9 @@ class ContactClientModel extends FormModel
      * Add a stat entry.
      *
      * @param ContactClient $contactClient
-     * @param $type
-     * @param null|Contact $contact
-     * @param int $attribution
+     * @param               $type
+     * @param null|Contact  $contact
+     * @param int           $attribution
      */
     public function addStat(ContactClient $contactClient, $type, $contact = null, $attribution = 0)
     {
@@ -191,11 +192,11 @@ class ContactClientModel extends FormModel
      * Add transactional log in contactclient_events
      *
      * @param ContactClient $contactClient
-     * @param $type
-     * @param null $contact
-     * @param null $logs
-     * @param null $message
-     * @param null $integration_entity_id
+     * @param               $type
+     * @param null          $contact
+     * @param null          $logs
+     * @param null          $message
+     * @param null          $integration_entity_id
      */
     public function addEvent(
         ContactClient $contactClient,
@@ -236,13 +237,13 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient $contactClient
+     * @param ContactClient  $contactClient
      * @param                $unit
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
      *
-     * @param null $dateFormat
-     * @param bool $canViewOthers
+     * @param null           $dateFormat
+     * @param bool           $canViewOthers
      *
      * @return array
      */
@@ -287,8 +288,8 @@ class ContactClientModel extends FormModel
         if (!$canViewOthers) {
             $this->limitQueryToCreator($q);
         }
-        $dbUnit = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
-        $dbUnit = $query->translateTimeUnit($dbUnit);
+        $dbUnit        = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
+        $dbUnit        = $query->translateTimeUnit($dbUnit);
         $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
         $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
             ->groupBy($dateConstruct);
@@ -319,11 +320,12 @@ class ContactClientModel extends FormModel
      * Get timeline/engagement data.
      *
      * @param ContactClient|null $contactClient
-     * @param array $filters
-     * @param null $orderBy
-     * @param int $page
-     * @param int $limit
-     * @param bool $forTimeline
+     * @param array              $filters
+     * @param null               $orderBy
+     * @param int                $page
+     * @param int                $limit
+     * @param bool               $forTimeline
+     *
      * @return array
      */
     public function getEngagements(
@@ -351,13 +353,13 @@ class ContactClientModel extends FormModel
             $filters['search'] = null;
         }
         $payload = [
-            'events' => $event->getEvents(),
-            'filters' => $filters,
-            'order' => $orderBy,
-            'types' => $event->getEventTypes(),
-            'total' => $event->getEventCounter()['total'],
-            'page' => $page,
-            'limit' => $limit,
+            'events'   => $event->getEvents(),
+            'filters'  => $filters,
+            'order'    => $orderBy,
+            'types'    => $event->getEventTypes(),
+            'total'    => $event->getEventCounter()['total'],
+            'page'     => $page,
+            'limit'    => $limit,
             'maxPages' => $event->getMaxPage(),
         ];
 
@@ -380,10 +382,10 @@ class ContactClientModel extends FormModel
     /**
      * Get engagement counts by time unit.
      *
-     * @param Contact $contact
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param string $unit
+     * @param Contact         $contact
+     * @param \DateTime|null  $dateFrom
+     * @param \DateTime|null  $dateTo
+     * @param string          $unit
      * @param ChartQuery|null $chartQuery
      *
      * @return array

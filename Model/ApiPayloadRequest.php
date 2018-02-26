@@ -13,12 +13,13 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
 use Mautic\PluginBundle\Exception\ApiErrorException;
-use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
+use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class ApiPayloadRequest
+ *
  * @package MauticPlugin\MauticContactClientBundle\Model
  */
 class ApiPayloadRequest
@@ -40,19 +41,20 @@ class ApiPayloadRequest
 
     /**
      * ApiRequest constructor.
-     * @param $uri
-     * @param $request
-     * @param Transport $transport
+     *
+     * @param             $uri
+     * @param             $request
+     * @param Transport   $transport
      * @param TokenHelper $tokenHelper
-     * @param bool $test
+     * @param bool        $test
      */
     public function __construct($uri, $request, Transport $transport, TokenHelper $tokenHelper, $test = false)
     {
-        $this->uri = $uri;
-        $this->request = $request;
-        $this->transport = $transport;
+        $this->uri         = $uri;
+        $this->request     = $request;
+        $this->transport   = $transport;
         $this->tokenHelper = $tokenHelper;
-        $this->test = $test;
+        $this->test        = $test;
     }
 
     /**
@@ -63,9 +65,9 @@ class ApiPayloadRequest
         $uri = $this->uri;
         $this->setLogs($uri, 'uri');
 
-        $request = $this->request;
+        $request   = $this->request;
         $transport = $this->transport;
-        $options = [];
+        $options   = [];
 
         // Retrieve/filter/tokenize the Request Body Field values if present.
         $requestFields = [];
@@ -105,10 +107,10 @@ class ApiPayloadRequest
             case 'xml':
                 $options['headers']['Content-Type'] = 'application/xml; charset=utf-8';
                 if ($requestFields) {
-                    $doc = new DomDocument('1.0');
+                    $doc                     = new DomDocument('1.0');
                     $doc->preserveWhiteSpace = false;
-                    $doc->formatOutput = true;
-                    $root = $doc->createElement(self::XML_ROOT_ELEM);
+                    $doc->formatOutput       = true;
+                    $root                    = $doc->createElement(self::XML_ROOT_ELEM);
                     $doc->appendChild($root);
                     foreach ($requestFields as $key => $value) {
                         $element = $doc->createElement($key);
@@ -195,6 +197,7 @@ class ApiPayloadRequest
      * Tokenize/parse fields from the API Payload for transit.
      *
      * @param $fields
+     *
      * @return array
      * @throws ApiErrorException
      */
@@ -243,6 +246,7 @@ class ApiPayloadRequest
 
     /**
      * @param $string
+     *
      * @return mixed
      */
     private function renderTokens($string = '')
@@ -264,7 +268,7 @@ class ApiPayloadRequest
                 } else {
                     $this->logs[$type] = [
                         $this->logs[$type],
-                        $value
+                        $value,
                     ];
                 }
             } else {
