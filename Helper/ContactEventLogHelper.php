@@ -11,7 +11,6 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
-
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Entity\LeadEventLog as ContactEventLog;
 use Mautic\LeadBundle\Entity\LeadEventLogRepository as ContactEventLogRepository;
@@ -19,15 +18,12 @@ use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 /**
- * Class ContactEventLogHelper
+ * Class ContactEventLogHelper.
  *
  * NOTE: This is not currently used for contact clients. See notes in the integrator.
- *
- * @package MauticPlugin\MauticContactClientBundle\Helper
  */
 class ContactEventLogHelper
 {
-
     /**
      * @var LeadModel
      */
@@ -84,6 +80,4 @@ class ContactEventLogHelper
 
         return $eventLog;
     }
-
-
 }

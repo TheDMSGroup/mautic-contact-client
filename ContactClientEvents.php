@@ -63,5 +63,4 @@ final class ContactClientEvents
      * @var string
      */
     const TIMELINE_ON_GENERATE = 'mautic.contactclient_timeline_on_generate';
-
 }

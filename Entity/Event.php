@@ -16,9 +16,7 @@ use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
- * Class Event
- *
- * @package MauticPlugin\MauticContactClientBundle\Entity
+ * Class Event.
  */
 class Event
 {
@@ -268,6 +266,4 @@ class Event
 
         return $this;
     }
-
-
 }

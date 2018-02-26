@@ -15,9 +15,7 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mustache_Engine as Engine;
 
 /**
- * Class TokenHelper
- *
- * @package MauticPlugin\MauticContactClientBundle\Helper
+ * Class TokenHelper.
  */
 class TokenHelper
 {
@@ -32,7 +30,7 @@ class TokenHelper
     private $engine;
 
     /**
-     * @var array Context of tokens for replacement.
+     * @var array context of tokens for replacement
      */
     private $context = [];
 
@@ -63,11 +61,11 @@ class TokenHelper
     {
         $result = [];
         foreach ($array as $key => $value) {
-            if (strpos($key, self::TOKEN_KEY) !== false) {
+            if (false !== strpos($key, self::TOKEN_KEY)) {
                 $key = $this->engine->render($key, $this->context);
             }
             if (is_string($value)) {
-                if (strpos($value, self::TOKEN_KEY) !== false) {
+                if (false !== strpos($value, self::TOKEN_KEY)) {
                     $value = $this->engine->render($value, $this->context);
                 }
             } elseif (is_array($value) || is_object($value)) {
@@ -88,7 +86,7 @@ class TokenHelper
      */
     public function renderString($string)
     {
-        if (strpos($string, self::TOKEN_KEY) !== false) {
+        if (false !== strpos($string, self::TOKEN_KEY)) {
             $string = $this->engine->render($string, $this->context);
         }
 
@@ -217,10 +215,10 @@ class TokenHelper
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
                     $value = !empty($field['value']) ? $field['value'] : null;
-                    if ($value && $field['type'] == 'datetime') {
+                    if ($value && 'datetime' == $field['type']) {
                         $value = $this->dateFormatHelper->iso8601($value);
                     }
-                    if ($fgKey == 'core') {
+                    if ('core' == $fgKey) {
                         $context[$fkey] = $value;
                     } else {
                         if (!isset($context[$fgKey])) {

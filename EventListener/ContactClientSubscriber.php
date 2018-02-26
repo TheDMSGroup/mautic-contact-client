@@ -28,9 +28,7 @@ use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\Routing\RouterInterface;
 
 /**
- * Class ContactClientSubscriber
- *
- * @package MauticPlugin\MauticContactClientBundle\EventListener
+ * Class ContactClientSubscriber.
  */
 class ContactClientSubscriber extends CommonSubscriber
 {
@@ -194,7 +192,6 @@ class ContactClientSubscriber extends CommonSubscriber
             $event->addToCounter($eventTypeKey, 1);
 
             if (!$event->isEngagementCount()) {
-
 //                if (!$this->pageModel) {
 //                    $this->pageModel = new PageModel();
 //                }

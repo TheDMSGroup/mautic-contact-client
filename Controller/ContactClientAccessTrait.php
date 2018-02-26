@@ -39,7 +39,7 @@ trait ContactClientAccessTrait
             $contactClientId = $contactClient->getId();
         }
 
-        if ($contactClient === null || !$contactClient->getId()) {
+        if (null === $contactClient || !$contactClient->getId()) {
             if (method_exists($this, 'postActionRedirect')) {
                 //set the return URL
                 $page      = $this->get('session')->get(
@@ -117,7 +117,7 @@ trait ContactClientAccessTrait
             ]
         );
 
-        if ($contactClients === null) {
+        if (null === $contactClients) {
             return $this->accessDenied();
         }
 

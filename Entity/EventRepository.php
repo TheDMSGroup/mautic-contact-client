@@ -16,9 +16,7 @@ use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\LeadBundle\Entity\TimelineTrait;
 
 /**
- * Class EventRepository
- *
- * @package MauticPlugin\MauticContactClientBundle\Entity
+ * Class EventRepository.
  */
 class EventRepository extends CommonRepository
 {
@@ -80,7 +78,6 @@ class EventRepository extends CommonRepository
         )
             ->setParameter('contactClientId', $contactClientId);
 
-
         if ($eventType) {
             $query->andWhere(
                 $query->expr()->eq('c.type', ':type')
@@ -103,7 +100,6 @@ class EventRepository extends CommonRepository
 
         return $this->getTimelineResults($query, $options, 'c.type', 'c.date_added', [], ['date_added']);
     }
-
 
     /**
      * Get a list of entities.

@@ -18,13 +18,10 @@ use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use stdClass;
 
 /**
- * Class ApiPayloadOperation
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class ApiPayloadOperation.
  */
 class ApiPayloadOperation
 {
-
     protected $operation;
 
     protected $name;
@@ -215,7 +212,7 @@ class ApiPayloadOperation
         return $this->logs;
     }
 
-    function setLogs($value, $type = null)
+    public function setLogs($value, $type = null)
     {
         if ($type) {
             if (isset($this->logs[$type])) {
@@ -265,8 +262,6 @@ class ApiPayloadOperation
     /**
      * Given the response fields, attempt to assume an external ID for future correlation.
      * Find the best possible fit.
-     *
-     * @return null
      */
     public function getExternalId()
     {
@@ -276,11 +271,11 @@ class ApiPayloadOperation
         foreach (['headers', 'body'] as $type) {
             if (isset($this->responseActual[$type]) && isset($this->responseActual[$type])) {
                 foreach ($this->responseActual[$type] as $key => $value) {
-                    $key = preg_replace("/[^a-z0-9]/", '', strtolower($key));
-                    if (isset($externalIds[$key]) && ($idIndex === null || $externalIds[$key] < $idIndex)) {
+                    $key = preg_replace('/[^a-z0-9]/', '', strtolower($key));
+                    if (isset($externalIds[$key]) && (null === $idIndex || $externalIds[$key] < $idIndex)) {
                         $idIndex = $externalIds[$key];
                         $id      = $value;
-                        if ($idIndex == 0) {
+                        if (0 == $idIndex) {
                             break;
                         }
                     }
@@ -290,5 +285,4 @@ class ApiPayloadOperation
 
         return $id;
     }
-
 }

@@ -14,12 +14,10 @@ namespace MauticPlugin\MauticContactClientBundle\Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
- * Class ContactClientException
+ * Class ContactClientException.
  *
  * This form of exception indicates that we may re-try the send at a later date or time.
  * Also can indicate a Stat type for logging.
- *
- * @package MauticPlugin\MauticContactClientBundle\Exception
  */
 class ContactClientException extends \Exception
 {

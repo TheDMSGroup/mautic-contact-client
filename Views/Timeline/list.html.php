@@ -8,7 +8,7 @@
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-if (isset($tmpl) && $tmpl == 'index') {
+if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Timeline:index.html.php');
 }
 
@@ -86,7 +86,7 @@ $baseUrl = $view['router']->path(
         <tbody>
         <?php foreach ($events['events'] as $counter => $event): ?>
             <?php
-            $counter    += 1; // prevent 0
+            $counter += 1; // prevent 0
             $icon       = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
             $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
             $message    = (isset($event['message'])) ? $event['message'] : null;
@@ -103,7 +103,7 @@ $baseUrl = $view['router']->path(
                 );
             endif;
 
-            $rowStripe = ($counter % 2 === 0) ? ' timeline-row-highlighted' : '';
+            $rowStripe = (0 === $counter % 2) ? ' timeline-row-highlighted' : '';
             ?>
             <tr class="timeline-row<?php echo $rowStripe; ?><?php if (!empty($event['featured'])) {
                 echo ' timeline-featured';
@@ -111,11 +111,11 @@ $baseUrl = $view['router']->path(
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
-                           echo ' disabled';
-                       } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
+                echo ' disabled';
+            } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.toggle_details'
                     ); ?>">
-                        <span class="fa fa-fw <?php echo $icon ?>"></span>
+                        <span class="fa fa-fw <?php echo $icon; ?>"></span>
                     </a>
                 </td>
                 <td class="timeline-message"><?php echo $message; ?></td>
@@ -134,7 +134,7 @@ $baseUrl = $view['router']->path(
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide"
                     id="timeline-details-<?php echo $counter; ?>">
                     <td colspan="5">
-                        <?php echo $details ?>
+                        <?php echo $details; ?>
                     </td>
                 </tr>
             <?php endif; ?>

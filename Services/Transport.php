@@ -14,9 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Services;
 use GuzzleHttp\Client;
 
 /**
- * Class Transport
- *
- * @package MauticPlugin\MauticContactClientBundle\Services
+ * Class Transport.
  */
 class Transport implements TransportInterface
 {
@@ -39,9 +37,9 @@ class Transport implements TransportInterface
      *    json
      *    multipart
      *    query
-     *  proxy
+     *  proxy.
      *
-     * @var array Default options for transportation.
+     * @var array default options for transportation
      */
     private $settings = [
         'allow_redirects' => [

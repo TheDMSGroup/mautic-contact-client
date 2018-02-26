@@ -28,6 +28,7 @@ class AjaxController extends CommonAjaxController
      * @param Request $request
      *
      * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *
      * @throws \Exception
      */
     protected function getApiPayloadTestAction(Request $request)
@@ -42,7 +43,6 @@ class AjaxController extends CommonAjaxController
         ];
 
         if (!empty($apiPayload)) {
-
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 

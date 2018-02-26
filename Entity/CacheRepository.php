@@ -16,13 +16,10 @@ use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
- * Class CacheRepository
- *
- * @package MauticPlugin\MauticContactClientBundle\Entity
+ * Class CacheRepository.
  */
 class CacheRepository extends CommonRepository
 {
-
     /**
      * Bitwise operators for $matching.
      */
@@ -58,6 +55,7 @@ class CacheRepository extends CommonRepository
      * @param array         $rules
      *
      * @return bool|mixed
+     *
      * @throws \Exception
      */
     public function findDuplicate(
@@ -302,7 +300,6 @@ class CacheRepository extends CommonRepository
         ContactClient $contactClient,
         $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE
     ) {
-
         // Generate our filters based on all rules possibly in play.
 
         // Match explicit
@@ -437,7 +434,7 @@ class CacheRepository extends CommonRepository
     private function bitwiseIn($max, $matching)
     {
         $result = [];
-        for ($i = 1; $i <= $max; $i++) {
+        for ($i = 1; $i <= $max; ++$i) {
             if ($i & $matching) {
                 $result[] = $i;
             }
@@ -445,7 +442,6 @@ class CacheRepository extends CommonRepository
 
         return $result;
     }
-
 
     /**
      * Add Expiration date to all filters.
@@ -462,5 +458,4 @@ class CacheRepository extends CommonRepository
             }
         }
     }
-
 }

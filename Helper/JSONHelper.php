@@ -12,19 +12,17 @@
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 /**
- * Class JSONHelper
- *
- * @package MauticPlugin\MauticContactClientBundle\Helper
+ * Class JSONHelper.
  */
 class JSONHelper
 {
-
     /**
      * @param        $string
      * @param string $fieldName
      * @param bool   $assoc
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function decodeArray($string, $fieldName = 'Unknown', $assoc = false)
@@ -45,6 +43,7 @@ class JSONHelper
      * @param string $fieldName
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function decodeObject($string, $fieldName = 'Unknown')
@@ -66,6 +65,7 @@ class JSONHelper
      * @param bool $assoc
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     private function decode($string, $fieldName, $assoc = false)

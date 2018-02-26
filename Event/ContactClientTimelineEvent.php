@@ -133,7 +133,7 @@ class ContactClientTimelineEvent extends Event
      * @param array              $filters
      * @param array|null         $orderBy
      * @param int                $page
-     * @param int                $limit Limit per type
+     * @param int                $limit         Limit per type
      * @param bool               $forTimeline
      * @param string|null        $siteDomain
      */
@@ -237,7 +237,7 @@ class ContactClientTimelineEvent extends Event
                         $data['eventLabel']
                     ) && isset($data['eventLabel']['href'])) {
                     // If this does not have a http, then assume a Mautic URL
-                    if (strpos($data['eventLabel']['href'], '://') === false) {
+                    if (false === strpos($data['eventLabel']['href'], '://')) {
                         $data['eventLabel']['href'] = $this->siteDomain.$data['eventLabel']['href'];
                     }
                 }
@@ -397,7 +397,7 @@ class ContactClientTimelineEvent extends Event
                 }
             );
 
-            if ($this->orderBy[1] == 'DESC') {
+            if ('DESC' == $this->orderBy[1]) {
                 $events = array_reverse($events);
             }
         }
@@ -666,5 +666,4 @@ class ContactClientTimelineEvent extends Event
     {
         $this->fetchTypesOnly = true;
     }
-
 }

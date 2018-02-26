@@ -169,7 +169,7 @@ class Stat
             $reflection = new \ReflectionClass(__CLASS__);
             $result     = $reflection->getConstants();
         } catch (\ReflectionException $e) {
-        };
+        }
 
         return $result;
     }

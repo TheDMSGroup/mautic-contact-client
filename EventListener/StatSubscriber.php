@@ -15,9 +15,7 @@ use Mautic\CoreBundle\EventListener\CommonSubscriber;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
- * Class StatSubscriber
- *
- * @package MauticPlugin\MauticContactClientBundle\EventListener
+ * Class StatSubscriber.
  */
 class StatSubscriber extends CommonSubscriber
 {
@@ -43,5 +41,4 @@ class StatSubscriber extends CommonSubscriber
     {
         return [];
     }
-
 }

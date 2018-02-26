@@ -12,21 +12,19 @@
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 /**
- * Class DateFormatHelper
- *
- * @package MauticPlugin\MauticContactClientBundle\Helper
+ * Class DateFormatHelper.
  */
 class DateFormatHelper
 {
     const DATE_SHORT = 'd/m/Y';
 
     /**
-     * @var string Datasource timezone (internal).
+     * @var string datasource timezone (internal)
      */
     private $tza;
 
     /**
-     * @var string Destination timezone (client).
+     * @var string destination timezone (client)
      */
     private $tzb;
 
@@ -153,10 +151,10 @@ class DateFormatHelper
     }
 
     /**
-     * Parse a string into a DateTime
+     * Parse a string into a DateTime.
      *
      * @param string $date
-     * @param string $tz Timezone
+     * @param string $tz   Timezone
      *
      * @return \DateTime
      */
@@ -189,7 +187,7 @@ class DateFormatHelper
      */
     private function format($date, $format = '')
     {
-        if (strlen($format) == 2 && strpos($format, 'u') === 0) {
+        if (2 == strlen($format) && 0 === strpos($format, 'u')) {
             $format = substr($format, 1);
         }
 
@@ -198,7 +196,7 @@ class DateFormatHelper
 
     /**
      * Typical single-character expressions.
-     * Uppercase expressions prepended by 'u'
+     * Uppercase expressions prepended by 'u'.
      *
      * @param $date
      *
@@ -388,5 +386,4 @@ class DateFormatHelper
     {
         return $this->format($date, __FUNCTION__);
     }
-
 }

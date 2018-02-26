@@ -18,15 +18,12 @@ use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class Schedule
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class Schedule.
  */
 class Schedule
 {
-
     /**
-     * @var \DateTimeZone $timezone
+     * @var \DateTimeZone
      */
     protected $timezone;
 
@@ -144,7 +141,6 @@ class Schedule
      */
     public function evaluateExclusions(ContactClient $contactClient)
     {
-
         // Check dates of exclusion (if there are any).
         $jsonHelper = new JSONHelper();
         $exclusions = $jsonHelper->decodeArray($contactClient->getScheduleExclusions(), 'ScheduleExclusions');
@@ -158,11 +154,11 @@ class Schedule
                     $dateString   = trim(str_ireplace('yyyy-', '', $exclusion->value));
                     $segments     = explode('-', $dateString);
                     $segmentCount = count($segments);
-                    if ($segmentCount == 3) {
+                    if (3 == $segmentCount) {
                         $year  = !empty($segments[0]) ? str_pad($segments[0], 4, '0', STR_PAD_LEFT) : $now->format('Y');
                         $month = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('m');
                         $day   = !empty($segments[2]) ? str_pad($segments[2], 2, '0', STR_PAD_LEFT) : $now->format('d');
-                    } elseif ($segmentCount == 2) {
+                    } elseif (2 == $segmentCount) {
                         $year  = $now->format('Y');
                         $month = !empty($segments[0]) ? str_pad($segments[0], 2, '0', STR_PAD_LEFT) : $now->format('m');
                         $day   = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('d');

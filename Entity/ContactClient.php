@@ -140,7 +140,6 @@ class ContactClient extends FormEntity
                 ['message' => 'mautic.contactclient.error.select_type']
             )
         );
-
     }
 
     /**
@@ -638,5 +637,4 @@ class ContactClient extends FormEntity
 
         return $this;
     }
-
 }

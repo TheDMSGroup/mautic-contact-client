@@ -20,13 +20,10 @@ use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOpera
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
 /**
- * Class ApiPayload
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class ApiPayload.
  */
 class ApiPayload
 {
-
     const SETTING_DEF_LIMIT           = 300;
 
     const SETTING_DEF_TIMEOUT         = 30;
@@ -42,7 +39,7 @@ class ApiPayload
     /**
      * Simple settings for this integration instance from the payload.
      *
-     * @var array $settings
+     * @var array
      */
     protected $settings = [
         'limit'           => self::SETTING_DEF_LIMIT,
@@ -147,6 +144,7 @@ class ApiPayload
      * @param ContactClient $contactClient
      *
      * @return $this
+     *
      * @throws \Exception
      */
     public function setContactClient(ContactClient $contactClient)
@@ -163,6 +161,7 @@ class ApiPayload
      * @param string $payload
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     private function setPayload(string $payload)
@@ -210,6 +209,7 @@ class ApiPayload
      * Step through all operations defined.
      *
      * @return bool
+     *
      * @throws \Exception
      */
     public function run()
@@ -348,7 +348,7 @@ class ApiPayload
         return $this->logs;
     }
 
-    function setLogs($value, $type = null)
+    public function setLogs($value, $type = null)
     {
         if ($type) {
             if (isset($this->logs[$type])) {
@@ -416,7 +416,7 @@ class ApiPayload
                     foreach (['headers', 'body'] as $type) {
                         if (isset($operation->request->{$type})) {
                             foreach ($operation->request->{$type} as $field) {
-                                if (isset($field->overridable) && $field->overridable === true) {
+                                if (isset($field->overridable) && true === $field->overridable) {
                                     // Remove irrelevant data, since this result will need to be light-weight.
                                     unset($field->default_value);
                                     unset($field->test_value);
@@ -440,8 +440,6 @@ class ApiPayload
      *
      * @param       $fieldName
      * @param array $types
-     *
-     * @return null
      */
     public function getAggregateResponseFieldValue($fieldName, $types = ['headers', 'body'])
     {
@@ -478,7 +476,7 @@ class ApiPayload
                             foreach ($operation->request->{$type} as &$field) {
                                 if (
                                     isset($field->overridable)
-                                    && $field->overridable === true
+                                    && true === $field->overridable
                                     && isset($field->key)
                                     && isset($overrideValues[$field->key])
                                 ) {

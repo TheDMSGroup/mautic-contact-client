@@ -18,13 +18,10 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
- * Trait ContactClientDetailsTrait
- *
- * @package MauticPlugin\MauticContactClientBundle\Controller
+ * Trait ContactClientDetailsTrait.
  */
 trait ContactClientDetailsTrait
 {
-
     /**
      * @param array      $contactClients
      * @param array|null $filters
@@ -33,6 +30,7 @@ trait ContactClientDetailsTrait
      * @param int        $limit
      *
      * @return array
+     *
      * @throws InvalidArgumentException
      */
     protected function getAllEngagements(
@@ -100,7 +98,7 @@ trait ContactClientDetailsTrait
 
             $result['events'] = array_merge($result['events'], $events);
             $result['types']  = array_merge($result['types'], $types);
-            $result['total']  += $engagements['total'];
+            $result['total'] += $engagements['total'];
         }
 
         $result['maxPages'] = ($limit <= 0) ? 1 : round(ceil($result['total'] / $limit));

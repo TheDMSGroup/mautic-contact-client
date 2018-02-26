@@ -31,9 +31,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
- * Class ContactClientModel
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class ContactClientModel.
  */
 class ContactClientModel extends FormModel
 {
@@ -123,7 +121,7 @@ class ContactClientModel extends FormModel
      */
     public function getEntity($id = null)
     {
-        if ($id === null) {
+        if (null === $id) {
             return new ContactClient();
         }
 
@@ -189,7 +187,7 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * Add transactional log in contactclient_events
+     * Add transactional log in contactclient_events.
      *
      * @param ContactClient $contactClient
      * @param               $type
@@ -241,7 +239,6 @@ class ContactClientModel extends FormModel
      * @param                $unit
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
-     *
      * @param null           $dateFormat
      * @param bool           $canViewOthers
      *
@@ -268,14 +265,13 @@ class ContactClientModel extends FormModel
         }
         $stat = new Stat();
         foreach ($stat->getAllTypes() as $type) {
-
             $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => $type]);
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
             $data = $query->loadAndBuildTimeData($q);
             foreach ($data as $val) {
-                if ($val !== 0) {
+                if (0 !== $val) {
                     $chart->setDataset($this->translator->trans('mautic.contactclient.graph.'.$type), $data);
                     break;
                 }
@@ -295,7 +291,7 @@ class ContactClientModel extends FormModel
             ->groupBy($dateConstruct);
         $data = $query->loadAndBuildTimeData($q);
         foreach ($data as $val) {
-            if ($val !== 0) {
+            if (0 !== $val) {
                 $chart->setDataset($this->translator->trans('mautic.contactclient.graph.attribution'), $data);
                 break;
             }

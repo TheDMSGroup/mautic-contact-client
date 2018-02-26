@@ -12,9 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Services;
 
 /**
- * Interface TransportInterface
- *
- * @package MauticPlugin\MauticContactClientBundle\Services
+ * Interface TransportInterface.
  */
 interface TransportInterface
 {

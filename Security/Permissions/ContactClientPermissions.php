@@ -15,8 +15,7 @@ use Mautic\CoreBundle\Security\Permissions\AbstractPermissions;
 use Symfony\Component\Form\FormBuilderInterface;
 
 /**
- * Class ContactClientPermissions
- * @package MauticPlugin\MauticContactClientBundle\Security\Permissions
+ * Class ContactClientPermissions.
  */
 class ContactClientPermissions extends AbstractPermissions
 {

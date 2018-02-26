@@ -9,7 +9,7 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-$logs = (isset($event['extra']['logs'])) ? $event['extra']['logs'] : null;
+$logs                = (isset($event['extra']['logs'])) ? $event['extra']['logs'] : null;
 $integrationEntityId = (isset($event['extra']['integrationEntityId'])) ? $event['extra']['integrationEntityId'] : null;
 ?>
 <?php if ($integrationEntityId): ?>
@@ -20,7 +20,7 @@ $integrationEntityId = (isset($event['extra']['integrationEntityId'])) ? $event[
 <?php endif; ?>
 <?php if ($logs): ?>
 <div class="small" style="max-width: 100%;">
-    <strong><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.heading') ?></strong>
+    <strong><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.heading'); ?></strong>
     <br />
     <textarea class="codeMirror-yaml"><?php echo $logs; ?></textarea>
 </div>

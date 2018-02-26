@@ -14,13 +14,10 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
- * Class ContactClientRepository
- *
- * @package MauticPlugin\MauticContactClientBundle\Entity
+ * Class ContactClientRepository.
  */
 class ContactClientRepository extends CommonRepository
 {
-
     /**
      * Get a list of entities.
      *

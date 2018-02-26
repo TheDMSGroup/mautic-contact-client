@@ -30,7 +30,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class SendCommand extends ModeratedCommand
 {
-
     /**
      * {@inheritdoc}
      *
@@ -98,7 +97,7 @@ class SendCommand extends ModeratedCommand
             return 0;
         }
 
-        if ($client->getIsPublished() === false && !$options['force']) {
+        if (false === $client->getIsPublished() && !$options['force']) {
             $output->writeln('<error>This client is not published. Publish it or use --force</error>');
 
             return 0;
@@ -114,7 +113,7 @@ class SendCommand extends ModeratedCommand
         }
 
         $clientType = $client->getType();
-        if ($clientType == 'api') {
+        if ('api' == $clientType) {
             // Load the integration helper for our general ClientIntegration
             /** @var IntegrationHelper $integrationHelper */
             $integrationHelper = $container->get('mautic.helper.integration');
@@ -122,7 +121,7 @@ class SendCommand extends ModeratedCommand
             $integrationObject = $integrationHelper->getIntegrationObject('Client');
             if (
                 !$integrationObject
-                || ($integrationObject->getIntegrationSettings()->getIsPublished() === false && !$options['force'])
+                || (false === $integrationObject->getIntegrationSettings()->getIsPublished() && !$options['force'])
             ) {
                 $output->writeln('<error>The Contact Clients plugin is not published.</error>');
 
@@ -138,11 +137,8 @@ class SendCommand extends ModeratedCommand
                 $output->writeln('<error>The Contact was not sent or accepted. See logs for details.</error>');
                 $output->writeln('<warn>'.$integrationObject->getLogsYAML().'</warn>');
             }
-
-        } elseif ($clientType == 'file') {
-
+        } elseif ('file' == $clientType) {
             // @todo - Support file payloads.
-
         } else {
             $output->writeln('<error>Client type is not recognized.</error>');
 

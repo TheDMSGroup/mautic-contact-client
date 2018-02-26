@@ -14,9 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
- * Class StatRepository
- *
- * @package MauticPlugin\MauticContactClientBundle\Entity
+ * Class StatRepository.
  */
 class StatRepository extends CommonRepository
 {

@@ -8,7 +8,7 @@
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-if ($tmpl == 'index') {
+if ('index' == $tmpl) {
     $view->extend('MauticContactClientBundle:ContactClient:index.html.php');
 }
 ?>
@@ -122,7 +122,7 @@ if ($tmpl == 'index') {
                     </td>
                     <td class="visible-md visible-lg">
                         <?php $category = $item->getCategory(); ?>
-                        <?php $catName = ($category) ? $category->getTitle() : $view['translator']->trans(
+                        <?php $catName  = ($category) ? $category->getTitle() : $view['translator']->trans(
                             'mautic.core.form.uncategorized'
                         ); ?>
                         <?php $color = ($category) ? '#'.$category->getColor() : 'inherit'; ?>

@@ -19,13 +19,10 @@ use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiPayloadResponse
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class ApiPayloadResponse.
  */
 class ApiPayloadResponse
 {
-
     protected $responseExpected;
 
     protected $responseActual;
@@ -93,15 +90,15 @@ class ApiPayloadResponse
         $result['body'] = [];
         switch ($responseExpectedFormat) {
             default:
-            case 'auto';
+            case 'auto':
                 // @todo - detect format from headers/body and step through parsers till we see success.
                 break;
 
-            case 'html';
-            case 'json';
-            case 'text';
-            case 'xml';
-            case 'yaml';
+            case 'html':
+            case 'json':
+            case 'text':
+            case 'xml':
+            case 'yaml':
                 $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseExpectedFormat);
                 break;
         }
@@ -119,7 +116,8 @@ class ApiPayloadResponse
      * @param mixed  $data
      * @param string $responseExpectedFormat
      *
-     * @return array|bool Return false if there is an error or we are unable to parse.
+     * @return array|bool return false if there is an error or we are unable to parse
+     *
      * @throws \Exception
      */
     private function getResponseArray($data, $responseExpectedFormat = 'json')
@@ -138,10 +136,10 @@ class ApiPayloadResponse
                 $doc          = new DOMDocument();
                 $doc->recover = true;
                 // Ensure UTF-8 encoding is handled correctly.
-                if (preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches) == true) {
+                if (true == preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
                     $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
                 }
-                if ($responseExpectedFormat == 'html') {
+                if ('html' == $responseExpectedFormat) {
                     $doc->loadHTML($data);
                 } else {
                     $doc->loadXML($data);
@@ -160,7 +158,7 @@ class ApiPayloadResponse
                     if (!empty($line)) {
                         foreach ([':', '=', ';'] as $delimiter) {
                             $elements = explode($delimiter, $line);
-                            if (count($elements) == 2) {
+                            if (2 == count($elements)) {
                                 // Strip outer whitespace.
                                 foreach ($elements as &$element) {
                                     $element = trim($element);
@@ -169,7 +167,7 @@ class ApiPayloadResponse
                                 foreach ($elements as &$element) {
                                     foreach (['"', "'"] as $enclosure) {
                                         if (
-                                            strpos($element, $enclosure) === 0
+                                            0 === strpos($element, $enclosure)
                                             && strrpos($element, $enclosure) === strlen($element) - 1
                                         ) {
                                             $element = trim($element, $enclosure);
@@ -178,7 +176,7 @@ class ApiPayloadResponse
                                     }
                                 }
                                 list($key, $value) = $elements;
-                                $result[$key] = $value;
+                                $result[$key]      = $value;
                                 break;
                             }
                         }
@@ -198,9 +196,9 @@ class ApiPayloadResponse
 
         // Stringify all values.
         foreach ($result as $key => &$value) {
-            if ($value === true) {
+            if (true === $value) {
                 $value = 'true';
-            } elseif ($value === false) {
+            } elseif (false === $value) {
                 $value = 'false';
             }
             $value = (string) $value;
@@ -227,12 +225,12 @@ class ApiPayloadResponse
 
         if ($root->hasChildNodes()) {
             $children = $root->childNodes;
-            if ($children->length == 1) {
+            if (1 == $children->length) {
                 $child = $children->item(0);
                 if ($child->nodeType == [XML_TEXT_NODE, XML_CDATA_SECTION_‌​NODE]) {
                     $result['_value'] = $child->nodeValue;
 
-                    return count($result) == 1
+                    return 1 == count($result)
                         ? $result['_value']
                         : $result;
                 }
@@ -269,7 +267,7 @@ class ApiPayloadResponse
                 $this->flattenStructure($value, $result);
             } else {
                 // Do not nullify existing key/value pairs if already present.
-                if (empty($value) && $value !== false && !isset($result[$key])) {
+                if (empty($value) && false !== $value && !isset($result[$key])) {
                     $result[$key] = null;
                 } else {
                     $result[$key] = $value;
@@ -284,11 +282,11 @@ class ApiPayloadResponse
      * Given the recent response, evaluate it for success based on the expected success validator.
      *
      * @return bool
+     *
      * @throws ApiErrorException
      */
     public function validate()
     {
-
         if ($this->valid) {
             if (!$this->responseActual) {
                 throw new ApiErrorException('There was no response to parse.');
@@ -296,7 +294,7 @@ class ApiPayloadResponse
 
             // If there is no success definition, than do the default test of a 200 ok status check.
             if (!$this->successDefinition) {
-                if (!$this->responseActual['status'] || $this->responseActual['status'] != 200) {
+                if (!$this->responseActual['status'] || 200 != $this->responseActual['status']) {
                     throw new ApiErrorException('Status code is not 200. Default validation failure.');
                 }
             }
@@ -338,7 +336,7 @@ class ApiPayloadResponse
         return $this->logs;
     }
 
-    function setLogs($value, $type = null)
+    public function setLogs($value, $type = null)
     {
         if ($type) {
             if (isset($this->logs[$type])) {
@@ -357,5 +355,4 @@ class ApiPayloadResponse
             $this->logs[] = $value;
         }
     }
-
 }

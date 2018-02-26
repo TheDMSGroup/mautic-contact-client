@@ -19,9 +19,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
- * Class ContactClientType
- *
- * @package MauticPlugin\MauticContactClientBundle\Form\Type
+ * Class ContactClientType.
  */
 class ContactClientType extends AbstractType
 {

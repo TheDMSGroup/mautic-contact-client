@@ -16,13 +16,10 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 
 /**
- * Class Attribution
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class Attribution.
  */
 class Attribution
 {
-
     /** @var ContactClient $contactClient */
     protected $contactClient;
 
@@ -32,7 +29,7 @@ class Attribution
     /** @var Contact */
     protected $contact;
 
-    /** @var double */
+    /** @var float */
     protected $newAttribution;
 
     /**
@@ -60,6 +57,7 @@ class Attribution
      * This assumes the Payload was successfully delivered (valid = true).
      *
      * @return bool
+     *
      * @throws \Exception
      */
     public function applyAttribution()
@@ -70,7 +68,6 @@ class Attribution
         $newAttribution      = 0;
 
         if ($this->payload) {
-
             $jsonHelper          = new JSONHelper();
             $attributionSettings = $jsonHelper->decodeObject(
                 $this->contactClient->getAttributionSettings(),
@@ -86,12 +83,11 @@ class Attribution
                 // Attempt to get this field value from the response operations.
                 $responseFieldValue = $this->payload->getAggregateResponseFieldValue($key);
                 if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
-
                     // We have a value, apply sign.
                     $sign = isset($attributionSettings->mode->sign) ? $attributionSettings->mode->sign : '+';
-                    if ($sign == '+') {
+                    if ('+' == $sign) {
                         $newAttribution = abs($responseFieldValue);
-                    } elseif ($sign == '-') {
+                    } elseif ('-' == $sign) {
                         $newAttribution = abs($responseFieldValue) * -1;
                     } else {
                         $newAttribution = $responseFieldValue;
@@ -99,9 +95,9 @@ class Attribution
 
                     // Apply maths.
                     $math = isset($attributionSettings->mode->math) ? $attributionSettings->mode->math : null;
-                    if ($math == '/100') {
+                    if ('/100' == $math) {
                         $newAttribution = $newAttribution / 100;
-                    } elseif ($math == '*100') {
+                    } elseif ('*100' == $math) {
                         $newAttribution = $newAttribution * 100;
                     }
                     $update = true;

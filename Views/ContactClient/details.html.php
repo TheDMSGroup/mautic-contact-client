@@ -137,7 +137,7 @@ $website = $item->getWebsite();
                         <?php echo $view['translator']->trans('mautic.contactclient.timeline.events'); ?>
                     </a>
                 </li>
-                <? /*
+                <?php /*
                 <li class="">
                     <a href="#auditlog-container" role="tab" data-toggle="tab">
                     <span class="label label-primary mr-sm" id="AuditLogCount">
@@ -206,7 +206,7 @@ $website = $item->getWebsite();
             </div>
 
             <hr class="hr-w-2" style="width:50%">
-        <? endif; ?>
+        <?php endif; ?>
         <!--/ form HTML -->
 
         <div class="panel bg-transparent shd-none bdr-rds-0 bdr-w-0 mb-0">

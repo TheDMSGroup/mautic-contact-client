@@ -34,13 +34,10 @@ use Symfony\Component\Yaml\Yaml;
 // use Mautic\LeadBundle\Entity\LeadEventLog;
 
 /**
- * Class ClientIntegration
- *
- * @package MauticPlugin\MauticContactClientBundle\Integration
+ * Class ClientIntegration.
  */
 class ClientIntegration extends AbstractIntegration
 {
-
     /** @var ContactClient client we are about to send this Contact to. */
     protected $contactClient;
 
@@ -104,11 +101,11 @@ class ClientIntegration extends AbstractIntegration
      * @param array   $config
      *
      * @return bool
+     *
      * @throws Exception
      */
     public function pushLead($contact, $config = [])
     {
-
         $this->event = $config;
         $config      = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
@@ -119,7 +116,7 @@ class ClientIntegration extends AbstractIntegration
         $clientModel = $this->getContactClientModel();
 
         $client = $clientModel->getEntity($config['contactclient']);
-        if (!$client || $client->getIsPublished() === false) {
+        if (!$client || false === $client->getIsPublished()) {
             return false;
         }
 
@@ -181,7 +178,7 @@ class ClientIntegration extends AbstractIntegration
     private function getContactClientModel()
     {
         if (!$this->contactClientModel) {
-            /** @var contactClientModel $contactClientModel */
+            /* @var contactClientModel $contactClientModel */
             $this->contactClientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
         }
 
@@ -223,7 +220,6 @@ class ClientIntegration extends AbstractIntegration
         $this->test = $test;
 
         try {
-
             if (!$client && !$this->test) {
                 throw new \InvalidArgumentException('Contact Client appears to not exist.');
             }
@@ -268,12 +264,10 @@ class ClientIntegration extends AbstractIntegration
 
             // Run the payload and all operations.
             $this->valid = $this->payload->run();
-
         } catch (\Exception $e) {
             $this->valid = false;
             $this->setLogs($e->getMessage(), 'error');
             if ($e instanceof ApiErrorException) {
-
                 // Critical issue with the API. This will be logged but not retried.
                 $e->setContact($this->contact);
             } elseif ($e instanceof ContactClientException) {
@@ -308,12 +302,13 @@ class ClientIntegration extends AbstractIntegration
      * Get the Cache model for duplicate/exclusive/limit checking.
      *
      * @return Cache|object
+     *
      * @throws Exception
      */
     private function getCacheModel()
     {
         if (!$this->cacheModel) {
-            /** @var cacheModel $cacheModel */
+            /* @var cacheModel $cacheModel */
             $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
             $this->cacheModel->setContact($this->contact);
             $this->cacheModel->setContactClient($this->contactClient);
@@ -346,7 +341,6 @@ class ClientIntegration extends AbstractIntegration
         }
         // Only update contacts if success definitions are met.
         if ($this->valid) {
-
             try {
                 // Update any fields based on the response map.
                 /** @var bool $updatedFields */
@@ -410,7 +404,7 @@ class ClientIntegration extends AbstractIntegration
      * Log to:
      *      contactclient_stats
      *      contactclient_events
-     *      integration_entity
+     *      integration_entity.
      *
      * Use LeadTimelineEvent
      */
@@ -536,7 +530,7 @@ class ClientIntegration extends AbstractIntegration
         return $this->logs;
     }
 
-    function setLogs($value, $type = null)
+    public function setLogs($value, $type = null)
     {
         if ($type) {
             if (isset($this->logs[$type])) {
@@ -666,9 +660,8 @@ class ClientIntegration extends AbstractIntegration
      */
     public function appendToForm(&$builder, $data, $formArea)
     {
-        if ($formArea == 'integration') {
+        if ('integration' == $formArea) {
             if ($this->isAuthorized()) {
-
                 /** @var contactClientModel $clientModel */
                 $clientModel = $this->getContactClientModel();
 
@@ -683,7 +676,7 @@ class ClientIntegration extends AbstractIntegration
                         $clients[$id] = $contactClientEntity->getName();
 
                         // Get overridable fields from the payload of the type needed.
-                        if ($contactClientEntity->getType() == 'api') {
+                        if ('api' == $contactClientEntity->getType()) {
                             $payload = $this->getApiPayloadModel();
                             $payload->setContactClient($contactClientEntity);
                             $overridableFields[$id] = $payload->getOverridableFields();
@@ -692,7 +685,7 @@ class ClientIntegration extends AbstractIntegration
                         }
                     }
                 }
-                if (count($clients) === 1) {
+                if (1 === count($clients)) {
                     $clients = ['', '-- No Clients have been created and published --'];
                 }
 
@@ -709,12 +702,11 @@ class ClientIntegration extends AbstractIntegration
                             'class'    => 'form-control',
                             'tooltip'  => 'mautic.contactclient.integration.client.tooltip',
                             // Auto-set the integration name based on the client.
-                            'onchange' =>
-                                "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
+                            'onchange' => "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
                                 "    eventName = mQuery('#campaignevent_name');".
-                                "if (client.length && client.val() && eventName.length) {".
-                                "    eventName.val(client.text().trim());".
-                                "}",
+                                'if (client.length && client.val() && eventName.length) {'.
+                                '    eventName.val(client.text().trim());'.
+                                '}',
                         ],
                         'required'    => true,
                         'constraints' => [
@@ -745,15 +737,14 @@ class ClientIntegration extends AbstractIntegration
                             'class'   => 'btn btn-default btn-nospin',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                             // Shim to get our javascript over the border and into Integration land.
-                            'onclick' =>
-                                "if (typeof Mautic.contactclientIntegration === 'undefined') {".
+                            'onclick' => "if (typeof Mautic.contactclientIntegration === 'undefined') {".
                                 "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){".
-                                "        Mautic.contactclientIntegration();".
-                                "    });".
+                                '        Mautic.contactclientIntegration();'.
+                                '    });'.
                                 "    mQuery('head').append('<"."link rel=\'stylesheet\' href=\'' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css\' type=\'text/css\' />');".
-                                "} else {".
-                                "    Mautic.contactclientIntegration();".
-                                "}",
+                                '} else {'.
+                                '    Mautic.contactclientIntegration();'.
+                                '}',
                             'icon'    => 'fa fa-wrench',
                         ],
                     ]

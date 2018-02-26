@@ -23,13 +23,10 @@ use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 // use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 
 /**
- * Class Cache
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class Cache.
  */
 class Cache extends AbstractCommonModel
 {
-
     /** @var ContactClient $contactClient */
     protected $contactClient;
 
@@ -89,7 +86,7 @@ class Cache extends AbstractCommonModel
     }
 
     /**
-     * Validate and merge the rules object (exclusivity/duplicate/limits)
+     * Validate and merge the rules object (exclusivity/duplicate/limits).
      *
      * @param $rules
      *
@@ -296,6 +293,7 @@ class Cache extends AbstractCommonModel
      * @param ContactClient $contactClient
      *
      * @return $this
+     *
      * @throws \Exception
      */
     public function setContactClient(ContactClient $contactClient)
@@ -304,5 +302,4 @@ class Cache extends AbstractCommonModel
 
         return $this;
     }
-
 }

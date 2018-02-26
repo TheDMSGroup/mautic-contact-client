@@ -15,9 +15,7 @@ use Mautic\CoreBundle\Controller\FormController;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class ContactClientController
- *
- * @package MauticPlugin\MauticContactClientBundle\Controller
+ * Class ContactClientController.
  */
 class ContactClientController extends FormController
 {
@@ -51,6 +49,7 @@ class ContactClientController extends FormController
      * Generates new form and processes post data.
      *
      * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     *
      * @throws \Exception
      */
     public function newAction()
@@ -65,6 +64,7 @@ class ContactClientController extends FormController
      * @param bool $ignorePost
      *
      * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     *
      * @throws \Exception
      */
     public function editAction($objectId, $ignorePost = false)
@@ -126,7 +126,7 @@ class ContactClientController extends FormController
      */
     public function customizeViewArguments($args, $view)
     {
-        if ($view == 'view') {
+        if ('view' == $view) {
             /** @var \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $item */
             $item = $args['viewParameters']['item'];
 
@@ -179,7 +179,7 @@ class ContactClientController extends FormController
      */
     protected function getPostActionRedirectArguments(array $args, $action)
     {
-        $updateSelect = ($this->request->getMethod() == 'POST')
+        $updateSelect = ('POST' == $this->request->getMethod())
             ? $this->request->request->get('contactclient[updateSelect]', false, true)
             : $this->request->get(
                 'updateSelect',
@@ -211,7 +211,7 @@ class ContactClientController extends FormController
      */
     protected function getEntityFormOptions()
     {
-        $updateSelect = ($this->request->getMethod() == 'POST')
+        $updateSelect = ('POST' == $this->request->getMethod())
             ? $this->request->request->get('contactclient[updateSelect]', false, true)
             : $this->request->get(
                 'updateSelect',

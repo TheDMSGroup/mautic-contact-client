@@ -18,13 +18,10 @@ use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Class ApiPayloadRequest
- *
- * @package MauticPlugin\MauticContactClientBundle\Model
+ * Class ApiPayloadRequest.
  */
 class ApiPayloadRequest
 {
-
     const XML_ROOT_ELEM = 'contact';
 
     protected $uri;
@@ -135,7 +132,6 @@ class ApiPayloadRequest
                     }
                 }
                 break;
-
         }
         // Add the raw body if provided as a string.
         if (!empty($request->body) && is_string($request->body)) {
@@ -199,6 +195,7 @@ class ApiPayloadRequest
      * @param $fields
      *
      * @return array
+     *
      * @throws ApiErrorException
      */
     private function fieldValues($fields)
@@ -228,9 +225,9 @@ class ApiPayloadRequest
                     }
                 }
             }
-            if (empty($value) && $value !== 0) {
+            if (empty($value) && 0 !== $value) {
                 // The field value is empty.
-                if ((isset($field->required) ? $field->required : false) === true) {
+                if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ApiErrorException(
                         'A required field is missing/empty: '.$key
@@ -242,7 +239,6 @@ class ApiPayloadRequest
 
         return $result;
     }
-
 
     /**
      * @param $string
@@ -259,7 +255,7 @@ class ApiPayloadRequest
         return $this->logs;
     }
 
-    function setLogs($value, $type = null)
+    public function setLogs($value, $type = null)
     {
         if ($type) {
             if (isset($this->logs[$type])) {
@@ -278,5 +274,4 @@ class ApiPayloadRequest
             $this->logs[] = $value;
         }
     }
-
 }
