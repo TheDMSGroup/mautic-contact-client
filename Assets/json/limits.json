@@ -8,15 +8,16 @@
   },
   "properties": {
     "rules": {
-      "title": "Limits",
+      "title": "Budgets",
       "type": "array",
       "format": "table",
       "uniqueItems": true,
       "options": {
-        "disable_collapse": true
+        "disable_collapse": true,
+        "infoText": "Limit the number of contacts that can sent to the client."
       },
       "items": {
-        "title": "Limit",
+        "title": "Budget",
         "$ref": "#/definitions/limit"
       }
     }
@@ -37,7 +38,7 @@
           "propertyOrder": 10,
           "default": 10000,
           "options": {
-            "infoText": "The maximum number of acceptable contacts for this limit."
+            "infoText": "The maximum number of acceptable contacts for this budget."
           }
         },
         "scope": {
@@ -82,7 +83,7 @@
           "type": "string",
           "format": "select",
           "options": {
-            "infoText": "Specify how long this limit should last, before expiring and allowing the contact to go to other clients within the scope."
+            "infoText": "Specify how long this budget should last, before expiring and allowing the contact to go to other clients within the scope."
           },
           "default": "P30D",
           "enumSource": [
