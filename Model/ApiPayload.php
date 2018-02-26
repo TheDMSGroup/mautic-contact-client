@@ -288,10 +288,14 @@ class ApiPayload
         $this->tokenHelper->setTimezones($tza, $tzb);
 
         // Add the Contact as context for field replacement.
-        $this->tokenHelper->addContextContact($this->contact);
+        if ($this->contact) {
+            $this->tokenHelper->addContextContact($this->contact);
+        }
 
         // Include the payload as additional context.
-        $this->tokenHelper->addContext(['payload' => $this->payload]);
+        if ($this->payload) {
+            $this->tokenHelper->addContext(['payload' => $this->payload]);
+        }
 
         return $this->tokenHelper;
     }

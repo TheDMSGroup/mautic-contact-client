@@ -48,7 +48,7 @@ class ClientIntegration extends AbstractIntegration
     protected $contact;
 
     /** @var array */
-    protected $event;
+    protected $event = [];
 
     /** @var bool $test */
     protected $test = false;
@@ -368,7 +368,7 @@ class ClientIntegration extends AbstractIntegration
                 if ($updatedFields || $updatedAttribution) {
                     /** @var \Mautic\LeadBundle\Model\LeadModel $model */
                     $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
-                    $contactModel->getRepository()->saveEntity($this->contact);
+                    $contactModel->saveEntity($this->contact);
                     $this->setLogs('Operation successful. The contact was updated.', 'updated');
                 } else {
                     $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');

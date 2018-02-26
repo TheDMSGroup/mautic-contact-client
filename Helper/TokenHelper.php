@@ -19,21 +19,16 @@ use Mustache_Engine as Engine;
  */
 class TokenHelper
 {
-    /**
-     * To reduce overhead, fields will be searched for this before attempting token replacement.
-     */
+    /** @var string To reduce overhead, fields will be searched for this before attempting token replacement. */
     const TOKEN_KEY = '{{';
 
-    /**
-     * @var Engine
-     */
+    /** @var Engine */
     private $engine;
 
-    /**
-     * @var array context of tokens for replacement
-     */
+    /** @var array context of tokens for replacement */
     private $context = [];
 
+    /** @var DateFormatHelper */
     private $dateFormatHelper;
 
     /**
@@ -53,14 +48,14 @@ class TokenHelper
     /**
      * Recursively replaces tokens using an array for context.
      *
-     * @param array $array
+     * @param array|object $context
      *
      * @return array
      */
-    public function renderArray($array = [])
+    public function renderArray($context = [])
     {
         $result = [];
-        foreach ($array as $key => $value) {
+        foreach ($context as $key => $value) {
             if (false !== strpos($key, self::TOKEN_KEY)) {
                 $key = $this->engine->render($key, $this->context);
             }
@@ -69,7 +64,7 @@ class TokenHelper
                     $value = $this->engine->render($value, $this->context);
                 }
             } elseif (is_array($value) || is_object($value)) {
-                $value = $this->tokenizeArray($value, $this->context);
+                $value = $this->renderArray($value);
             }
             $result[$key] = $value;
         }
@@ -174,7 +169,7 @@ class TokenHelper
         }
 
         // Add DNC status.
-        /** @var DoNotContact $record */
+        /** @var \Mautic\LeadBundle\Model\DoNotContact $record */
         foreach ($contact->getDoNotContact() as $record) {
             if (!isset($context['doNotContact'])) {
                 $context['doNotContact'] = [];
