@@ -285,6 +285,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.tokens-checked)').each(function () {
             var $text = mQuery(this),
                 tokenSource = schema.options.tokenSource;
+            $text.data('tokenSource', tokenSource);
 
             if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
                 window.JSONEditor.tokenCache[tokenSource] = {};
@@ -292,15 +293,13 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     url: mauticAjaxUrl,
                     type: 'POST',
                     data: {
-                        action: schema.options.tokenSource
+                        action: tokenSource
                     },
                     cache: true,
                     dataType: 'json',
                     success: function (response) {
                         if (typeof response.tokens !== 'undefined') {
-                            console.log('tokens retrieved.');
                             window.JSONEditor.tokenCache[tokenSource] = response.tokens;
-                            // tagEditor($text, tokenSource);
                         }
                     }
                 });
