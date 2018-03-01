@@ -138,6 +138,16 @@ class ApiPayloadOperation
         return $this;
     }
 
+    public function getValid()
+    {
+        return $this->valid;
+    }
+
+    public function setValid($valid)
+    {
+        $this->valid = $valid;
+    }
+
     /**
      * Automatically updates a response with filled in data from the parsed response object from the API.
      */
@@ -169,14 +179,26 @@ class ApiPayloadOperation
                         $this->setLogs('New '.$type.' field "'.$key.'" added with example: '.$value, 'autoUpdate');
                         $updates = true;
                     } else {
-                        if (!empty($value) && empty($result->{$type}[$fieldId]->example)) {
-                            // This is an existing field, but requires an updated example.
-                            $result->{$type}[$fieldId]->example = $value;
-                            $updates                            = true;
-                            $this->setLogs(
-                                'Existing '.$type.' field "'.$key.'" now has an example: '.$value,
-                                'autoUpdate'
-                            );
+                        if (!empty($value)) {
+                            if (empty($result->{$type}[$fieldId]->example)) {
+                                // This is an existing field, but requires an updated example.
+                                $result->{$type}[$fieldId]->example = $value;
+                                $updates                            = true;
+                                $this->setLogs(
+                                    'Existing '.$type.' field "'.$key.'" now has an example: '.$value,
+                                    'autoUpdate'
+                                );
+                            } else {
+                                if ($this->test) {
+                                    // Updating our example because a test was run.
+                                    $result->{$type}[$fieldId]->example = $value;
+                                    $updates                            = true;
+                                    $this->setLogs(
+                                        'Existing '.$type.' field "'.$key.'" now has a new example: '.$value,
+                                        'autoUpdate'
+                                    );
+                                }
+                            }
                         }
                     }
                 }
@@ -185,16 +207,6 @@ class ApiPayloadOperation
         if ($updates) {
             $this->operation->response = $result;
         }
-    }
-
-    public function getValid()
-    {
-        return $this->valid;
-    }
-
-    public function setValid($valid)
-    {
-        $this->valid = $valid;
     }
 
     public function getFilter()

@@ -152,6 +152,50 @@ class ContactClientModel extends FormModel
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * @return bool|ContactClientEvent
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
+     */
+    protected function dispatchEvent($action, &$entity, $isNew = false, Event $event = null)
+    {
+        if (!$entity instanceof ContactClient) {
+            throw new MethodNotAllowedHttpException(['ContactClient']);
+        }
+
+        switch ($action) {
+            case 'pre_save':
+                $name = ContactClientEvents::PRE_SAVE;
+                break;
+            case 'post_save':
+                $name = ContactClientEvents::POST_SAVE;
+                break;
+            case 'pre_delete':
+                $name = ContactClientEvents::PRE_DELETE;
+                break;
+            case 'post_delete':
+                $name = ContactClientEvents::POST_DELETE;
+                break;
+            default:
+                return null;
+        }
+
+        if ($this->dispatcher->hasListeners($name)) {
+            if (empty($event)) {
+                $event = new ContactClientEvent($entity, $isNew);
+                $event->setEntityManager($this->em);
+            }
+
+            $this->dispatcher->dispatch($name, $event);
+
+            return $event;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Add a stat entry.
      *
      * @param ContactClient $contactClient
@@ -399,49 +443,5 @@ class ContactClientModel extends FormModel
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return bool|ContactClientEvent
-     *
-     * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
-     */
-    protected function dispatchEvent($action, &$entity, $isNew = false, Event $event = null)
-    {
-        if (!$entity instanceof ContactClient) {
-            throw new MethodNotAllowedHttpException(['ContactClient']);
-        }
-
-        switch ($action) {
-            case 'pre_save':
-                $name = ContactClientEvents::PRE_SAVE;
-                break;
-            case 'post_save':
-                $name = ContactClientEvents::POST_SAVE;
-                break;
-            case 'pre_delete':
-                $name = ContactClientEvents::PRE_DELETE;
-                break;
-            case 'post_delete':
-                $name = ContactClientEvents::POST_DELETE;
-                break;
-            default:
-                return null;
-        }
-
-        if ($this->dispatcher->hasListeners($name)) {
-            if (empty($event)) {
-                $event = new ContactClientEvent($entity, $isNew);
-                $event->setEntityManager($this->em);
-            }
-
-            $this->dispatcher->dispatch($name, $event);
-
-            return $event;
-        } else {
-            return null;
-        }
     }
 }

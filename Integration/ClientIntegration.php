@@ -588,70 +588,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param $apiPayload
-     *
-     * @return array
-     */
-    public function sendTest($apiPayload)
-    {
-        $client = new ContactClient();
-        $client->setAPIPayload($apiPayload);
-        $contact = new Contact();
-
-        $this->sendContact($client, $contact, true);
-
-        return [
-            'valid'   => $this->valid,
-            'payload' => $client->getAPIPayload(),
-        ];
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatType()
-    {
-        return $this->statType;
-    }
-
-    /**
-     * @param string $statType
-     *
-     * @return ClientIntegration
-     */
-    public function setStatType($statType = null)
-    {
-        if (!empty($statType)) {
-            $this->statType = $statType;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @todo - Push multiple contacts by Campaign Action.
-     *
-     * @param array $params
-     *
-     * @return mixed
-     */
-    public function pushLeads($params = [])
-    {
-        // $limit = (isset($params['limit'])) ? $params['limit'] : 100;
-        $totalUpdated = 0;
-        $totalCreated = 0;
-        $totalErrors  = 0;
-        $totalIgnored = 0;
-
-        return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
-    }
-
-    public function getValid()
-    {
-        return $this->valid;
-    }
-
-    /**
      * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
      * @param array                                                                     $data
      * @param string                                                                    $formArea
@@ -765,5 +701,69 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
         }
+    }
+
+    /**
+     * @param $apiPayload
+     *
+     * @return array
+     */
+    public function sendTest($apiPayload)
+    {
+        $client = new ContactClient();
+        $client->setAPIPayload($apiPayload);
+        $contact = new Contact();
+
+        $this->sendContact($client, $contact, true);
+
+        return [
+            'valid'   => $this->valid,
+            'payload' => $client->getAPIPayload(),
+        ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatType()
+    {
+        return $this->statType;
+    }
+
+    /**
+     * @param string $statType
+     *
+     * @return ClientIntegration
+     */
+    public function setStatType($statType = null)
+    {
+        if (!empty($statType)) {
+            $this->statType = $statType;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @todo - Push multiple contacts by Campaign Action.
+     *
+     * @param array $params
+     *
+     * @return mixed
+     */
+    public function pushLeads($params = [])
+    {
+        // $limit = (isset($params['limit'])) ? $params['limit'] : 100;
+        $totalUpdated = 0;
+        $totalCreated = 0;
+        $totalErrors  = 0;
+        $totalIgnored = 0;
+
+        return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
+    }
+
+    public function getValid()
+    {
+        return $this->valid;
     }
 }

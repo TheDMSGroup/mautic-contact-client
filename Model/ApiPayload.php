@@ -24,17 +24,17 @@ use MauticPlugin\MauticContactClientBundle\Services\Transport;
  */
 class ApiPayload
 {
-    const SETTING_DEF_LIMIT           = 300;
+    const SETTING_DEF_ATTEMPTS        = 3;
 
-    const SETTING_DEF_TIMEOUT         = 30;
+    const SETTING_DEF_AUTOUPDATE      = true;
 
     const SETTING_DEF_CONNECT_TIMEOUT = 10;
 
-    const SETTING_DEF_ATTEMPTS        = 3;
-
     const SETTING_DEF_DELAY           = 15;
 
-    const SETTING_DEF_AUTOUPDATE      = true;
+    const SETTING_DEF_LIMIT           = 300;
+
+    const SETTING_DEF_TIMEOUT         = 30;
 
     /**
      * Simple settings for this integration instance from the payload.

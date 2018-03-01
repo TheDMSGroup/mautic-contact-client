@@ -55,6 +55,23 @@ class DateFormatHelper
         return $this->parse($date)->format(DATE_ATOM);
     }
 
+    /**
+     * Parse a string into a DateTime.
+     *
+     * @param string $date
+     * @param string $tz   Timezone
+     *
+     * @return \DateTime
+     */
+    private function parse($date, $tz = null)
+    {
+        if (!($date instanceof \DateTime)) {
+            $date = new \DateTime($date, new \DateTimeZone(!empty($tz) ? $tz : $this->tza));
+        }
+
+        return $date;
+    }
+
     public function cookie($date)
     {
         return $this->parse($date)->format(DATE_COOKIE);
@@ -120,6 +137,18 @@ class DateFormatHelper
         return min(0, $this->parseDiff($date)->y);
     }
 
+    /**
+     * Parse the difference between the specified date and now, based on the destination timezone.
+     *
+     * @param string $date
+     *
+     * @return bool|\DateInterval
+     */
+    private function parseDiff($date)
+    {
+        return $this->parse($date)->diff($this->parse('now', $this->tzb));
+    }
+
     public function yearsTill($date)
     {
         return max(0, $this->parseDiff($date)->y);
@@ -151,32 +180,16 @@ class DateFormatHelper
     }
 
     /**
-     * Parse a string into a DateTime.
+     * Typical single-character expressions.
+     * Uppercase expressions prepended by 'u'.
      *
-     * @param string $date
-     * @param string $tz   Timezone
+     * @param $date
      *
-     * @return \DateTime
+     * @return string
      */
-    private function parse($date, $tz = null)
+    public function a($date)
     {
-        if (!($date instanceof \DateTime)) {
-            $date = new \DateTime($date, new \DateTimeZone(!empty($tz) ? $tz : $this->tza));
-        }
-
-        return $date;
-    }
-
-    /**
-     * Parse the difference between the specified date and now, based on the destination timezone.
-     *
-     * @param string $date
-     *
-     * @return bool|\DateInterval
-     */
-    private function parseDiff($date)
-    {
-        return $this->parse($date)->diff($this->parse('now', $this->tzb));
+        return $this->format($date, __FUNCTION__);
     }
 
     /**
@@ -192,19 +205,6 @@ class DateFormatHelper
         }
 
         return $this->parse($date)->format($format);
-    }
-
-    /**
-     * Typical single-character expressions.
-     * Uppercase expressions prepended by 'u'.
-     *
-     * @param $date
-     *
-     * @return string
-     */
-    public function a($date)
-    {
-        return $this->format($date, __FUNCTION__);
     }
 
     public function uA($date)

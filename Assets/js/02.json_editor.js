@@ -250,6 +250,103 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
         }).addClass('slider-checked');
     }
+    // Add support for a token text field.
+    if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
+        function tagEditor ($text, tokenSource) {
+            var changed = false;
+            $text.tagEditor({
+                placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
+                autocomplete: {
+                    minLength: 2,
+                    source: function (request, response) {
+                        var tokens = [];
+                        if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                            var regex = new RegExp(request.term.replace(/\{|\}/g, ''), 'i');
+                            mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                if (regex.test(key) || regex.test(value)) {
+                                    tokens.push({
+                                        label: value,
+                                        value: '{{' + key + '}}'
+                                    });
+                                }
+                            });
+                        }
+                        response(tokens);
+                    },
+                    delay: 100
+                },
+                // callbacks
+                onChange: function () {
+                    if (!changed) {
+                        changed = true;
+                        var event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', false, true);
+                        $text[0].dispatchEvent(event);
+                    }
+                    else {
+                        changed = false;
+                    }
+                },
+                beforeTagSave: function () {},
+                beforeTagDelete: function () {}
+            });
+        }
+
+        if (typeof window.JSONEditor.tokenCache === 'undefined') {
+            window.JSONEditor.tokenCache = {};
+        }
+
+        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.tokens-checked)').each(function () {
+            var $text = mQuery(this),
+                tokenSource = schema.options.tokenSource;
+            $text.data('tokenSource', tokenSource);
+
+            if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
+                window.JSONEditor.tokenCache[tokenSource] = {};
+                mQuery.ajax({
+                    url: mauticAjaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: tokenSource
+                    },
+                    cache: true,
+                    dataType: 'json',
+                    success: function (response) {
+                        if (typeof response.tokens !== 'undefined') {
+                            window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                        }
+                    }
+                });
+            }
+            tagEditor($text, tokenSource);
+
+        }).addClass('tokens-checked');
+    }
 
     return errors;
 });
+// Modifications to the UI Autocomplete widget for better styling.
+if (
+    typeof mQuery.widget !== 'undefined'
+    && typeof mQuery.ui !== 'undefined'
+    && typeof mQuery.ui.autocomplete !== 'undefined'
+) {
+    mQuery.widget('ui.autocomplete', mQuery.ui.autocomplete, {
+        _renderMenu: function (ul, items) {
+            var that = this;
+            ul.attr('class', 'nav nav-pills nav-stacked  bs-autocomplete-menu');
+            $.each(items, function (index, item) {
+                that._renderItemData(ul, item);
+            });
+        },
+        _resizeMenu: function () {
+            var ul = this.menu.element;
+            ul.outerWidth(Math.min(
+                // Firefox wraps long text (possibly a rounding bug)
+                // so we add 1px to avoid the wrapping (#7513)
+                ul.width('').outerWidth() + 1,
+                this.element.outerWidth()
+            ));
+        }
+    });
+}

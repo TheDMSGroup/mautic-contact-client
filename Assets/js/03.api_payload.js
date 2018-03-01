@@ -1,5 +1,38 @@
 // API Payload field.
 // API Payload JSON Schema.
+Mautic.contactclientApiPayloadPre = function () {
+    var $apiPayload = mQuery('#contactclient_api_payload');
+    if (typeof window.contactclientApiPayloadPreoaded === 'undefined' && $apiPayload.length) {
+
+        window.contactclientApiPayloadPreoaded = true;
+
+        var tokenSource = 'plugin:mauticContactClient:getTokens';
+        if (typeof window.JSONEditor.tokenCache === 'undefined') {
+            window.JSONEditor.tokenCache = {};
+        }
+        window.JSONEditor.tokenCache[tokenSource] = {};
+        mQuery.ajax({
+            url: mauticAjaxUrl,
+            type: 'POST',
+            data: {
+                action: tokenSource
+            },
+            cache: true,
+            dataType: 'json',
+            success: function (response) {
+                if (typeof response.tokens !== 'undefined') {
+                    window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                }
+            },
+            error: function (request, textStatus, errorThrown) {
+                Mautic.processAjaxError(request, textStatus, errorThrown);
+            },
+            complete: function () {
+                Mautic.contactclientApiPayload();
+            }
+        });
+    }
+};
 Mautic.contactclientApiPayload = function () {
 
     var $apiPayload = mQuery('#contactclient_api_payload');
@@ -32,6 +65,36 @@ Mautic.contactclientApiPayload = function () {
             url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/api_payload.json',
             success: function (data) {
                 var schema = data;
+
+                // Pre-load our field tokens for destination dropdowns.
+                var tokenSource = 'plugin:mauticContactClient:getTokens';
+                if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined'
+                    && !mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])
+                ) {
+                    var sources = [
+                        {
+                            title: '',
+                            value: ''
+                        },
+                        {
+                            title: '-- None --',
+                            value: ''
+                        }
+                    ];
+                    mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                        sources.push({
+                            title: value,
+                            value: key
+                        });
+                    });
+                    schema.definitions.responseField.properties.destination.enumSource = [
+                        {
+                            'source': sources,
+                            'title': '{{item.title}}',
+                            'value': '{{item.value}}'
+                        }
+                    ];
+                }
 
                 // Create our widget container for the JSON Editor.
                 var $apiPayloadJSONEditor = mQuery('<div>', {
@@ -106,6 +169,11 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                 }
                             }
+                        }
+
+                        // Apply tokenization if available.
+                        if (typeof Mautic.contactclientTokens === 'function') {
+                            Mautic.contactclientTokens();
                         }
                     }
                 });
@@ -252,7 +320,7 @@ Mautic.contactclientApiPayload = function () {
                                 Mautic.onPageLoad('#api_payload_test_result', response);
                             }
                         }
-                        if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue == 'function') {
+                        if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue === 'function') {
                             setJSONEditorValue(response.payload);
                         }
                     },

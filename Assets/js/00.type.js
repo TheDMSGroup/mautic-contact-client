@@ -11,7 +11,8 @@ Mautic.contactclientType = function () {
                 mQuery('.row.api_payload').removeClass('hide');
                 mQuery('.row.file_payload').addClass('hide');
 
-                Mautic.contactclientApiPayload();
+                // Mautic.contactclientApiPayload();
+                Mautic.contactclientApiPayloadPre();
             }
             else if (val === 'file') {
                 mQuery('#payload-tab').removeClass('hide');

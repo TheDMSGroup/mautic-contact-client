@@ -39,27 +39,6 @@ class JSONHelper
     }
 
     /**
-     * @param        $string
-     * @param string $fieldName
-     *
-     * @return mixed
-     *
-     * @throws \Exception
-     */
-    public function decodeObject($string, $fieldName = 'Unknown')
-    {
-        if (empty($string)) {
-            return new \stdClass();
-        }
-        $object = self::decode($string, $fieldName);
-        if (!$object || !is_object($object)) {
-            throw new \Exception('The field '.$fieldName.' is not a JSON object as expected.');
-        }
-
-        return $object;
-    }
-
-    /**
      * @param      $string
      * @param      $fieldName
      * @param bool $assoc
@@ -99,5 +78,26 @@ class JSONHelper
         }
 
         return $result;
+    }
+
+    /**
+     * @param        $string
+     * @param string $fieldName
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function decodeObject($string, $fieldName = 'Unknown')
+    {
+        if (empty($string)) {
+            return new \stdClass();
+        }
+        $object = self::decode($string, $fieldName);
+        if (!$object || !is_object($object)) {
+            throw new \Exception('The field '.$fieldName.' is not a JSON object as expected.');
+        }
+
+        return $object;
     }
 }
