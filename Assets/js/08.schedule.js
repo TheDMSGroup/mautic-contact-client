@@ -1,11 +1,9 @@
 // Schedule - Hours of Operation.
 Mautic.contactclientSchedule = function () {
 
-    var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget:first'),
-        $scheduleHoursSource = mQuery('#contactclient_schedule_hours:first');
-    if (typeof window.contactclientScheduleLoaded === 'undefined' && $scheduleHoursTarget.length && $scheduleHoursSource.length) {
-
-        window.contactclientScheduleLoaded = true;
+    var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget:not(.hide):first'),
+        $scheduleHoursSource = mQuery('#contactclient_schedule_hours:not(.hide):first');
+    if ($scheduleHoursTarget.length && $scheduleHoursSource.length) {
 
         var operationTime = $scheduleHoursSource.val();
         if (operationTime.length) {

@@ -156,12 +156,12 @@
                     }
                   },
                   {
-                    "title": "Text",
+                    "title": "Raw",
                     "type": "string",
                     "format": "textarea",
                     "options": {
-                      "wysiwyg": true,
-                      "infoText": "Here you can customize the body as a raw string.",
+                      "codemirror": true,
+                      "infoText": "Here you can customize the body as a raw string. Keep in mind this must match the Request Format specified above.",
                       "collapsed": false,
                       "disable_collapse": true
                     }

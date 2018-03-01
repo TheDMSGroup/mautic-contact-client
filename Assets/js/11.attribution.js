@@ -1,9 +1,7 @@
 // Attribition (cost/revenue/finances)
 Mautic.contactclientAttribution = function () {
-    var $attribution = mQuery('#contactclient_attribution_settings:first');
-    if (typeof window.contactclientAttributionLoaded === 'undefined' && $attribution.length) {
-
-        window.contactclientAttributionLoaded = true;
+    var $attribution = mQuery('#contactclient_attribution_settings:not(.hide):first');
+    if ($attribution.length) {
 
         /**
          * Get all keys/fields from the API Payload responses.
