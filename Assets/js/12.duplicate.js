@@ -1,9 +1,7 @@
 // Duplicate field.
 Mautic.contactclientDuplicate = function () {
-    var $duplicate = mQuery('#contactclient_duplicate');
-    if (typeof window.contactclientDuplicateLoaded === 'undefined' && $duplicate.length) {
-
-        window.contactclientDuplicateLoaded = true;
+    var $duplicate = mQuery('#contactclient_duplicate:not(.hide):first');
+    if ($duplicate.length) {
 
         var duplicateJSONEditor;
 
@@ -60,6 +58,5 @@ Mautic.contactclientDuplicate = function () {
                 // mQuery('label[for=contactclient_duplicate]').addClass('hide');
             }
         });
-
     }
 };

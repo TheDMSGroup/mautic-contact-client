@@ -1,9 +1,7 @@
 // Exclusive field.
 Mautic.contactclientExclusive = function () {
-    var $exclusive = mQuery('#contactclient_exclusive');
-    if (typeof window.contactclientExclusiveLoaded === 'undefined' && $exclusive.length) {
-
-        window.contactclientExclusiveLoaded = true;
+    var $exclusive = mQuery('#contactclient_exclusive:not(.hide):first');
+    if ($exclusive.length) {
 
         var exclusiveJSONEditor;
 

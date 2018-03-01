@@ -1,0 +1,62 @@
+# Standard .travis.yml for a Mautic plugin. Adjust env variables as needed.
+env:
+  global:
+    # The exact plugin folder/bundle name.
+    - "MAUTIC_PLUGIN=MauticContactClientBundle"
+
+dist: precise
+
+language: php
+
+services:
+  - mysql
+
+php:
+  - 5.6.19
+  - 7.0
+  - 7.1
+
+before_install:
+
+  # Create mautictest database.
+  - mysql -e 'CREATE DATABASE mautictest;'
+
+  # Turn off XDebug.
+  - phpenv config-rm xdebug.ini || return
+
+  # Install dependencies in parallel.
+  - travis_retry composer global require hirak/prestissimo
+
+  # Set to test environment for Symfony's commands in post install commands.
+  - export SYMFONY_ENV="test"
+
+  # Install PHPSTAN for PHP 7+
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.6" ]]; then composer global require phpstan/phpstan-shim:0.8.5; fi
+
+  # Clone the latest core release.
+  - git clone -b master --single-branch --depth 1 https://github.com/mautic/mautic.git /tmp/mautic
+
+  # Combine core with our plugin.
+  - mkdir -p /tmp/mautic/plugins/$MAUTIC_PLUGIN
+  - rsync -r --delete-after --quiet $TRAVIS_BUILD_DIR/ /tmp/mautic/plugins/$MAUTIC_PLUGIN
+  - rsync -r --delete-after --quiet /tmp/mautic/ $TRAVIS_BUILD_DIR/
+
+install:
+
+  # Install core dependencies.
+  - composer install
+  
+  # Install plugin dependencies (if any).
+  - composer require wikimedia/composer-merge-plugin
+  - composer config extra.merge-plugin.include plugins/$MAUTIC_PLUGIN/composer.json
+
+script:
+
+  # Run PHPUnit including core tests to find potential BC breaks.
+  - bin/phpunit --bootstrap vendor/autoload.php --configuration app/phpunit.xml.dist --fail-on-warning
+
+  # Run PHPSTAN analysis for PHP 7+ only in the scope of this plugin.
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.6" ]]; then ~/.composer/vendor/phpstan/phpstan-shim/phpstan.phar analyse plugins/$MAUTIC_PLUGIN; fi
+
+  # Check code standards for PHP 7.1 only in the scope of this plugin.
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then bin/php-cs-fixer fix -v --dry-run --diff plugins/$MAUTIC_PLUGIN; fi

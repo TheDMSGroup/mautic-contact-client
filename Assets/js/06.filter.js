@@ -1,8 +1,8 @@
 // @todo - Filtering field.
 Mautic.contactclientFilter = function () {
-    var $filter = mQuery('#contactclient_filter');
-    if (typeof window.contactclientFilterLoaded === 'undefined' && $filter.length) {
+    var $filter = mQuery('#contactclient_filter:not(.hide):first');
+    if ($filter.length) {
 
-        window.contactclientFilterLoaded = true;
+
     }
 };

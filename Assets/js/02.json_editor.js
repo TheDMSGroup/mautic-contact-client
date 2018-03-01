@@ -164,6 +164,28 @@ JSONEditor.defaults.options.expand_height = true;
 
 // Custom validators.
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    // When a textarea with option "codemirror" is true, render codemirror.
+    if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codemirror === true) {
+        mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:visible:not(.codemirror-checked)').each(function () {
+            var $input = mQuery(this);
+                editor = CodeMirror.fromTextArea($input[0], {
+                // mode: {
+                //     name: 'javascript',
+                //     json: true
+                // },
+                theme: 'material',
+                gutters: ['CodeMirror-lint-markers'],
+                // lint: 'json',
+                lintOnChange: true,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                lineNumbers: true,
+                extraKeys: {'Ctrl-Space': 'autocomplete'},
+                lineWrapping: true
+            });
+        }).addClass('codemirror-checked');
+    }
+    // Annual/fixed date support.
     var errors = [];
     if (schema.format === 'datestring') {
         if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
