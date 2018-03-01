@@ -143,7 +143,7 @@ class TokenHelper
     {
         foreach ($array as $key => &$value) {
             if (is_array($value)) {
-                if (count($value) === 0) {
+                if (0 === count($value)) {
                     // Currently such groups are undocumented, so labels are not needed.
                     unset($array[$key]);
                     continue;
@@ -151,7 +151,7 @@ class TokenHelper
                     $value = $this->labels($value, $keys.' '.$key);
                 }
             } else {
-                if (is_bool($value) || $value === null || $value === 0) {
+                if (is_bool($value) || null === $value || 0 === $value) {
                     // Discern the "label" given the key and previous keys conjoined.
                     $totalKey = str_replace('_', ' ', $keys.' '.trim($key));
                     preg_match_all('/(?:|[A-Z])[a-z]*/', $totalKey, $words);

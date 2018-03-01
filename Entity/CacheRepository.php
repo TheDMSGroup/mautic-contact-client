@@ -20,27 +20,28 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
  */
 class CacheRepository extends CommonRepository
 {
+    const MATCHING_ADDRESS  = 16;
+
+    const MATCHING_EMAIL    = 2;
+
     /**
      * Bitwise operators for $matching.
      */
     const MATCHING_EXPLICIT = 1;
 
-    const MATCHING_EMAIL    = 2;
+    const MATCHING_MOBILE   = 8;
 
     const MATCHING_PHONE    = 4;
 
-    const MATCHING_MOBILE   = 8;
-
-    const MATCHING_ADDRESS  = 16;
+    const SCOPE_CATEGORY = 2;
 
     /**
      * Bitwise operators for $scope.
      */
     const SCOPE_GLOBAL   = 1;
 
-    const SCOPE_CATEGORY = 2;
-
     // For limits only:
+
     const SCOPE_UTM_SOURCE = 3;
 
     /** @var PhoneNumberHelper */

@@ -23,23 +23,23 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 class Stat
 {
     // Used for querying stats
-    const TYPE_QUEUED    = 'queued';
-
     const TYPE_DUPLICATE = 'duplicate';
+
+    const TYPE_ERROR     = 'error';
+
+    const TYPE_EXCLUSIVE = 'exclusive';
 
     const TYPE_FILTER    = 'filtered';
 
     const TYPE_LIMITS    = 'limited';
 
-    const TYPE_EXCLUSIVE = 'exclusive';
+    const TYPE_QUEUED    = 'queued';
+
+    const TYPE_REJECT    = 'rejected';
 
     const TYPE_SCHEDULE  = 'schedule';
 
     const TYPE_SUCCESS   = 'success';
-
-    const TYPE_REJECT    = 'rejected';
-
-    const TYPE_ERROR     = 'error';
 
     /** @var int $id */
     private $id;

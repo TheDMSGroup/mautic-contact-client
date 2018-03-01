@@ -73,14 +73,6 @@ class ContactClientException extends \Exception
     }
 
     /**
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
      * @param mixed $contactId
      *
      * @return ContactClientException
@@ -90,6 +82,14 @@ class ContactClientException extends \Exception
         $this->contactId = $contactId;
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
     }
 
     /**

@@ -138,6 +138,16 @@ class ApiPayloadOperation
         return $this;
     }
 
+    public function getValid()
+    {
+        return $this->valid;
+    }
+
+    public function setValid($valid)
+    {
+        $this->valid = $valid;
+    }
+
     /**
      * Automatically updates a response with filled in data from the parsed response object from the API.
      */
@@ -197,16 +207,6 @@ class ApiPayloadOperation
         if ($updates) {
             $this->operation->response = $result;
         }
-    }
-
-    public function getValid()
-    {
-        return $this->valid;
-    }
-
-    public function setValid($valid)
-    {
-        $this->valid = $valid;
     }
 
     public function getFilter()

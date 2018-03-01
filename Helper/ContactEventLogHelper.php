@@ -69,7 +69,7 @@ class ContactEventLogHelper
         $eventLog->setUserId($client->getCreatedBy())
             ->setUserName($client->getCreatedByUser())
             ->setBundle('lead')
-//            ->setObject('import')
+            // ->setObject('import')
             ->setObjectId($contact->getId())
             ->setProperties(
                 [

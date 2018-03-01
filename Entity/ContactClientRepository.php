@@ -44,6 +44,16 @@ class ContactClientRepository extends CommonRepository
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
+    public function getTableAlias()
+    {
+        return 'f';
+    }
+
+    /**
      * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
      * @param                                                              $filter
      *
@@ -81,16 +91,6 @@ class ContactClientRepository extends CommonRepository
         return [
             [$this->getTableAlias().'.name', 'ASC'],
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return string
-     */
-    public function getTableAlias()
-    {
-        return 'f';
     }
 
     /**
