@@ -253,6 +253,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     // Add support for a token text field.
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
         function tagEditor ($text, tokenSource) {
+            var changed = false;
             $text.tagEditor({
                 placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
                 autocomplete: {
@@ -272,7 +273,17 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     delay: 100
                 },
                 // callbacks
-                onChange: function () {},
+                onChange: function () {
+                    if (!changed) {
+                        changed = true;
+                        var event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', false, true);
+                        $text[0].dispatchEvent(event);
+                    }
+                    else {
+                        changed = false;
+                    }
+                },
                 beforeTagSave: function () {},
                 beforeTagDelete: function () {}
             });
