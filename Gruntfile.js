@@ -24,7 +24,7 @@ module.exports = function (grunt) {
                     sourceMapName: 'Assets/build/contactclient.min.js.map'
                 },
                 files: {
-                    'Assets/build/contactclient.min.js': ['Assets/js/libraries/*.js', 'Assets/js/libraries/*/*.js', 'Assets/js/*.js']
+                    'Assets/build/contactclient.min.js': ['Assets/js/libraries/*.js', 'Assets/js/libraries/jquery-ui/*.js', 'Assets/js/*.js']
                 }
             }
         },
@@ -37,7 +37,7 @@ module.exports = function (grunt) {
             },
             target: {
                 files: {
-                    'Assets/build/contactclient.min.css': ['Assets/css/libraries/*.css', 'Assets/css/libraries/*/*.css', 'Assets/css/*.css']
+                    'Assets/build/contactclient.min.css': ['Assets/css/libraries/*.css', 'Assets/css/libraries/jquery-ui/*.css', 'Assets/css/*.css']
                 }
             }
         },
