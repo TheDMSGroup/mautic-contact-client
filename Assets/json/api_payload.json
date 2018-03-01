@@ -406,6 +406,9 @@
           "type": "string",
           "title": "Value",
           "options": {
+            "#comment": "These token properties are not standard, and only exist in this plugin.",
+            "tokenSource": "plugin:mauticContactClient:getTokens",
+            "tokenPlaceholder": "Type a field name...",
             "infoText": "The value of the field being sent."
           },
           "default": "",

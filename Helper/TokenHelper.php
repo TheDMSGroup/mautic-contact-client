@@ -163,6 +163,8 @@ class TokenHelper
                     }
                     // Combine down to one string without extra whitespace.
                     $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
+                    // One exception is UTM variables.
+                    $value = str_replace('Utm ', 'UTM ', $value);
                 }
             }
         }
@@ -289,7 +291,7 @@ class TokenHelper
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
                     $value = !empty($field['value']) ? $field['value'] : null;
-                    if ($value && 'datetime' == $field['type']) {
+                    if ($value && isset($field['type']) && 'datetime' == $field['type']) {
                         $value = $this->dateFormatHelper->iso8601($value);
                     }
                     if ('core' == $fgKey) {

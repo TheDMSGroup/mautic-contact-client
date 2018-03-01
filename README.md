@@ -39,9 +39,11 @@ Date formatting and other contextual schema is also available (documentation inc
 
 * [Bootstrap Datepicker](https://github.com/uxsolutions/bootstrap-datepicker)
 * [Bootstrap Slider](https://github.com/seiyria/bootstrap-slider)
+* [Caret](https://github.com/accursoft/caret)
 * [CodeMirror](https://github.com/codemirror/CodeMirror)
 * [Interact.js](https://github.com/taye/interact.js)
 * [jQuery QueryBuilder](https://github.com/mistic100/jQuery-QueryBuilder)
+* [jQuery TagEditor](https://github.com/heathdutton/jQuery-tagEditor)
 * [jQuery Timepicker](https://github.com/jonthornton/jquery-timepicker)
 * [jQuery BusinessHours](https://github.com/gEndelf/jquery.businessHours)
 * [JSON Editor](https://github.com/json-editor/json-editor)

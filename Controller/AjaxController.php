@@ -14,10 +14,10 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
+use Mautic\LeadBundle\Entity\Lead as Contact;
+use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
-use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
-use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
  * Class AjaxController.
@@ -64,14 +64,18 @@ class AjaxController extends CommonAjaxController
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      * @throws \Exception
      */
-    protected function getPayloadTokensAction(Request $request)
+    protected function getTokensAction(Request $request)
     {
+        $dataArray = [
+            'tokens'  => [],
+            'success' => 0,
+        ];
 
         /** @var \Mautic\LeadBundle\Model\FieldModel $fieldModel */
         $fieldModel = $this->get('mautic.lead.model.field');
 
         // Exclude company fields as they are not currently used by the token helper.
-        $fields = $fieldModel->getEntities(
+        $fields      = $fieldModel->getEntities(
             [
                 'filter'         => [
                     'force' => [
@@ -90,7 +94,7 @@ class AjaxController extends CommonAjaxController
                 'hydration_mode' => 'HYDRATE_ARRAY',
             ]
         );
-        $contact = new Contact();
+        $contact     = new Contact();
         $fieldGroups = [];
         foreach ($fields as $field) {
             $fieldGroups[$field['group']][$field['alias']] = [
@@ -104,7 +108,11 @@ class AjaxController extends CommonAjaxController
         $tokenHelper->addContextContact($contact);
 
         $tokens = $tokenHelper->getContext(true);
+        if ($tokens) {
+            $dataArray['tokens']  = $tokens;
+            $dataArray['success'] = true;
+        }
 
-        return $this->sendJsonResponse($tokens);
+        return $this->sendJsonResponse($dataArray);
     }
 }

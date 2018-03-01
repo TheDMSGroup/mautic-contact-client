@@ -107,6 +107,11 @@ Mautic.contactclientApiPayload = function () {
                                 }
                             }
                         }
+
+                        // Apply tokenization if available.
+                        if (typeof Mautic.contactclientTokens === 'function') {
+                            Mautic.contactclientTokens();
+                        }
                     }
                 });
             }
@@ -252,7 +257,7 @@ Mautic.contactclientApiPayload = function () {
                                 Mautic.onPageLoad('#api_payload_test_result', response);
                             }
                         }
-                        if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue == 'function') {
+                        if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue === 'function') {
                             setJSONEditorValue(response.payload);
                         }
                     },
