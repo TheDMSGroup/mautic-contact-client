@@ -23,7 +23,7 @@
         "value": {
           "propertyOrder": 10,
           "type": "string",
-          "format": "datestring",
+          "format": "date",
           "title": "Date",
           "default": ""
         },

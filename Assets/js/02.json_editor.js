@@ -187,6 +187,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     }
     // Annual/fixed date support.
     var errors = [];
+
     if (schema.format === 'datestring') {
         if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
             // Errors must be an object with `path`, `property`, and `message`
@@ -196,6 +197,20 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 message: 'Dates should be in ISO format as YYYY-MM-DD or MM-DD for repeating dates'
             });
         }
+    }
+
+    if (schema.format === 'date') {
+        // if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
+        //     // Errors must be an object with `path`, `property`, and `message`
+        //     errors.push({
+        //         path: path,
+        //         property: 'format',
+        //         message: 'Dates should be in ISO format as YYYY-MM-DD or MM-DD for repeating dates'
+        //     });
+        // }
+        mQuery('input[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.date-checked)').each(function () {
+            Mautic.activateDateTimeInputs(mQuery(this), 'date');
+        }).addClass('date-checked');
     }
     // Activate the jQuery Chosen plugin for all select fields with more than
     // 8 elements. Use "format": "select" to activate.
