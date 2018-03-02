@@ -14,14 +14,9 @@ namespace MauticPlugin\MauticContactClientBundle\Command;
 use Mautic\CoreBundle\Command\ModeratedCommand;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
-use MauticPlugin\MauticSocialBundle\Entity\Lead as Contact;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-
-//use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-//use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-//use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 
 /**
  * CLI Command : Sends a contact to a client.
@@ -103,8 +98,9 @@ class SendCommand extends ModeratedCommand
             return 0;
         }
 
-        /** @var Contact $contactModel */
+        /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
+        /** @var \Mautic\LeadBundle\Entity\Lead $contact */
         $contact      = $contactModel->getEntity($options['contact']);
         if (!$contact) {
             $output->writeln('<error>Could not load Contact.</error>');
