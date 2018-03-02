@@ -1,5 +1,5 @@
+# Mautic Contact Client [![Build Status](https://travis-ci.org/TheDMSGroup/mautic-contact-client.svg?branch=master)](https://travis-ci.org/TheDMSGroup/mautic-contact-client)
 ![](./Assets/img/client.png)
-# Mautic Contact Client 
 
 Create integrations/enhancers without touching code.
 
@@ -52,7 +52,7 @@ Date formatting and other contextual schema is also available (documentation inc
 
 ## Todo
 - [ ] Filtering: Rules to globally exclude contacts from sending to a client based on fields.
-- [ ] Budgets: Rules to limie=t the quantity of successful contacts sent to a client.
+- [ ] Budgets: Rules to limit the quantity of successful contacts sent to a client.
 - [ ] Files: Allow a file payload to send for clients that have no API. Contacts will queued and added to a CSV/XSL batch to be delivered to clients by FTP or email within the given schedule.
 - [ ] Logging: Make the logging screen sortable/searchable. Currently this is pretty minimal (and buggy).
 - [ ] Finance: Store the most recent attribution on a separate field (to be used in Campaign workflows).
