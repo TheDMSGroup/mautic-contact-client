@@ -31,7 +31,7 @@
             "options": {
               "infoText": "The name of this particular API operation."
             },
-            "default": "Send"
+            "default": ""
           },
           "description": {
             "propertyOrder": 20,
