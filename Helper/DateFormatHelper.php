@@ -18,20 +18,20 @@ class DateFormatHelper
 {
     /** @var array All standard date formats, plus any we wish to standardize. */
     protected $formats = [
-        'atom'             => 'Y-m-d\TH:i:sP',
-        'cookie'           => 'l, d-M-y H:i:s T',
-        'iso8601'          => 'Y-m-d\TH:i:sO',
-        'rfc822'           => 'D, d M y H:i:s O',
-        'rfc850'           => 'l, d-M-y H:i:s T',
-        'rfc1036'          => 'D, d M y H:i:s O',
-        'rfc1123'          => 'D, d M Y H:i:s O',
-        'rfc2822'          => 'D, d M Y H:i:s O',
-        'rfc3339'          => 'Y-m-d\TH:i:sP',
-        'rfc3339_extended' => 'Y-m-d\TH:i:s.vP',
-        'rfc7231'          => 'D, d M Y H:i:s \G\M\T',
-        'rss'              => 'D, d M Y H:i:s O',
-        'w3c'              => 'Y-m-d\TH:i:sP',
-        'short'            => 'd/m/Y',
+        'atom'       => 'Y-m-d\TH:i:sP',
+        'cookie'     => 'l, d-M-y H:i:s T',
+        'iso8601'    => 'Y-m-d\TH:i:sO',
+        'rfc822'     => 'D, d M y H:i:s O',
+        'rfc850'     => 'l, d-M-y H:i:s T',
+        'rfc1036'    => 'D, d M y H:i:s O',
+        'rfc1123'    => 'D, d M Y H:i:s O',
+        'rfc2822'    => 'D, d M Y H:i:s O',
+        'rfc3339'    => 'Y-m-d\TH:i:sP',
+        'rfc3339ext' => 'Y-m-d\TH:i:s.vP',
+        'rfc7231'    => 'D, d M Y H:i:s \G\M\T',
+        'rss'        => 'D, d M Y H:i:s O',
+        'w3c'        => 'Y-m-d\TH:i:sP',
+        'short'      => 'd/m/Y',
     ];
 
     /** @var string All allowed single-character date/time formats. */
