@@ -53,7 +53,7 @@ install:
 script:
 
   # Run PHPUnit including core tests to find potential BC breaks.
-  - bin/phpunit --bootstrap vendor/autoload.php --configuration app/phpunit.xml.dist --fail-on-warning
+  - bin/phpunit -d memory_limit=2048M --bootstrap vendor/autoload.php --configuration app/phpunit.xml.dist --fail-on-warning
 
   # Run PHPSTAN analysis for PHP 7+ only in the scope of this plugin.
   - if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.6" ]]; then ~/.composer/vendor/phpstan/phpstan-shim/phpstan.phar analyse plugins/$MAUTIC_PLUGIN; fi
