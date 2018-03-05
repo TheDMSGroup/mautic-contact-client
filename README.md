@@ -33,7 +33,43 @@ If you have success/issues with other versions please report.
 
 You can use [Mustache](http://mustache.github.io) to format outgoing field values with any client. 
 Just use the field alias, like so "{{firstname}} {{lastname}}" to send the full name, or "{{email}}" to just send the email.
-Date formatting and other contextual schema is also available (documentation incoming).
+Other contextual schema (such as previous headers/body fields) is also available (documentation incoming).
+
+### Formatting Date and Time
+
+You can wrap `date` tags around any string or custom field tag to format the date and/or time to your needs.
+The Timezone of the Client will always be applied if provided.
+Examples:
+- `{{#date.atom}}2018-03-05{{/date.atom}}` - renders `2018-03-05T00:00:00+00:00`
+- `{{#date.cookie}}2018-03-05{{/date.cookie}}` - renders `Monday, 05-Mar-18 00:00:00 UTC`
+- `{{#date.iso8601}}2018-03-05{{/date.iso8601}}` - renders `2018-03-05T00:00:00+0000`
+- `{{#date.rfc822}}2018-03-05{{/date.rfc822}}` - renders `Mon, 05 Mar 18 00:00:00 +0000`
+- `{{#date.rfc850}}2018-03-05{{/date.rfc850}}` - renders `Monday, 05-Mar-18 00:00:00 UTC`
+- `{{#date.rfc1036}}2018-03-05{{/date.rfc1036}}` - renders `Mon, 05 Mar 18 00:00:00 +0000`
+- `{{#date.rfc1123}}2018-03-05{{/date.rfc1123}}` - renders `Mon, 05 Mar 2018 00:00:00 +0000`
+- `{{#date.rfc2822}}2018-03-05{{/date.rfc2822}}` - renders `Mon, 05 Mar 2018 00:00:00 +0000`
+- `{{#date.rfc3339}}2018-03-05{{/date.rfc3339}}` - renders `2018-03-05T00:00:00+00:00`
+- `{{#date.rfc3339_extended}}2018-03-05{{/date.rfc3339_extended}}` - renders `2018-03-05T00:00:00.000+00:00`
+- `{{#date.rfc7231}}2018-03-05{{/date.rfc7231}}` - renders `Mon, 05 Mar 2018 00:00:00 GMT`
+- `{{#date.rss}}2018-03-05{{/date.rss}}` - renders `Mon, 05 Mar 2018 00:00:00 +0000`
+- `{{#date.w3c}}2018-03-05{{/date.w3c}}` - renders `2018-03-05T00:00:00+00:00`
+- `{{#date.short}}2018-03-05{{/date.short}}` - renders `05/03/2018`
+- `{{#date.yearsFrom}}2018-03-06{{/date.yearsFrom}}` - renders the number of years from the date (good for Date of Birth) 
+- `{{#date.monthsFrom}}2018-03-06{{/date.monthsFrom}}` - renders the number of months from the date. 
+- `{{#date.daysFrom}}2018-03-06{{/date.daysFrom}}` - renders the number of days from the date. 
+- `{{#date.hoursFrom}}2018-03-06{{/date.hoursFrom}}` - renders the number of hours from the date. 
+- `{{#date.minutesFrom}}2018-03-06{{/date.minutesFrom}}` - renders the number of minutes from the date.
+- `{{#date.yearsTill}}2018-03-06{{/date.yearsTill}}` - renders the number of years till the date (good for Date of Birth) 
+- `{{#date.monthsTill}}2018-03-06{{/date.monthsTill}}` - renders the number of months till the date. 
+- `{{#date.daysTill}}2018-03-06{{/date.daysTill}}` - renders the number of days till the date. 
+- `{{#date.hoursTill}}2018-03-06{{/date.hoursTill}}` - renders the number of hours till the date. 
+- `{{#date.minutesTill}}2018-03-06{{/date.minutesTill}}` - renders the number of minutes till the date.
+- `{{#date.years}}2018-03-06{{/date.years}}` - renders the absolute number of years between now and the date.
+- `{{#date.months}}2018-03-06{{/date.months}}` - renders the absolute number of months between now and the date.
+- `{{#date.days}}2018-03-06{{/date.days}}` - renders the absolute number of days between now and the date.
+- `{{#date.hours}}2018-03-06{{/date.hours}}` - renders the absolute number of hours between now and the date.
+- `{{#date.minutes}}2018-03-06{{/date.minutes}}` - renders the absolute number of minutes between now and the date.
+- `{{#date.X}}2018-03-06{{/date.X}}` - where `X` is any single-character [date format](http://php.net/manual/en/function.date.php) such as m, D, y etc. This can be used to create any format desired for situations where the list above is insufficient.
 
 ## Uses these fine libraries:
 

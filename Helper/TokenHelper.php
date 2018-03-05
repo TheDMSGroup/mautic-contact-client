@@ -48,21 +48,16 @@ class TokenHelper
     /**
      * Recursively replaces tokens using an array for context.
      *
-     * @param array|object $context
+     * @param array $array
      *
      * @return array
      */
-    public function renderArray($context = [])
+    public function renderArray($array = [])
     {
         $result = [];
-        foreach ($context as $key => $value) {
-            if (false !== strpos($key, self::TOKEN_KEY)) {
-                $key = $this->engine->render($key, $this->context);
-            }
+        foreach ($array as $key => $value) {
             if (is_string($value)) {
-                if (false !== strpos($value, self::TOKEN_KEY)) {
-                    $value = $this->engine->render($value, $this->context);
-                }
+                $value = $this->render($value, true);
             } elseif (is_array($value) || is_object($value)) {
                 $value = $this->renderArray($value);
             }
@@ -75,22 +70,30 @@ class TokenHelper
     /**
      * Replace Tokens in a simple string using an array for context.
      *
-     * @param $string
+     * @param      $string
+     * @param bool $force  skip checking for a token
      *
      * @return string
      */
-    public function renderString($string)
+    public function render($string, $force = false)
     {
-        if (false !== strpos($string, self::TOKEN_KEY)) {
+        if ($force || false !== strpos($string, self::TOKEN_KEY)) {
+            if (!$this->engine->hasHelper('date')) {
+                $this->setTimezones();
+            }
             $string = $this->engine->render($string, $this->context);
         }
 
         return $string;
     }
 
-    public function setTimezones($tza = 'UTC', $tzb = 'UTC')
+    /**
+     * @param string $timzoneSource
+     * @param string $timzoneDestination
+     */
+    public function setTimezones($timzoneSource = 'UTC', $timzoneDestination = 'UTC')
     {
-        $this->dateFormatHelper = new DateFormatHelper($tza, $tzb);
+        $this->dateFormatHelper = new DateFormatHelper($timzoneSource, $timzoneDestination);
         $this->engine->addHelper('date', $this->dateFormatHelper);
     }
 

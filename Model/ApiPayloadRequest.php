@@ -247,14 +247,21 @@ class ApiPayloadRequest
      */
     private function renderTokens($string = '')
     {
-        return $this->tokenHelper->renderString($string);
+        return $this->tokenHelper->render($string);
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;
     }
 
+    /**
+     * @param      $value
+     * @param null $type
+     */
     public function setLogs($value, $type = null)
     {
         if ($type) {

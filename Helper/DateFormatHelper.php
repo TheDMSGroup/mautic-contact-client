@@ -16,374 +16,214 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
  */
 class DateFormatHelper
 {
-    const DATE_SHORT = 'd/m/Y';
+    /** @var array All standard date formats, plus any we wish to standardize. */
+    protected $formats = [
+        'atom'             => 'Y-m-d\TH:i:sP',
+        'cookie'           => 'l, d-M-y H:i:s T',
+        'iso8601'          => 'Y-m-d\TH:i:sO',
+        'rfc822'           => 'D, d M y H:i:s O',
+        'rfc850'           => 'l, d-M-y H:i:s T',
+        'rfc1036'          => 'D, d M y H:i:s O',
+        'rfc1123'          => 'D, d M Y H:i:s O',
+        'rfc2822'          => 'D, d M Y H:i:s O',
+        'rfc3339'          => 'Y-m-d\TH:i:sP',
+        'rfc3339_extended' => 'Y-m-d\TH:i:s.vP',
+        'rfc7231'          => 'D, d M Y H:i:s \G\M\T',
+        'rss'              => 'D, d M Y H:i:s O',
+        'w3c'              => 'Y-m-d\TH:i:sP',
+        'short'            => 'd/m/Y',
+    ];
 
-    /**
-     * @var string datasource timezone (internal)
-     */
-    private $tza;
+    /** @var string All allowed single-character date/time formats. */
+    protected $formatSingle = 'dDjlNSwzWFmMntLoYyaABgGhHisuveIOPTZcrU';
 
-    /**
-     * @var string destination timezone (client)
-     */
-    private $tzb;
+    protected $formatInterval = [
+        'seconds' => 'PT1S',
+        'minutes' => 'PT1M',
+        'hours'   => 'PT1H',
+        'days'    => 'P1D',
+        'months'  => 'P1M',
+        'years'   => 'P1Y',
+    ];
+
+    /** @var string */
+    private $timezoneSource;
+
+    /** @var string */
+    private $timezoneDestination;
+
+    /** @var string */
+    private $defaultFormat;
+
+    // @todo - Create a magic method that handles all standard formats, returning closures for each.
 
     /**
      * DateFormatHelper constructor.
      *
-     * @param string $tza
-     * @param string $tzb
+     * @param string $timezoneSource
+     * @param string $timezoneDestination
+     * @param string $defaultFormat
      */
-    public function __construct($tza = 'UTC', $tzb = 'UTC')
+    public function __construct($timezoneSource = 'UTC', $timezoneDestination = 'UTC', $defaultFormat = 'rfc8601')
     {
-        $this->tza = $tza;
-        $this->tzb = $tzb;
+        $this->timezoneSource      = $timezoneSource;
+        $this->timezoneDestination = $timezoneDestination;
+        $this->defaultFormat       = $defaultFormat;
     }
 
+    /**
+     * @param $key
+     *
+     * @return bool
+     */
     public function __isset($key)
     {
-        return method_exists($this, '_'.$key);
+        $format = $this->validateFormat($key);
+
+        if (!$format) {
+            list($op, $format) = $this->validateDiff($key);
+        }
+
+        return (bool) $format;
     }
 
-    public function __get($key)
+    /**
+     * @param $format
+     *
+     * @return mixed|string
+     */
+    private function validateFormat($format)
     {
-        return [$this, '_'.$key];
+        if (1 === strlen($format)) {
+            if (false !== strpos($this->formatSingle, $format)) {
+                return $format;
+            }
+        } else {
+            $format = strtolower($format);
+            if (isset($this->formats[$format])) {
+                return $this->formats[$format];
+            }
+        }
     }
 
-    public function atom($date)
+    /**
+     * @param $format
+     *
+     * @return array
+     */
+    private function validateDiff($format)
     {
-        return $this->parse($date)->format(DATE_ATOM);
+        $keywords = [
+            'from',
+            'since',
+            'till',
+            'until',
+        ];
+        $op       = null;
+        $format   = strtolower($format);
+        foreach ($keywords as $keyword) {
+            $len = strlen($keyword);
+            if (substr($format, -$len) === $keyword) {
+                $op     = $keyword;
+                $format = substr($format, 0, strlen($format) - $len);
+                break;
+            }
+        }
+
+        return [$op, isset($this->formatInterval[$format]) ? $this->formatInterval[$format] : null];
+    }
+
+    /**
+     * @param $format
+     *
+     * @return \Closure
+     */
+    public function __get($format)
+    {
+        $originalFormat = $format;
+        $format         = $this->validateFormat($format);
+        if (!$format) {
+            // Check for diff format.
+            list($op, $intervalFormat) = $this->validateDiff($originalFormat);
+            if ($intervalFormat) {
+                $now = $this->parse('now', $this->timezoneDestination);
+                switch ($op) {
+                    case 'till':
+                    case 'until':
+                        return function ($date) use ($intervalFormat, $now) {
+                            $date = $this->parse($date);
+
+                            return $this->getIntervalUnits($now, $date, $intervalFormat);
+                        };
+                        break;
+                    case 'since':
+                    case 'from':
+                        return function ($date) use ($intervalFormat, $now) {
+                            $date = $this->parse($date);
+
+                            return $this->getIntervalUnits($date, $now, $intervalFormat);
+                        };
+                        break;
+                    // If no operation keyword is found, get the absolute difference (either direction)
+                    default:
+                        return function ($date) use ($intervalFormat, $now) {
+                            $date   = $this->parse($date);
+                            $result = $this->getIntervalUnits($now, $date, $intervalFormat);
+
+                            return $result ? $result : $this->getIntervalUnits($date, $now, $intervalFormat);
+                        };
+                        break;
+                }
+            }
+        }
+        $format = $format ? $format : $originalFormat;
+
+        // $format = $this->formatPrefix($format);
+
+        return function ($date) use ($format) {
+            return $this->parse($date)->format($format);
+        };
     }
 
     /**
      * Parse a string into a DateTime.
      *
      * @param string $date
-     * @param string $tz   Timezone
+     * @param string $timezone
      *
      * @return \DateTime
      */
-    private function parse($date, $tz = null)
+    private function parse($date, $timezone = null)
     {
         if (!($date instanceof \DateTime)) {
-            $date = new \DateTime($date, new \DateTimeZone(!empty($tz) ? $tz : $this->tza));
+            if (!$timezone) {
+                $timezone = $this->timezoneSource;
+            }
+
+            $date = new \DateTime($date, new \DateTimeZone($timezone));
         }
 
         return $date;
     }
 
-    public function cookie($date)
-    {
-        return $this->parse($date)->format(DATE_COOKIE);
-    }
-
-    public function iso8601($date)
-    {
-        return $this->parse($date)->format(DATE_ISO8601);
-    }
-
-    public function rfc822($date)
-    {
-        return $this->parse($date)->format(DATE_RFC822);
-    }
-
-    public function rfc850($date)
-    {
-        return $this->parse($date)->format(DATE_RFC850);
-    }
-
-    public function rfc1036($date)
-    {
-        return $this->parse($date)->format(DATE_RFC1036);
-    }
-
-    public function rfc1123($date)
-    {
-        return $this->parse($date)->format(DATE_RFC1123);
-    }
-
-    public function rfc2822($date)
-    {
-        return $this->parse($date)->format(DATE_RFC2822);
-    }
-
-    public function rfc3339($date)
-    {
-        return $this->parse($date)->format(DATE_RFC3339);
-    }
-
-    public function rfc3339_extended($date)
-    {
-        return $this->parse($date)->format(DATE_RFC3339_EXTENDED);
-    }
-
-    public function rfc7231($date)
-    {
-        return $this->parse($date)->format(DATE_RFC7231);
-    }
-
-    public function rss($date)
-    {
-        return $this->parse($date)->format(DATE_RSS);
-    }
-
-    public function w3c($date)
-    {
-        return $this->parse($date)->format(DATE_W3C);
-    }
-
-    public function yearsSince($date)
-    {
-        return min(0, $this->parseDiff($date)->y);
-    }
-
     /**
-     * Parse the difference between the specified date and now, based on the destination timezone.
+     * @param \DateTime $date1
+     * @param \DateTime $date2
+     * @param string    $intervalFormat
      *
-     * @param string $date
-     *
-     * @return bool|\DateInterval
+     * @return int
      */
-    private function parseDiff($date)
+    private function getIntervalUnits(\DateTime $date1, \DateTime $date2, string $intervalFormat)
     {
-        return $this->parse($date)->diff($this->parse('now', $this->tzb));
-    }
+        $result = 0;
+        try {
+            $interval = new \DateInterval($intervalFormat);
+            $periods  = new \DatePeriod($date1, $interval, $date2);
 
-    public function yearsTill($date)
-    {
-        return max(0, $this->parseDiff($date)->y);
-    }
-
-    public function daysSince($date)
-    {
-        return min(0, $this->parseDiff($date)->days);
-    }
-
-    public function daysTill($date)
-    {
-        return max(0, $this->parseDiff($date)->days);
-    }
-
-    public function hoursSince($date)
-    {
-        return min(0, $this->parseDiff($date)->h);
-    }
-
-    public function hoursTill($date)
-    {
-        return max(0, $this->parseDiff($date)->h);
-    }
-
-    public function short($date)
-    {
-        return $this->parse($date)->format(self::DATE_SHORT);
-    }
-
-    /**
-     * Typical single-character expressions.
-     * Uppercase expressions prepended by 'u'.
-     *
-     * @param $date
-     *
-     * @return string
-     */
-    public function a($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    /**
-     * @param $date
-     * @param $format
-     *
-     * @return string
-     */
-    private function format($date, $format = '')
-    {
-        if (2 == strlen($format) && 0 === strpos($format, 'u')) {
-            $format = substr($format, 1);
+            $result = max(0, iterator_count($periods) - 1);
+        } catch (\Exception $exception) {
         }
 
-        return $this->parse($date)->format($format);
-    }
-
-    public function uA($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function B($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function c($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function d($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uD($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function e($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function F($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function g($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uG($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function h($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uH($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function i($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uI($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function j($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function l($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uL($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function m($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function n($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uN($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function o($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uO($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function P($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function r($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function s($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uS($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function t($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uT($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function u($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uU($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function v($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function w($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uW($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function y($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uY($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function z($date)
-    {
-        return $this->format($date, __FUNCTION__);
-    }
-
-    public function uZ($date)
-    {
-        return $this->format($date, __FUNCTION__);
+        return $result;
     }
 }
