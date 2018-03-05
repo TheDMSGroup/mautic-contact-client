@@ -210,7 +210,29 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         // }
         mQuery('input[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.date-checked)').each(function () {
             Mautic.activateDateTimeInputs(mQuery(this), 'date');
+
+            changed = false;
+            // Make sure an event fires passing value through
+            mQuery(this).on('change', function (o) {
+                if (!changed) {
+                    if ('createEvent' in document) {
+                        changed = true;
+                        var event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', false, true);
+                        mQuery(this)[0].dispatchEvent(event);
+                    }
+                    else {
+                        mQuery(this)[0].fireEvent('onchange');
+                    }
+                }
+                else {
+                    changed = false;
+                }
+            });
+
         }).addClass('date-checked');
+
+
     }
     // Activate the jQuery Chosen plugin for all select fields with more than
     // 8 elements. Use "format": "select" to activate.
