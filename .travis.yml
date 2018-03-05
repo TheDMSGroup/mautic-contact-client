@@ -49,6 +49,7 @@ install:
   # Install plugin dependencies (if any).
   - composer require wikimedia/composer-merge-plugin
   - composer config extra.merge-plugin.include plugins/$MAUTIC_PLUGIN/composer.json
+  - composer install
 
 script:
 
