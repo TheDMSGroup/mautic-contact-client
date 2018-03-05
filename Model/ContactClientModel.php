@@ -422,7 +422,7 @@ class ContactClientModel extends FormModel
     /**
      * Get engagement counts by time unit.
      *
-     * @param Contact         $contact
+     * @param ContactClient   $contactClient
      * @param \DateTime|null  $dateFrom
      * @param \DateTime|null  $dateTo
      * @param string          $unit
@@ -431,13 +431,13 @@ class ContactClientModel extends FormModel
      * @return array
      */
     public function getEngagementCount(
-        Contact $contact,
+        ContactClient $contactClient,
         \DateTime $dateFrom = null,
         \DateTime $dateTo = null,
         $unit = 'm',
         ChartQuery $chartQuery = null
     ) {
-        $event = new ContactClientTimelineEvent($contact);
+        $event = new ContactClientTimelineEvent($contactClient);
         $event->setCountOnly($dateFrom, $dateTo, $unit, $chartQuery);
 
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);

@@ -65,7 +65,7 @@ class ClientIntegration extends AbstractIntegration
     /** @var string $statType */
     protected $statType;
 
-    /** @var contactClientModel */
+    /** @var ContactClientModel */
     protected $contactClientModel;
 
     /** @var Cache */
@@ -173,12 +173,12 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return contactClientModel
+     * @return ContactClientModel
      */
     private function getContactClientModel()
     {
         if (!$this->contactClientModel) {
-            /* @var contactClientModel $contactClientModel */
+            /* @var ContactClientModel $contactClientModel */
             $this->contactClientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
         }
 
@@ -588,9 +588,9 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param \Mautic\PluginBundle\Integration\Form|\Symfony\Component\Form\FormBuilder $builder
-     * @param array                                                                     $data
-     * @param string                                                                    $formArea
+     * @param \Symfony\Component\Form\FormBuilder $builder
+     * @param array                               $data
+     * @param string                              $formArea
      *
      * @throws Exception
      */

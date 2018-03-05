@@ -337,7 +337,7 @@ class ApiPayload
                     try {
                         $this->contactClientModel->saveEntity($this->contactClient);
                         $this->setLogs('Updated our response payload expectations.', 'payload');
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                         $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
                     }
                 }

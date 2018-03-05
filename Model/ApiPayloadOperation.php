@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Mautic\PluginBundle\Exception\ApiErrorException;
+use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
@@ -22,30 +23,46 @@ use stdClass;
  */
 class ApiPayloadOperation
 {
+    /** @var int */
+    protected $id;
+
+    /** @var array */
     protected $operation;
 
+    /** @var string */
     protected $name;
 
+    /** @var array */
     protected $request;
 
+    /** @var array */
     protected $responseExpected;
 
+    /** @var array */
     protected $successDefinition;
 
+    /** @var array */
     protected $responseActual;
 
+    /** @var bool */
     protected $test;
 
+    /** @var array */
     protected $logs = [];
 
+    /** @var Transport */
     protected $transport;
 
+    /** @var bool */
     protected $updatePayload;
 
+    /** @var bool */
     protected $valid = false;
 
-    protected $filter = null;
+    /** @var array */
+    protected $filter;
 
+    /** @var TokenHelper */
     protected $tokenHelper;
 
     /**
@@ -64,6 +81,16 @@ class ApiPayloadOperation
         'email',
     ];
 
+    /**
+     * ApiPayloadOperation constructor.
+     *
+     * @param           $id
+     * @param           $operation
+     * @param Transport $transport
+     * @param           $tokenHelper
+     * @param bool      $test
+     * @param bool      $updatePayload
+     */
     public function __construct(
         $id,
         &$operation,
@@ -72,6 +99,7 @@ class ApiPayloadOperation
         $test = false,
         $updatePayload = true
     ) {
+        $this->id                = $id;
         $this->operation         = &$operation;
         $this->transport         = $transport;
         $this->name              = !empty($operation->name) ? $operation->name : (isset($operation->id) ? $operation->id : 'Unknown');
@@ -138,11 +166,17 @@ class ApiPayloadOperation
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function getValid()
     {
         return $this->valid;
     }
 
+    /**
+     * @param $valid
+     */
     public function setValid($valid)
     {
         $this->valid = $valid;
@@ -209,21 +243,34 @@ class ApiPayloadOperation
         }
     }
 
+    /**
+     * @return array
+     */
     public function getFilter()
     {
         return $this->filter;
     }
 
+    /**
+     * @param $filter
+     */
     public function setFilter($filter)
     {
         $this->filter = $filter;
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;
     }
 
+    /**
+     * @param      $value
+     * @param null $type
+     */
     public function setLogs($value, $type = null)
     {
         if ($type) {

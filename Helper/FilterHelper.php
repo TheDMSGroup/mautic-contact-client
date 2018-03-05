@@ -73,11 +73,11 @@ class FilterHelper
     /**
      * Decode the given JSON.
      *
-     * @param string incoming json
+     * @param $json
      *
-     * @throws \Exception
+     * @return mixed
      *
-     * @return stdClass
+     * @throws Exception
      */
     private function decodeJSON($json)
     {
@@ -155,13 +155,12 @@ class FilterHelper
     /**
      * Evaluate: The money maker!
      *
-     * @param stdClass $rule
-     * @param array    $context
+     * @param       $rule
+     * @param array $context
      *
      * @return bool
      *
      * @throws Exception
-     * @throws \Exception
      */
     protected function evaluate($rule, array $context = [])
     {
@@ -194,12 +193,11 @@ class FilterHelper
     /**
      * Ensure that the value is correct for the rule, try and set it if it's not.
      *
-     * @param stdClass $rule
+     * @param $rule
      *
      * @return mixed|null|string
      *
      * @throws Exception
-     * @throws \Exception
      */
     protected function getValueFromRule($rule)
     {
@@ -217,7 +215,7 @@ class FilterHelper
      * get a value for a given rule.
      * throws an exception if the rule is not correct.
      *
-     * @param stdClass $rule
+     * @param $rule
      *
      * @return mixed
      *
@@ -236,7 +234,7 @@ class FilterHelper
      * Check if a given rule is correct.
      * Just before making a query for a rule, we want to make sure that the field, operator and value are set.
      *
-     * @param stdClass $rule
+     * @param $rule
      *
      * @return bool true if values are correct
      */
@@ -255,7 +253,7 @@ class FilterHelper
     /**
      * Give back the correct value when we don't accept one.
      *
-     * @param stdClass $rule
+     * @param $rule
      *
      * @return null|string
      */
@@ -271,9 +269,9 @@ class FilterHelper
     /**
      * Ensure that the value for a field is correct.
      *
-     * @param string   $operator
-     * @param stdClass $rule
-     * @param          $value
+     * @param string $operator
+     * @param        $rule
+     * @param        $value
      *
      * @return mixed
      *
@@ -363,8 +361,8 @@ class FilterHelper
     /**
      * Take a (potentially nested) field name and get the literal value from the contextual array.
      *
-     * @param stdClass $rule
-     * @param          $context
+     * @param   $rule
+     * @param   $context
      *
      * @return bool
      */
@@ -388,9 +386,9 @@ class FilterHelper
      * (This used to be part of evaluate, where the name made sense, but I pulled it
      * out to reduce some duplicated code inside JoinSupportingQueryBuilder)
      *
-     * @param stdClass $rule
-     * @param          $contextValue
-     * @param stdClass $ruleValue
+     * @param   $rule
+     * @param   $contextValue
+     * @param   $ruleValue
      *
      * @return bool
      *
@@ -466,7 +464,7 @@ class FilterHelper
     /**
      * Determine if we have nested rules to evaluate.
      *
-     * @param stdClass $rule
+     * @param  $rule
      *
      * @return bool
      */
