@@ -50,7 +50,7 @@ class Cache extends AbstractCommonModel
             // expiration. Any of these entries will suffice for duplicate checking and limit checking.
             foreach ($exclusive as $rule) {
                 if (!isset($entity)) {
-                    $entity = $this->new();
+                    $entity = $this->createEntity();
                 } else {
                     // No need to re-run all the getters and setters.
                     $entity = clone $entity;
@@ -65,7 +65,7 @@ class Cache extends AbstractCommonModel
             }
         } else {
             // A single entry will suffice for all duplicate checking and limit checking.
-            $entities[] = $this->new();
+            $entities[] = $this->createEntity();
         }
         if (count($entities)) {
             $this->getRepository()->saveEntities($entities);
@@ -127,7 +127,7 @@ class Cache extends AbstractCommonModel
      *
      * @return CacheEntity
      */
-    private function new()
+    private function createEntity()
     {
         $entity = new CacheEntity();
         $entity->setAddress1(trim(ucwords($this->contact->getAddress1())));
