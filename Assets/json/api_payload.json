@@ -11,6 +11,101 @@
       "title": "Operations",
       "type": "array",
       "propertyOrder": 10,
+      "default": [
+        {
+          "name": "Send Contact",
+          "description": "",
+          "request": {
+            "url": "",
+            "testUrl": "",
+            "method": "post",
+            "format": "form",
+            "headers": [],
+            "body": [
+              {
+                "key": "firstname",
+                "value": "{{firstname}}",
+                "default_value": "",
+                "test_value": "Test",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "lastname",
+                "value": "{{lastname}}",
+                "default_value": "",
+                "test_value": "Testerson",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "address1",
+                "value": "{{address1}}",
+                "default_value": "",
+                "test_value": "1234 Test St.",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "city",
+                "value": "{{city}}",
+                "default_value": "",
+                "test_value": "Testopolis",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "state",
+                "value": "{{state}}",
+                "default_value": "",
+                "test_value": "TN",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "zipcode",
+                "value": "{{zipcode}}",
+                "default_value": "",
+                "test_value": "90210",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "phone",
+                "value": "{{phone}}",
+                "default_value": "",
+                "test_value": "+15555555555",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              },
+              {
+                "key": "email",
+                "value": "{{email}}",
+                "default_value": "",
+                "test_value": "test.testerson@testing.com",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": true
+              }
+            ]
+          }
+        }
+      ],
       "options": {
         "collapsed": false,
         "disable_collapse": true
