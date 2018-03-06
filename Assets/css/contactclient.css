@@ -255,11 +255,10 @@
 
 /* ContactClient API Payload - CodeMirror */
 #contactclient_api_payload_codemirror {
-    margin-top: 5px;
+    margin-top: 20px;
 }
 
 #contactclient_api_payload_codemirror .CodeMirror {
-    border-top-right-radius: 0px;
     border: 0;
 }
 
