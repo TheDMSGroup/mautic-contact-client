@@ -30,7 +30,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               },
               {
                 "key": "lastname",
@@ -40,7 +40,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               },
               {
                 "key": "address1",
@@ -50,7 +50,17 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
+              },
+              {
+                "key": "address2",
+                "value": "{{address2}}",
+                "default_value": "",
+                "test_value": "Apt. 123",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
               },
               {
                 "key": "city",
@@ -60,7 +70,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               },
               {
                 "key": "state",
@@ -70,7 +80,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               },
               {
                 "key": "zipcode",
@@ -80,7 +90,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               },
               {
                 "key": "phone",
@@ -90,7 +100,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               },
               {
                 "key": "email",
@@ -100,7 +110,7 @@
                 "test_only": false,
                 "description": "",
                 "overridable": false,
-                "required": true
+                "required": false
               }
             ]
           }
@@ -223,7 +233,8 @@
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true
+                  "collapsed": true,
+                  "disable_array_reorder": true
                 },
                 "items": {
                   "title": "Header",
@@ -234,7 +245,8 @@
                 "title": "Request Body",
                 "options": {
                   "collapsed": false,
-                  "disable_collapse": true
+                  "disable_collapse": true,
+                  "disable_array_reorder": true
                 },
                 "oneOf": [
                   {
