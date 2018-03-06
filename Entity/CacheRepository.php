@@ -24,25 +24,17 @@ class CacheRepository extends CommonRepository
 
     const MATCHING_EMAIL    = 2;
 
-    /**
-     * Bitwise operators for $matching.
-     */
     const MATCHING_EXPLICIT = 1;
 
     const MATCHING_MOBILE   = 8;
 
     const MATCHING_PHONE    = 4;
 
-    const SCOPE_CATEGORY = 2;
+    const SCOPE_CATEGORY    = 2;
 
-    /**
-     * Bitwise operators for $scope.
-     */
-    const SCOPE_GLOBAL   = 1;
+    const SCOPE_GLOBAL      = 1;
 
-    // For limits only:
-
-    const SCOPE_UTM_SOURCE = 3;
+    const SCOPE_UTM_SOURCE  = 3;
 
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
