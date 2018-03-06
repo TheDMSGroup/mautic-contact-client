@@ -302,7 +302,8 @@
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true
+                  "collapsed": true,
+                  "disable_array_reorder": true
                 },
                 "items": {
                   "title": "Header",
@@ -316,7 +317,8 @@
                 "format": "table",
                 "options": {
                   "collapsed": false,
-                  "disable_collapse": true
+                  "disable_collapse": true,
+                  "disable_array_reorder": true
                 },
                 "items": {
                   "title": "Body Field",
@@ -328,7 +330,7 @@
                 "title": "Success Definition",
                 "type": "object",
                 "options": {
-                  "collapsed": true,
+                  "collapsed": false,
                   "infoText": "Use simple logic to define a successful operation below. Leave blank to consider all operations sucesful. If the operation is deemed unsuccessful the operation will be aborted and no changes will be made to your contacts."
                 },
                 "properties": {
@@ -346,7 +348,7 @@
       }
     },
     "settings": {
-      "title": "Settings",
+      "title": "Advanced Settings",
       "propertyOrder": 20,
       "type": "object",
       "format": "grid",
