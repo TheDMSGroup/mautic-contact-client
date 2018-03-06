@@ -236,12 +236,12 @@ class TokenHelper
         // Add Identified date.
         /** @var \DateTime $dateIdentified */
         $dateIdentified            = $contact->getDateIdentified();
-        $context['dateIdentified'] = $dateIdentified ? $this->dateFormatHelper->iso8601($dateIdentified) : null;
+        $context['dateIdentified'] = $dateIdentified ? $this->dateFormatHelper->format($dateIdentified) : null;
 
         // Add Modified date.
         /** @var \DateTime $dateModified */
         $dateModified            = $contact->getDateModified();
-        $context['dateModified'] = $dateModified ? $this->dateFormatHelper->iso8601($dateModified) : null;
+        $context['dateModified'] = $dateModified ? $this->dateFormatHelper->format($dateModified) : null;
 
         // Add DNC status.
         $context['doNotContacts'] = [];

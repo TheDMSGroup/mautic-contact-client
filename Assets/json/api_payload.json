@@ -21,7 +21,7 @@
         "type": "object",
         "format": "grid",
         "options": {
-          "collapsed": true
+          "collapsed": false
         },
         "properties": {
           "name": {

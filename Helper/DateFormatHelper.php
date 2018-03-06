@@ -226,4 +226,17 @@ class DateFormatHelper
 
         return $result;
     }
+
+    /**
+     * @param        $date
+     * @param string $format
+     *
+     * @return string
+     */
+    public function format($date, $format = 'iso8601')
+    {
+        $format = $this->validateFormat($format);
+
+        return $this->parse($date)->format($format);
+    }
 }
