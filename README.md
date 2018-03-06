@@ -1,4 +1,4 @@
-# Mautic Contact Client [![Build Status](https://travis-ci.org/TheDMSGroup/mautic-contact-client.svg?branch=master)](https://travis-ci.org/TheDMSGroup/mautic-contact-client)
+# Mautic Contact Client [![Latest Stable Version](https://poser.pugx.org/thedmsgroup/mautic-contact-client-bundle/v/stable)](https://packagist.org/packages/thedmsgroup/mautic-contact-client-bundle) [![License](https://poser.pugx.org/thedmsgroup/mautic-contact-client-bundle/license)](https://packagist.org/packages/thedmsgroup/mautic-contact-client-bundle) [![Build Status](https://travis-ci.org/TheDMSGroup/mautic-contact-client.svg?branch=master)](https://travis-ci.org/TheDMSGroup/mautic-contact-client)
 ![](./Assets/img/client.png)
 
 Create integrations/enhancers without touching code.
