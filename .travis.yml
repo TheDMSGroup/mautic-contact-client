@@ -43,13 +43,10 @@ before_install:
 
 install:
 
-  # Install core dependencies.
-  - composer install
-  
-  # Install plugin dependencies (if any).
+  # Install core and include any plugin dependencies.
+  - composer config extra.merge-plugin.include "./plugins/**/composer.json"
   - composer require wikimedia/composer-merge-plugin
-  - composer config extra.merge-plugin.include plugins/$MAUTIC_PLUGIN/composer.json
-  - composer install
+  - composer update wikimedia/composer-merge-plugin
 
 script:
 
