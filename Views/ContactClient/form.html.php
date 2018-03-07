@@ -166,8 +166,8 @@ echo $view['form']->start($form);
                         <div class="form-group mb-0">
                             <div class="row api_payload hide">
                                 <div class="col-md-12">
-                                    <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide" data-spy="affix" data-offset-top="125">
-                                        <div class="btn-group">
+                                    <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide" data-spy="affix" data-offset-top="173">
+                                        <div class="btn-group mr-20">
                                             <button type="button" class="btn btn-default" id="api_payload_test"
                                                     data-toggle="button" aria-pressed="false" autocomplete="off">
                                                 <i class="fa fa-check-circle text-success"></i>

@@ -266,16 +266,30 @@
 #api_payload_buttons {
     margin-bottom: -19px;
     position: relative;
-    z-index: 10;
-    height: 19px;
+    z-index: 2000;
+    right: 0px;
+    top: 0px;
+    height: 30px;
     overflow: visible;
+    -webkit-transition: right .2s ease-in-out;
+    -moz-transition: right .2s ease-in-out;
+    -ms-transition: right .2s ease-in-out;
+    -o-transition: right .2s ease-in-out;
+    transition: right .2s ease-in-out;
+    -webkit-box-shadow: 0 0 10px 10px rgba(255,255,255,.5);
+    box-shadow: 0 0 10px 10px rgba(255,255,255,.5);
 }
 
 #api_payload_buttons.affix {
     position: fixed;
-    top: 65px;
-    right: 1%;
-    margin-right: -1px;
+    -webkit-transition: right .2s ease-in-out;
+    -moz-transition: right .2s ease-in-out;
+    -ms-transition: right .2s ease-in-out;
+    -o-transition: right .2s ease-in-out;
+    transition: right .2s ease-in-out;
+
+    top: 14px;
+    right: 200px;
 }
 
 /* ContactClient Schedule */
