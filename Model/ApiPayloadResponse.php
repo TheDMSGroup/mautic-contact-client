@@ -67,6 +67,7 @@ class ApiPayloadResponse
      * Parse the response and capture key=value pairs.
      *
      * @return $this
+     *
      * @throws \Exception
      */
     public function parse()

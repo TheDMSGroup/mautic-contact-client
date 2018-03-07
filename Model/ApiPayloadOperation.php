@@ -115,6 +115,7 @@ class ApiPayloadOperation
      * Run this single API Operation.
      *
      * @return $this|bool
+     *
      * @throws \Exception
      */
     public function run()
