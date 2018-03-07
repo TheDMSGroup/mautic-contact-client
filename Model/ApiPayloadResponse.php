@@ -43,7 +43,6 @@ class ApiPayloadResponse
     protected $contentTypes = [
         'json',
         'xml',
-        'html',
         'yaml',
         'text',
     ];
@@ -95,17 +94,27 @@ class ApiPayloadResponse
         $responseExpectedFormat = trim(
             strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto')
         );
-        $result['format'] = $responseExpectedFormat;
+        // Move the expected format to the top of the detection array.
+        if ($responseExpectedFormat !== 'auto' && isset($this->contentTypes[$responseExpectedFormat])) {
+            $this->contentTypes = array_flip(
+                array_merge([$this->contentTypes[$responseExpectedFormat] => '-'], array_flip($this->contentTypes))
+            );
+        }
         $this->setLogs($responseExpectedFormat, 'format');
+        $result['format'] = $responseExpectedFormat;
 
+        // If auto mode, discern content type in a very forgiving manner from the header.
         if ($result['format'] === 'auto') {
-            // Discern content type in a very forgiving manner from the header.
-            foreach ($result['headers'] as $key => $header) {
-                if (str_replace(['-', '_', ' '], '', strtolower($key)) === 'contenttype') {
-                    foreach ($this->contentTypes as $contentType) {
+            foreach ($result['headers'] as $keaderType => $header) {
+                if (str_replace(['-', '_', ' '], '', strtolower($keaderType)) === 'contenttype') {
+                    foreach ($this->contentTypes as $key => $contentType) {
                         if (strpos(strtolower($header), $contentType)) {
                             $result['format'] = $contentType;
-                            $this->setLogs($contentType, 'formatDetectedFromHeader');
+                            // Move this type to the top of the detection array.
+                            $this->contentTypes = array_flip(
+                                array_merge([$this->contentTypes[$key] => '-'], array_flip($this->contentTypes))
+                            );
+                            $this->setLogs($contentType, 'headerFormat');
                             break;
                         }
                     }
@@ -113,21 +122,17 @@ class ApiPayloadResponse
                 }
             }
         }
-        // If we weren't able to discern the format from the header, we'll attempt to parse in each.
-        if ($result['format'] === 'auto') {
-            foreach ($this->contentTypes as $contentType) {
-                $attemptBody = $this->getResponseArray($result['bodyRaw'], $contentType);
-                if ($attemptBody) {
-                    $result['body'] = $attemptBody;
-                    $result['format'] = $contentType;
-                    $this->setLogs($contentType, 'formatDetectedFromBody');
-                    break;
-                }
-            }
-        }
 
-        if (!isset($result['body'])) {
-            $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseExpectedFormat);
+        $result['body'] = [];
+        // Attempt to parse with a proffered list of types.
+        foreach ($this->contentTypes as $contentType) {
+            $attemptBody = $this->getResponseArray($result['bodyRaw'], $contentType);
+            if ($attemptBody) {
+                $result['body']   = $attemptBody;
+                $result['format'] = $contentType;
+                $this->setLogs($contentType, 'bodyFormat');
+                break;
+            }
         }
         $this->setLogs($result['body'], 'body');
 

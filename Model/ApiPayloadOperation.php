@@ -115,6 +115,7 @@ class ApiPayloadOperation
      * Run this single API Operation.
      *
      * @return $this|bool
+     * @throws \Exception
      */
     public function run()
     {
@@ -248,6 +249,10 @@ class ApiPayloadOperation
         ) {
             $updates = true;
             $result->format = $this->responseActual['format'];
+            $this->setLogs(
+                'Response type has been automatically determined to be: '.$result->format,
+                'autoUpdate'
+            );
         }
         if ($updates) {
             $this->operation->response = $result;
