@@ -94,7 +94,7 @@ class ContactClientModel extends FormModel
      *
      * @param object                              $entity
      * @param \Symfony\Component\Form\FormFactory $formFactory
-     * @param null                                $action
+     * @param string                              $action
      * @param array                               $options
      *
      * @throws NotFoundHttpException
@@ -113,11 +113,9 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @param null $id
      *
-     * @return ContactClient
+     * @return ContactClient|null|object
      */
     public function getEntity($id = null)
     {

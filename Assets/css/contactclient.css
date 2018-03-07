@@ -233,23 +233,23 @@
 }
 
 /* Hide these options till the Advanced button is pressed */
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".name"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".description"],
-.contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".description"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.method"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.format"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.headers"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > select,
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(5),
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(6),
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(7),
-.contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".test_only"],
-.contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".overridable"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.body"] > div > table > thead > tr > th:nth-child(5),
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.format"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.headers"],
-.contactclient_jsoneditor:not(.advanced) div[data-schemapath="root.settings"],
-.contactclient_jsoneditor:not(.advanced) .btn-danger {
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".name"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".description"],
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".description"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.method"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.format"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.headers"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > select,
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(5),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(6),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(7),
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".test_only"],
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".overridable"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.body"] > div > table > thead > tr > th:nth-child(5),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.format"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.headers"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath="root.settings"],
+.api_payload .contactclient_jsoneditor:not(.advanced) .btn-danger {
     display: none !important;
 }
 
@@ -351,4 +351,25 @@ ul.bs-autocomplete-menu a {
     overflow: hidden;
     margin-top: .5em;
     margin-right: .5em;
+}
+
+/* tag-Editor autocomplete styles */
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu {
+    color: #596776;
+    margin: 0 4px 4px 0;
+    max-height: 240px;
+    padding: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item {
+    margin: 0;
+    padding: 5px 6px;
+    cursor: pointer;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item.ui-state-focus {
+    background-color: #467ca2;
+    color: white;
 }

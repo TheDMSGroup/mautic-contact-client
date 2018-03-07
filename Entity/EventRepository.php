@@ -60,12 +60,12 @@ class EventRepository extends CommonRepository
 
     /**
      * @param       $contactClientId
-     * @param null  $contactId
+     * @param int   $contactId
      * @param array $options
      *
      * @return array
      */
-    public function getEventsForTimeline($contactClientId, $contactId = null, array $options = [])
+    public function getEventsForTimeline($contactClientId, $contactId = 0, array $options = [])
     {
         $eventType = null;
 

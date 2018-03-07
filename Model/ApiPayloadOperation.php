@@ -115,6 +115,8 @@ class ApiPayloadOperation
      * Run this single API Operation.
      *
      * @return $this|bool
+     *
+     * @throws \Exception
      */
     public function run()
     {
@@ -238,6 +240,21 @@ class ApiPayloadOperation
                 }
             }
         }
+        // Check for auto format detection during a run.
+        if (
+            $this->test
+            && isset($this->responseActual['format'])
+            && isset($result->format)
+            && 'auto' == $result->format
+            && 'auto' !== $this->responseActual['format']
+        ) {
+            $updates        = true;
+            $result->format = $this->responseActual['format'];
+            $this->setLogs(
+                'Response type has been automatically determined to be: '.$result->format,
+                'autoUpdate'
+            );
+        }
         if ($updates) {
             $this->operation->response = $result;
         }
@@ -268,10 +285,10 @@ class ApiPayloadOperation
     }
 
     /**
-     * @param      $value
-     * @param null $type
+     * @param        $value
+     * @param string $type
      */
-    public function setLogs($value, $type = null)
+    public function setLogs($value, $type = '')
     {
         if ($type) {
             if (isset($this->logs[$type])) {

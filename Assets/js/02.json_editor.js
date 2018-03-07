@@ -164,6 +164,8 @@ JSONEditor.defaults.options.expand_height = true;
 
 // Custom validators.
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+
     // When a textarea with option "codemirror" is true, render codemirror.
     if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codemirror === true) {
         mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:visible:not(.codemirror-checked)').each(function () {
@@ -185,9 +187,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
         }).addClass('codemirror-checked');
     }
-    // Annual/fixed date support.
-    var errors = [];
 
+    // Annual/fixed date support (not currently used).
     if (schema.format === 'datestring') {
         if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
             // Errors must be an object with `path`, `property`, and `message`
@@ -199,19 +200,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         }
     }
 
+    // Single fixed date selector.
     if (schema.format === 'date') {
-        // if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
-        //     // Errors must be an object with `path`, `property`, and `message`
-        //     errors.push({
-        //         path: path,
-        //         property: 'format',
-        //         message: 'Dates should be in ISO format as YYYY-MM-DD or MM-DD for repeating dates'
-        //     });
-        // }
         mQuery('input[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.date-checked)').each(function () {
             Mautic.activateDateTimeInputs(mQuery(this), 'date');
 
-            changed = false;
+            var changed = false;
             // Make sure an event fires passing value through
             mQuery(this).on('change', function (o) {
                 if (!changed) {
@@ -231,8 +225,6 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
 
         }).addClass('date-checked');
-
-
     }
     // Activate the jQuery Chosen plugin for all select fields with more than
     // 8 elements. Use "format": "select" to activate.
@@ -312,9 +304,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     // Add support for a token text field.
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
         function tagEditor ($text, tokenSource) {
-            var changed = false;
+            var changed = false,
+                allowedTagArr = [];
             $text.tagEditor({
                 placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
+                allowedTags: function(){
+                    if (!allowedTagArr.length && typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                        mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                            allowedTagArr.push('{{' + key + '}}');
+                        });
+                    }
+                    return allowedTagArr;
+                },
                 autocomplete: {
                     minLength: 2,
                     source: function (request, response) {
@@ -332,15 +333,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         }
                         response(tokens);
                     },
-                    delay: 100
+                    delay: 120
                 },
                 // callbacks
-                onChange: function () {
+                onChange: function (el, ed, tag_list) {
                     if (!changed) {
                         changed = true;
                         var event = document.createEvent('HTMLEvents');
                         event.initEvent('change', false, true);
                         $text[0].dispatchEvent(event);
+
+                        console.log(el, ed, tag_list);
+                        console.log('changed');
                     }
                     else {
                         changed = false;
@@ -393,7 +397,7 @@ if (
     mQuery.widget('ui.autocomplete', mQuery.ui.autocomplete, {
         _renderMenu: function (ul, items) {
             var that = this;
-            ul.attr('class', 'nav nav-pills nav-stacked  bs-autocomplete-menu');
+            ul.attr('class', 'nav nav-pills nav-stacked bs-autocomplete-menu');
             $.each(items, function (index, item) {
                 that._renderItemData(ul, item);
             });

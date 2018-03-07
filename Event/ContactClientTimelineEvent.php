@@ -608,13 +608,13 @@ class ContactClientTimelineEvent extends Event
      *
      * @param \DateTime       $dateFrom
      * @param \DateTime       $dateTo
-     * @param null            $groupUnit
+     * @param string          $groupUnit
      * @param ChartQuery|null $chartQuery
      */
     public function setCountOnly(
         \DateTime $dateFrom,
         \DateTime $dateTo,
-        $groupUnit = null,
+        $groupUnit = '',
         ChartQuery $chartQuery = null
     ) {
         $this->countOnly  = true;

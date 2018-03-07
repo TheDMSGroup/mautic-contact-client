@@ -259,10 +259,10 @@ class ApiPayloadRequest
     }
 
     /**
-     * @param      $value
-     * @param null $type
+     * @param        $value
+     * @param string $type
      */
-    public function setLogs($value, $type = null)
+    public function setLogs($value, $type = '')
     {
         if ($type) {
             if (isset($this->logs[$type])) {
