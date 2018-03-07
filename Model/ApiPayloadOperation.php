@@ -238,6 +238,17 @@ class ApiPayloadOperation
                 }
             }
         }
+        // Check for auto format detection during a run.
+        if (
+            $this->test
+            && isset($this->responseActual['format'])
+            && isset($result->format)
+            && $result->format == 'auto'
+            && $this->responseActual['format'] !== 'auto'
+        ) {
+            $updates = true;
+            $result->format = $this->responseActual['format'];
+        }
         if ($updates) {
             $this->operation->response = $result;
         }

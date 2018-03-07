@@ -39,6 +39,15 @@ class ApiPayloadResponse
 
     protected $logs = [];
 
+    /** @var array Must be in the format of attempted decoding */
+    protected $contentTypes = [
+        'json',
+        'xml',
+        'html',
+        'yaml',
+        'text',
+    ];
+
     /**
      * ApiPayloadResponse constructor.
      *
@@ -59,6 +68,7 @@ class ApiPayloadResponse
      * Parse the response and capture key=value pairs.
      *
      * @return $this
+     * @throws \Exception
      */
     public function parse()
     {
@@ -85,22 +95,39 @@ class ApiPayloadResponse
         $responseExpectedFormat = trim(
             strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto')
         );
+        $result['format'] = $responseExpectedFormat;
         $this->setLogs($responseExpectedFormat, 'format');
 
-        $result['body'] = [];
-        switch ($responseExpectedFormat) {
-            default:
-            case 'auto':
-                // @todo - detect format from headers/body and step through parsers till we see success.
-                break;
+        if ($result['format'] === 'auto') {
+            // Discern content type in a very forgiving manner from the header.
+            foreach ($result['headers'] as $key => $header) {
+                if (str_replace(['-', '_', ' '], '', strtolower($key)) === 'contenttype') {
+                    foreach ($this->contentTypes as $contentType) {
+                        if (strpos(strtolower($header), $contentType)) {
+                            $result['format'] = $contentType;
+                            $this->setLogs($contentType, 'formatDetectedFromHeader');
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        // If we weren't able to discern the format from the header, we'll attempt to parse in each.
+        if ($result['format'] === 'auto') {
+            foreach ($this->contentTypes as $contentType) {
+                $attemptBody = $this->getResponseArray($result['bodyRaw'], $contentType);
+                if ($attemptBody) {
+                    $result['body'] = $attemptBody;
+                    $result['format'] = $contentType;
+                    $this->setLogs($contentType, 'formatDetectedFromBody');
+                    break;
+                }
+            }
+        }
 
-            case 'html':
-            case 'json':
-            case 'text':
-            case 'xml':
-            case 'yaml':
-                $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseExpectedFormat);
-                break;
+        if (!isset($result['body'])) {
+            $result['body'] = $this->getResponseArray($result['bodyRaw'], $responseExpectedFormat);
         }
         $this->setLogs($result['body'], 'body');
 
@@ -176,7 +203,7 @@ class ApiPayloadResponse
                                     }
                                 }
                                 list($key, $value) = $elements;
-                                $result[$key]      = $value;
+                                $result[$key] = $value;
                                 break;
                             }
                         }
@@ -227,7 +254,7 @@ class ApiPayloadResponse
             $children = $root->childNodes;
             if (1 == $children->length) {
                 $child = $children->item(0);
-                if ($child->nodeType == [XML_TEXT_NODE, XML_CDATA_SECTION_‌​NODE]) {
+                if ($child->nodeType == [XML_TEXT_NODE, XML_CDATA_SECTION_NODE]) {
                     $result['_value'] = $child->nodeValue;
 
                     return 1 == count($result)
