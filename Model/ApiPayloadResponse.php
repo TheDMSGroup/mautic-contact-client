@@ -96,7 +96,7 @@ class ApiPayloadResponse
             strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto')
         );
         // Move the expected format to the top of the detection array.
-        if ($responseExpectedFormat !== 'auto' && isset($this->contentTypes[$responseExpectedFormat])) {
+        if ('auto' !== $responseExpectedFormat && isset($this->contentTypes[$responseExpectedFormat])) {
             $this->contentTypes = array_flip(
                 array_merge([$this->contentTypes[$responseExpectedFormat] => '-'], array_flip($this->contentTypes))
             );
@@ -105,9 +105,9 @@ class ApiPayloadResponse
         $result['format'] = $responseExpectedFormat;
 
         // If auto mode, discern content type in a very forgiving manner from the header.
-        if ($result['format'] === 'auto') {
+        if ('auto' === $result['format']) {
             foreach ($result['headers'] as $keaderType => $header) {
-                if (str_replace(['-', '_', ' '], '', strtolower($keaderType)) === 'contenttype') {
+                if ('contenttype' === str_replace(['-', '_', ' '], '', strtolower($keaderType))) {
                     foreach ($this->contentTypes as $key => $contentType) {
                         if (strpos(strtolower($header), $contentType)) {
                             $result['format'] = $contentType;

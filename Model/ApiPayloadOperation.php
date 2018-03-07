@@ -245,8 +245,8 @@ class ApiPayloadOperation
             $this->test
             && isset($this->responseActual['format'])
             && isset($result->format)
-            && $result->format == 'auto'
-            && $this->responseActual['format'] !== 'auto'
+            && 'auto' == $result->format
+            && 'auto' !== $this->responseActual['format']
         ) {
             $updates        = true;
             $result->format = $this->responseActual['format'];
@@ -285,10 +285,10 @@ class ApiPayloadOperation
     }
 
     /**
-     * @param      $value
-     * @param null $type
+     * @param        $value
+     * @param string $type
      */
-    public function setLogs($value, $type = null)
+    public function setLogs($value, $type = '')
     {
         if ($type) {
             if (isset($this->logs[$type])) {
