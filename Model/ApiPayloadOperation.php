@@ -247,7 +247,7 @@ class ApiPayloadOperation
             && $result->format == 'auto'
             && $this->responseActual['format'] !== 'auto'
         ) {
-            $updates = true;
+            $updates        = true;
             $result->format = $this->responseActual['format'];
             $this->setLogs(
                 'Response type has been automatically determined to be: '.$result->format,
