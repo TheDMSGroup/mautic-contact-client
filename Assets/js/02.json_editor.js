@@ -164,6 +164,8 @@ JSONEditor.defaults.options.expand_height = true;
 
 // Custom validators.
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+
     // When a textarea with option "codemirror" is true, render codemirror.
     if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codemirror === true) {
         mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:visible:not(.codemirror-checked)').each(function () {
@@ -185,9 +187,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
         }).addClass('codemirror-checked');
     }
-    // Annual/fixed date support.
-    var errors = [];
 
+    // Annual/fixed date support (not currently used).
     if (schema.format === 'datestring') {
         if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
             // Errors must be an object with `path`, `property`, and `message`
@@ -199,19 +200,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         }
     }
 
+    // Single fixed date selector.
     if (schema.format === 'date') {
-        // if (!/^[0-9|yY]{4}-[0-9]{1,2}-[0-9]{1,2}$/.test(value) && !/^[0-9]{1,2}-[0-9]{1,2}$/.test(value)) {
-        //     // Errors must be an object with `path`, `property`, and `message`
-        //     errors.push({
-        //         path: path,
-        //         property: 'format',
-        //         message: 'Dates should be in ISO format as YYYY-MM-DD or MM-DD for repeating dates'
-        //     });
-        // }
         mQuery('input[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.date-checked)').each(function () {
             Mautic.activateDateTimeInputs(mQuery(this), 'date');
 
-            changed = false;
+            var changed = false;
             // Make sure an event fires passing value through
             mQuery(this).on('change', function (o) {
                 if (!changed) {
@@ -231,8 +225,6 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
 
         }).addClass('date-checked');
-
-
     }
     // Activate the jQuery Chosen plugin for all select fields with more than
     // 8 elements. Use "format": "select" to activate.
