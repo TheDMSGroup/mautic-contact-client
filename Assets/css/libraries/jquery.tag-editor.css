@@ -104,9 +104,9 @@
 }
 
 .tag-editor .tag-editor-delete i:before {
-    font-size: 16px;
+    font-size: 14px;
     color: #74b9f1;
-    content: "×";
+    content: "x";
     font-style: normal;
 }
 .tag-editor .tag-editor-delete.danger i:before {
