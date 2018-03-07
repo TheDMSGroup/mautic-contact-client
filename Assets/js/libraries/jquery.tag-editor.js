@@ -41,7 +41,7 @@
     $.fn.tagEditor = function (options, val, blur) {
 
         function splitTags (input) {
-            var matches = input.match(/{{\s*[\w\.]+\s*}}|[^{}]+/g);
+            var matches = input.match(/{{\s*[#|\/]?[\w\.]+\s*}}|[^{}]+/g);
             return matches ? matches : [];
         }
 
@@ -49,21 +49,27 @@
             if (!input) {
                 return false;
             }
-            var matches = input.match(/{{\s*[\w\.]+\s*}}/);
+            var matches = input.match(/{{\s*[#|\/]?[\w\.]+\s*}}/);
             return !!matches;
         }
 
-        function isAllowed (input) {
+        function className (input) {
             if (o.allowedTags) {
+                if (input.indexOf('{{#') === 0 || input.indexOf('{{/') === 0) {
+                    return 'warn';
+                }
                 if (o.allowedTags instanceof Array) {
-                    return mQuery.inArray(input, o.allowedTags) !== -1;
+                    if (mQuery.inArray(input, o.allowedTags) === -1) {
+                        return 'danger';
+                    }
                 }
                 if (o.allowedTags instanceof Function) {
-                    window.tmp = o.allowedTags();
-                    return mQuery.inArray(input, o.allowedTags()) !== -1;
+                    if (mQuery.inArray(input, o.allowedTags()) === -1) {
+                        return 'danger';
+                    }
                 }
             }
-            return true;
+            return '';
         }
 
         // helper
@@ -106,14 +112,8 @@
                     }
                     // insert new tag
                     if (isMustache(val)) {
-                        if (isAllowed(val)) {
-                            $('<li><div class="tag-editor-tag"></div><div class="tag-editor-delete"><i></i></div></li>').appendTo(ed).find('.tag-editor-tag')
-                                .html('<input type="text" maxlength="' + o.maxLength + '">').addClass('active').find('input').val(val).blur();
-                        }
-                        else {
-                            $('<li><div class="tag-editor-tag danger"></div><div class="tag-editor-delete danger"><i></i></div></li>').appendTo(ed).find('.tag-editor-tag')
-                                .html('<input type="text" maxlength="' + o.maxLength + '">').addClass('active').find('input').val(val).blur();
-                        }
+                        $('<li><div class="tag-editor-tag ' + className(val) + '"></div><div class="tag-editor-delete ' + className(val) + '"><i></i></div></li>').appendTo(ed).find('.tag-editor-tag')
+                            .html('<input type="text" maxlength="' + o.maxLength + '">').addClass('active').find('input').val(val).blur();
                     }
                     else {
                         $('<li><div class="tag-editor-tag normal"></div></li>').appendTo(ed).find('.tag-editor-tag')
@@ -363,12 +363,7 @@
                     }
                     old_tags.push(tag);
                     if (isMustache(tag)) {
-                        if (isAllowed(tag)) {
-                            li.before('<li><div class="tag-editor-tag">' + escape(tag) + '</div><div class="tag-editor-delete"><i></i></div></li>');
-                        }
-                        else {
-                            li.before('<li><div class="tag-editor-tag danger">' + escape(tag) + '</div><div class="tag-editor-delete danger"><i></i></div></li>');
-                        }
+                        li.before('<li><div class="tag-editor-tag' + className(tag) + '">' + escape(tag) + '</div><div class="tag-editor-delete' + className(tag) + '"><i></i></div></li>');
                     }
                     else {
                         li.before('<li><div class="tag-editor-tag normal">' + escape(tag) + '</div></li>');
@@ -433,12 +428,7 @@
                     var elements = [];
                     for (var t = 0; t < tags.length; t++) {
                         if (isMustache(tags[t])) {
-                            if (isAllowed(tags[t])) {
-                                elements.push('<div class="tag-editor-tag">' + escape(tags[t]) + '</div><div class="tag-editor-delete"><i></i></div>');
-                            }
-                            else {
-                                elements.push('<div class="tag-editor-tag danger">' + escape(tags[t]) + '</div><div class="tag-editor-delete danger"><i></i></div>');
-                            }
+                            elements.push('<div class="tag-editor-tag '+ className(tags[t]) + '">' + escape(tags[t]) + '</div><div class="tag-editor-delete ' + className(tags[t]) + '"><i></i></div>');
                         }
                         else {
                             elements.push('<div class="tag-editor-tag normal">' + escape(tags[t]) + '</div>');
@@ -544,12 +534,7 @@
                 if (tag) {
                     tag_list.push(tag);
                     if (isMustache(tag)) {
-                        if (isAllowed(tag)) {
-                            ed.append('<li><div class="tag-editor-tag">' + escape(tag) + '</div><div class="tag-editor-delete"><i></i></div></li>');
-                        }
-                        else {
-                            ed.append('<li><div class="tag-editor-tag danger">' + escape(tag) + '</div><div class="tag-editor-delete danger"><i></i></div></li>');
-                        }
+                        ed.append('<li><div class="tag-editor-tag ' + className(tag) + '">' + escape(tag) + '</div><div class="tag-editor-delete ' + className(tag) + '"><i></i></div></li>');
                     }
                     else {
                         ed.append('<li><div class="tag-editor-tag normal">' + escape(tag) + '</div></li>');

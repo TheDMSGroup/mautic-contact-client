@@ -336,12 +336,15 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     delay: 120
                 },
                 // callbacks
-                onChange: function () {
+                onChange: function (el, ed, tag_list) {
                     if (!changed) {
                         changed = true;
                         var event = document.createEvent('HTMLEvents');
                         event.initEvent('change', false, true);
                         $text[0].dispatchEvent(event);
+
+                        console.log(el, ed, tag_list);
+                        console.log('changed');
                     }
                     else {
                         changed = false;

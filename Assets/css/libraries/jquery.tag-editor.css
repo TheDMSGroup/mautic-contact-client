@@ -98,6 +98,11 @@
     background-color: #d9534f;
 }
 
+.tag-editor .tag-editor-tag.warn,
+.tag-editor .tag-editor-delete.warn {
+    background-color: #e2a231;
+}
+
 .tag-editor .tag-editor-delete i {
     line-height: 18px;
     display: inline-block;
@@ -109,6 +114,7 @@
     content: "x";
     font-style: normal;
 }
+.tag-editor .tag-editor-delete.warn i:before,
 .tag-editor .tag-editor-delete.danger i:before {
     color: #fff;
 }
