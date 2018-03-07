@@ -352,3 +352,24 @@ ul.bs-autocomplete-menu a {
     margin-top: .5em;
     margin-right: .5em;
 }
+
+/* tag-Editor autocomplete styles */
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu {
+    color: #596776;
+    margin: 0 4px 4px 0;
+    max-height: 240px;
+    padding: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item {
+    margin: 0;
+    padding: 5px 6px;
+    cursor: pointer;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item.ui-state-focus {
+    background-color: #467ca2;
+    color: white;
+}

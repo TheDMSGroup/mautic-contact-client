@@ -304,9 +304,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     // Add support for a token text field.
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
         function tagEditor ($text, tokenSource) {
-            var changed = false;
+            var changed = false,
+                allowedTagArr = [];
             $text.tagEditor({
                 placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
+                allowedTags: function(){
+                    if (!allowedTagArr.length && typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                        mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                            allowedTagArr.push('{{' + key + '}}');
+                        });
+                    }
+                    return allowedTagArr;
+                },
                 autocomplete: {
                     minLength: 2,
                     source: function (request, response) {
@@ -324,7 +333,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         }
                         response(tokens);
                     },
-                    delay: 100
+                    delay: 120
                 },
                 // callbacks
                 onChange: function () {
@@ -385,7 +394,7 @@ if (
     mQuery.widget('ui.autocomplete', mQuery.ui.autocomplete, {
         _renderMenu: function (ul, items) {
             var that = this;
-            ul.attr('class', 'nav nav-pills nav-stacked  bs-autocomplete-menu');
+            ul.attr('class', 'nav nav-pills nav-stacked bs-autocomplete-menu');
             $.each(items, function (index, item) {
                 that._renderItemData(ul, item);
             });
