@@ -31,7 +31,7 @@ Mautic.contactclientType = function () {
         var thisTab = mQuery(this).attr('href');
         if (thisTab !== activeTab) {
             activeTab = thisTab;
-            if (activeTab === '#payload') {
+            if (activeTab !== '#details') {
                 // Expanded view.
                 mQuery('.contactclient-left').addClass('col-md-12').removeClass('col-md-9');
                 mQuery('.contactclient-right').addClass('hide');
