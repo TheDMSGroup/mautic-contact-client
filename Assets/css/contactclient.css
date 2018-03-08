@@ -218,6 +218,7 @@
     padding-right: 0;
     border-radius: 0;
 }
+
 .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input:hover,
 .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input:hover,
 .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input:active,
@@ -225,8 +226,9 @@
 .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input:focus,
 .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input:focus {
     padding-bottom: 0;
-    border-bottom: 2px solid rgba(255,255,255, 0.1) !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
 }
+
 @-webkit-keyframes flash {
     0% {
         background-color: Yellow;
@@ -266,9 +268,11 @@
 .api_payload .contactclient_jsoneditor:not(.advanced) .btn-danger {
     display: none !important;
 }
+
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schematype="array"][data-schemapath="root.operations"].col-md-12 {
     text-align: center;
 }
+
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schematype="array"][data-schemapath="root.operations"].col-md-12 > .well {
     display: inline-block;
     text-align: left;
@@ -298,8 +302,8 @@
     -ms-transition: right .1s ease-in-out;
     -o-transition: right .1s ease-in-out;
     transition: right .1s ease-in-out;
-    -webkit-box-shadow: 0 0 10px 10px rgba(255,255,255,.5);
-    box-shadow: 0 0 10px 10px rgba(255,255,255,.5);
+    -webkit-box-shadow: 0 0 10px 10px rgba(255, 255, 255, .5);
+    box-shadow: 0 0 10px 10px rgba(255, 255, 255, .5);
 }
 
 #api_payload_buttons.affix {
@@ -415,6 +419,7 @@ ul.bs-autocomplete-menu a {
     background: none;
     border: 0;
 }
+
 .api_payload .contactclient_jsoneditor .well .well .well h3,
 .api_payload .contactclient_jsoneditor .well .well .well .well {
     color: #fff;
@@ -423,19 +428,23 @@ ul.bs-autocomplete-menu a {
 .api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath="root.operations"] > h3 {
     display: none;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath="root.operations"] > .well > .btn-group {
     width: 100%;
     display: block;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath="root.operations"] > .well > .btn-group > .btn-primary {
     margin: 0 46%;
     display: block;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"] {
     border-radius: 10px;
     background: #00AB91;
     padding-top: 20px;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"]:before {
     content: "";
     width: 50px;
@@ -446,6 +455,7 @@ ul.bs-autocomplete-menu a {
     border-bottom: 50px solid #00AB91;
     border-left: 50px solid #fff;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > label,
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > select,
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.headers"] > h3,
@@ -454,6 +464,7 @@ ul.bs-autocomplete-menu a {
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".response.body"] > h3 {
     font-size: 14px;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response.success"].col-md-12 {
     width: 100%;
 }
@@ -467,20 +478,24 @@ ul.bs-autocomplete-menu a {
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"] .chosen-container a {
     border: 0;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"] > h3 {
     margin-left: 50px;
     padding-bottom: 10px;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath*=".request.body"] > .well,
 .api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath*=".response.body"] > .well {
     margin-bottom: 0;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"] {
     margin-top: 80px;
     border-radius: 10px;
     background: #455392;
     padding-top: 20px;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"]:before {
     content: "";
     width: 50px;
@@ -491,32 +506,39 @@ ul.bs-autocomplete-menu a {
     border-bottom: 50px solid #455392;
     border-left: 50px solid #fff;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response.success"]:before {
     display: none;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response.success"] {
     margin-top: 0;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"] > h3 {
     margin-left: 50px;
     margin-bottom: 10px;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response.success"] > h3 {
     margin-left: 0;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="query"][data-schemapath*=".response.success.definition"] .btn.btn-xs {
     padding: 6px 12px;
     font-size: 13px;
     line-height: 1.3856;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"] > .well {
     margin-top: 0;
     margin-bottom: 0;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"]:after {
     content: "\f063";
     height: 0;
-    overflow:visible;
+    overflow: visible;
     font-family: FontAwesome;
     position: relative;
     background: pink;
@@ -526,34 +548,31 @@ ul.bs-autocomplete-menu a {
     font-size: 90px;
     color: #00AB91;
 }
+
 .api_payload .contactclient_jsoneditor td[data-schematype="boolean"] {
     width: 72px;
     text-align: center;
 }
+
 .api_payload .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input,
 .api_payload .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input {
     color: #fff;
 }
-/*.api_payload .contactclient_jsoneditor .table-bordered > thead > tr > th {*/
-    /*border: 0;*/
-    /*border-bottom: 2px solid rgba(255,255,255, 0.1);*/
-/*}*/
-/*.api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td {*/
-    /*border: 0;*/
-    /*border-top: 0;*/
-    /*border-bottom: 2px solid rgba(255,255,255, 0.01);*/
-/*}*/
+
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td,
 .api_payload .contactclient_jsoneditor .table-bordered > thead > tr > th {
     border: 0;
 }
+
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr {
     border: 0;
-    border-bottom: 2px solid rgba(255,255,255, 0.1);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
+
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr:last-child {
     border-bottom: 0;
 }
+
 /* push delete buttons to the right */
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td:last-child {
     text-align: right;
