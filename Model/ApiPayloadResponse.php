@@ -44,6 +44,7 @@ class ApiPayloadResponse
         'json',
         'xml',
         'yaml',
+        'html',
         'text',
     ];
 
@@ -96,10 +97,13 @@ class ApiPayloadResponse
             strtolower(isset($this->responseExpected->format) ? $this->responseExpected->format : 'auto')
         );
         // Move the expected format to the top of the detection array.
-        if ('auto' !== $responseExpectedFormat && isset($this->contentTypes[$responseExpectedFormat])) {
-            $this->contentTypes = array_flip(
-                array_merge([$this->contentTypes[$responseExpectedFormat] => '-'], array_flip($this->contentTypes))
-            );
+        if ('auto' !== $responseExpectedFormat) {
+            $key = array_search($responseExpectedFormat, $this->contentTypes);
+            if ($key !== false) {
+                $this->contentTypes = array_flip(
+                    array_merge([$this->contentTypes[$key] => '-'], array_flip($this->contentTypes))
+                );
+            }
         }
         $this->setLogs($responseExpectedFormat, 'format');
         $result['format'] = $responseExpectedFormat;
@@ -132,6 +136,10 @@ class ApiPayloadResponse
                 $result['body']   = $attemptBody;
                 $result['format'] = $contentType;
                 $this->setLogs($contentType, 'bodyFormat');
+                break;
+            }
+            // If in test-mode do not cycle through all types unless we are truly in auto mode.
+            if (!$this->test && $responseExpectedFormat == 'auto') {
                 break;
             }
         }
