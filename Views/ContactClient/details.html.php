@@ -110,8 +110,8 @@ $website = $item->getWebsite();
                                 </div>
                                 <div class="col-xs-8 va-m">
                                     <?php echo $view->render(
-                                        'MauticCoreBundle:Helper:graph_dateselect.html.php',
-                                        ['dateRangeForm' => $dateRangeForm, 'class' => 'pull-right']
+                                        'MauticContactClientBundle:Helper:graph_chartfilter.html.php',
+                                        ['chartFilterForm' => $chartFilterForm, 'class' => 'pull-right']
                                     ); ?>
                                 </div>
                             </div>
@@ -167,16 +167,16 @@ $website = $item->getWebsite();
                 <!--/ #history-container -->
 
                 <!-- #auditlog-container -->
-                <div class="tab-pane fade bdr-w-0" id="auditlog-container">
-                    <?php echo $view->render(
-                        'MauticLeadBundle:Auditlog:list.html.php',
-                        [
-                            'events' => $auditlog,
-                            'lead'   => $item,
-                            'tmpl'   => 'index',
-                        ]
-                    ); ?>
-                </div>
+<!--                <div class="tab-pane fade bdr-w-0" id="auditlog-container">-->
+<!--                    --><?php //echo $view->render(
+//                         'MauticLeadBundle:Auditlog:list.html.php',
+//                         [
+//                             'events' => $auditlog,
+//                             'lead'   => $item,
+//                             'tmpl'   => 'index',
+//                         ]
+//                     );?>
+<!--                </div>-->
                 <!--/ #auditlog-container -->
 
                 <!-- custom content -->

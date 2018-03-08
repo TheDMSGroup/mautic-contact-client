@@ -79,6 +79,11 @@ return [
                 'alias'     => 'contactclient',
                 'arguments' => 'mautic.security',
             ],
+            'mautic.contactclient.form.type.chartfilter' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ChartFilterType',
+                'arguments' => 'mautic.factory',
+                'alias'     => 'chartfilter',
+            ],
         ],
         'models'       => [
             'mautic.contactclient.model.contactclient' => [
@@ -116,6 +121,9 @@ return [
                     'mautic.contactclient.model.contactclient',
                     'router',
                 ],
+            ],
+            'mautic.contactclient.helper.utmsource'      => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper',
             ],
             'mautic.contactclient.guzzle.client'     => [
                 'class' => 'GuzzleHttp\Client',

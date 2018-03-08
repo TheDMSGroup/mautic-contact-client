@@ -13,7 +13,7 @@
       "propertyOrder": 10,
       "default": [
         {
-          "name": "Send Contact",
+          "name": "",
           "description": "",
           "request": {
             "url": "",
@@ -121,12 +121,13 @@
         "disable_collapse": true
       },
       "items": {
-        "title": "Operation",
-        "headerTemplate": "{{ i1 }}) {{ self.name }}",
+        "title": "API Operation",
+        "headerTemplate": "{{ self.name }}",
         "type": "object",
         "format": "grid",
         "options": {
-          "collapsed": false
+          "collapsed": false,
+          "disable_collapse": true
         },
         "properties": {
           "name": {
@@ -162,7 +163,8 @@
                 "type": "string",
                 "title": "URL",
                 "options": {
-                  "infoText": "The complete web address we will be communicating with."
+                  "infoText": "The complete web address we will be communicating with.",
+                  "grid_columns": 6
                 },
                 "default": ""
               },
@@ -171,7 +173,8 @@
                 "type": "string",
                 "title": "Test URL",
                 "options": {
-                  "infoText": "Optionally specify an alternative URL to communicate with during tests, commonly used for staging/dev environments."
+                  "infoText": "Optionally specify an alternative URL to communicate with during tests, commonly used for staging/dev environments.",
+                  "grid_columns": 6
                 },
                 "default": ""
               },
@@ -180,7 +183,8 @@
                 "type": "string",
                 "title": "Method",
                 "options": {
-                  "infoText": "The method used for this API operation."
+                  "infoText": "The method used for this API operation.",
+                  "grid_columns": 6
                 },
                 "default": "post",
                 "enumSource": [
@@ -222,7 +226,8 @@
                 "type": "string",
                 "title": "Request Format",
                 "options": {
-                  "infoText": "The method used to format fields to be sent to this endpoint. This specifies standard headers for you, and the format of fields that are sent."
+                  "infoText": "The method used to format fields to be sent to this endpoint. This specifies standard headers for you, and the format of fields that are sent.",
+                  "grid_columns": 6
                 },
                 "default": "form",
                 "$ref": "#/definitions/requestFormat"
@@ -291,7 +296,8 @@
                 "title": "Response Format",
                 "type": "string",
                 "options": {
-                  "infoText": "The method used to format fields that we will be receiving."
+                  "infoText": "The method used to format fields that we will be receiving.",
+                  "grid_columns": 6
                 },
                 "default": "json",
                 "$ref": "#/definitions/responseFormat"
@@ -331,7 +337,7 @@
                 "type": "object",
                 "options": {
                   "collapsed": false,
-                  "infoText": "Use simple logic to define a successful operation below. Leave blank to consider all operations sucesful. If the operation is deemed unsuccessful the operation will be aborted and no changes will be made to your contacts."
+                  "infoText": "Use simple logic to define a successful operation below. Leave blank to consider all operations successful. If the operation is deemed unsuccessful the operation will be aborted and no changes will be made to your contacts."
                 },
                 "properties": {
                   "definition": {
@@ -348,12 +354,13 @@
       }
     },
     "settings": {
-      "title": "Advanced Settings",
+      "title": "Settings",
       "propertyOrder": 20,
       "type": "object",
       "format": "grid",
       "options": {
-        "collapsed": true
+        "collapsed": false,
+        "disable_collapse": true
       },
       "properties": {
         "autoUpdate": {
@@ -547,8 +554,28 @@
           "minLength": 0,
           "maxLength": 255
         },
-        "test_only": {
+        "required": {
           "propertyOrder": 50,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Required",
+          "options": {
+            "infoText": "Set to true to prevent sending contacts to this client if this field is empty."
+          },
+          "default": false
+        },
+        "overridable": {
+          "propertyOrder": 60,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Overridable",
+          "options": {
+            "infoText": "Allow this field to be overridden within a campaign workflow."
+          },
+          "default": false
+        },
+        "test_only": {
+          "propertyOrder": 70,
           "type": "boolean",
           "format": "checkbox",
           "title": "Test Only",
@@ -558,7 +585,7 @@
           "default": false
         },
         "description": {
-          "propertyOrder": 70,
+          "propertyOrder": 80,
           "type": "string",
           "title": "Description",
           "options": {
@@ -567,26 +594,6 @@
           "default": "",
           "minLength": 0,
           "maxLength": 255
-        },
-        "overridable": {
-          "propertyOrder": 80,
-          "type": "boolean",
-          "format": "checkbox",
-          "title": "Overridable",
-          "options": {
-            "infoText": "Allow this field to be overridden within a campaign workflow."
-          },
-          "default": false
-        },
-        "required": {
-          "propertyOrder": 90,
-          "type": "boolean",
-          "format": "checkbox",
-          "title": "Required",
-          "options": {
-            "infoText": "Set to true to prevent sending contacts to this client if this field is empty."
-          },
-          "default": false
         }
       }
     },
