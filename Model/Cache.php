@@ -151,15 +151,11 @@ class Cache extends AbstractCommonModel
         if (!empty($mobile)) {
             $entity->setMobile($mobile);
         }
-        $utmTags = $this->contact->getUtmTags();
-        if ($utmTags) {
-            $utmTags = $utmTags->toArray();
-            if (isset($utmTags[0])) {
-                $utmSource = $utmTags[0]->getUtmSource();
-                if (!empty($utmSource)) {
-                    $entity->setUtmSource(trim($utmSource));
-                }
-            }
+        // get the original / first utm source code for contact
+        $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
+        $utmSource = $utmHelper->getFirstUtmSource($this->contact);
+        if (!empty($utmSource)) {
+            $entity->setUtmSource(trim($utmSource));
         }
 
         return $entity;

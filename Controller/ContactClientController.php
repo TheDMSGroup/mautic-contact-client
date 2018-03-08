@@ -131,10 +131,10 @@ class ContactClientController extends FormController
             $item = $args['viewParameters']['item'];
 
             // For line graphs in the view
-            $dateRangeValues = $this->request->get('daterange', []);
-            $dateRangeForm   = $this->get('form.factory')->create(
-                'daterange',
-                $dateRangeValues,
+            $chartFilterValues = $this->request->get('chartfilter', []);
+            $chartFilterForm   = $this->get('form.factory')->create(
+                'chartfilter',
+                $chartFilterValues,
                 [
                     'action' => $this->generateUrl(
                         'mautic_contactclient_action',
@@ -148,17 +148,29 @@ class ContactClientController extends FormController
 
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
-            $stats = $model->getStats(
-                $item,
-                null,
-                new \DateTime($dateRangeForm->get('date_from')->getData()),
-                new \DateTime($dateRangeForm->get('date_to')->getData())
-            );
+
+            if(in_array($chartFilterForm->get('type')->getData(), array("All Events", NULL))){
+                $stats = $model->getStats(
+                    $item,
+                    null,
+                    new \DateTime($chartFilterForm->get('date_from')->getData()),
+                    new \DateTime($chartFilterForm->get('date_to')->getData())
+                );
+
+            } else {
+                $stats = $model->getStatsBySource(
+                    $item,
+                    null,
+                    $chartFilterForm->get('type')->getData(),
+                    new \DateTime($chartFilterForm->get('date_from')->getData()),
+                    new \DateTime($chartFilterForm->get('date_to')->getData())
+                );
+            }
 
             $args['viewParameters']['auditlog']      = $this->getAuditlogs($item);
             $args['viewParameters']['stats']         = $stats;
             $args['viewParameters']['events']        = $model->getEngagements($item);
-            $args['viewParameters']['dateRangeForm'] = $dateRangeForm->createView();
+            $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
 
 //            if ('link' == $item->getType()) {
 //                $args['viewParameters']['trackables'] = $this->getModel('page.trackable')->getTrackableList(

@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
+use DOMEntity;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
@@ -227,7 +228,7 @@ class ApiPayloadResponse
             $children = $root->childNodes;
             if (1 == $children->length) {
                 $child = $children->item(0);
-                if ($child->nodeType == [XML_TEXT_NODE, XML_CDATA_SECTION_‌​NODE]) {
+                if ($child->nodeType == ['XML_TEXT_NODE', 'XML_CDATA_SECTION_‌​NODE']) {
                     $result['_value'] = $child->nodeValue;
 
                     return 1 == count($result)

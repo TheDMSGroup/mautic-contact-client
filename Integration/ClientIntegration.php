@@ -468,10 +468,13 @@ class ClientIntegration extends AbstractIntegration
         if ($this->valid) {
             $session->set('contactclient_valid', true);
         }
+        // get the original / first utm source code for contact
+        $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
+        $utmSource = $utmHelper->getFirstUtmSource($this->contact);
 
         // Add log entry for statistics / charts.
         $attribution = !empty($this->logs['attribution']) ? $this->logs['attribution'] : 0;
-        $clientModel->addStat($this->contactClient, $statType, $this->contact, $attribution);
+        $clientModel->addStat($this->contactClient, $statType, $this->contact, $attribution, $utmSource);
 
         // Add transactional event for deep dive into logs.
         $clientModel->addEvent(
