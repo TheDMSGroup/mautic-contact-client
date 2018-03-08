@@ -49,11 +49,11 @@ class AjaxController extends CommonAjaxController
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
-            $result = $clientIntegration->sendTest($apiPayload);
+            $result               = $clientIntegration->sendTest($apiPayload);
             $dataArray['success'] = $result['valid'];
             $dataArray['payload'] = $result['payload'];
 
-            $logs = $clientIntegration->getLogsYAML();
+            $logs              = $clientIntegration->getLogsYAML();
             $dataArray['html'] = UTF8Helper::fixUTF8($logs);
         }
 
