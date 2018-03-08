@@ -279,6 +279,7 @@
     margin-top: 20px;
 }
 
+.api_payload .CodeMirror,
 #contactclient_api_payload_codemirror .CodeMirror {
     border: 0;
 }
@@ -445,8 +446,11 @@ ul.bs-autocomplete-menu a {
     border-bottom: 50px solid #00AB91;
     border-left: 50px solid #fff;
 }
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > h3,
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > label,
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > select,
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.headers"] > h3,
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".response.success"] > h3,
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".response.headers"] > h3,
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".response.body"] > h3 {
     font-size: 14px;
 }
