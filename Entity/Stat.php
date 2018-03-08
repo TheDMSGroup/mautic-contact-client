@@ -220,7 +220,7 @@ class Stat
     }
 
     /**
-     * @return Contact
+     * @return mixed
      */
     public function getUtmSource()
     {

@@ -21,13 +21,12 @@ class UtmSourceHelper
 
     public function getFirstUtmSource(Lead $contact)
     {
+        $source = "";
         if (!empty($tags = $this->getSortedUtmTags($contact))) {
             $tag    = reset($tags);
             $source = $tag->getUtmSource();
-
-            return $source;
         }
-
+        return $source;
     }
 
     protected function getSortedUtmTags(Lead $contact)
@@ -51,13 +50,14 @@ class UtmSourceHelper
 
     public function getLastUtmSource(Lead $contact)
     {
+        $source = "";
         if (!empty($tags = $this->getSortedUtmTags($contact))) {
             $tag    = end($tags);
             $source = $tag->getUtmSource();
 
-            return $source;
-        }
 
+        }
+        return $source;
     }
 
 }
