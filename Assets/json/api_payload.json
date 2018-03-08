@@ -11,6 +11,111 @@
       "title": "Operations",
       "type": "array",
       "propertyOrder": 10,
+      "default": [
+        {
+          "name": "Send Contact",
+          "description": "",
+          "request": {
+            "url": "",
+            "testUrl": "",
+            "method": "post",
+            "format": "form",
+            "headers": [],
+            "body": [
+              {
+                "key": "firstname",
+                "value": "{{firstname}}",
+                "default_value": "",
+                "test_value": "Test",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "lastname",
+                "value": "{{lastname}}",
+                "default_value": "",
+                "test_value": "Testerson",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "address1",
+                "value": "{{address1}}",
+                "default_value": "",
+                "test_value": "1234 Test St.",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "address2",
+                "value": "{{address2}}",
+                "default_value": "",
+                "test_value": "Apt. 123",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "city",
+                "value": "{{city}}",
+                "default_value": "",
+                "test_value": "Testopolis",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "state",
+                "value": "{{state}}",
+                "default_value": "",
+                "test_value": "TN",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "zipcode",
+                "value": "{{zipcode}}",
+                "default_value": "",
+                "test_value": "90210",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "phone",
+                "value": "{{phone}}",
+                "default_value": "",
+                "test_value": "+15555555555",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              },
+              {
+                "key": "email",
+                "value": "{{email}}",
+                "default_value": "",
+                "test_value": "test.testerson@testing.com",
+                "test_only": false,
+                "description": "",
+                "overridable": false,
+                "required": false
+              }
+            ]
+          }
+        }
+      ],
       "options": {
         "collapsed": false,
         "disable_collapse": true
@@ -128,7 +233,8 @@
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true
+                  "collapsed": true,
+                  "disable_array_reorder": true
                 },
                 "items": {
                   "title": "Header",
@@ -139,7 +245,8 @@
                 "title": "Request Body",
                 "options": {
                   "collapsed": false,
-                  "disable_collapse": true
+                  "disable_collapse": true,
+                  "disable_array_reorder": true
                 },
                 "oneOf": [
                   {
@@ -195,7 +302,8 @@
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true
+                  "collapsed": true,
+                  "disable_array_reorder": true
                 },
                 "items": {
                   "title": "Header",
@@ -209,7 +317,8 @@
                 "format": "table",
                 "options": {
                   "collapsed": false,
-                  "disable_collapse": true
+                  "disable_collapse": true,
+                  "disable_array_reorder": true
                 },
                 "items": {
                   "title": "Body Field",
@@ -221,7 +330,7 @@
                 "title": "Success Definition",
                 "type": "object",
                 "options": {
-                  "collapsed": true,
+                  "collapsed": false,
                   "infoText": "Use simple logic to define a successful operation below. Leave blank to consider all operations sucesful. If the operation is deemed unsuccessful the operation will be aborted and no changes will be made to your contacts."
                 },
                 "properties": {
@@ -239,7 +348,7 @@
       }
     },
     "settings": {
-      "title": "Settings",
+      "title": "Advanced Settings",
       "propertyOrder": 20,
       "type": "object",
       "format": "grid",

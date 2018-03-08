@@ -49,9 +49,9 @@ Mautic.contactclientTypeChange = function (t) {
     setTimeout(function () {
         var $parent = mQuery(t).parent().parent();
         $parent.find('label.btn:not(.active)')
-            .addClass('btn-default').removeClass('btn-primary');
+            .addClass('btn-default').removeClass('btn-success');
         $parent.find('label.btn.btn-default.active')
-            .addClass('btn-primary').removeClass('btn-default');
+            .addClass('btn-success').removeClass('btn-default');
     }, 50);
     return true;
 };

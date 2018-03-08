@@ -6,8 +6,6 @@
 */
 
 /**
- *  @todo - Pressing left at the leftmost column causes the first tag to be
- *     deleted.
  *  @todo - Tags do not automatically conjoin if normal text.
  *  @todo - No way to autoselect all text.
  */
@@ -36,14 +34,14 @@
                     'width': t.length > 4 ? s : s + n
                 });
             };
-        return i.insertAfter(e), e.bind('keydown keyup focus update', resize);
+        return i.insertAfter(e), e.bind('keydown keyup blur focus update', resize);
     };
 
     // plugin with val as parameter for public methods
     $.fn.tagEditor = function (options, val, blur) {
 
         function splitTags (input) {
-            var matches = input.match(/{{\s*[\w\.]+\s*}}|[^{}]+/g);
+            var matches = input.match(/{{\s*[#|\/]?[\w\.]+\s*}}|[^{}]+/g);
             return matches ? matches : [];
         }
 
@@ -51,16 +49,41 @@
             if (!input) {
                 return false;
             }
-            var matches = input.match(/{{\s*[\w\.]+\s*}}/);
+            var matches = input.match(/{{\s*[#|\/]?[\w\.]+\s*}}/);
             return !!matches;
         }
 
+        function className (input) {
+            if (o.allowedTags) {
+                if (input.indexOf('{{#') === 0 || input.indexOf('{{/') === 0) {
+                    return 'warn';
+                }
+                if (o.allowedTags instanceof Array) {
+                    if (mQuery.inArray(input, o.allowedTags) === -1) {
+                        return 'danger';
+                    }
+                }
+                if (o.allowedTags instanceof Function) {
+                    if (mQuery.inArray(input, o.allowedTags()) === -1) {
+                        return 'danger';
+                    }
+                }
+            }
+            return '';
+        }
+
         // helper
-        function escape (tag) {
-            return $('<div/>').text(tag).html();
-            // return tag.replace(/&/g, '&amp;').replace(/</g,
-            // '&lt;').replace(/>/g, '&gt;').replace(/"/g,
-            // '&quot;').replace(/'/g, '&#39;');
+        function escape (tag, addSpans) {
+            if (typeof addSpans === 'undefined') {
+                addSpans = true;
+            }
+            // Strip initial HTML.
+            tag = $('<div/>').text(tag).html();
+            // Wrap mustache tags.
+            if (addSpans) {
+                tag = tag.replace('{{', '<span>{{</span>').replace('}}', '<span>}}</span>');
+            }
+            return tag;
         }
 
         // build options dictionary with default values
@@ -89,7 +112,7 @@
                     }
                     // insert new tag
                     if (isMustache(val)) {
-                        $('<li><div class="tag-editor-tag"></div><div class="tag-editor-delete"><i></i></div></li>').appendTo(ed).find('.tag-editor-tag')
+                        $('<li><div class="tag-editor-tag ' + className(val) + '"></div><div class="tag-editor-delete ' + className(val) + '"><i></i></div></li>').appendTo(ed).find('.tag-editor-tag')
                             .html('<input type="text" maxlength="' + o.maxLength + '">').addClass('active').find('input').val(val).blur();
                     }
                     else {
@@ -294,11 +317,10 @@
 
                 if (!$(this).hasClass('active')) {
                     var tag = $(this).text();
-
                     // guess cursor position in text input
                     var left_percent = Math.abs(($(this).offset().left - e.pageX) / $(this).width()),
                         caret_pos = parseInt(tag.length * left_percent),
-                        input = $(this).html('<input type="text" maxlength="' + o.maxLength + '" value="' + escape(tag) + '">').addClass('active').find('input');
+                        input = $(this).html('<input type="text" maxlength="' + o.maxLength + '" value="' + escape(tag, false) + '">').addClass('active').find('input');
                     input.data('old_tag', tag).tagEditorInput().focus().caret(caret_pos);
                     if (o.autocomplete) {
                         var aco = $.extend({}, o.autocomplete);
@@ -341,7 +363,7 @@
                     }
                     old_tags.push(tag);
                     if (isMustache(tag)) {
-                        li.before('<li><div class="tag-editor-tag">' + escape(tag) + '</div><div class="tag-editor-delete"><i></i></div></li>');
+                        li.before('<li><div class="tag-editor-tag' + className(tag) + '">' + escape(tag) + '</div><div class="tag-editor-delete' + className(tag) + '"><i></i></div></li>');
                     }
                     else {
                         li.before('<li><div class="tag-editor-tag normal">' + escape(tag) + '</div></li>');
@@ -406,7 +428,7 @@
                     var elements = [];
                     for (var t = 0; t < tags.length; t++) {
                         if (isMustache(tags[t])) {
-                            elements.push('<div class="tag-editor-tag">' + escape(tags[t]) + '</div><div class="tag-editor-delete"><i></i></div>');
+                            elements.push('<div class="tag-editor-tag '+ className(tags[t]) + '">' + escape(tags[t]) + '</div><div class="tag-editor-delete ' + className(tags[t]) + '"><i></i></div>');
                         }
                         else {
                             elements.push('<div class="tag-editor-tag normal">' + escape(tags[t]) + '</div>');
@@ -453,7 +475,7 @@
                         prev_tag.click().find('input').caret(-1);
                     }
                     else if ($t.val() && !(o.maxTags && ed.data('tags').length >= o.maxTags)) {
-                        $(new_tag).before($t.closest('li')).find('.tag-editor-tag').click();
+                        $(new_tag).insertBefore($t.closest('li')).find('.tag-editor-tag').click();
                     }
                     return false;
                 }
@@ -512,7 +534,7 @@
                 if (tag) {
                     tag_list.push(tag);
                     if (isMustache(tag)) {
-                        ed.append('<li><div class="tag-editor-tag">' + escape(tag) + '</div><div class="tag-editor-delete"><i></i></div></li>');
+                        ed.append('<li><div class="tag-editor-tag ' + className(tag) + '">' + escape(tag) + '</div><div class="tag-editor-delete ' + className(tag) + '"><i></i></div></li>');
                     }
                     else {
                         ed.append('<li><div class="tag-editor-tag normal">' + escape(tag) + '</div></li>');
@@ -535,6 +557,7 @@
 
     $.fn.tagEditor.defaults = {
         initialTags: [],
+        allowedTags: [],
         maxTags: 0,
         maxLength: 256,
         placeholder: '',

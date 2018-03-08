@@ -1,7 +1,7 @@
 // API Payload field.
 // API Payload JSON Schema.
 Mautic.contactclientApiPayloadPre = function () {
-    var $apiPayload = mQuery('#contactclient_api_payload:first:not(.hide)');
+    var $apiPayload = mQuery('#contactclient_api_payload:first:not(.hide):not(.payload-checked)');
     if ($apiPayload.length) {
 
         var tokenSource = 'plugin:mauticContactClient:getTokens';
@@ -29,6 +29,7 @@ Mautic.contactclientApiPayloadPre = function () {
                 Mautic.contactclientApiPayload();
             }
         });
+        $apiPayload.addClass('payload-checked');
     }
 };
 Mautic.contactclientApiPayload = function () {
@@ -208,62 +209,108 @@ Mautic.contactclientApiPayload = function () {
             }
         });
 
-        // API Payload advanced button.
-        mQuery('.btn#api_payload_advanced')
-            .click(function () {
+        var $buttons = mQuery('#api_payload_buttons'),
+            $simpleView = $buttons.find('#api_payload_simple.btn'),
+            $advancedView = $buttons.find('#api_payload_advanced.btn'),
+            $codeView = $buttons.find('#api_payload_code.btn'),
+            codeStart = function(){
                 var raw = $apiPayload.val(),
                     error = false;
-                if (mQuery(this).hasClass('active')) {
-                    // Deactivating CodeMirror.
-                    // Send the value to JSONEditor.
-                    if (apiPayloadJSONEditor) {
-                        if (raw.length) {
-                            try {
-                                var obj = mQuery.parseJSON(raw);
-                                if (typeof obj === 'object') {
-                                    apiPayloadJSONEditor.setValue(obj);
-                                }
-                            }
-                            catch (e) {
-                                error = true;
-                                console.warn(e);
+                // Activating CodeMirror.
+                // Send the value from JSONEditor to
+                // CodeMirror.
+                if (!$codeView.hasClass('btn-success') && apiPayloadCodeMirror) {
+                    if (raw.length) {
+                        try {
+                            if (raw !== apiPayloadCodeMirror.getValue()) {
+                                apiPayloadCodeMirror.setValue(raw, -1);
                             }
                         }
-                        if (!error) {
-                            $apiPayloadCodeMirror.addClass('hide');
-                            mQuery('#api_payload_jsoneditor').removeClass('hide');
-                        }
-                        else {
-                            mQuery(this).toggleClass('active');
+                        catch (e) {
+                            error = true;
+                            console.warn('Error setting CodeMirror value.');
                         }
                     }
-                }
-                else {
-                    // Activating CodeMirror.
-                    // Send the value from JSONEditor to
-                    // CodeMirror.
-                    if (apiPayloadCodeMirror) {
-                        if (raw.length) {
-                            try {
-                                if (raw !== apiPayloadCodeMirror.getValue()) {
-                                    apiPayloadCodeMirror.setValue(raw, -1);
-                                }
-                            }
-                            catch (e) {
-                                error = true;
-                                console.warn('Error setting CodeMirror value.');
-                            }
-                        }
-                        if (!error) {
-                            $apiPayloadCodeMirror.removeClass('hide');
-                            mQuery('#api_payload_jsoneditor').addClass('hide');
-                            apiPayloadCodeMirror.refresh();
-                        }
-                        else {
-                            mQuery(this).toggleClass('active');
-                        }
+                    if (!error) {
+                        $apiPayloadCodeMirror.removeClass('hide');
+                        mQuery('#api_payload_jsoneditor').addClass('hide');
+                        apiPayloadCodeMirror.refresh();
+                        mQuery(this).toggleClass('btn-success');
+                    }
+                    else {
+                        mQuery(this).toggleClass('active');
                     }
                 }
+            },
+            codeStop = function(){
+                var raw = $apiPayload.val(),
+                    error = false;
+                // Deactivating CodeMirror.
+                // Send the value to JSONEditor.
+                if ($codeView.hasClass('btn-success') && apiPayloadJSONEditor) {
+                    if (raw.length) {
+                        try {
+                            var obj = mQuery.parseJSON(raw);
+                            if (typeof obj === 'object') {
+                                apiPayloadJSONEditor.setValue(obj);
+                            }
+                        }
+                        catch (e) {
+                            error = true;
+                            console.warn(e);
+                        }
+                    }
+                    if (!error) {
+                        $apiPayloadCodeMirror.addClass('hide');
+                        mQuery('#api_payload_jsoneditor').removeClass('hide');
+                        mQuery(this).toggleClass('btn-success');
+                    }
+                    else {
+                        mQuery(this).toggleClass('active');
+                    }
+                }
+            },
+            viewMode = function (mode) {
+                if (mode === 'simple') {
+                    codeStop();
+                    $simpleView.addClass('btn-success');
+                    $advancedView.removeClass('btn-success');
+                    $codeView.removeClass('btn-success');
+                    mQuery('#api_payload_jsoneditor').removeClass('advanced');
+                }
+                else if (mode === 'advanced') {
+                    codeStop();
+                    $advancedView.addClass('btn-success');
+                    $simpleView.removeClass('btn-success');
+                    $codeView.removeClass('btn-success');
+                    mQuery('#api_payload_jsoneditor').addClass('advanced');
+                }
+                else if (mode === 'code') {
+                    codeStart();
+                    $codeView.addClass('btn-success');
+                    $simpleView.removeClass('btn-success');
+                    $advancedView.removeClass('btn-success');
+                    mQuery('#api_payload_jsoneditor').removeClass('advanced');
+                }
+                $buttons.find('.active').removeClass('active');
+            };
+
+        // API Payload simple button.
+        $simpleView
+            .click(function () {
+                viewMode('simple');
+            });
+
+        // API Payload advanced button.
+        $advancedView
+            .click(function () {
+                viewMode('advanced');
+            });
+
+        // API Payload code button.
+        $codeView
+            .click(function () {
+                viewMode('code');
             })
             // Since it's functional now, unhide the widget.
             .parent().parent().removeClass('hide');

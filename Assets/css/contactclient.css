@@ -216,30 +216,80 @@
     padding-right: 0;
 }
 
+@-webkit-keyframes flash {
+    0% {
+        background-color: Yellow;
+        opacity: 1;
+    }
+    22% {
+        background-color: Yellow;
+    }
+    77% {
+        background-color: Red;
+    }
+    100% {
+        background-color: #777;
+    }
+}
+
+/* Hide these options till the Advanced button is pressed */
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".name"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".description"],
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".description"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.method"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.format"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.headers"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > select,
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(5),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(6),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(7),
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".test_only"],
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".overridable"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.body"] > div > table > thead > tr > th:nth-child(5),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.format"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".response.headers"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath="root.settings"],
+.api_payload .contactclient_jsoneditor:not(.advanced) .btn-danger {
+    display: none !important;
+}
+
 /* ContactClient API Payload - CodeMirror */
 #contactclient_api_payload_codemirror {
-    margin-top: 5px;
+    margin-top: 20px;
 }
 
 #contactclient_api_payload_codemirror .CodeMirror {
-    border-top-right-radius: 0px;
     border: 0;
 }
 
 /* ContactClient API Payload - Advanced button */
 #api_payload_buttons {
-    float: right;
-    z-index: 10;
+    margin-bottom: -19px;
     position: relative;
-    height: 19px;
+    z-index: 2000;
+    right: 0px;
+    top: 0px;
+    height: 30px;
     overflow: visible;
+    -webkit-transition: right .2s ease-in-out;
+    -moz-transition: right .2s ease-in-out;
+    -ms-transition: right .2s ease-in-out;
+    -o-transition: right .2s ease-in-out;
+    transition: right .2s ease-in-out;
+    -webkit-box-shadow: 0 0 10px 10px rgba(255,255,255,.5);
+    box-shadow: 0 0 10px 10px rgba(255,255,255,.5);
 }
 
-#api_payload_buttons .btn#api_payload_advanced.active {
-    border-bottom: none;
-    background-color: #263238;
-    border-color: #263238;
-    color: #fff;
+#api_payload_buttons.affix {
+    position: fixed;
+    -webkit-transition: right .2s ease-in-out;
+    -moz-transition: right .2s ease-in-out;
+    -ms-transition: right .2s ease-in-out;
+    -o-transition: right .2s ease-in-out;
+    transition: right .2s ease-in-out;
+
+    top: 14px;
+    right: 200px;
 }
 
 /* ContactClient Schedule */
@@ -315,4 +365,25 @@ ul.bs-autocomplete-menu a {
     overflow: hidden;
     margin-top: .5em;
     margin-right: .5em;
+}
+
+/* tag-Editor autocomplete styles */
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu {
+    color: #596776;
+    margin: 0 4px 4px 0;
+    max-height: 240px;
+    padding: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item {
+    margin: 0;
+    padding: 5px 6px;
+    cursor: pointer;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item.ui-state-focus {
+    background-color: #467ca2;
+    color: white;
 }

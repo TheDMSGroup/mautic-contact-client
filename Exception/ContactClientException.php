@@ -44,7 +44,7 @@ class ContactClientException extends \Exception
      * @param string          $message
      * @param int             $code
      * @param \Exception|null $previous
-     * @param null            $statType
+     * @param string          $statType
      * @param bool            $retry
      * @param array           $data
      */
@@ -52,7 +52,7 @@ class ContactClientException extends \Exception
         $message = 'Contact Client retry error',
         $code = 0,
         \Exception $previous = null,
-        $statType = null,
+        $statType = '',
         $retry = true,
         $data = []
     ) {
