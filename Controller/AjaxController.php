@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
+use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
@@ -49,10 +50,11 @@ class AjaxController extends CommonAjaxController
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
             $result = $clientIntegration->sendTest($apiPayload);
-
-            $dataArray['html']    = $clientIntegration->getLogsYAML();
             $dataArray['success'] = $result['valid'];
             $dataArray['payload'] = $result['payload'];
+
+            $logs = $clientIntegration->getLogsYAML();
+            $dataArray['html'] = UTF8Helper::fixUTF8($logs);
         }
 
         return $this->sendJsonResponse($dataArray);

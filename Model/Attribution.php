@@ -74,9 +74,12 @@ class Attribution
                 'AttributionSettings'
             );
 
-            if ($attributionSettings && is_object(
-                    $attributionSettings->mode
-                ) && !empty($attributionSettings->mode->key)) {
+            if (
+                $attributionSettings
+                && isset($attributionSettings->mode)
+                && is_object($attributionSettings->mode)
+                && !empty($attributionSettings->mode->key)
+            ) {
                 // Dynamic mode.
                 $key = $attributionSettings->mode->key;
 

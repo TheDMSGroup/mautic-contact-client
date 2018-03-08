@@ -99,7 +99,7 @@ class ApiPayloadResponse
         // Move the expected format to the top of the detection array.
         if ('auto' !== $responseExpectedFormat) {
             $key = array_search($responseExpectedFormat, $this->contentTypes);
-            if ($key !== false) {
+            if (false !== $key) {
                 $this->contentTypes = array_flip(
                     array_merge([$this->contentTypes[$key] => '-'], array_flip($this->contentTypes))
                 );
@@ -139,7 +139,7 @@ class ApiPayloadResponse
                 break;
             }
             // If in test-mode do not cycle through all types unless we are truly in auto mode.
-            if (!$this->test && $responseExpectedFormat == 'auto') {
+            if (!$this->test && 'auto' === $responseExpectedFormat) {
                 break;
             }
         }
@@ -177,7 +177,7 @@ class ApiPayloadResponse
                 $doc          = new DOMDocument();
                 $doc->recover = true;
                 // Ensure UTF-8 encoding is handled correctly.
-                if (true == preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
+                if (1 !== preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
                     $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
                 }
                 if ('html' == $responseExpectedFormat) {
