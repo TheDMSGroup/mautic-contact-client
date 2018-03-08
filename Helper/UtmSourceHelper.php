@@ -1,31 +1,27 @@
 <?php
 /**
  * @Author      scottshipman
+ *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 use Mautic\LeadBundle\Entity\Lead;
-use Mautic\LeadBundle\Entity\UtmTag;
-
 
 /**
- * Class UtmSourceHelper
- *
- * @package MauticPlugin\MauticContactClientBundle\Helper
+ * Class UtmSourceHelper.
  */
 class UtmSourceHelper
 {
-
-
     public function getFirstUtmSource(Lead $contact)
     {
-        $source = "";
+        $source = '';
         if (!empty($tags = $this->getSortedUtmTags($contact))) {
             $tag    = reset($tags);
             $source = $tag->getUtmSource();
         }
+
         return $source;
     }
 
@@ -50,14 +46,12 @@ class UtmSourceHelper
 
     public function getLastUtmSource(Lead $contact)
     {
-        $source = "";
+        $source = '';
         if (!empty($tags = $this->getSortedUtmTags($contact))) {
             $tag    = end($tags);
             $source = $tag->getUtmSource();
-
-
         }
+
         return $source;
     }
-
 }

@@ -12,9 +12,9 @@
 namespace MauticPlugin\MauticContactClientBundle\Form\Type;
 
 use Mautic\CoreBundle\Factory\MauticFactory;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 
 /**
  * Class FilterType.
@@ -56,16 +56,16 @@ class ChartFilterType extends AbstractType
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.timeline.event_type_tooltip',
                 ],
-                'expanded'   => false,
-                'multiple'   => false,
-                'label'      => 'mautic.contactclient.timeline.event_type',
-                'empty_data' => "All Events",
-                'required'   => false,
-                'disabled'   => false,
+                'expanded'    => false,
+                'multiple'    => false,
+                'label'       => 'mautic.contactclient.timeline.event_type',
+                'empty_data'  => 'All Events',
+                'required'    => false,
+                'disabled'    => false,
                 'placeholder' => 'All Sources By Events',
-                'group_by'  => function($value, $key, $index){
-                    return "By Source";
-                }
+                'group_by'    => function ($value, $key, $index) {
+                    return 'By Source';
+                },
             ]
         );
 

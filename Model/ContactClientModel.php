@@ -297,7 +297,7 @@ class ContactClientModel extends FormModel
     ) {
         $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
         $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
-        $stat = new Stat();
+        $stat  = new Stat();
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => $type]);
             if (!$canViewOthers) {
@@ -334,12 +334,11 @@ class ContactClientModel extends FormModel
         $dateFormat = null,
         $canViewOthers = true
     ) {
-        $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
-        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
+        $chart      = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
+        $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
         $utmSources = $this->getSourcesByClient($contactClient);
 
-        if($type !='revenue'){
-
+        if ('revenue' != $type) {
             foreach ($utmSources as $utmSource) {
                 $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => $type, 'utmSource' => $utmSource['utmSource']]);
                 if (!$canViewOthers) {
@@ -348,7 +347,9 @@ class ContactClientModel extends FormModel
                 $data = $query->loadAndBuildTimeData($q);
                 foreach ($data as $val) {
                     if (0 !== $val) {
-                        if(empty($utmSource['utmSource'])){$utmSource['utmSource'] = "No Source";}
+                        if (empty($utmSource['utmSource'])) {
+                            $utmSource['utmSource'] = 'No Source';
+                        }
                         $chart->setDataset($utmSource['utmSource'], $data);
                         break;
                     }
@@ -364,7 +365,6 @@ class ContactClientModel extends FormModel
             $dbUnit        = $query->translateTimeUnit($dbUnit);
             $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
             foreach ($utmSources as $utmSource) {
-
                 $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
                     ->where('utmSource= :utmSource')
                     ->setParameter('utmSource', $utmSource['utmSource'])
@@ -372,15 +372,15 @@ class ContactClientModel extends FormModel
                 $data = $query->loadAndBuildTimeData($q);
                 foreach ($data as $val) {
                     if (0 !== $val) {
-                        if(empty($utmSource['utmSource'])){$utmSource['utmSource'] = "No Source";}
+                        if (empty($utmSource['utmSource'])) {
+                            $utmSource['utmSource'] = 'No Source';
+                        }
                         $chart->setDataset($utmSource['utmSource'], $data);
                         break;
                     }
                 }
             }
         }
-
-
 
         return $chart->render();
     }
@@ -491,7 +491,8 @@ class ContactClientModel extends FormModel
      *
      * @return mixed
      */
-    private function getSourcesByClient(ContactClient $contactClient){
+    private function getSourcesByClient(ContactClient $contactClient)
+    {
         $id = $contactClient->getId();
 
         $q = $this->em->createQueryBuilder()
@@ -504,6 +505,5 @@ class ContactClientModel extends FormModel
             ->setParameter('contactClientId', $id);
 
         return $q->getQuery()->getArrayResult();
-
     }
 }

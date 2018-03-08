@@ -149,14 +149,13 @@ class ContactClientController extends FormController
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
 
-            if(in_array($chartFilterForm->get('type')->getData(), array("All Events", NULL))){
+            if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
                 $stats = $model->getStats(
                     $item,
                     null,
                     new \DateTime($chartFilterForm->get('date_from')->getData()),
                     new \DateTime($chartFilterForm->get('date_to')->getData())
                 );
-
             } else {
                 $stats = $model->getStatsBySource(
                     $item,
@@ -167,9 +166,9 @@ class ContactClientController extends FormController
                 );
             }
 
-            $args['viewParameters']['auditlog']      = $this->getAuditlogs($item);
-            $args['viewParameters']['stats']         = $stats;
-            $args['viewParameters']['events']        = $model->getEngagements($item);
+            $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
+            $args['viewParameters']['stats']           = $stats;
+            $args['viewParameters']['events']          = $model->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
 
 //            if ('link' == $item->getType()) {
