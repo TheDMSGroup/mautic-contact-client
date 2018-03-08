@@ -297,18 +297,9 @@ class ContactClientModel extends FormModel
     ) {
         $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
         $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
-
-        $q = $query->prepareTimeDataQuery(
-            'contactclient_stats',
-            'date_added',
-            ['contactclient_id' => $contactClient->getId()]
-        );
-        if (!$canViewOthers) {
-            $this->limitQueryToCreator($q);
-        }
         $stat = new Stat();
         foreach ($stat->getAllTypes() as $type) {
-            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => $type]);
+            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => $type]);
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
@@ -348,16 +339,9 @@ class ContactClientModel extends FormModel
         $utmSources = $this->getSourcesByClient($contactClient);
 
         if($type !='revenue'){
-            $q = $query->prepareTimeDataQuery(
-                'contactclient_stats',
-                'date_added',
-                ['contactclient_id' => $contactClient->getId(), 'type' => $type]
-            );
-            if (!$canViewOthers) {
-                $this->limitQueryToCreator($q);
-            }
+
             foreach ($utmSources as $utmSource) {
-                $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => $type, 'utmSource' => $utmSource['utmSource']]);
+                $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => $type, 'utmSource' => $utmSource['utmSource']]);
                 if (!$canViewOthers) {
                     $this->limitQueryToCreator($q);
                 }
@@ -371,14 +355,14 @@ class ContactClientModel extends FormModel
             }
         } else {
             // Add attribution to the chart.
-            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['type' => Stat::TYPE_SUCCESS]);
+            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_SUCCESS]);
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
+            $dbUnit        = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
+            $dbUnit        = $query->translateTimeUnit($dbUnit);
+            $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
             foreach ($utmSources as $utmSource) {
-                $dbUnit        = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
-                $dbUnit        = $query->translateTimeUnit($dbUnit);
-                $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
                 $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
                     ->where('utmSource= :utmSource')
                     ->setParameter('utmSource', $utmSource['utmSource'])
