@@ -359,7 +359,7 @@ class ClientIntegration extends AbstractIntegration
                     $this->contact = $attribution->getContact();
                     $this->setLogs(strval(round($attribution->getNewAttribution(), 4)), 'attribution');
                 } else {
-                    $this->setLogs("0", 'attribution');
+                    $this->setLogs('0', 'attribution');
                 }
                 $this->setLogs(strval(round($this->contact->getAttribution(), 4)), 'attributionTotal');
 
