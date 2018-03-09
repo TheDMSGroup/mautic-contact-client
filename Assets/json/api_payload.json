@@ -261,6 +261,7 @@
                     "title": "Fields",
                     "type": "array",
                     "format": "table",
+                    "uniqueItems": true,
                     "items": {
                       "title": "Body Field",
                       "$ref": "#/definitions/requestField"
@@ -324,6 +325,7 @@
                 "title": "Body Fields",
                 "type": "array",
                 "format": "table",
+                "uniqueItems": true,
                 "options": {
                   "collapsed": false,
                   "disable_collapse": true,

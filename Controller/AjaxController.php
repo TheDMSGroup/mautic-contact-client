@@ -39,6 +39,10 @@ class AjaxController extends CommonAjaxController
         // Get the API payload to test.
         $apiPayload = html_entity_decode(InputHelper::clean($request->request->get('apiPayload')));
 
+        $attributionDefault = html_entity_decode(InputHelper::clean($request->request->get('attributionDefault')));
+
+        $attributionSettings = html_entity_decode(InputHelper::clean($request->request->get('attributionSettings')));
+
         // default to empty
         $dataArray = [
             'html'    => '',
@@ -49,7 +53,7 @@ class AjaxController extends CommonAjaxController
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
-            $result               = $clientIntegration->sendTest($apiPayload);
+            $result               = $clientIntegration->sendTest($apiPayload, $attributionDefault, $attributionSettings);
             $dataArray['success'] = $result['valid'];
             $dataArray['payload'] = $result['payload'];
 
