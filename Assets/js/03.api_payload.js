@@ -382,7 +382,9 @@ Mautic.contactclientApiPayload = function () {
         mQuery('#api_payload_test').click(function () {
             var $button = mQuery(this),
                 $resultContainer = mQuery('#api_payload_test_result'),
-                $result = $resultContainer.find('#api_payload_test_result_yaml');
+                $result = $resultContainer.find('#api_payload_test_result_yaml'),
+                $attributionDefault = mQuery('#contactclient_attribution_default:first'),
+                $attributionSettings = mQuery('#contactclient_attribution_settings:first');
             if ($button.hasClass('active')) {
                 // Test Deactivation.
             }
@@ -390,7 +392,9 @@ Mautic.contactclientApiPayload = function () {
                 // Test Activation.
                 var data = {
                     action: 'plugin:mauticContactClient:getApiPayloadTest',
-                    apiPayload: $apiPayload.val()
+                    apiPayload: $apiPayload.val(),
+                    attributionDefault: $attributionDefault.length ? $attributionDefault.val() : '',
+                    attributionSettings: $attributionSettings.length ? $attributionSettings.val() : ''
                 };
                 $resultContainer.addClass('hide');
                 $result.addClass('hide');

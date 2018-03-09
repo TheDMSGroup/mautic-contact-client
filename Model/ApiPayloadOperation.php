@@ -225,12 +225,12 @@ class ApiPayloadOperation
                                     'autoUpdate'
                                 );
                             } else {
-                                if ($this->test) {
+                                if ($this->test && (!isset($result->{$type}[$fieldId]->example) || $result->{$type}[$fieldId]->example !== $value)) {
                                     // Updating our example because a test was run.
                                     $result->{$type}[$fieldId]->example = $value;
                                     $updates                            = true;
                                     $this->setLogs(
-                                        'Existing '.$type.' field "'.$key.'" now has a new example: '.$value,
+                                        'Existing '.$type.' field "'.$key.'" has a new example: '.$value,
                                         'autoUpdate'
                                     );
                                 }
