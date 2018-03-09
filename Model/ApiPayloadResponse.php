@@ -164,70 +164,74 @@ class ApiPayloadResponse
     private function getResponseArray($data, $responseExpectedFormat = 'json')
     {
         $result = $hierarchy = [];
+        try {
+            switch ($responseExpectedFormat) {
+                case 'headers':
+                    foreach ($data as $key => $array) {
+                        $result[$key] = implode('; ', $array);
+                    }
+                    break;
 
-        switch ($responseExpectedFormat) {
-            case 'headers':
-                foreach ($data as $key => $array) {
-                    $result[$key] = implode('; ', $array);
-                }
-                break;
+                case 'xml':
+                case 'html':
+                    $doc          = new DOMDocument();
+                    $doc->recover = true;
+                    // Ensure UTF-8 encoding is handled correctly.
+                    if (1 !== preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
+                        $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
+                    }
+                    if ('html' == $responseExpectedFormat) {
+                        $doc->loadHTML($data);
+                    } else {
+                        $doc->loadXML($data);
+                    }
+                    $hierarchy = $this->domDocumentArray($doc);
+                    break;
 
-            case 'xml':
-            case 'html':
-                $doc          = new DOMDocument();
-                $doc->recover = true;
-                // Ensure UTF-8 encoding is handled correctly.
-                if (1 !== preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
-                    $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
-                }
-                if ('html' == $responseExpectedFormat) {
-                    $doc->loadHTML($data);
-                } else {
-                    $doc->loadXML($data);
-                }
-                $hierarchy = $this->domDocumentArray($doc);
-                break;
+                case 'json':
+                    $jsonHelper = new JSONHelper();
+                    $hierarchy  = $jsonHelper->decodeArray($data, 'API Response', true);
+                    break;
 
-            case 'json':
-                $jsonHelper = new JSONHelper();
-                $hierarchy  = $jsonHelper->decodeArray($data, 'API Response', true);
-                break;
-
-            case 'text':
-                // Handle the most common patterns of a multi-line delimited expression.
-                foreach (explode("\n", $data) as $line) {
-                    if (!empty($line)) {
-                        foreach ([':', '=', ';'] as $delimiter) {
-                            $elements = explode($delimiter, $line);
-                            if (2 == count($elements)) {
-                                // Strip outer whitespace.
-                                foreach ($elements as &$element) {
-                                    $element = trim($element);
-                                }
-                                // Strip enclosures.
-                                foreach ($elements as &$element) {
-                                    foreach (['"', "'"] as $enclosure) {
-                                        if (
-                                            0 === strpos($element, $enclosure)
-                                            && strrpos($element, $enclosure) === strlen($element) - 1
-                                        ) {
-                                            $element = trim($element, $enclosure);
-                                            continue;
+                case 'text':
+                    // Handle the most common patterns of a multi-line delimited expression.
+                    foreach (explode("\n", $data) as $line) {
+                        if (!empty($line)) {
+                            foreach ([':', '=', ';'] as $delimiter) {
+                                $elements = explode($delimiter, $line);
+                                if (2 == count($elements)) {
+                                    // Strip outer whitespace.
+                                    foreach ($elements as &$element) {
+                                        $element = trim($element);
+                                    }
+                                    // Strip enclosures.
+                                    foreach ($elements as &$element) {
+                                        foreach (['"', "'"] as $enclosure) {
+                                            if (
+                                                0 === strpos($element, $enclosure)
+                                                && strrpos($element, $enclosure) === strlen($element) - 1
+                                            ) {
+                                                $element = trim($element, $enclosure);
+                                                continue;
+                                            }
                                         }
                                     }
+                                    list($key, $value) = $elements;
+                                    $result[$key] = $value;
+                                    break;
                                 }
-                                list($key, $value) = $elements;
-                                $result[$key]      = $value;
-                                break;
                             }
                         }
                     }
-                }
-                break;
+                    break;
 
-            case 'yaml':
-                $hierarchy = Yaml::dump($data);
-                break;
+                case 'yaml':
+                    $hierarchy = Yaml::dump($data);
+                    break;
+            }
+        } catch (\Exception $e) {
+            // Sub-parsing may fail, but we only care about acceptable values when validating.
+            // Logging will capture the full response for debugging.
         }
 
         // Flatten hierarchical data, if needed.
