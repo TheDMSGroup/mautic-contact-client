@@ -164,7 +164,9 @@
                 "title": "URL",
                 "options": {
                   "infoText": "The complete web address we will be communicating with.",
-                  "grid_columns": 6
+                  "grid_columns": 6,
+                  "required": "true",
+                  "placeholder": "https://..."
                 },
                 "default": ""
               },
@@ -259,6 +261,7 @@
                     "title": "Fields",
                     "type": "array",
                     "format": "table",
+                    "uniqueItems": true,
                     "items": {
                       "title": "Body Field",
                       "$ref": "#/definitions/requestField"
@@ -322,6 +325,7 @@
                 "title": "Body Fields",
                 "type": "array",
                 "format": "table",
+                "uniqueItems": true,
                 "options": {
                   "collapsed": false,
                   "disable_collapse": true,

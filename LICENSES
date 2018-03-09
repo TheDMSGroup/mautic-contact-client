@@ -1,13 +1,17 @@
 This plugin includes works under other copyright notices and distributed according
 to the terms of the GNU General Public License or a compatible license, including:
 
-Javascript:
+JavaScript/CSS:
 
   Bootstrap Datepicker - Apache License, Version 2.0 Copyright January 2004 by contributors
 
   Bootstrap Slider - MIT License Copyright (c) 2017 Kyle Kemp, Rohit Kalkur, and contributors
 
+  caret - BSD3 License Copyright (c) 2009, Gideon Sireling
+
   CodeMirror - MIT License Copyright (C) 2017 by Marijn Haverbeke marijnh@gmail.com and others
+
+  HTMLHint - MIT License Copyright (c) 2014-2016 Yanis Wang <yanis.wang@gmail.com>
 
   Interact.js - MIT License Copyright (c) 2012-2017 Taye Adeyemi dev@taye.me
 
@@ -21,6 +25,6 @@ Javascript:
 
   JSON Lint - MIT License Copyright (C) 2012 Zachary Carter
 
-  jQuery-tagEditor - MIT License Copyright (c) 2014 Pixabay.com
+  js-yaml - MIT License Copyright (C) 2011-2015 by Vitaly Puzrin
 
-  caret - BSD3 License Copyright (c) 2009, Gideon Sireling
+  jQuery-tagEditor - MIT License Copyright (c) 2014 Pixabay.com

@@ -221,7 +221,7 @@ class ApiPayload
         /** @var Transport $transport */
         $transport     = $this->getTransport();
         $tokenHelper   = $this->getTokenHelper();
-        $updatePayload = (bool) $this->settings['autoUpdate'] && !$this->contactClient->isNew();
+        $updatePayload = (bool) $this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
             $logs         = [];
@@ -332,14 +332,15 @@ class ApiPayload
             $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
                 $this->contactClient->setAPIPayload($payloadJSON);
-
-                if ($this->contactClient->getId()) {
+                if (!$this->contactClient->isNew()) {
                     try {
                         $this->contactClientModel->saveEntity($this->contactClient);
                         $this->setLogs('Updated our response payload expectations.', 'payload');
                     } catch (\Exception $e) {
                         $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
                     }
+                } else {
+                    $this->setLogs('Updated our response payload expectations.', 'payload');
                 }
             } else {
                 $this->setLogs('Payload responses matched expectations, no updates necessary.', 'payload');

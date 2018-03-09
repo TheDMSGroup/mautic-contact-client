@@ -181,6 +181,59 @@ Mautic.contactclientApiPayload = function () {
                         if (typeof Mautic.contactclientTokens === 'function') {
                             Mautic.contactclientTokens();
                         }
+
+                        // Apply CodeMirror typecasting.
+                        var editorMode = function(el, format) {
+                            format = format.toLowerCase();
+                            setTimeout(function () {
+                                var mode = 'text/html',
+                                    lint = false;
+                                if (format === 'json') {
+                                    mode = {
+                                        name: 'javascript',
+                                        json: true
+                                    };
+                                    lint = 'json';
+                                }
+                                else if (format === 'yaml') {
+                                    mode = 'yaml';
+                                    lint = 'yaml';
+                                }
+                                else if (format === 'xml') {
+                                    mode = 'xml';
+                                    // Using the HTML lint here because the XML
+                                    // Equivalent is 4+ MB in size, and not
+                                    // worth the extra weight.
+                                    lint = 'html';
+                                } else if (format === 'html') {
+                                    lint = 'html';
+                                }
+                                if (mode) {
+                                    var $editor = el.parent().find('.CodeMirror:first');
+                                    if ($editor.length) {
+                                        var editor = $editor[0].CodeMirror;
+                                        editor.setOption('mode', mode);
+                                        editor.setOption('lint', false);
+                                        editor.setOption('lint', lint);
+                                    }
+                                }
+                            }, 200);
+                        };
+                        mQuery('div[data-schemapath*=".request.body"] select:not(.codemirror-checked)').change(function () {
+                            var val = mQuery(this).val(),
+                                el = mQuery(this);
+                            if (val.toLowerCase() === 'raw') {
+                                var $format = mQuery(this).parent().parent().parent().find('div[data-schemaid="requestFormat"]:first select');
+                                if ($format.length) {
+                                    var format = $format.val();
+                                    editorMode(el, format);
+                                    // Capture future changes of the format widget.
+                                    $format.not('.format-checked').change(function(){
+                                        editorMode(mQuery(this).parent().parent().parent(), mQuery(this).val())
+                                    }).addClass('format-checked');
+                                }
+                            }
+                        }).addClass('codemirror-checked');
                     }
                 });
             }
@@ -195,13 +248,12 @@ Mautic.contactclientApiPayload = function () {
         $apiPayload.css({'display': 'none'});
         apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
             value: $apiPayload.val(),
-            mode: {
-                name: 'javascript',
-                json: true
-            },
+            // Changed at runtime:
+            mode: 'text/html',
+            // Changed at runtime:
+            lint: false,
             theme: 'material',
             gutters: ['CodeMirror-lint-markers'],
-            lint: 'json',
             lintOnChange: true,
             matchBrackets: true,
             autoCloseBrackets: true,
@@ -331,7 +383,9 @@ Mautic.contactclientApiPayload = function () {
         mQuery('#api_payload_test').click(function () {
             var $button = mQuery(this),
                 $resultContainer = mQuery('#api_payload_test_result'),
-                $result = $resultContainer.find('#api_payload_test_result_yaml');
+                $result = $resultContainer.find('#api_payload_test_result_yaml'),
+                $attributionDefault = mQuery('#contactclient_attribution_default:first'),
+                $attributionSettings = mQuery('#contactclient_attribution_settings:first');
             if ($button.hasClass('active')) {
                 // Test Deactivation.
             }
@@ -339,7 +393,9 @@ Mautic.contactclientApiPayload = function () {
                 // Test Activation.
                 var data = {
                     action: 'plugin:mauticContactClient:getApiPayloadTest',
-                    apiPayload: $apiPayload.val()
+                    apiPayload: $apiPayload.val(),
+                    attributionDefault: $attributionDefault.length ? $attributionDefault.val() : '',
+                    attributionSettings: $attributionSettings.length ? $attributionSettings.val() : ''
                 };
                 $resultContainer.addClass('hide');
                 $result.addClass('hide');

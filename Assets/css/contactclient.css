@@ -440,8 +440,8 @@ ul.bs-autocomplete-menu a {
 }
 
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"] {
-    border-radius: 10px;
-    background: #00AB91;
+    border-radius: 3px;
+    background: #637589;
     padding-top: 20px;
 }
 
@@ -452,8 +452,10 @@ ul.bs-autocomplete-menu a {
     position: absolute;
     top: 0;
     left: 0;
-    border-bottom: 50px solid #00AB91;
+    border-bottom: 50px solid #6d8197;
     border-left: 50px solid #fff;
+    box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.1);
+    border-bottom-right-radius: 3px;
 }
 
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > label,
@@ -491,7 +493,7 @@ ul.bs-autocomplete-menu a {
 
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"] {
     margin-top: 80px;
-    border-radius: 10px;
+    border-radius: 3px;
     background: #455392;
     padding-top: 20px;
 }
@@ -503,8 +505,10 @@ ul.bs-autocomplete-menu a {
     position: absolute;
     top: 0;
     left: 0;
-    border-bottom: 50px solid #455392;
+    border-bottom: 50px solid #4c5ba0;
     border-left: 50px solid #fff;
+    box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.1);
+    border-bottom-right-radius: 3px;
 }
 
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response.success"]:before {
@@ -541,12 +545,12 @@ ul.bs-autocomplete-menu a {
     overflow: visible;
     font-family: FontAwesome;
     position: relative;
-    background: pink;
+    background: transparent;
     display: block;
     text-align: center;
     top: -30px;
     font-size: 90px;
-    color: #00AB91;
+    color: #637589;
 }
 
 .api_payload .contactclient_jsoneditor td[data-schematype="boolean"] {
@@ -576,4 +580,8 @@ ul.bs-autocomplete-menu a {
 /* push delete buttons to the right */
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td:last-child {
     text-align: right;
+}
+
+label.api-payload {
+    display: none;
 }

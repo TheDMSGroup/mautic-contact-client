@@ -357,12 +357,11 @@ class ClientIntegration extends AbstractIntegration
                 $updatedAttribution = $attribution->applyAttribution();
                 if ($updatedAttribution) {
                     $this->contact = $attribution->getContact();
-                    $this->setLogs(round($attribution->getNewAttribution(), 4), 'attribution');
-                    $this->setLogs(round($this->contact->getAttribution(), 4), 'attributionTotal');
+                    $this->setLogs(strval(round($attribution->getNewAttribution(), 4)), 'attribution');
                 } else {
-                    $this->setLogs(0, 'attribution');
-                    $this->setLogs(round($this->contact->getAttribution(), 4), 'attributionTotal');
+                    $this->setLogs('0', 'attribution');
                 }
+                $this->setLogs(strval(round($this->contact->getAttribution(), 4)), 'attributionTotal');
 
                 // If any fields were updated, save the Contact entity.
                 if ($updatedFields || $updatedAttribution) {
@@ -707,14 +706,22 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param $apiPayload
+     * @param string $apiPayload
+     * @param string $attributionDefault
+     * @param string $attributionSettings
      *
      * @return array
      */
-    public function sendTest($apiPayload)
+    public function sendTest($apiPayload, $attributionDefault = '', $attributionSettings = '')
     {
         $client = new ContactClient();
         $client->setAPIPayload($apiPayload);
+        if ($attributionSettings) {
+            $client->setAttributionSettings($attributionSettings);
+        }
+        if ($attributionDefault) {
+            $client->setAttributionDefault($attributionDefault);
+        }
         $contact = new Contact();
 
         $this->sendContact($client, $contact, true);
