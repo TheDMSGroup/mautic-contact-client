@@ -164,7 +164,9 @@
                 "title": "URL",
                 "options": {
                   "infoText": "The complete web address we will be communicating with.",
-                  "grid_columns": 6
+                  "grid_columns": 6,
+                  "required": "true",
+                  "placeholder": "https://..."
                 },
                 "default": ""
               },
@@ -234,11 +236,12 @@
               },
               "headers": {
                 "propertyOrder": 50,
-                "title": "Request Headers",
+                "title": "Headers",
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true,
+                  "collapsed": false,
+                  "disable_collapse": true,
                   "disable_array_reorder": true
                 },
                 "items": {
@@ -247,7 +250,7 @@
                 }
               },
               "body": {
-                "title": "Request Body",
+                "title": "Body",
                 "options": {
                   "collapsed": false,
                   "disable_collapse": true,
@@ -293,22 +296,22 @@
             "properties": {
               "format": {
                 "propertyOrder": 10,
-                "title": "Response Format",
+                "title": "Format",
                 "type": "string",
                 "options": {
                   "infoText": "The method used to format fields that we will be receiving.",
                   "grid_columns": 6
                 },
-                "default": "json",
                 "$ref": "#/definitions/responseFormat"
               },
               "headers": {
                 "propertyOrder": 20,
-                "title": "Response Headers",
+                "title": "Headers",
                 "type": "array",
                 "format": "table",
                 "options": {
-                  "collapsed": true,
+                  "collapsed": false,
+                  "disable_collapse": true,
                   "disable_array_reorder": true
                 },
                 "items": {
@@ -318,7 +321,7 @@
               },
               "body": {
                 "propertyOrder": 30,
-                "title": "Response Body Fields",
+                "title": "Body Fields",
                 "type": "array",
                 "format": "table",
                 "options": {
@@ -333,16 +336,17 @@
               },
               "success": {
                 "propertyOrder": 40,
-                "title": "Success Definition",
+                "title": "Validation",
                 "type": "object",
                 "options": {
                   "collapsed": false,
+                  "disable_collapse": true,
                   "infoText": "Use simple logic to define a successful operation below. Leave blank to consider all operations successful. If the operation is deemed unsuccessful the operation will be aborted and no changes will be made to your contacts."
                 },
                 "properties": {
                   "definition": {
                     "propertyOrder": 10,
-                    "title": "Success Definition",
+                    "title": "Validation",
                     "type": "query",
                     "format": "textarea"
                   }

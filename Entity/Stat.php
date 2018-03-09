@@ -59,6 +59,9 @@ class Stat
     /** @var float $attribution */
     private $attribution;
 
+    /** @var string $utmSource */
+    private $utmSource;
+
     /**
      * @param ORM\ClassMetadata $metadata
      */
@@ -84,6 +87,8 @@ class Stat
             ->build();
 
         $builder->addContact(true, 'SET NULL');
+
+        $builder->addField('utmSource', 'string');
 
         $builder->addIndex(
             ['contactclient_id', 'type', 'date_added'],
@@ -210,6 +215,26 @@ class Stat
     public function setContact(Contact $contact)
     {
         $this->contact = $contact;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUtmSource()
+    {
+        return $this->utmSource;
+    }
+
+    /**
+     * @param mixed $utmSource
+     *
+     * @return Stat
+     */
+    public function setUtmSource($utmSource)
+    {
+        $this->utmSource = $utmSource;
 
         return $this;
     }
