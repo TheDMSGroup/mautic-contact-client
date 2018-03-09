@@ -213,6 +213,7 @@ Mautic.contactclientApiPayload = function () {
                                     if ($editor.length) {
                                         var editor = $editor[0].CodeMirror;
                                         editor.setOption('mode', mode);
+                                        editor.setOption('lint', false);
                                         editor.setOption('lint', lint);
                                     }
                                 }
