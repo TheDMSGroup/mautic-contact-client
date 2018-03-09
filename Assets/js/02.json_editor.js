@@ -159,6 +159,7 @@ JSONEditor.defaults.options.disable_edit_json = true;
 JSONEditor.defaults.options.disable_properties = true;
 JSONEditor.defaults.options.disable_array_delete_all_rows = true;
 JSONEditor.defaults.options.disable_array_delete_last_row = true;
+JSONEditor.defaults.options.remove_empty_properties = false;
 JSONEditor.defaults.options.required_by_default = true;
 JSONEditor.defaults.options.expand_height = true;
 
@@ -170,20 +171,21 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codemirror === true) {
         mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:visible:not(.codemirror-checked)').each(function () {
             var $input = mQuery(this);
-                editor = CodeMirror.fromTextArea($input[0], {
-                // mode: {
-                //     name: 'javascript',
-                //     json: true
-                // },
+            CodeMirror.fromTextArea($input[0], {
+                mode: {
+                    name: 'javascript',
+                    json: true
+                },
                 theme: 'material',
                 gutters: ['CodeMirror-lint-markers'],
-                // lint: 'json',
+                lint: 'json',
                 lintOnChange: true,
                 matchBrackets: true,
                 autoCloseBrackets: true,
                 lineNumbers: true,
                 extraKeys: {'Ctrl-Space': 'autocomplete'},
                 lineWrapping: true
+
             });
         }).addClass('codemirror-checked');
     }
@@ -300,7 +302,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             var allowedTagArr = [];
             $text.tagEditor({
                 placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
-                allowedTags: function(){
+                allowedTags: function () {
                     if (!allowedTagArr.length && typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
                         mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                             allowedTagArr.push('{{' + key + '}}');
