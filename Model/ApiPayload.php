@@ -221,7 +221,7 @@ class ApiPayload
         /** @var Transport $transport */
         $transport     = $this->getTransport();
         $tokenHelper   = $this->getTokenHelper();
-        $updatePayload = (bool) $this->settings['autoUpdate'];
+        $updatePayload = (bool) $this->settings['autoUpdate'] && !$this->contactClient->isNew();
 
         foreach ($this->payload->operations as $id => &$operation) {
             $logs         = [];

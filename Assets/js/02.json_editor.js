@@ -275,8 +275,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     'max': max,
                     'value': value,
                     'step': step
-                },
-                changed = false;
+                };
             if (min === 0 && max === 100) {
                 options.formatter = function (val) {
                     return val + '%';
@@ -284,19 +283,13 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             }
             var slider = new Slider(mQuery(this)[0], options);
             slider.on('change', function (o) {
-                if (!changed) {
-                    if ('createEvent' in document) {
-                        // changed = true;
-                        var event = document.createEvent('HTMLEvents');
-                        event.initEvent('change', false, true);
-                        $slider[0].dispatchEvent(event);
-                    }
-                    else {
-                        $slider[0].fireEvent('onchange');
-                    }
+                if ('createEvent' in document) {
+                    var event = document.createEvent('HTMLEvents');
+                    event.initEvent('change', false, true);
+                    $slider[0].dispatchEvent(event);
                 }
                 else {
-                    changed = false;
+                    $slider[0].fireEvent('onchange');
                 }
             });
         }).addClass('slider-checked');
@@ -304,8 +297,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     // Add support for a token text field.
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
         function tagEditor ($text, tokenSource) {
-            var changed = false,
-                allowedTagArr = [];
+            var allowedTagArr = [];
             $text.tagEditor({
                 placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
                 allowedTags: function(){
@@ -335,19 +327,15 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     },
                     delay: 120
                 },
-                // callbacks
                 onChange: function (el, ed, tag_list) {
-                    if (!changed) {
-                        changed = true;
+                    if ('createEvent' in document) {
                         var event = document.createEvent('HTMLEvents');
                         event.initEvent('change', false, true);
                         $text[0].dispatchEvent(event);
-
-                        console.log(el, ed, tag_list);
-                        console.log('changed');
+                        // console.log('Entered: ' + tag_list.join(''));
                     }
                     else {
-                        changed = false;
+                        $text[0].fireEvent('onchange');
                     }
                 },
                 beforeTagSave: function () {},

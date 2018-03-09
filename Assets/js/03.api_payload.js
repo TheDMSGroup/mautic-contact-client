@@ -30,6 +30,15 @@ Mautic.contactclientApiPayloadPre = function () {
             }
         });
         $apiPayload.addClass('payload-checked');
+
+        // Ensure our affix nav functions even on ajax create.
+        mQuery('#api_payload_buttons[data-spy="affix"]').each(function () {
+            mQuery(this).affix({
+                offset: {
+                    top: mQuery(this).attr('data-offset-top')
+                }
+            });
+        });
     }
 };
 Mautic.contactclientApiPayload = function () {
@@ -213,7 +222,7 @@ Mautic.contactclientApiPayload = function () {
             $simpleView = $buttons.find('#api_payload_simple.btn'),
             $advancedView = $buttons.find('#api_payload_advanced.btn'),
             $codeView = $buttons.find('#api_payload_code.btn'),
-            codeStart = function(){
+            codeStart = function () {
                 var raw = $apiPayload.val(),
                     error = false;
                 // Activating CodeMirror.
@@ -242,7 +251,7 @@ Mautic.contactclientApiPayload = function () {
                     }
                 }
             },
-            codeStop = function(){
+            codeStop = function () {
                 var raw = $apiPayload.val(),
                     error = false;
                 // Deactivating CodeMirror.
