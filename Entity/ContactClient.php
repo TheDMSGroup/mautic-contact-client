@@ -121,6 +121,16 @@ class ContactClient extends FormEntity
     private $schedule_exclusions;
 
     /**
+     * ContactClient constructor.
+     */
+    public function __construct()
+    {
+        if (!$this->type) {
+            $this->type = 'api';
+        }
+    }
+
+    /**
      * @param ClassMetadata $metadata
      */
     public static function loadValidatorMetadata(ClassMetadata $metadata)
