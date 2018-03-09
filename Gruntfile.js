@@ -19,10 +19,6 @@ module.exports = function (grunt) {
     grunt.initConfig({
         uglify: {
             my_target: {
-                options: {
-                    sourceMap: true,
-                    sourceMapName: 'Assets/build/contactclient.min.js.map'
-                },
                 files: {
                     'Assets/build/contactclient.min.js': ['Assets/js/libraries/*.js', 'Assets/js/libraries/jquery-ui/*.js', 'Assets/js/*.js']
                 }

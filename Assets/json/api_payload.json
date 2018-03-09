@@ -164,7 +164,9 @@
                 "title": "URL",
                 "options": {
                   "infoText": "The complete web address we will be communicating with.",
-                  "grid_columns": 6
+                  "grid_columns": 6,
+                  "required": "true",
+                  "placeholder": "https://..."
                 },
                 "default": ""
               },
