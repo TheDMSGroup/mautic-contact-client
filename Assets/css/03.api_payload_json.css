@@ -73,7 +73,6 @@
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.method"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.format"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.headers"],
-/*.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > select,*/
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(6),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(7),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(8),
@@ -87,28 +86,37 @@
     display: none !important;
 }
 
+.api_payload .contactclient_jsoneditor.advanced div[data-schematype="array"][data-schemapath*=".request.body"] {
+    margin-top: 16px;
+}
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > thead > tr > th:nth-child(1),
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".key"],
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > thead > tr > th:nth-child(9),
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div .btn-danger {
     display: none !important;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual h3:before {
     content: "Template";
     display: inline;
     padding-right: 8px;
 }
+
 /* Style the body value column to prevent user confusion/clicking */
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] {
     pointer-events: none;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul {
     background: none;
     border: 0;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul .tag-editor-tag {
     border-radius: 3px;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul .tag-editor-delete {
     display: none;
 }
@@ -155,12 +163,11 @@
     border-bottom-right-radius: 3px;
 }
 
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > label,
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > select,
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.headers"] > h3,
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".response.success"] > h3,
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"] > h3,
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".response.headers"] > h3,
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".response.body"] > h3 {
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".response.body"] > h3,
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".response.success"] > h3 {
     font-size: 14px;
 }
 
@@ -281,4 +288,9 @@
 
 label.api-payload {
     display: none;
+}
+
+/* This style does not use expandable headers */
+.api_payload .contactclient_jsoneditor div > h3 > span {
+    cursor: default;
 }

@@ -51,7 +51,7 @@ JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend
                 }
             }
         };
-        el.style.cursor = 'pointer';
+        // el.style.cursor = 'pointer';
         if (typeof text === 'string') {
             el.textContent = text;
         }

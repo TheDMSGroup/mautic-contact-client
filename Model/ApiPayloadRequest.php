@@ -133,9 +133,21 @@ class ApiPayloadRequest
                 }
                 break;
         }
-        // Add the raw body if provided as a string.
-        if (!empty($request->body) && is_string($request->body)) {
-            $options['body'] = $this->renderTokens($request->body);
+
+        // Add the manual template if provided and manual mode is enabled.
+        if (isset($request->manual) && $request->manual && !empty(trim($request->template))) {
+            $body = $this->renderTokens($request->template);
+            if (!empty(trim($body))) {
+                $options['body'] = $body;
+            }
+        } else {
+            if (is_string($request->body) && !empty(trim($request->body))) {
+                // For backward compatibility, support body as a string.
+                $body = $this->renderTokens($request->body);
+                if (!empty(trim($body))) {
+                    $options['body'] = $body;
+                }
+            }
         }
 
         // Header Field overrides.

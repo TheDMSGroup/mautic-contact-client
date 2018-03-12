@@ -254,7 +254,10 @@
                 "title": "Manual Template",
                 "type": "boolean",
                 "format": "checkbox",
-                "default": false
+                "default": false,
+                "options": {
+                  "infoText": "Manual template mode should only be enabled when a specific/nested structure is required."
+                }
               },
               "template": {
                 "propertyOrder": 70,
@@ -262,7 +265,7 @@
                 "type": "string",
                 "format": "textarea",
                 "options": {
-                  "infoText": "Here you can customize the body as a raw string for services that require a nested structure. Keep in mind this must match the Request Format specified above.",
+                  "infoText": "Here you can customize the body as a raw string for services that require a specific/nested structure. Keep in mind this must match the Request Format specified above. Use ",
                   "codeMirror": true,
                   "grid_columns": 12,
                   "hidden": true

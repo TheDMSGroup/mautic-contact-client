@@ -93,6 +93,8 @@
 .contactclient_jsoneditor .glyphicon-info-sign.pull-right {
     float: none !important;
     margin-left: 5px;
+    margin-right: 4px;
+    top: 0px;
 }
 
 .contactclient_jsoneditor .glyphicon-info-sign:before {
@@ -176,7 +178,7 @@
 }
 
 /* Show the expandable headers as clickable */
-.contactclient_jsoneditor > div > h3 span {
+.contactclient_jsoneditor div > h3 span {
     cursor: pointer;
 }
 
