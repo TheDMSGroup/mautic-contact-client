@@ -186,16 +186,22 @@
     padding-bottom: 5px;
 }
 
-.contactclient_jsoneditor div[data-schemapath*=".request.body"] > select {
-    font-size: 16px;
-    font-style: normal !important;
-    background-color: #fff !important;
-}
+/*.contactclient_jsoneditor div[data-schemapath*=".request.template"] > select {*/
+    /*font-size: 16px;*/
+    /*font-style: normal !important;*/
+    /*background-color: #fff !important;*/
+/*}*/
 
 .contactclient_jsoneditor div[data-schemapath^="root.mode"] > select {
     font-style: normal !important;
     background-color: #fff !important;
 }
+
+/*.contactclient_jsoneditor div[data-schematype="object"][data-schemapath*="request.template"]:before,*/
+/*.contactclient_jsoneditor div[data-schematype="object"][data-schemapath*="request.template"],*/
+/*.contactclient_jsoneditor div[data-schematype="object"][data-schemapath*="request.template"]:after {*/
+    /*display: none;*/
+/*}*/
 
 .contactclient_jsoneditor div[data-schemapath^="root.settings.autoUpdate"] > div {
     padding-top: 20px;
