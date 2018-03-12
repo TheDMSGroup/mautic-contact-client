@@ -183,57 +183,66 @@ Mautic.contactclientApiPayload = function () {
                         }
 
                         // Apply CodeMirror typecasting.
-                        var editorMode = function(el, format) {
+                        var editorMode = function ($cm, format) {
                             format = format.toLowerCase();
                             setTimeout(function () {
-                                var mode = 'text/html',
-                                    lint = false;
-                                if (format === 'json') {
-                                    mode = {
-                                        name: 'javascript',
-                                        json: true
-                                    };
-                                    lint = 'json';
-                                }
-                                else if (format === 'yaml') {
-                                    mode = 'yaml';
-                                    lint = 'yaml';
-                                }
-                                else if (format === 'xml') {
-                                    mode = 'xml';
-                                    // Using the HTML lint here because the XML
-                                    // Equivalent is 4+ MB in size, and not
-                                    // worth the extra weight.
-                                    lint = 'html';
-                                } else if (format === 'html') {
-                                    lint = 'html';
-                                }
-                                if (mode) {
-                                    var $editor = el.parent().find('.CodeMirror:first');
-                                    if ($editor.length) {
-                                        var editor = $editor[0].CodeMirror;
-                                        editor.setOption('mode', mode);
-                                        editor.setOption('lint', false);
-                                        editor.setOption('lint', lint);
+                                if (typeof $cm[0].CodeMirror !== 'undefined') {
+                                    var mode = 'text/html',
+                                        lint = false,
+                                        cm = $cm[0].CodeMirror;
+                                    if (format === 'json') {
+                                        mode = {
+                                            name: 'javascript',
+                                            json: true
+                                        };
+                                        lint = 'json';
                                     }
+                                    else if (format === 'yaml') {
+                                        mode = 'yaml';
+                                        lint = 'yaml';
+                                    }
+                                    else if (format === 'xml') {
+                                        mode = 'xml';
+                                        // Using the HTML lint here because the XML
+                                        // Equivalent is 4+ MB in size, and not
+                                        // worth the extra weight.
+                                        lint = 'html';
+                                    }
+                                    else if (format === 'html') {
+                                        lint = 'html';
+                                    }
+                                    cm.setOption('mode', mode);
+                                    cm.setOption('lint', false);
+                                    cm.setOption('lint', lint);
                                 }
                             }, 200);
                         };
-                        mQuery('div[data-schemapath*=".request.body"] select:not(.codemirror-checked)').change(function () {
-                            var val = mQuery(this).val(),
-                                el = mQuery(this);
-                            if (val.toLowerCase() === 'raw') {
-                                var $format = mQuery(this).parent().parent().parent().find('div[data-schemaid="requestFormat"]:first select');
-                                if ($format.length) {
-                                    var format = $format.val();
-                                    editorMode(el, format);
-                                    // Capture future changes of the format widget.
-                                    $format.not('.format-checked').change(function(){
-                                        editorMode(mQuery(this).parent().parent().parent(), mQuery(this).val())
-                                    }).addClass('format-checked');
+                        mQuery('div[data-schematype="boolean"][data-schemapath*=".request.manual"] input[type="checkbox"]:not(.manual-checked)').off('change').on('change', function () {
+                            var $this = mQuery(this),
+                                val = $this.is(':checked'),
+                                $container = $this.parent().parent().parent().parent().parent(),
+                                $body = $container.find('div[data-schematype="array"][data-schemapath*=".request.body"]:first'),
+                                $template = $container.find('div[data-schematype="string"][data-schemapath*=".request.template"]:first'),
+                                $cm = $template.find('.CodeMirror:first'),
+                                $format = $container.find('div[data-schemaid="requestFormat"]:first:not(.format-checked) select:first');
+
+                            if ($template.length) {
+                                if (val) {
+                                    if ($format.length) {
+                                        $format.off('change').on('change', function () {
+                                            editorMode($cm, mQuery(this).val());
+                                        }).addClass('format-checked');
+                                        $format.trigger('change');
+                                    }
+                                    $template.show();
+                                    $body.addClass('manual');
+                                }
+                                else {
+                                    $template.hide();
+                                    $body.removeClass('manual');
                                 }
                             }
-                        }).addClass('codemirror-checked');
+                        }).addClass('manual-checked').trigger('change');
                     }
                 });
             }
@@ -248,10 +257,11 @@ Mautic.contactclientApiPayload = function () {
         $apiPayload.css({'display': 'none'});
         apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
             value: $apiPayload.val(),
-            // Changed at runtime:
-            mode: 'text/html',
-            // Changed at runtime:
-            lint: false,
+            mode: {
+                name: 'javascript',
+                json: true
+            },
+            lint: 'json',
             theme: 'material',
             gutters: ['CodeMirror-lint-markers'],
             lintOnChange: true,

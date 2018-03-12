@@ -249,40 +249,40 @@
                   "$ref": "#/definitions/requestField"
                 }
               },
+              "manual": {
+                "propertyOrder": 60,
+                "title": "Manual Template",
+                "type": "boolean",
+                "format": "checkbox",
+                "default": false
+              },
+              "template": {
+                "propertyOrder": 70,
+                "title": "Template",
+                "type": "string",
+                "format": "textarea",
+                "options": {
+                  "infoText": "Here you can customize the body as a raw string for services that require a nested structure. Keep in mind this must match the Request Format specified above.",
+                  "codeMirror": true,
+                  "grid_columns": 12,
+                  "hidden": true
+                }
+              },
               "body": {
-                "title": "Body",
+                "propertyOrder": 80,
+                "title": "Fields",
+                "type": "array",
+                "format": "table",
+                "uniqueItems": true,
+                "items": {
+                  "title": "Field",
+                  "$ref": "#/definitions/requestField"
+                },
                 "options": {
                   "collapsed": false,
                   "disable_collapse": true,
                   "disable_array_reorder": true
-                },
-                "oneOf": [
-                  {
-                    "title": "Fields",
-                    "type": "array",
-                    "format": "table",
-                    "uniqueItems": true,
-                    "items": {
-                      "title": "Body Field",
-                      "$ref": "#/definitions/requestField"
-                    },
-                    "options": {
-                      "collapsed": false,
-                      "disable_collapse": true
-                    }
-                  },
-                  {
-                    "title": "Raw",
-                    "type": "string",
-                    "format": "textarea",
-                    "options": {
-                      "codemirror": true,
-                      "infoText": "Here you can customize the body as a raw string. Keep in mind this must match the Request Format specified above.",
-                      "collapsed": false,
-                      "disable_collapse": true
-                    }
-                  }
-                ]
+                }
               }
             }
           },
@@ -322,7 +322,7 @@
               },
               "body": {
                 "propertyOrder": 30,
-                "title": "Body Fields",
+                "title": "Fields",
                 "type": "array",
                 "format": "table",
                 "uniqueItems": true,
@@ -332,7 +332,7 @@
                   "disable_array_reorder": true
                 },
                 "items": {
-                  "title": "Body Field",
+                  "title": "Field",
                   "$ref": "#/definitions/responseField"
                 }
               },

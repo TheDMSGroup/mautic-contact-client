@@ -169,8 +169,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
     // When a textarea with option "codeMirror" is true, render codeMirror.
     if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
-        // Unlike other validations this needs to trigger before changes.
-        mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)')
+        mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:visible:not(.codeMirror-checked)')
             .each(function () {
                 var $input = mQuery(this);
                 CodeMirror.fromTextArea($input[0], {
@@ -379,28 +378,3 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
     return errors;
 });
-// Modifications to the UI Autocomplete widget for better styling.
-if (
-    typeof mQuery.widget !== 'undefined'
-    && typeof mQuery.ui !== 'undefined'
-    && typeof mQuery.ui.autocomplete !== 'undefined'
-) {
-    mQuery.widget('ui.autocomplete', mQuery.ui.autocomplete, {
-        _renderMenu: function (ul, items) {
-            var that = this;
-            ul.attr('class', 'nav nav-pills nav-stacked bs-autocomplete-menu');
-            $.each(items, function (index, item) {
-                that._renderItemData(ul, item);
-            });
-        },
-        _resizeMenu: function () {
-            var ul = this.menu.element;
-            ul.outerWidth(Math.min(
-                // Firefox wraps long text (possibly a rounding bug)
-                // so we add 1px to avoid the wrapping (#7513)
-                ul.width('').outerWidth() + 1,
-                this.element.outerWidth()
-            ));
-        }
-    });
-}
