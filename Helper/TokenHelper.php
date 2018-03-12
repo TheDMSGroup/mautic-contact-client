@@ -31,6 +31,9 @@ class TokenHelper
     /** @var DateFormatHelper */
     private $dateFormatHelper;
 
+    /** @var array */
+    private $renderCache = [];
+
     /**
      * TokenHelper constructor.
      *
@@ -77,11 +80,17 @@ class TokenHelper
      */
     public function render($string, $force = false)
     {
+        if (isset($this->renderCache[$string])) {
+            return $this->renderCache[$string];
+        }
         if ($force || false !== strpos($string, self::TOKEN_KEY)) {
             if (!$this->engine->hasHelper('date')) {
                 $this->setTimezones();
             }
             $string = $this->engine->render($string, $this->context);
+        }
+        if (!empty($string)) {
+            $this->renderCache[$string] = $string;
         }
 
         return $string;
