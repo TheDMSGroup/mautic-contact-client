@@ -1,0 +1,67 @@
+/* jQuery UI Autocompete styling for better appearance within bootstrap. */
+ul.bs-autocomplete-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-width: 150px;
+    max-height: 200px;
+    overflow: auto;
+    z-index: 9999;
+    border: 1px solid #eeeeee;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 1px 6px 1px rgba(0, 0, 0, 0.4);
+}
+
+ul.bs-autocomplete-menu a {
+    font-weight: normal;
+    color: #333333;
+}
+
+.ui-helper-hidden-accessible {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.ui-state-active,
+.ui-state-focus {
+    color: #23527c;
+    background-color: #eeeeee;
+}
+
+.bs-autocomplete-feedback {
+    width: 1.5em;
+    height: 1.5em;
+    overflow: hidden;
+    margin-top: .5em;
+    margin-right: .5em;
+}
+
+/* tag-Editor autocomplete styles */
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu {
+    color: #596776;
+    margin: 0 4px 4px 0;
+    max-height: 240px;
+    padding: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item {
+    margin: 0;
+    padding: 5px 6px;
+    cursor: pointer;
+}
+
+.nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item.ui-state-focus {
+    background-color: #467ca2;
+    color: white;
+}
+

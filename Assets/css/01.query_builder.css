@@ -1,0 +1,44 @@
+.query-builder .rules-group-container {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.query-builder .rules-group-header {
+    margin-bottom: 11px;
+}
+
+.query-builder .rule-container {
+    border: 1px solid transparent;
+    background-color: rgba(161, 140, 225, 0.2);
+}
+
+.query-builder .rule-value-container {
+    border-left: 0;
+    padding-left: 0;
+}
+
+.query-builder .rule-value-container input[type=number],
+.query-builder .rule-value-container input[type=text],
+.query-builder .rule-value-container select {
+    padding: 6px 12px;
+}
+
+.query-builder .rule-value-container .selectize-input .item {
+    display: inline-block;
+    margin: -5px 7px -4px -7px;
+    font-weight: 600;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: #ffffff;
+    background-color: #2a84c5;
+    border-color: #2a84c5;
+    padding: 3px 5px;
+    font-size: 13px;
+    line-height: 1.356;
+    border-radius: 4px;
+}
