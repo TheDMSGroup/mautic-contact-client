@@ -84,7 +84,7 @@ class Event
         $builder->addId();
 
         $builder->createManyToOne('contactClient', 'ContactClient')
-            ->addJoinColumn('contactclient_id', 'id', false, false, 'CASCADE')
+            ->addJoinColumn('contactclient_id', 'id', true, false, null)
             ->build();
 
         $builder->createField('type', 'string')
