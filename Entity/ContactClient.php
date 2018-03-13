@@ -174,7 +174,9 @@ class ContactClient extends FormEntity
         $builder->addPublishDates();
 
         $builder->createField('attribution_default', 'decimal')
-            ->columnDefinition('DECIMAL(19, 4) DEFAULT NULL')
+            ->precision(19)
+            ->scale(4)
+            ->nullable()
             ->build();
 
         $builder->addNullableField('attribution_settings', 'text');

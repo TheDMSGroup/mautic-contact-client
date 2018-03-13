@@ -83,7 +83,9 @@ class Stat
         $builder->addDateAdded();
 
         $builder->createField('attribution', 'decimal')
-            ->columnDefinition('DECIMAL(19, 4) DEFAULT NULL')
+            ->precision(19)
+            ->scale(4)
+            ->nullable()
             ->build();
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
