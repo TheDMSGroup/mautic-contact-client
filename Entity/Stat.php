@@ -86,7 +86,7 @@ class Stat
             ->columnDefinition('DECIMAL(19, 4) DEFAULT NULL')
             ->build();
 
-        $builder->addContact(true, null);
+        $builder->addNamedField('contact', 'integer', 'contact_id', true);
 
         $builder->addField('utmSource', 'string');
 
@@ -208,12 +208,15 @@ class Stat
     }
 
     /**
-     * @param Contact $contact
+     * @param Contact|integer $contact
      *
      * @return Stat
      */
-    public function setContact(Contact $contact)
+    public function setContact($contact)
     {
+        if ($contact instanceof Contact) {
+            $contact = $contact->getId();
+        }
         $this->contact = $contact;
 
         return $this;

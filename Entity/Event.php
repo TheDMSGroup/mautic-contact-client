@@ -108,7 +108,7 @@ class Event
 
         $builder->addDateAdded();
 
-        $builder->addContact();
+        $builder->addContact(true, null);
     }
 
     /**

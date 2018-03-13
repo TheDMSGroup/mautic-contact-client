@@ -16,7 +16,6 @@ use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
 use Mautic\CoreBundle\Model\FormModel;
-use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use Mautic\PageBundle\Model\TrackableModel;
 use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
@@ -198,22 +197,24 @@ class ContactClientModel extends FormModel
      *
      * @param ContactClient $contactClient
      * @param               $type
-     * @param null|Contact  $contact
+     * @param int           $contact
      * @param int           $attribution
+     * @param string        $utmSource
      */
-    public function addStat(ContactClient $contactClient, $type, $contact = null, $attribution = 0, $utmSource=null)
+    public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '')
     {
         $stat = new Stat();
         $stat->setContactClient($contactClient)
             ->setDateAdded(new \DateTime())
-            ->setType($type)
-            ->setUtmSource($utmSource)
-            ->setAttribution($attribution);
+            ->setType($type);
         if ($contact) {
             $stat->setContact($contact);
         }
         if ($attribution) {
             $stat->setAttribution($attribution);
+        }
+        if ($utmSource) {
+            $stat->setUtmSource($utmSource);
         }
 
         $this->getStatRepository()->saveEntity($stat);
