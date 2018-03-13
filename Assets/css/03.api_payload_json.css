@@ -90,6 +90,17 @@
     margin-top: 16px;
 }
 
+/* Move delete buttons for API operations to the right */
+.api_payload .contactclient_jsoneditor.advanced div[data-schematype="object"][data-schemapath^="root.operations."] > h3 > div.btn-group.btn-right {
+    position: absolute;
+    right: 0;
+}
+
+/* Make room for the delete buttons */
+.api_payload .contactclient_jsoneditor.advanced div[data-schematype="object"][data-schemapath^="root.operations."]:nth-child(1) > h3 {
+    margin-top: 30px;
+}
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > thead > tr > th:nth-child(1),
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".key"],
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > thead > tr > th:nth-child(9),

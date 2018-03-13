@@ -183,10 +183,11 @@ Mautic.contactclientApiPayload = function () {
                         }
 
                         // Apply CodeMirror typecasting.
-                        var editorMode = function ($cm, format) {
+                        var editorMode = function ($template, format) {
                             format = format.toLowerCase();
                             setTimeout(function () {
-                                if (typeof $cm[0].CodeMirror !== 'undefined') {
+                                var $cm = $template.find('div.CodeMirror-wrap:first');
+                                if ($cm.length && typeof $cm[0].CodeMirror !== 'undefined') {
                                     var mode = 'text/html',
                                         lint = false,
                                         cm = $cm[0].CodeMirror;
@@ -223,14 +224,13 @@ Mautic.contactclientApiPayload = function () {
                                 $container = $this.parent().parent().parent().parent().parent(),
                                 $body = $container.find('div[data-schematype="array"][data-schemapath*=".request.body"]:first'),
                                 $template = $container.find('div[data-schematype="string"][data-schemapath*=".request.template"]:first'),
-                                $cm = $template.find('.CodeMirror:first'),
                                 $format = $container.find('div[data-schemaid="requestFormat"]:first:not(.format-checked) select:first');
 
                             if ($template.length) {
                                 if (val) {
                                     if ($format.length) {
                                         $format.off('change').on('change', function () {
-                                            editorMode($cm, mQuery(this).val());
+                                            editorMode($template, mQuery(this).val());
                                         }).addClass('format-checked');
                                         $format.trigger('change');
                                     }

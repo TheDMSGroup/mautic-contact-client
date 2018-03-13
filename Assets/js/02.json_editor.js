@@ -177,9 +177,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         name: 'javascript',
                         json: true
                     },
+                    lint: 'json',
                     theme: 'material',
                     gutters: ['CodeMirror-lint-markers'],
-                    lint: 'json',
                     lintOnChange: true,
                     matchBrackets: true,
                     autoCloseBrackets: true,
