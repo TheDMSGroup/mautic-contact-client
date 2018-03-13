@@ -186,6 +186,17 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     lineNumbers: true,
                     extraKeys: {'Ctrl-Space': 'autocomplete'},
                     lineWrapping: true
+                }).on('change', function (cm) {
+                    // Push changes to the textarea and ensure event fires.
+                    $input.val(cm.getValue());
+                    if ('createEvent' in document) {
+                        var event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', false, true);
+                        $input[0].dispatchEvent(event);
+                    }
+                    else {
+                        $input[0].fireEvent('onchange');
+                    }
                 });
             }).addClass('codeMirror-checked');
     }
