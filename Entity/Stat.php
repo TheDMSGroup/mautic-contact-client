@@ -210,7 +210,7 @@ class Stat
     }
 
     /**
-     * @param Contact|integer $contact
+     * @param Contact|int $contact
      *
      * @return Stat
      */

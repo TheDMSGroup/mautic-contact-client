@@ -441,8 +441,6 @@ class ApiPayload
      *
      * @param       $fieldName
      * @param array $types
-     *
-     * @return null
      */
     public function getAggregateResponseFieldValue($fieldName, $types = ['headers', 'body'])
     {
