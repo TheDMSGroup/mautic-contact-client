@@ -276,7 +276,7 @@
                 "title": "Fields",
                 "type": "array",
                 "format": "table",
-                "uniqueItems": true,
+                "#uniqueItems": true,
                 "items": {
                   "title": "Field",
                   "$ref": "#/definitions/requestField"

@@ -310,6 +310,69 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                 }
                                 return fields;
+                            },
+                            requestTemplate = function (i) {
+                                var obj = apiPayloadJSONEditor.getValue(),
+                                    template = '';
+                                if (typeof obj === 'object') {
+                                    if (
+                                        typeof obj.operations === 'object'
+                                        && typeof obj.operations[i].request === 'object'
+                                        && typeof obj.operations[i].request.template === 'object'
+                                    ) {
+                                        template = obj.operations[i].request.template;
+                                    }
+                                }
+                                return template;
+                            },
+                            requestBodyFieldsUpdate = function (i, keepers, additions) {
+                                var obj = apiPayloadJSONEditor.getValue(),
+                                    changes = false;
+                                if (typeof obj === 'object') {
+                                    if (
+                                        typeof obj.operations === 'object'
+                                        && typeof obj.operations[i].request === 'object'
+                                        && typeof obj.operations[i].request.body === 'object'
+                                    ) {
+                                        // Remove any (by value) not in the
+                                        // keepers array.
+                                        var fields = [];
+                                        for (var k = 0, lenk = obj.operations[i].request.body.length; k < lenk; k++) {
+                                            if (
+                                                typeof obj.operations[i].request.body[k].value === 'undefined'
+                                                || keepers.indexOf(obj.operations[i].request.body[k].value) === -1
+                                            ) {
+                                                changes = true;
+                                            } else {
+                                                fields.push(obj.operations[i].request.body[k]);
+                                            }
+                                        }
+
+                                        // Add new fields.
+                                        if (additions.length) {
+                                            mQuery.each(additions, function (key, value) {
+                                                fields.push({
+                                                    'key': value.replace('{{', '').replace('}}', ''),
+                                                    'value': value,
+                                                    'default_value': '',
+                                                    'test_value': '',
+                                                    'test_only': false,
+                                                    'description': 'Imported from template',
+                                                    'overridable': false,
+                                                    'required': false
+                                                });
+                                                changes = true;
+                                            });
+                                        }
+
+                                        // Update the JSONEditor schema value.
+                                        if (changes) {
+                                            console.log('setting value', fields);
+                                            var subEditor = apiPayloadJSONEditor.getEditor('root.operations.' + i + '.request.body');
+                                            subEditor.setValue(fields).validate();
+                                        }
+                                    }
+                                }
                             };
                         mQuery('div[data-schematype="boolean"][data-schemapath*=".request.manual"] input[type="checkbox"]:not(.manual-checked)').off('change').on('change', function () {
                             var $this = mQuery(this),
@@ -317,6 +380,7 @@ Mautic.contactclientApiPayload = function () {
                                 $container = $this.parent().parent().parent().parent().parent(),
                                 $body = $container.find('div[data-schematype="array"][data-schemapath*=".request.body"]:first'),
                                 $template = $container.find('div[data-schematype="string"][data-schemapath*=".request.template"]:first'),
+                                $textarea = $template.find('textarea:first:not(.template-checked)'),
                                 $format = $container.find('div[data-schemaid="requestFormat"]:first:not(.format-checked) select:first');
 
                             if ($template.length) {
@@ -339,18 +403,85 @@ Mautic.contactclientApiPayload = function () {
                             // Set up changes to the textarea to trickle to
                             // field settings.
                             var templateChange;
-                            $template.find('textarea:first:not(.template-checked)')
-                                .off('change')
-                                .on('change', function () {
-                                    clearInterval(templateChange);
-                                    templateChange = setTimeout(function(){
-                                        // @todo - Get all used Mustache tags from content.
-                                        // @todo - Compare against the fields in the request.
-                                        // @todo - Add missing fields to the list.
-                                        // @todo - Remove fields that are no longer relevant (by hiding them and removing the flags).
-                                    }, 250);
-                                })
-                                .addClass('template-checked');
+
+                            var nameRegex = /root\[operations\]\[(\d+)\]\[request\]\[template\]/,
+                                tokenRegex = /{{\s*?[\w\.]+\s*}}/g,
+                                match,
+                                operation = 0,
+                                previousKeepers = [],
+                                previousAdditions = [];
+                            if ((match = nameRegex.exec($textarea.attr('name'))) !== null && typeof match[1] === 'string') {
+                                operation = match[1];
+                            }
+
+                            $textarea.off('change').on('change', function () {
+                                // var value = requestTemplate(operation);
+                                var textarea = mQuery(this);
+                                clearInterval(templateChange);
+                                templateChange = setTimeout(function () {
+                                    if (typeof textarea === 'undefined') {
+                                        return false;
+                                    }
+                                    var value = textarea.val();
+                                    if (typeof value !== 'undefined' && value.length) {
+                                        // Find all Mustache tokens from
+                                        // content, ignore openers/closers.
+                                        var TemplateTokens = value.match(tokenRegex);
+
+                                        // Do nothing if not matches are
+                                        // found, assume we are in error.
+                                        if (typeof TemplateTokens === 'object' && TemplateTokens.length) {
+                                            // Find the request fields to
+                                            // compare.
+                                            // root[operations][0][request][template]
+                                            var keepers = [],
+                                                additions = [],
+                                                fields = requestBodyFields(operation);
+
+                                            mQuery.each(fields, function (key, val) {
+                                                // Find tokens within
+                                                // "value" because there
+                                                // could be multiple.
+                                                var fieldTokens = val.match(tokenRegex);
+                                                if (typeof fieldTokens === 'object' && fieldTokens.length) {
+                                                    // Compare against
+                                                    // tokens found in the
+                                                    // template.
+                                                    mQuery.each(fieldTokens, function (fieldKey, fieldToken) {
+                                                        if (TemplateTokens.indexOf(fieldToken) !== -1) {
+                                                            // This field
+                                                            // has a
+                                                            // purpose,
+                                                            // leave it.
+                                                            keepers.push(val);
+                                                            return false;
+                                                        }
+                                                    });
+                                                }
+                                            });
+
+                                            // For each valToken that isn't
+                                            // in keepers, we need to add a
+                                            // field.
+                                            mQuery.each(TemplateTokens, function (TemplateKey, TemplateToken) {
+                                                if (keepers.indexOf(TemplateToken) === -1) {
+                                                    additions.push(TemplateToken);
+                                                }
+                                            });
+
+                                            // Update fields as necessary.
+                                            if (
+                                                keepers !== previousKeepers
+                                                || previousAdditions !== additions
+                                            ) {
+                                                requestBodyFieldsUpdate(operation, keepers, additions);
+                                                previousKeepers = keepers;
+                                                previousAdditions = additions;
+                                            }
+                                        }
+                                    }
+                                }, 1000);
+                            }).addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }
                 });
