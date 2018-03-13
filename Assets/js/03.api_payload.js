@@ -183,41 +183,134 @@ Mautic.contactclientApiPayload = function () {
                         }
 
                         // Apply CodeMirror typecasting.
+                        var lastFormat;
                         var editorMode = function ($template, format) {
-                            format = format.toLowerCase();
-                            setTimeout(function () {
-                                var $cm = $template.find('div.CodeMirror-wrap:first');
-                                if ($cm.length && typeof $cm[0].CodeMirror !== 'undefined') {
-                                    var mode = 'text/html',
-                                        lint = false,
-                                        cm = $cm[0].CodeMirror;
-                                    if (format === 'json') {
-                                        mode = {
-                                            name: 'javascript',
-                                            json: true
-                                        };
-                                        lint = 'json';
+                                format = format.toLowerCase();
+                                setTimeout(function () {
+                                    if (format === lastFormat) {
+                                        return;
                                     }
-                                    else if (format === 'yaml') {
-                                        mode = 'yaml';
-                                        lint = 'yaml';
+                                    var $cm = $template.find('div.CodeMirror-wrap:first');
+                                    if ($cm.length && typeof $cm[0].CodeMirror !== 'undefined') {
+                                        var mode = 'text/html',
+                                            lint = false,
+                                            cm = $cm[0].CodeMirror;
+                                        if (format === 'json') {
+                                            mode = {
+                                                name: 'javascript',
+                                                json: true
+                                            };
+                                            lint = 'json';
+                                        }
+                                        else if (format === 'yaml') {
+                                            mode = 'yaml';
+                                            lint = 'yaml';
+                                        }
+                                        else if (format === 'xml') {
+                                            mode = 'xml';
+                                            // Using the HTML lint here because
+                                            // the XML Equivalent is 4+ MB in
+                                            // size, and not worth the extra
+                                            // weight.
+                                            lint = 'html';
+                                        }
+                                        else if (format === 'html') {
+                                            lint = 'html';
+                                        }
+                                        cm.setOption('lint', false);
+                                        cm.setOption('mode', mode);
+                                        cm.setOption('lint', lint);
+
+                                        // root[operations][0][request][template]
+                                        var regex = /root\[operations\]\[(\d+)\]\[request\]\[template\]/,
+                                            match;
+                                        if ((match = regex.exec($template.find('textarea:first').attr('name'))) !== null && typeof match[1] === 'string') {
+                                            var cmValue = cm.getValue(),
+                                                fields = requestBodyFields(match[1]);
+                                            if (cmValue.length === 0 || (lastFormat && cmValue === boilerPlate(fields, lastFormat))) {
+                                                cm.setValue(boilerPlate(fields, format));
+                                                CodeMirror.signal(cm, 'change', cm);
+                                            }
+                                        }
                                     }
-                                    else if (format === 'xml') {
-                                        mode = 'xml';
-                                        // Using the HTML lint here because the XML
-                                        // Equivalent is 4+ MB in size, and not
-                                        // worth the extra weight.
-                                        lint = 'html';
-                                    }
-                                    else if (format === 'html') {
-                                        lint = 'html';
-                                    }
-                                    cm.setOption('mode', mode);
-                                    cm.setOption('lint', false);
-                                    cm.setOption('lint', lint);
+                                    lastFormat = format;
+                                }, 200);
+                            },
+                            // Boilerplate template generation.
+                            boilerPlate = function (fields, format) {
+                                var output = '',
+                                    set = [];
+                                if (format === 'json') {
+                                    output += JSON.stringify(fields, null, 2);
                                 }
-                            }, 200);
-                        };
+                                else if (format === 'xml') {
+                                    output += '<?xml version="1.0" encoding="UTF-8"?>\n';
+                                    output += '<contact>\n';
+                                    mQuery.each(fields, function (key, value) {
+                                        output += '    <' + key + '>' + value + '</' + key + '>\n';
+                                    });
+                                    output += '</contact>';
+                                }
+                                else if (format === 'html') {
+                                    output += '<!DOCTYPE html>\n';
+                                    output += '<html>\n';
+                                    output += '    <head>\n';
+                                    output += '        <meta charset="UTF-8">\n';
+                                    output += '        <title>Contact</title>\n';
+                                    output += '    </head>\n';
+                                    output += '    <body>\n';
+                                    mQuery.each(fields, function (key, value) {
+                                        output += '        <div class="' + key + '">' + value + '</div>\n';
+                                    });
+                                    output += '    </body>\n';
+                                    output += '</html>';
+                                }
+                                else if (format === 'form') {
+                                    mQuery.each(fields, function (key, value) {
+                                        set.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+                                    });
+                                    output += set.join('&');
+                                }
+                                else if (format === 'yaml') {
+                                    output += 'contact:\n';
+                                    mQuery.each(fields, function (key, value) {
+                                        set.push('    ' + key + ': \'' + value.replace('\'', '\'\'') + '\'');
+                                    });
+                                    output += set.join('\n');
+                                }
+                                else if (format === 'text') {
+                                    mQuery.each(fields, function (key, value) {
+                                        set.push(key + ': ' + value);
+                                    });
+                                    output += set.join('\n');
+                                }
+                                return output;
+                            },
+                            // Get a key/value array of body fields from an
+                            // operationID.
+                            requestBodyFields = function (i) {
+                                var obj = apiPayloadJSONEditor.getValue(),
+                                    fields = {};
+                                if (typeof obj === 'object') {
+                                    if (
+                                        typeof obj.operations === 'object'
+                                        && typeof obj.operations[i].request === 'object'
+                                        && typeof obj.operations[i].request.body === 'object'
+                                    ) {
+                                        for (var k = 0, lenk = obj.operations[i].request.body.length; k < lenk; k++) {
+                                            if (
+                                                typeof obj.operations[i].request.body[k].key !== 'undefined'
+                                                && obj.operations[i].request.body[k].key.length
+                                                && typeof obj.operations[i].request.body[k].value !== 'undefined'
+                                                && obj.operations[i].request.body[k].value.length
+                                            ) {
+                                                fields[obj.operations[i].request.body[k].key] = obj.operations[i].request.body[k].value;
+                                            }
+                                        }
+                                    }
+                                }
+                                return fields;
+                            };
                         mQuery('div[data-schematype="boolean"][data-schemapath*=".request.manual"] input[type="checkbox"]:not(.manual-checked)').off('change').on('change', function () {
                             var $this = mQuery(this),
                                 val = $this.is(':checked'),
@@ -242,6 +335,22 @@ Mautic.contactclientApiPayload = function () {
                                     $body.removeClass('manual');
                                 }
                             }
+
+                            // Set up changes to the textarea to trickle to
+                            // field settings.
+                            var templateChange;
+                            $template.find('textarea:first:not(.template-checked)')
+                                .off('change')
+                                .on('change', function () {
+                                    clearInterval(templateChange);
+                                    templateChange = setTimeout(function(){
+                                        // @todo - Get all used Mustache tags from content.
+                                        // @todo - Compare against the fields in the request.
+                                        // @todo - Add missing fields to the list.
+                                        // @todo - Remove fields that are no longer relevant (by hiding them and removing the flags).
+                                    }, 250);
+                                })
+                                .addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }
                 });
