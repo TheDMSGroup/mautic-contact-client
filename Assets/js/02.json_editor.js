@@ -144,7 +144,9 @@ if (typeof Mautic.successDefinitionFiltersDefault !== 'undefined') {
                         skip_empty: true,
                         allow_invalid: true
                     });
+                    // Both setValue and input value are required here...
                     element.setValue(rules);
+                    element.input.value = rules;
                 })
                 .parent().find('textarea').addClass('hide');
         }
