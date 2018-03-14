@@ -1,4 +1,4 @@
-/* jQuery UI Autocompete styling for better appearance within bootstrap. */
+/* jQuery UI Autocompete styling for better appearance within bootstrap. Includes hint modification for Codemirror. */
 ul.bs-autocomplete-menu {
     position: absolute;
     top: 0;
@@ -14,6 +14,7 @@ ul.bs-autocomplete-menu {
     box-shadow: 0 1px 6px 1px rgba(0, 0, 0, 0.4);
 }
 
+ul.CodeMirror-hints li,
 ul.bs-autocomplete-menu a {
     font-weight: normal;
     color: #333333;
@@ -30,6 +31,7 @@ ul.bs-autocomplete-menu a {
     width: 1px;
 }
 
+.CodeMirror-hints li.CodeMirror-hint-active,
 .ui-state-active,
 .ui-state-focus {
     color: #23527c;
@@ -44,7 +46,8 @@ ul.bs-autocomplete-menu a {
     margin-right: .5em;
 }
 
-/* tag-Editor autocomplete styles */
+/* tag-Editor/Codemirror autocomplete/hint styles */
+ul.CodeMirror-hints,
 .nav.nav-pills.nav-stacked.bs-autocomplete-menu {
     color: #596776;
     margin: 0 4px 4px 0;
@@ -54,14 +57,15 @@ ul.bs-autocomplete-menu a {
     overflow-y: auto;
 }
 
+ul.CodeMirror-hints li,
 .nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item {
     margin: 0;
     padding: 5px 6px;
     cursor: pointer;
 }
 
+ul.CodeMirror-hints li.CodeMirror-hint-active,
 .nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item.ui-state-focus {
     background-color: #467ca2;
     color: white;
 }
-

@@ -311,20 +311,20 @@ Mautic.contactclientApiPayload = function () {
                                 }
                                 return fields;
                             },
-                            requestTemplate = function (i) {
-                                var obj = apiPayloadJSONEditor.getValue(),
-                                    template = '';
-                                if (typeof obj === 'object') {
-                                    if (
-                                        typeof obj.operations === 'object'
-                                        && typeof obj.operations[i].request === 'object'
-                                        && typeof obj.operations[i].request.template === 'object'
-                                    ) {
-                                        template = obj.operations[i].request.template;
-                                    }
-                                }
-                                return template;
-                            },
+                            // requestTemplate = function (i) {
+                            //     var obj = apiPayloadJSONEditor.getValue(),
+                            //         template = '';
+                            //     if (typeof obj === 'object') {
+                            //         if (
+                            //             typeof obj.operations === 'object'
+                            //             && typeof obj.operations[i].request === 'object'
+                            //             && typeof obj.operations[i].request.template === 'object'
+                            //         ) {
+                            //             template = obj.operations[i].request.template;
+                            //         }
+                            //     }
+                            //     return template;
+                            // },
                             requestBodyFieldsUpdate = function (i, keepers, additions) {
                                 var obj = apiPayloadJSONEditor.getValue(),
                                     changes = false;

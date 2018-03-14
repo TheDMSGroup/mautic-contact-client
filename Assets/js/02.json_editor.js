@@ -171,22 +171,77 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
         mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:visible:not(.codeMirror-checked)')
             .each(function () {
-                var $input = mQuery(this);
-                CodeMirror.fromTextArea($input[0], {
-                    mode: {
-                        name: 'javascript',
-                        json: true
-                    },
-                    lint: 'json',
-                    theme: 'material',
-                    gutters: ['CodeMirror-lint-markers'],
-                    lintOnChange: true,
-                    matchBrackets: true,
-                    autoCloseBrackets: true,
-                    lineNumbers: true,
-                    extraKeys: {'Ctrl-Space': 'autocomplete'},
-                    lineWrapping: true
-                }).on('change', function (cm) {
+
+                if (schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
+                    var tokenSource = schema.options.tokenSource;
+                }
+                var $input = mQuery(this),
+                    allowedTagArr = [],
+                    hintTimer,
+                    cm = CodeMirror.fromTextArea($input[0], {
+                        mode: {
+                            name: 'javascript',
+                            json: true
+                        },
+                        lint: 'json',
+                        theme: 'material',
+                        gutters: ['CodeMirror-lint-markers'],
+                        lintOnChange: true,
+                        matchBrackets: true,
+                        autoCloseBrackets: true,
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        hintOptions: {
+                            hint: function (cm, option) {
+                                return new Promise(function (accept) {
+                                    clearTimeout(hintTimer);
+                                    hintTimer = setTimeout(function () {
+                                        if (!allowedTagArr.length && typeof tokenSource !== 'undefined') {
+                                            if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    allowedTagArr.push(key);
+                                                });
+                                            }
+                                        }
+                                        if (allowedTagArr.length) {
+                                            var cursor = cm.getCursor(),
+                                                line = cm.getLine(cursor.line),
+                                                start = cursor.ch,
+                                                end = cursor.ch;
+                                            while (start && /[\w|{]/.test(line.charAt(start - 1))) {
+                                                --start;
+                                            }
+                                            while (end < line.length && /[\w|}]/.test(line.charAt(end))) {
+                                                ++end;
+                                            }
+                                            var word = line.slice(start, end).toLowerCase().replace(/[\s|{|}]/g, ''),
+                                                len = word.length,
+                                                matches = [];
+                                            if (len >= 2) {
+                                                for (var i = 0; i < allowedTagArr.length; i++) {
+                                                    if (
+                                                        allowedTagArr[i].length >= len
+                                                        && allowedTagArr[i].substr(0, len) === word
+                                                    ) {
+                                                        matches.push('{{' + allowedTagArr[i] + '}}');
+                                                    }
+                                                }
+                                                if (matches.length) {
+                                                    return accept({
+                                                        list: matches,
+                                                        from: CodeMirror.Pos(cursor.line, start),
+                                                        to: CodeMirror.Pos(cursor.line, end)
+                                                    });
+                                                }
+                                            }
+                                            return accept(null);
+                                        }
+                                    }, 500);
+                                });
+                            }
+                        }
+                    });
+                cm.on('change', function (cm) {
                     // Push changes to the textarea and ensure event fires.
                     $input.val(cm.getValue());
                     if ('createEvent' in document) {
@@ -198,6 +253,15 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         $input[0].fireEvent('onchange');
                     }
                 });
+                cm.on('keyup', function (cm, event) {
+                    // Autocomplete suggestions on keyup.
+                    if (!cm.state.completionActive && event.keyCode !== 13) {
+                        CodeMirror.commands.autocomplete(cm, null, {
+                            completeSingle: false
+                        });
+                    }
+                });
+
             }).addClass('codeMirror-checked');
     }
 
