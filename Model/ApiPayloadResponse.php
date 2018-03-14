@@ -23,20 +23,25 @@ use Symfony\Component\Yaml\Yaml;
  */
 class ApiPayloadResponse
 {
+    /** @var array */
     protected $responseExpected;
 
+    /** @var array */
     protected $responseActual;
 
-    protected $log;
-
+    /** @var Transport */
     protected $service;
 
+    /** @var bool */
     protected $test;
 
+    /** @var array */
     protected $successDefinition;
 
+    /** @var bool */
     protected $valid = true;
 
+    /** @var array */
     protected $logs = [];
 
     /** @var array Must be in the format of attempted decoding */
