@@ -1,0 +1,24 @@
+/* Codemirror Mustache tags to style like our tag-editor tags (sorta) */
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro');
+
+.cm-mustache,
+.cm-mustache-danger,
+.cm-mustache-warn {
+    color: #fff;
+    background-color: #216EAB;
+    border-radius: 3px;
+}
+
+.cm-mustache-danger {
+    background-color: #d9534f;
+}
+
+.cm-mustache-warn {
+    background-color: #e2a231;
+}
+
+.CodeMirror {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 13px;
+    font-weight: normal;
+}

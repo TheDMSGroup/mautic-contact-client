@@ -1,0 +1,24 @@
+/* ContactClient Schedule */
+#contactclient_schedule_hours_widget div h3 {
+    padding-top: 20px;
+}
+
+#contactclient_schedule_hours_widget .dayContainer {
+    width: 86px;
+    height: 150px;
+}
+
+#contactclient_schedule_hours_widget .input-group-addon {
+    padding: 6px;
+}
+
+#contactclient_schedule_hours_widget .operationTime .mini-time {
+    width: 52px;
+    padding-left: 7px;
+    font-size: 13px;
+}
+
+#contactclient_schedule_hours_widget .colorBox {
+    border: 0;
+}
+

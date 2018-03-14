@@ -225,7 +225,7 @@ class ApiPayload
 
         foreach ($this->payload->operations as $id => &$operation) {
             $logs         = [];
-            $apiOperation = new ApiOperation($id, $operation, $transport, $tokenHelper, $this->test, $updatePayload);
+            $apiOperation = new ApiOperation($id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload);
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
@@ -339,11 +339,7 @@ class ApiPayload
                     } catch (\Exception $e) {
                         $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
                     }
-                } else {
-                    $this->setLogs('Updated our response payload expectations.', 'payload');
                 }
-            } else {
-                $this->setLogs('Payload responses matched expectations, no updates necessary.', 'payload');
             }
         }
     }

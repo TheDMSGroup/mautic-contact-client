@@ -102,7 +102,7 @@ class ApiPayloadOperation
         $this->id                = $id;
         $this->operation         = &$operation;
         $this->transport         = $transport;
-        $this->name              = !empty($operation->name) ? $operation->name : (isset($operation->id) ? $operation->id : 'Unknown');
+        $this->name              = !empty($operation->name) ? $operation->name : $this->id;
         $this->request           = isset($operation->request) ? $operation->request : [];
         $this->responseExpected  = isset($operation->response) ? $operation->response : [];
         $this->successDefinition = isset($operation->response->success->definition) ? $operation->response->success->definition : [];
@@ -130,7 +130,7 @@ class ApiPayloadOperation
             $uri = $this->request->testUrl;
         }
         if (!$uri) {
-            $this->setLogs('Operation skipped. No URL: '.$this->name, 'notice');
+            $this->setLogs('No URL specified. Skipping operation: '.$this->name, 'notice');
 
             return true;
         }

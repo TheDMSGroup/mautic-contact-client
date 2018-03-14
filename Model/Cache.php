@@ -20,8 +20,6 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 
-// use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
-
 /**
  * Class Cache.
  */

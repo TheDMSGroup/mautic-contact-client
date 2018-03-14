@@ -22,9 +22,7 @@ use Symfony\Component\DependencyInjection\Container;
  */
 class Schedule
 {
-    /**
-     * @var \DateTimeZone
-     */
+    /** @var \DateTimeZone */
     protected $timezone;
 
     /** @var \Datetime $now */
