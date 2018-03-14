@@ -5,7 +5,6 @@ Mautic.contactclientType = function () {
     mQuery('input[name="contactclient[type]"]').change(function () {
         var val = mQuery('input[name="contactclient[type]"]:checked').val();
         if (val === 'api') {
-            mQuery('#payload-tab').removeClass('hide');
             mQuery('.row.api_payload').removeClass('hide');
             mQuery('.row.file_payload').addClass('hide');
 
@@ -13,14 +12,10 @@ Mautic.contactclientType = function () {
             Mautic.contactclientApiPayloadPre();
         }
         else if (val === 'file') {
-            mQuery('#payload-tab').removeClass('hide');
             mQuery('.row.api_payload').addClass('hide');
             mQuery('.row.file_payload').removeClass('hide');
 
             Mautic.contactclientFilePayload();
-        }
-        else {
-            mQuery('#payload-tab').addClass('hide');
         }
     }).first().parent().parent().find('label.active input:first').trigger('change');
 
