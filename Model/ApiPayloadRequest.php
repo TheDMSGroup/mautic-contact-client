@@ -24,16 +24,22 @@ class ApiPayloadRequest
 {
     const XML_ROOT_ELEM = 'contact';
 
+    /** @var string */
     protected $uri;
 
+    /** @var array */
     protected $request;
 
+    /** @var Transport */
     protected $transport;
 
+    /** @var TokenHelper */
     protected $tokenHelper;
 
+    /** @var bool */
     protected $test = false;
 
+    /** @var array */
     protected $logs = [];
 
     /**
@@ -56,6 +62,8 @@ class ApiPayloadRequest
 
     /**
      * Given a uri and request object, formulate options and make the request.
+     *
+     * @throws ApiErrorException
      */
     public function send()
     {
@@ -65,10 +73,11 @@ class ApiPayloadRequest
         $request   = $this->request;
         $transport = $this->transport;
         $options   = [];
+        $manual    = isset($request->manual) && $request->manual && !empty(trim($request->template));
 
         // Retrieve/filter/tokenize the Request Body Field values if present.
         $requestFields = [];
-        if (!empty($request->body) && !is_string($request->body)) {
+        if (!$manual && !empty($request->body) && !is_string($request->body)) {
             $requestFields = $this->fieldValues($request->body);
         }
         $requestFormat = strtolower(isset($request->format) ? $request->format : 'form');
@@ -135,8 +144,9 @@ class ApiPayloadRequest
         }
 
         // Add the manual template if provided and manual mode is enabled.
-        if (isset($request->manual) && $request->manual && !empty(trim($request->template))) {
-            $body = $this->renderTokens($request->template);
+        if ($manual) {
+            $templateFields = $this->templateFieldValues($request->body);
+            $body           = $this->renderTokens($request->template, $templateFields);
             if (!empty(trim($body))) {
                 $options['body'] = $body;
             }
@@ -218,7 +228,7 @@ class ApiPayloadRequest
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = $this->renderTokens(isset($field->key) ? $field->key : null);
+            $key = isset($field->key) ? trim($field->key) : null;
             if (empty($key)) {
                 // Skip if we have an empty key.
                 continue;
@@ -242,7 +252,7 @@ class ApiPayloadRequest
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ApiErrorException(
-                        'A required field is missing/empty: '.$key
+                        'A required field is missing/empty: '.$field->key
                     );
                 }
             }
@@ -253,13 +263,69 @@ class ApiPayloadRequest
     }
 
     /**
-     * @param $string
+     * @param string $string
+     * @param array  $context
      *
-     * @return mixed
+     * @return string
      */
-    private function renderTokens($string = '')
+    private function renderTokens($string = '', $context = [])
     {
+        if ($context) {
+            $this->tokenHelper->addContext($context);
+        }
+
         return $this->tokenHelper->render($string);
+    }
+
+    /**
+     * Tokenize/parse fields from the API Payload for template context.
+     *
+     * @param $fields
+     *
+     * @return array
+     *
+     * @throws ApiErrorException
+     */
+    private function templateFieldValues($fields)
+    {
+        $result = [];
+        foreach ($fields as $field) {
+            if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
+                // Skip this field as it is for test mode only.
+                continue;
+            }
+            $key = isset($field->key) ? trim($field->key) : null;
+            if (empty($key)) {
+                // Skip if we have an empty key.
+                continue;
+            }
+            // Exclude default_value (may add this functionality in the future if desired).
+            $valueSources = ['value'];
+            if ($this->test) {
+                array_unshift($valueSources, 'test_value');
+            }
+            $value = null;
+            foreach ($valueSources as $valueSource) {
+                if (!empty($field->{$valueSource})) {
+                    $value = $this->renderTokens($field->{$valueSource});
+                    if (!empty($value)) {
+                        break;
+                    }
+                }
+            }
+            if (empty($value) && 0 !== $value) {
+                // The field value is empty.
+                if (true === (isset($field->required) ? $field->required : false)) {
+                    // The field is required. Abort.
+                    throw new ApiErrorException(
+                        'A required template field is missing/empty: '.$field->key
+                    );
+                }
+            }
+            $result[$key] = $value;
+        }
+
+        return $result;
     }
 
     /**
