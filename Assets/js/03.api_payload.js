@@ -192,22 +192,23 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                     var $cm = $template.find('div.CodeMirror-wrap:first');
                                     if ($cm.length && typeof $cm[0].CodeMirror !== 'undefined') {
-                                        var mode = 'text/html',
+                                        var mode = 'text/html/mustache',
                                             lint = false,
                                             cm = $cm[0].CodeMirror;
                                         if (format === 'json') {
-                                            mode = {
-                                                name: 'javascript',
-                                                json: true
-                                            };
+                                            // mode = {
+                                            //     name: 'javascript',
+                                            //     json: true
+                                            // };
+                                            mode = 'json/mustache';
                                             lint = 'json';
                                         }
                                         else if (format === 'yaml') {
-                                            mode = 'yaml';
+                                            mode = 'yaml/mustache';
                                             lint = 'yaml';
                                         }
                                         else if (format === 'xml') {
-                                            mode = 'xml';
+                                            mode = 'xml/mustache';
                                             // Using the HTML lint here because
                                             // the XML Equivalent is 4+ MB in
                                             // size, and not worth the extra
@@ -267,7 +268,8 @@ Mautic.contactclientApiPayload = function () {
                                 }
                                 else if (format === 'form') {
                                     mQuery.each(fields, function (key, value) {
-                                        set.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+                                        // Do NOT encode mustache tags, since they will not be included in the output.
+                                        set.push(encodeURIComponent(key) + '=' + value);
                                     });
                                     output += set.join('&');
                                 }
@@ -419,9 +421,8 @@ Mautic.contactclientApiPayload = function () {
 
                             // Set up changes to the textarea to trickle to
                             // field settings.
-                            var templateChange;
-
-                            var nameRegex = /root\[operations\]\[(\d+)\]\[request\]\[template\]/,
+                            var templateChange,
+                                nameRegex = /root\[operations\]\[(\d+)\]\[request\]\[template\]/,
                                 tokenRegex = /{{\s*?[\w\.]+\s*}}/g,
                                 match,
                                 operation = 0,

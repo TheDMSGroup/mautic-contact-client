@@ -208,10 +208,10 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 line = cm.getLine(cursor.line),
                                                 start = cursor.ch,
                                                 end = cursor.ch;
-                                            while (start && /[\w|{]/.test(line.charAt(start - 1))) {
+                                            while (start && /[\w|{|\.]/.test(line.charAt(start - 1))) {
                                                 --start;
                                             }
-                                            while (end < line.length && /[\w|}]/.test(line.charAt(end))) {
+                                            while (end < line.length && /[\w|}|\.]/.test(line.charAt(end))) {
                                                 ++end;
                                             }
                                             var word = line.slice(start, end).toLowerCase().replace(/[\s|{|}]/g, ''),
@@ -222,6 +222,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                     if (
                                                         allowedTagArr[i].length >= len
                                                         && allowedTagArr[i].substr(0, len) === word
+                                                        && allowedTagArr[i] !== word
                                                     ) {
                                                         matches.push('{{' + allowedTagArr[i] + '}}');
                                                     }
