@@ -336,15 +336,18 @@ Mautic.contactclientApiPayload = function () {
                                     ) {
                                         // Remove any (by value) not in the
                                         // keepers array.
-                                        var fields = [];
+                                        var fields = [],
+                                            fieldValues = [];
                                         for (var k = 0, lenk = obj.operations[i].request.body.length; k < lenk; k++) {
                                             if (
                                                 typeof obj.operations[i].request.body[k].value === 'undefined'
                                                 || keepers.indexOf(obj.operations[i].request.body[k].value) === -1
                                             ) {
                                                 changes = true;
-                                            } else {
+                                            } else if (fieldValues.indexOf(obj.operations[i].request.body[k].value) === -1) {
+                                                // Prevent duplicates.
                                                 fields.push(obj.operations[i].request.body[k]);
+                                                fieldValues.push(obj.operations[i].request.body[k].value);
                                             }
                                         }
 
@@ -357,7 +360,7 @@ Mautic.contactclientApiPayload = function () {
                                                     'default_value': '',
                                                     'test_value': '',
                                                     'test_only': false,
-                                                    'description': 'Imported from template',
+                                                    'description': '',
                                                     'overridable': false,
                                                     'required': false
                                                 });
@@ -365,11 +368,25 @@ Mautic.contactclientApiPayload = function () {
                                             });
                                         }
 
+                                        // Sort the resulting fields by value.
+                                        fields.sort(function (a, b) {
+                                            a = a.value.toLowerCase();
+                                            b = b.value.toLowerCase();
+                                            if (a < b) {
+                                                return -1;
+                                            }
+                                            if (a > b) {
+                                                return 1;
+                                            }
+                                            return 0;
+                                        });
+
                                         // Update the JSONEditor schema value.
                                         if (changes) {
-                                            console.log('setting value', fields);
                                             var subEditor = apiPayloadJSONEditor.getEditor('root.operations.' + i + '.request.body');
-                                            subEditor.setValue(fields).validate();
+                                            // Setting to a null value to cause re-instantiation of tag-editor.
+                                            subEditor.setValue([]);
+                                            subEditor.setValue(fields);
                                         }
                                     }
                                 }
@@ -430,7 +447,7 @@ Mautic.contactclientApiPayload = function () {
 
                                         // Do nothing if not matches are
                                         // found, assume we are in error.
-                                        if (typeof TemplateTokens === 'object' && TemplateTokens.length) {
+                                        if (typeof TemplateTokens !== 'undefined' && TemplateTokens && TemplateTokens.length) {
                                             // Find the request fields to
                                             // compare.
                                             // root[operations][0][request][template]
@@ -480,7 +497,7 @@ Mautic.contactclientApiPayload = function () {
                                             }
                                         }
                                     }
-                                }, 1000);
+                                }, 500);
                             }).addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }
