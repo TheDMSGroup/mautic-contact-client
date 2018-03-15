@@ -60,7 +60,7 @@ echo $view['form']->start($form);
                         </a>
                     </li>
                     <li id="payload-tab">
-                        <a href="#payload" role="tab" data-toggle="tab" class="contactclient-tab">
+                        <a href="#sendfields" role="tab" data-toggle="tab" class="contactclient-tab">
                             <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
                         </a>
                     </li>
@@ -161,7 +161,7 @@ echo $view['form']->start($form);
                         </div>
                     </div>
                 </div>
-                <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="payload">
+                <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="sendfields">
                     <div class="pa-md">
                         <div class="form-group mb-0">
                             <div class="row api_payload hide">
