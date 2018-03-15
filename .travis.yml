@@ -4,7 +4,7 @@ env:
     # The exact plugin folder/bundle name.
     - "MAUTIC_PLUGIN=MauticContactClientBundle"
 
-dist: precise
+dist: trusty
 
 language: php
 
