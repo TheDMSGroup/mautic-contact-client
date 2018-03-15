@@ -1,0 +1,21 @@
+
+form[name='sourcechartfilter'] > div.input-group:nth-child(1) > span {
+    border-bottom-left-radius: 0;
+    border-bottom: 0;
+}
+form[name='sourcechartfilter'] > div.input-group:nth-child(1) > div.chosen-container,
+form[name='sourcechartfilter'] > div.input-group:nth-child(1) > div.chosen-container .chosen-single {
+    border-bottom-right-radius: 0;
+    margin-right: 1px;
+    border-bottom: 0;
+}
+
+
+
+form[name='sourcechartfilter'] > div.input-group:nth-child(2) > span {
+    border-top-left-radius: 0;
+}
+form[name='sourcechartfilter'] > div.input-group:nth-child(2) > span.input-group-btn,
+form[name='sourcechartfilter'] > div.input-group:nth-child(2) > span.input-group-btn > button {
+    border-top-right-radius: 0;
+}
