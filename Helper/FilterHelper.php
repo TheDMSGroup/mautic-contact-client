@@ -167,7 +167,7 @@ class FilterHelper
         try {
             $ruleValue = $this->getValueFromRule($rule);
         } catch (\Exception $e) {
-            $this->setError('Error attempting to get a value from a rule.');
+            $this->setError('Error attempting to get a value from a rule: '.$e->getMessage());
 
             return false;
         }
@@ -175,7 +175,7 @@ class FilterHelper
         try {
             $contextValue = $this->getValueFromContext($rule, $context);
         } catch (\Exception $e) {
-            $this->setError('Error attempting to get a value from context.');
+            $this->setError('Error attempting to get a value from context: '.$e->getMessage());
 
             return false;
         }

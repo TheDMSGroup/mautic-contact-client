@@ -36,42 +36,37 @@ echo $view['form']->start($form);
                 <ul class="nav nav-tabs pr-md pl-md mt-10">
                     <li class="active">
                         <a href="#details" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.details'); ?>
+                            <i class="fa fa-cog fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.details'); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#duplicate" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.duplicate'); ?>
+                            <i class="fa fa-window-restore fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.duplicate'); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#exclusive" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
+                            <i class="fa fa-user-secret fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#filter" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.filter'); ?>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#limits" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.limits'); ?>
+                            <i class="fa fa-filter fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.filter'); ?>
                         </a>
                     </li>
                     <li id="payload-tab">
                         <a href="#payload" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
+                            <i class="fa fa-paper-plane fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#attribution" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.attribution'); ?>
+                            <i class="fa fa-calculator fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.attribution'); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#schedule" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <?php echo $view['translator']->trans('mautic.contactclient.form.group.schedule'); ?>
+                            <i class="fa fa-calendar-check-o fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.schedule'); ?>
                         </a>
                     </li>
                 </ul>
@@ -109,6 +104,11 @@ echo $view['form']->start($form);
                                     <?php echo $view['form']->row($form['attribution_settings']); ?>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <?php echo $view['form']->row($form['limits']); ?>
+                                </div>
+                            </div>
                             <hr class="mnr-md mnl-md">
                         </div>
                     </div>
@@ -143,18 +143,6 @@ echo $view['form']->start($form);
                             <div class="row">
                                 <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['filter']); ?>
-                                </div>
-                            </div>
-                            <hr class="mnr-md mnl-md">
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade bdr-rds-0 bdr-w-0" id="limits">
-                    <div class="pa-md">
-                        <div class="form-group mb-0">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <?php echo $view['form']->row($form['limits']); ?>
                                 </div>
                             </div>
                             <hr class="mnr-md mnl-md">

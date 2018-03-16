@@ -1,0 +1,6 @@
+/* Style iconography */
+form[name="contactclient"] ul.nav-tabs li a i.fa-lg {
+    font-size: 16px;
+    line-height: 19px;
+    margin-right: 6px;
+}
