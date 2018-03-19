@@ -1,0 +1,4 @@
+/* ContactClient Limits */
+#limits_jsoneditor div[data-schemapath="root.rules"] table > thead > tr > th:nth-child(3) {
+    opacity: 0;
+}

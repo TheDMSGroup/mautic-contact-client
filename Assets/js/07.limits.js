@@ -15,7 +15,8 @@ Mautic.contactclientLimits = function () {
 
                 // Create our widget container for the JSON Editor.
                 var $limitsJSONEditor = mQuery('<div>', {
-                    class: 'contactclient_jsoneditor'
+                    class: 'contactclient_jsoneditor',
+                    id: 'limits_jsoneditor'
                 }).insertBefore($limits);
 
                 // Instantiate the JSON Editor based on our schema.
@@ -49,6 +50,16 @@ Mautic.contactclientLimits = function () {
                         if (raw.length) {
                             // Set the textarea.
                             $limits.val(raw);
+
+                            // Hide the Value when the scope is global.
+                            mQuery('select[name$="[scope]"]:not(.scope-checked)').off('change').on('change', function () {
+                                var $value = mQuery(this).parent().parent().parent().parent().find('input[name$="[value]"]');
+                                if (parseInt(mQuery(this).val()) === 1) {
+                                    $value.addClass('hide');
+                                } else {
+                                    $value.removeClass('hide');
+                                }
+                            }).addClass('scope-checked').trigger('change');
                         }
                     }
                 });
