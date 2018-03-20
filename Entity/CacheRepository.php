@@ -139,16 +139,18 @@ class CacheRepository extends CommonRepository
                     $expr       = $query->expr();
                     $properties = $set;
                 }
-                foreach ($properties as $property => $value) {
-                    if (is_array($value)) {
-                        $expr->add(
-                            $query->expr()->in($alias.'.'.$property, $value)
-                        );
-                    } else {
-                        $expr->add(
-                            $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
-                        );
-                        $query->setParameter($property.$k, $value);
+                if (isset($expr)) {
+                    foreach ($properties as $property => $value) {
+                        if (is_array($value)) {
+                            $expr->add(
+                                $query->expr()->in($alias.'.'.$property, $value)
+                            );
+                        } else {
+                            $expr->add(
+                                $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                            );
+                            $query->setParameter($property.$k, $value);
+                        }
                     }
                 }
                 if (isset($set['contactclient_id']) && isset($set['date_added'])) {
@@ -157,7 +159,7 @@ class CacheRepository extends CommonRepository
                         $query->expr()->andX(
                             $query->expr()->eq($alias.'.contactclient_id', ':contactClientId'.$k),
                             $query->expr()->gte($alias.'.date_added', ':dateAdded'.$k),
-                            $expr
+                            (isset($expr) ? $expr : null)
                         )
                     );
                     $query->setParameter('contactClientId'.$k, $set['contactclient_id']);
@@ -168,9 +170,11 @@ class CacheRepository extends CommonRepository
                         $exprOuter  = $query->expr()->orX();
                         $expireDate = $set['exclusive_expire_date'];
                     }
-                    $exprOuter->add(
-                        $query->expr()->orX($expr)
-                    );
+                    if (isset($expr)) {
+                        $exprOuter->add(
+                            $query->expr()->orX($expr)
+                        );
+                    }
                 }
 
                 // Expiration can always be applied globally.
