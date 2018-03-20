@@ -34,6 +34,9 @@ class Cache extends AbstractCommonModel
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
 
+    /** @var \Symfony\Component\DependencyInjection\Container */
+    protected $container;
+
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
      *
@@ -124,6 +127,8 @@ class Cache extends AbstractCommonModel
      * Normalize the fields as much as possible to aid in exclusive/duplicate/limit correlation.
      *
      * @return CacheEntity
+     *
+     * @throws \Exception
      */
     private function createEntity()
     {
@@ -150,7 +155,7 @@ class Cache extends AbstractCommonModel
             $entity->setMobile($mobile);
         }
         // get the original / first utm source code for contact
-        $utmHelper = $this->factory->get('mautic.contactclient.helper.utmsource');
+        $utmHelper = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
         $utmSource = $utmHelper->getFirstUtmSource($this->contact);
         if (!empty($utmSource)) {
             $entity->setUtmSource(trim($utmSource));
@@ -182,6 +187,18 @@ class Cache extends AbstractCommonModel
         }
 
         return $result;
+    }
+
+    /**
+     * @return \Symfony\Component\DependencyInjection\Container
+     */
+    private function getContainer()
+    {
+        if (!$this->container) {
+            $this->container = $this->dispatcher->getContainer();
+        }
+
+        return $this->container;
     }
 
     /**

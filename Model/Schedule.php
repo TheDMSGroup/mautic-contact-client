@@ -15,7 +15,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
-use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class Schedule.
@@ -31,24 +31,36 @@ class Schedule
     /** @var ContactClient $contactClient */
     protected $contactClient;
 
-    /** @var Container */
+    /** @var \Symfony\Component\DependencyInjection\Container */
     protected $container;
 
     /**
      * Schedule constructor.
      *
-     * @param ContactClient $contactClient
-     * @param               $container
+     * We need to be container aware, but don't need all the meat of AbstractCommonModel.
+     *
+     * @param ContainerInterface $container
      */
-    public function __construct(ContactClient $contactClient, $container)
+    public function __construct(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * @param ContactClient $contactClient
+     *
+     * @throws \Exception
+     */
+    public function setContactClient(ContactClient $contactClient)
     {
         $this->contactClient = $contactClient;
-        $this->container     = $container;
         $this->setTimezone();
     }
 
     /**
      * Set Client timezone, defaulting to Mautic or System as is relevant.
+     *
+     * @throws \Exception
      */
     private function setTimezone()
     {
