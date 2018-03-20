@@ -40,6 +40,26 @@ class CacheRepository extends CommonRepository
     protected $phoneHelper;
 
     /**
+     * Given a matching pattern and a contact, find any exceeded limits (aka caps/budgets).
+     *
+     * @param Contact       $contact
+     * @param ContactClient $contactClient
+     * @param array         $rules
+     *
+     * @return bool|mixed
+     *
+     * @throws \Exception
+     */
+    public function findLimit(
+        Contact $contact,
+        ContactClient $contactClient,
+        $rules = []
+    ) {
+        // @todo - Let's do this... :)
+        return null;
+    }
+
+    /**
      * Given a matching pattern and a contact, discern if there is a match in the cache.
      * Used for exclusivity and duplicate checking.
      *

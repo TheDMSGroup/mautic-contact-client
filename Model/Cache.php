@@ -256,6 +256,44 @@ class Cache extends AbstractCommonModel
     }
 
     /**
+     * Using the duplicate rules, evaluate if the current contact matches any entry in the cache.
+     *
+     * @throws ContactClientException
+     * @throws \Exception
+     */
+    public function evaluateLimits()
+    {
+        $limits = $this->getRepository()->findLimit(
+            $this->contact,
+            $this->contactClient,
+            $this->getLimitRules()
+        );
+        if ($limits) {
+            throw new ContactClientException(
+                'Skipping Contact due to limits exceeded.',
+                0,
+                null,
+                Stat::TYPE_LIMITS,
+                false,
+                $limits
+            );
+        }
+    }
+
+    /**
+     * Given the Contact and Contact Client, get the rules used to evaluate limits.
+     *
+     * @throws \Exception
+     */
+    public function getLimitRules()
+    {
+        $jsonHelper = new JSONHelper();
+        $limits     = $jsonHelper->decodeObject($this->contactClient->getLimits(), 'Limits');
+
+        return $this->mergeRules($limits);
+    }
+
+    /**
      * @return Contact
      */
     public function getContact()
