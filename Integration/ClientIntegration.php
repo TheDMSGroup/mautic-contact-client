@@ -242,7 +242,7 @@ class ClientIntegration extends AbstractIntegration
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
 
-            // @todo - Limits - Check limit rules to ensure we have not sent too many contacts in our window.
+            // @todo - Limits /  - Check limit rules to ensure we have not sent too many contacts in our window.
 
             // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
             if (!$this->test) {
