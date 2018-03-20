@@ -79,7 +79,7 @@ return [
                 'alias'     => 'contactclient',
                 'arguments' => 'mautic.security',
             ],
-            'mautic.contactclient.form.type.chartfilter' => [
+            'mautic.contactclient.form.type.chartfilter'            => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ChartFilterType',
                 'arguments' => 'mautic.factory',
                 'alias'     => 'chartfilter',
@@ -108,6 +108,12 @@ return [
             'mautic.contactclient.model.cache'         => [
                 'class' => 'MauticPlugin\MauticContactClientBundle\Model\Cache',
             ],
+            'mautic.contactclient.model.schedule'      => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Model\Schedule',
+                'arguments' => [
+                    'service_container',
+                ],
+            ],
         ],
         'integrations' => [
             'mautic.contactclient.integration' => [
@@ -122,8 +128,8 @@ return [
                     'router',
                 ],
             ],
-            'mautic.contactclient.helper.utmsource'      => [
-                'class'     => 'MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper',
+            'mautic.contactclient.helper.utmsource'  => [
+                'class' => 'MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper',
             ],
             'mautic.contactclient.guzzle.client'     => [
                 'class' => 'GuzzleHttp\Client',
