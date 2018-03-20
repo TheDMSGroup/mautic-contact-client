@@ -108,7 +108,7 @@ class Event
 
         $builder->addDateAdded();
 
-        $builder->addContact(true, null);
+        $builder->addNamedField('contact', 'integer', 'contact_id', true);
     }
 
     /**
@@ -156,12 +156,15 @@ class Event
     }
 
     /**
-     * @param Contact $contact
+     * @param Contact|int $contact
      *
-     * @return Event
+     * @return $this
      */
-    public function setContact(Contact $contact)
+    public function setContact($contact)
     {
+        if ($contact instanceof Contact) {
+            $contact = $contact->getId();
+        }
         $this->contact = $contact;
 
         return $this;

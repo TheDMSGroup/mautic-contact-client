@@ -29,7 +29,8 @@
       "id": "cache",
       "options": {
         "collapsed": false,
-        "disable_collapse": true
+        "disable_collapse": true,
+        "disable_array_reorder": true
       },
       "properties": {
         "quantity": {
