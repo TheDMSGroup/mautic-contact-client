@@ -89,17 +89,19 @@ class Cache extends AbstractCommonModel
     /**
      * Validate and merge the rules object (exclusivity/duplicate/limits).
      *
-     * @param $rules
+     * @param      $rules
+     * @param bool $requireMatching
      *
      * @return array
      */
-    private function mergeRules($rules)
+    private function mergeRules($rules, $requireMatching = true)
     {
         $newRules = [];
         if (isset($rules->rules) && is_array($rules->rules)) {
             foreach ($rules->rules as $rule) {
+                // Exclusivity and Duplicates have matching, Limits may not.
                 if (
-                    !empty($rule->matching)
+                    (!$requireMatching || !empty($rule->matching))
                     && !empty($rule->scope)
                     && !empty($rule->duration)
                 ) {
@@ -107,12 +109,21 @@ class Cache extends AbstractCommonModel
                     $scope    = intval($rule->scope);
                     $key      = $duration.'-'.$scope;
                     if (!isset($newRules[$key])) {
-                        $newRules[$key]             = [];
-                        $newRules[$key]['matching'] = intval($rule->matching);
+                        $newRules[$key] = [];
+                        if (!empty($rule->matching)) {
+                            $newRules[$key]['matching'] = intval($rule->matching);
+                        }
                         $newRules[$key]['scope']    = $scope;
                         $newRules[$key]['duration'] = $duration;
-                    } else {
+                    } elseif (!empty($rule->matching)) {
                         $newRules[$key]['matching'] += intval($rule->matching);
+                    }
+                    if (isset($rule->quantity)) {
+                        if (!isset($newRules[$key]['quantity'])) {
+                            $newRules[$key]['quantity'] = intval($rule->quantity);
+                        } else {
+                            $newRules[$key]['quantity'] = min($newRules[$key]['quantity'], intval($rule->quantity));
+                        }
                     }
                 }
             }
@@ -281,13 +292,12 @@ class Cache extends AbstractCommonModel
     public function evaluateLimits()
     {
         $limits = $this->getRepository()->findLimit(
-            $this->contact,
             $this->contactClient,
             $this->getLimitRules()
         );
         if ($limits) {
             throw new ContactClientException(
-                'Skipping Contact due to limits exceeded.',
+                'Skipping Contact due to an exceeded limit.',
                 0,
                 null,
                 Stat::TYPE_LIMITS,
@@ -307,7 +317,7 @@ class Cache extends AbstractCommonModel
         $jsonHelper = new JSONHelper();
         $limits     = $jsonHelper->decodeObject($this->contactClient->getLimits(), 'Limits');
 
-        return $this->mergeRules($limits);
+        return $this->mergeRules($limits, false);
     }
 
     /**
