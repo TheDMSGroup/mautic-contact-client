@@ -329,8 +329,7 @@ class CacheRepository extends CommonRepository
      *
      * @todo - dedupe this method.
      */
-    private
-    function phoneValidate(
+    private function phoneValidate(
         $phone
     ) {
         $result = null;
@@ -363,8 +362,7 @@ class CacheRepository extends CommonRepository
      *
      * @return mixed|null
      */
-    public
-    function findExclusive(
+    public function findExclusive(
         Contact $contact,
         ContactClient $contactClient,
         $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE
@@ -501,8 +499,7 @@ class CacheRepository extends CommonRepository
      *
      * @return array
      */
-    private
-    function bitwiseIn(
+    private function bitwiseIn(
         $max,
         $matching
     ) {
@@ -521,8 +518,7 @@ class CacheRepository extends CommonRepository
      *
      * @param array $filters
      */
-    private
-    function addExpiration(
+    private function addExpiration(
         &$filters = []
     ) {
         if ($filters) {
