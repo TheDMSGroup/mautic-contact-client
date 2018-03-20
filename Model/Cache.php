@@ -107,7 +107,8 @@ class Cache extends AbstractCommonModel
                 ) {
                     $duration = $rule->duration;
                     $scope    = intval($rule->scope);
-                    $key      = $duration.'-'.$scope;
+                    $value    = isset($rule->value) ? strval($rule->value) : '';
+                    $key      = $duration.'-'.$scope.'-'.$value;
                     if (!isset($newRules[$key])) {
                         $newRules[$key] = [];
                         if (!empty($rule->matching)) {
@@ -115,6 +116,7 @@ class Cache extends AbstractCommonModel
                         }
                         $newRules[$key]['scope']    = $scope;
                         $newRules[$key]['duration'] = $duration;
+                        $newRules[$key]['value']    = $value;
                     } elseif (!empty($rule->matching)) {
                         $newRules[$key]['matching'] += intval($rule->matching);
                     }
