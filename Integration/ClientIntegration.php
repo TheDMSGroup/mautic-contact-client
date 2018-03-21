@@ -450,7 +450,7 @@ class ClientIntegration extends AbstractIntegration
         // Stat::TYPE_SCHEDULE
 
         if ($this->valid) {
-            $statType  = Stat::TYPE_SUCCESS;
+            $statType  = Stat::TYPE_CONVERTED;
             $statLevel = 'INFO';
             $message   = 'Contact was sent successfully.';
         } else {

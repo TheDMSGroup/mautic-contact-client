@@ -39,7 +39,7 @@ class Stat
 
     const TYPE_SCHEDULE  = 'schedule';
 
-    const TYPE_SUCCESS   = 'success';
+    const TYPE_CONVERTED   = 'converted';
 
     /** @var int $id */
     private $id;
