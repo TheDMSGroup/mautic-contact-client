@@ -358,7 +358,7 @@ class ContactClientModel extends FormModel
             }
         } else {
             // Add attribution to the chart.
-            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_SUCCESS]);
+            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_CONVERTED]);
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }

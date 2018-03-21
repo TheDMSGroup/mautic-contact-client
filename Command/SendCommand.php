@@ -131,7 +131,9 @@ class SendCommand extends ModeratedCommand
                 }
             } else {
                 $output->writeln('<error>The Contact was not sent or accepted. See logs for details.</error>');
-                $output->writeln('<warn>'.$integrationObject->getLogsYAML().'</warn>');
+                if (isset($options['verbose']) && $options['verbose']) {
+                    $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
+                }
             }
         } elseif ('file' == $clientType) {
             // @todo - Support file payloads.

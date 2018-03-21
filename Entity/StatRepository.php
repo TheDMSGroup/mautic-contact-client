@@ -27,7 +27,7 @@ class StatRepository extends CommonRepository
      *
      * @return mixed
      */
-    public function getStats($id, $type, $fromDate = null)
+    public function getStats($id, $type, $fromDate = null, $toDate = null)
     {
         $q = $this->createQueryBuilder('s');
 
@@ -41,6 +41,12 @@ class StatRepository extends CommonRepository
                 $q->expr()->gte('s.dateAdded', ':fromDate')
             );
             $q->setParameter('fromDate', $fromDate);
+        }
+        if ($toDate) {
+            $expr->add(
+                $q->expr()->lte('s.dateAdded', ':toDate')
+            );
+            $q->setParameter('toDate', $toDate);
         }
 
         $q->where($expr)

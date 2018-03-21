@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use FOS\RestBundle\Util\Codes;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\CoreBundle\Model\AbstractCommonModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -33,6 +34,9 @@ class Cache extends AbstractCommonModel
 
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
+
+    /** @var \Symfony\Component\DependencyInjection\Container */
+    protected $container;
 
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
@@ -86,30 +90,43 @@ class Cache extends AbstractCommonModel
     /**
      * Validate and merge the rules object (exclusivity/duplicate/limits).
      *
-     * @param $rules
+     * @param      $rules
+     * @param bool $requireMatching
      *
      * @return array
      */
-    private function mergeRules($rules)
+    private function mergeRules($rules, $requireMatching = true)
     {
         $newRules = [];
         if (isset($rules->rules) && is_array($rules->rules)) {
             foreach ($rules->rules as $rule) {
+                // Exclusivity and Duplicates have matching, Limits may not.
                 if (
-                    !empty($rule->matching)
+                    (!$requireMatching || !empty($rule->matching))
                     && !empty($rule->scope)
                     && !empty($rule->duration)
                 ) {
                     $duration = $rule->duration;
                     $scope    = intval($rule->scope);
-                    $key      = $duration.'-'.$scope;
+                    $value    = isset($rule->value) ? strval($rule->value) : '';
+                    $key      = $duration.'-'.$scope.'-'.$value;
                     if (!isset($newRules[$key])) {
-                        $newRules[$key]             = [];
-                        $newRules[$key]['matching'] = intval($rule->matching);
+                        $newRules[$key] = [];
+                        if (!empty($rule->matching)) {
+                            $newRules[$key]['matching'] = intval($rule->matching);
+                        }
                         $newRules[$key]['scope']    = $scope;
                         $newRules[$key]['duration'] = $duration;
-                    } else {
+                        $newRules[$key]['value']    = $value;
+                    } elseif (!empty($rule->matching)) {
                         $newRules[$key]['matching'] += intval($rule->matching);
+                    }
+                    if (isset($rule->quantity)) {
+                        if (!isset($newRules[$key]['quantity'])) {
+                            $newRules[$key]['quantity'] = intval($rule->quantity);
+                        } else {
+                            $newRules[$key]['quantity'] = min($newRules[$key]['quantity'], intval($rule->quantity));
+                        }
                     }
                 }
             }
@@ -124,6 +141,8 @@ class Cache extends AbstractCommonModel
      * Normalize the fields as much as possible to aid in exclusive/duplicate/limit correlation.
      *
      * @return CacheEntity
+     *
+     * @throws \Exception
      */
     private function createEntity()
     {
@@ -150,7 +169,7 @@ class Cache extends AbstractCommonModel
             $entity->setMobile($mobile);
         }
         // get the original / first utm source code for contact
-        $utmHelper = $this->factory->get('mautic.contactclient.helper.utmsource');
+        $utmHelper = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
         $utmSource = $utmHelper->getFirstUtmSource($this->contact);
         if (!empty($utmSource)) {
             $entity->setUtmSource(trim($utmSource));
@@ -185,6 +204,18 @@ class Cache extends AbstractCommonModel
     }
 
     /**
+     * @return \Symfony\Component\DependencyInjection\Container
+     */
+    private function getContainer()
+    {
+        if (!$this->container) {
+            $this->container = $this->dispatcher->getContainer();
+        }
+
+        return $this->container;
+    }
+
+    /**
      * @return \MauticPlugin\MauticContactClientBundle\Entity\CacheRepository
      */
     public function getRepository()
@@ -206,9 +237,8 @@ class Cache extends AbstractCommonModel
         );
         if ($exclusive) {
             throw new ContactClientException(
-                'Skipping exclusive Contact.'.
-                json_encode($exclusive),
-                0,
+                'Skipping exclusive Contact.',
+                Codes::HTTP_CONFLICT,
                 null,
                 Stat::TYPE_EXCLUSIVE,
                 false,
@@ -233,7 +263,7 @@ class Cache extends AbstractCommonModel
         if ($duplicate) {
             throw new ContactClientException(
                 'Skipping duplicate Contact.',
-                0,
+                Codes::HTTP_CONFLICT,
                 null,
                 Stat::TYPE_DUPLICATE,
                 false,
@@ -253,6 +283,43 @@ class Cache extends AbstractCommonModel
         $duplicate  = $jsonHelper->decodeObject($this->contactClient->getDuplicate(), 'Duplicate');
 
         return $this->mergeRules($duplicate);
+    }
+
+    /**
+     * Using the duplicate rules, evaluate if the current contact matches any entry in the cache.
+     *
+     * @throws ContactClientException
+     * @throws \Exception
+     */
+    public function evaluateLimits()
+    {
+        $limits = $this->getRepository()->findLimit(
+            $this->contactClient,
+            $this->getLimitRules()
+        );
+        if ($limits) {
+            throw new ContactClientException(
+                'Not able to send contact due to an exceeded budget.',
+                Codes::HTTP_TOO_MANY_REQUESTS,
+                null,
+                Stat::TYPE_LIMITS,
+                false,
+                $limits
+            );
+        }
+    }
+
+    /**
+     * Given the Contact and Contact Client, get the rules used to evaluate limits.
+     *
+     * @throws \Exception
+     */
+    public function getLimitRules()
+    {
+        $jsonHelper = new JSONHelper();
+        $limits     = $jsonHelper->decodeObject($this->contactClient->getLimits(), 'Limits');
+
+        return $this->mergeRules($limits, false);
     }
 
     /**

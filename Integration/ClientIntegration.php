@@ -24,9 +24,7 @@ use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
-use MauticPlugin\MauticContactClientBundle\Model\Cache;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
@@ -68,8 +66,11 @@ class ClientIntegration extends AbstractIntegration
     /** @var ContactClientModel */
     protected $contactClientModel;
 
-    /** @var Cache */
+    /** @var \MauticPlugin\MauticContactClientBundle\Model\Cache */
     protected $cacheModel;
+
+    /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule */
+    protected $scheduleModel;
 
     public function getDisplayName()
     {
@@ -234,15 +235,18 @@ class ClientIntegration extends AbstractIntegration
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
             if (!$this->test) {
-                /** @var Schedule $schedule */
-                $schedule = new Schedule($this->contactClient, $this->getContainer());
+                /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
+                $schedule = $this->getScheduleModel();
                 $schedule->evaluateHours($this->contactClient);
                 $schedule->evaluateExclusions($this->contactClient);
             }
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
 
-            // @todo - Limits - Check limit rules to ensure we have not sent too many contacts in our window.
+            // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
+            if (!$this->test) {
+                $this->getCacheModel()->evaluateLimits();
+            }
 
             // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
             if (!$this->test) {
@@ -299,16 +303,32 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return \MauticPlugin\MauticContactClientBundle\Model\Schedule|object
+     *
+     * @throws Exception
+     */
+    private function getScheduleModel()
+    {
+        if (!$this->scheduleModel) {
+            /* @var \MauticPlugin\MauticContactClientBundle\Model\Schedule scheduleModel */
+            $this->scheduleModel = $this->getContainer()->get('mautic.contactclient.model.schedule');
+            $this->scheduleModel->setContactClient($this->contactClient);
+        }
+
+        return $this->scheduleModel;
+    }
+
+    /**
      * Get the Cache model for duplicate/exclusive/limit checking.
      *
-     * @return Cache|object
+     * @return \MauticPlugin\MauticContactClientBundle\Model\Cache
      *
      * @throws Exception
      */
     private function getCacheModel()
     {
         if (!$this->cacheModel) {
-            /* @var cacheModel $cacheModel */
+            /* @var \MauticPlugin\MauticContactClientBundle\Model\Cache $cacheModel */
             $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
             $this->cacheModel->setContact($this->contact);
             $this->cacheModel->setContactClient($this->contactClient);
@@ -430,7 +450,7 @@ class ClientIntegration extends AbstractIntegration
         // Stat::TYPE_SCHEDULE
 
         if ($this->valid) {
-            $statType  = Stat::TYPE_SUCCESS;
+            $statType  = Stat::TYPE_CONVERTED;
             $statLevel = 'INFO';
             $message   = 'Contact was sent successfully.';
         } else {
