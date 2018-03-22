@@ -101,7 +101,7 @@ class SendCommand extends ModeratedCommand
         /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
         /** @var \Mautic\LeadBundle\Entity\Lead $contact */
-        $contact      = $contactModel->getEntity($options['contact']);
+        $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {
             $output->writeln('<error>Could not load Contact.</error>');
 

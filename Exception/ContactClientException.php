@@ -56,11 +56,9 @@ class ContactClientException extends \Exception
         $retry = true,
         $data = []
     ) {
-        if ($statType) {
-            $this->setStatType($statType);
-        }
-        $this->retry = $retry;
-        $this->data  = $data;
+        $this->statType = $statType;
+        $this->retry    = $retry;
+        $this->data     = $data;
         parent::__construct($message, $code, $previous);
     }
 

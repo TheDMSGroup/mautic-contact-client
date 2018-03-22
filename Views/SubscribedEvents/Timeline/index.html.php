@@ -13,15 +13,15 @@ $logs                = (isset($event['extra']['logs'])) ? $event['extra']['logs'
 $integrationEntityId = (isset($event['extra']['integrationEntityId'])) ? $event['extra']['integrationEntityId'] : null;
 ?>
 <?php if ($integrationEntityId): ?>
-<dl class="dl-horizontal">
-    <dt><?php echo $view['translator']->trans('mautic.contactclient.timeline.integration_entity_id'); ?></dt>
-    <dd><?php echo $integrationEntityId; ?></dd>
-</dl>
+    <dl class="dl-horizontal">
+        <dt><?php echo $view['translator']->trans('mautic.contactclient.timeline.integration_entity_id'); ?></dt>
+        <dd><?php echo $integrationEntityId; ?></dd>
+    </dl>
 <?php endif; ?>
 <?php if ($logs): ?>
-<div class="small" style="max-width: 100%;">
-    <strong><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.heading'); ?></strong>
-    <br />
-    <textarea class="codeMirror-yaml"><?php echo $logs; ?></textarea>
-</div>
+    <div class="small" style="max-width: 100%;">
+        <strong><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.heading'); ?></strong>
+        <br/>
+        <textarea class="codeMirror-yaml"><?php echo $logs; ?></textarea>
+    </div>
 <?php endif; ?>

@@ -85,6 +85,7 @@
 .api_payload .contactclient_jsoneditor:not(.advanced) .btn-danger {
     display: none !important;
 }
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.template"] > .form-group {
     margin: 0 15px;
 }
