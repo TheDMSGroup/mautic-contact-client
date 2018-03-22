@@ -20,6 +20,7 @@ use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
@@ -71,6 +72,9 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule */
     protected $scheduleModel;
+
+    /** @var \Mautic\CampaignBundle\Entity\Campaign */
+    protected $campaign;
 
     public function getDisplayName()
     {
@@ -268,6 +272,10 @@ class ClientIntegration extends AbstractIntegration
 
             // Run the payload and all operations.
             $this->valid = $this->payload->run();
+
+            if ($this->valid) {
+                $this->statType = Stat::TYPE_CONVERTED;
+            }
         } catch (\Exception $e) {
             $this->valid = false;
             $this->setLogs($e->getMessage(), 'error');
@@ -276,8 +284,8 @@ class ClientIntegration extends AbstractIntegration
                 $e->setContact($this->contact);
             } elseif ($e instanceof ContactClientException) {
                 $e->setContact($this->contact);
-                $this->setStatType($e->getStatType());
-                $errorData = $e->getData();
+                $this->statType = $e->getStatType();
+                $errorData      = $e->getData();
                 if ($errorData) {
                     $this->setLogs($errorData, $e->getStatType());
                 }
@@ -356,48 +364,126 @@ class ClientIntegration extends AbstractIntegration
     private function updateContact()
     {
         // Do not update contacts for test runs.
-        if (!$this->test && !$this->payload) {
+        if ($this->test || !$this->payload) {
             return;
         }
+
         // Only update contacts if success definitions are met.
-        if ($this->valid) {
+        if (!$this->valid) {
+            return;
+        }
+
+        try {
+            $this->dispatchContextCreate();
+
+            // Update any fields based on the response map.
+            /** @var bool $updatedFields */
+            $updatedFields = $this->payload->applyResponseMap();
+            if ($updatedFields) {
+                $this->contact = $this->payload->getContact();
+            }
+
+            // Update attribution based on attribution settings.
+            /** @var Attribution $attribution */
+            $attribution = new Attribution($this->contactClient, $this->contact);
+            $attribution->setPayload($this->payload);
+            /** @var bool $updatedAttribution */
+            $updatedAttribution = $attribution->applyAttribution();
+            if ($updatedAttribution) {
+                $this->contact = $attribution->getContact();
+                $this->setLogs(strval(round($attribution->getAttributionChange(), 4)), 'attribution');
+            } else {
+                $this->setLogs('0', 'attribution');
+            }
+            $this->setLogs(strval(round($this->contact->getAttribution(), 4)), 'attributionTotal');
+
+            // If any fields were updated, save the Contact entity.
+            if ($updatedFields || $updatedAttribution) {
+                /** @var \Mautic\LeadBundle\Model\LeadModel $model */
+                $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
+                $contactModel->saveEntity($this->contact);
+                $this->setLogs('Operation successful. The contact was updated.', 'updated');
+            } else {
+                $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');
+            }
+            if (!$updatedAttribution) {
+                // Fields may have updated, but not attribution, so the ledger needs an event to capture conversions.
+                $this->dispatchContextCapture();
+            }
+        } catch (\Exception $e) {
+            $this->valid = false;
+            $this->setLogs('Operation completed, but we failed to update our Contact. '.$e->getMessage(), 'error');
+            $this->logIntegrationError($e, $this->contact);
+        }
+    }
+
+    /**
+     * Provide context to Ledger plugin (or others) about this contact for save events.
+     */
+    private function dispatchContextCreate()
+    {
+        if ($this->test || !$this->payload) {
+            return;
+        }
+
+        $campaign = $this->getCampaign();
+        $event    = new ContactLedgerContextEvent(
+            $campaign, $this->contactClient, $this->statType, '0 Revenue conversion', $this->contact
+        );
+        $this->dispatcher->dispatch(
+            'mauticplugin.contactledger.context_create',
+            $event
+        );
+    }
+
+    /**
+     * Attempt to discern if we are being triggered by/within a campaign.
+     *
+     * @return \Mautic\CampaignBundle\Entity\Campaign
+     */
+    private function getCampaign()
+    {
+        if (!$this->campaign && $this->event) {
             try {
-                // Update any fields based on the response map.
-                /** @var bool $updatedFields */
-                $updatedFields = $this->payload->applyResponseMap();
-                if ($updatedFields) {
-                    $this->contact = $this->payload->getContact();
-                }
-
-                // Update attribution based on attribution settings.
-                /** @var Attribution $attribution */
-                $attribution = new Attribution($this->contactClient, $this->contact);
-                $attribution->setPayload($this->payload);
-                /** @var bool $updatedAttribution */
-                $updatedAttribution = $attribution->applyAttribution();
-                if ($updatedAttribution) {
-                    $this->contact = $attribution->getContact();
-                    $this->setLogs(strval(round($attribution->getNewAttribution(), 4)), 'attribution');
-                } else {
-                    $this->setLogs('0', 'attribution');
-                }
-                $this->setLogs(strval(round($this->contact->getAttribution(), 4)), 'attributionTotal');
-
-                // If any fields were updated, save the Contact entity.
-                if ($updatedFields || $updatedAttribution) {
-                    /** @var \Mautic\LeadBundle\Model\LeadModel $model */
-                    $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
-                    $contactModel->saveEntity($this->contact);
-                    $this->setLogs('Operation successful. The contact was updated.', 'updated');
-                } else {
-                    $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');
+                $config      = $this->event;
+                $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
+                if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
+                    /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
+                    foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
+                        $properties = $leadEventLog->getEvent()->getProperties();
+                        if (
+                            $properties['_token'] === $config['_token']
+                            && $properties['campaignId'] === $config['campaignId']
+                        ) {
+                            $campaign = $leadEventLog->getCampaign();
+                            break;
+                        }
+                    }
                 }
             } catch (\Exception $e) {
-                $this->valid = false;
-                $this->setLogs('Operation completed, but we failed to update our Contact. '.$e->getMessage(), 'error');
-                $this->logIntegrationError($e, $this->contact);
             }
         }
+
+        return $this->campaign;
+    }
+
+    /**
+     * For situations where there is no entity saved, but we still need to log a conversion.
+     */
+    private function dispatchContextCapture()
+    {
+        if ($this->test || !$this->valid || !$this->payload || Stat::TYPE_CONVERTED !== $this->statType) {
+            return;
+        }
+
+        $campaign = $this->getCampaign();
+        $event    = new ContactLedgerContextEvent(
+            $campaign, $this->contactClient, $this->statType, null, $this->contact
+        );
+        $this->dispatcher->dispatch(
+            'mauticplugin.contactledger.context_capture',
+            $event
+        );
     }
 
     /**
@@ -449,12 +535,11 @@ class ClientIntegration extends AbstractIntegration
         // Stat::TYPE_REVENUE
         // Stat::TYPE_SCHEDULE
 
+        $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
         if ($this->valid) {
-            $statType  = Stat::TYPE_CONVERTED;
             $statLevel = 'INFO';
             $message   = 'Contact was sent successfully.';
         } else {
-            $statType  = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
             $statLevel = 'ERROR';
             $message   = isset($this->logs['error']) ? $this->logs['error'] : 'An unexpected error occurred.';
             // Check for a filter-based rejection.
@@ -462,9 +547,9 @@ class ClientIntegration extends AbstractIntegration
                 foreach ($this->logs['operations'] as $operation) {
                     if (isset($operation['filter'])) {
                         // Contact was rejected due to success definition filters.
-                        $statType  = Stat::TYPE_REJECT;
-                        $statLevel = 'WARNING';
-                        $message   = $operation['filter'];
+                        $this->statType = Stat::TYPE_REJECT;
+                        $statLevel      = 'WARNING';
+                        $message        = $operation['filter'];
                         break;
                     }
                 }
@@ -479,7 +564,7 @@ class ClientIntegration extends AbstractIntegration
             $this->event,
             [
                 'valid'    => $this->valid,
-                'statType' => $statType,
+                'statType' => $this->statType,
             ]
         );
         $session->set('contactclient_events', $events);
@@ -493,12 +578,12 @@ class ClientIntegration extends AbstractIntegration
 
         // Add log entry for statistics / charts.
         $attribution = !empty($this->logs['attribution']) ? $this->logs['attribution'] : 0;
-        $clientModel->addStat($this->contactClient, $statType, $this->contact, $attribution, $utmSource);
+        $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $attribution, $utmSource);
 
         // Add transactional event for deep dive into logs.
         $clientModel->addEvent(
             $this->contactClient,
-            $statType,
+            $this->statType,
             $this->contact,
             $this->getLogsYAML(),
             $message,
@@ -765,11 +850,9 @@ class ClientIntegration extends AbstractIntegration
      *
      * @return ClientIntegration
      */
-    public function setStatType($statType = null)
+    public function setStatType($statType = '')
     {
-        if (!empty($statType)) {
-            $this->statType = $statType;
-        }
+        $this->statType = $statType;
 
         return $this;
     }

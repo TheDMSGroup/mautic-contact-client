@@ -457,7 +457,7 @@ class ContactClient extends FormEntity
      */
     public function getAttributionDefault()
     {
-        return $this->attribution_default;
+        return floatval($this->attribution_default);
     }
 
     /**

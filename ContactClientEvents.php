@@ -19,13 +19,13 @@ namespace MauticPlugin\MauticContactClientBundle;
 final class ContactClientEvents
 {
     /**
-     * The mautic.contactclient_pre_save event is dispatched right before a contactclient is persisted.
+     * The mautic.contactclient_post_delete event is dispatched after a contactclient is deleted.
      *
      * The event listener receives a MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent instance.
      *
      * @var string
      */
-    const PRE_SAVE = 'mautic.contactclient_pre_save';
+    const POST_DELETE = 'mautic.contactclient_post_delete';
 
     /**
      * The mautic.contactclient_post_save event is dispatched right after a contactclient is persisted.
@@ -46,13 +46,13 @@ final class ContactClientEvents
     const PRE_DELETE = 'mautic.contactclient_pre_delete';
 
     /**
-     * The mautic.contactclient_post_delete event is dispatched after a contactclient is deleted.
+     * The mautic.contactclient_pre_save event is dispatched right before a contactclient is persisted.
      *
      * The event listener receives a MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent instance.
      *
      * @var string
      */
-    const POST_DELETE = 'mautic.contactclient_post_delete';
+    const PRE_SAVE = 'mautic.contactclient_pre_save';
 
     /**
      * The mautic.contactclient_timeline_on_generate event is dispatched when generating a timeline view.

@@ -53,7 +53,11 @@ class AjaxController extends CommonAjaxController
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
-            $result               = $clientIntegration->sendTest($apiPayload, $attributionDefault, $attributionSettings);
+            $result               = $clientIntegration->sendTest(
+                $apiPayload,
+                $attributionDefault,
+                $attributionSettings
+            );
             $dataArray['success'] = $result['valid'];
             $dataArray['payload'] = $result['payload'];
 
