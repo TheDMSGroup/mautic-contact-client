@@ -40,7 +40,7 @@ class ChartFilterType extends AbstractType
         $typeChoices = [
             // 'All Events' => 'All Events',
             // ''           => '--- By Source ---',
-            'revenue'    => 'Revenue',
+            'revenue' => 'Revenue',
         ];
         $stat        = new Stat();
         foreach ($stat->getAllTypes() as $type) {
@@ -51,8 +51,8 @@ class ChartFilterType extends AbstractType
             'type',
             'choice',
             [
-                'choices'    => $typeChoices,
-                'attr'       => [
+                'choices'     => $typeChoices,
+                'attr'        => [
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.timeline.event_type_tooltip',
                 ],

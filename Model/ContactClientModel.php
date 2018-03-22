@@ -24,7 +24,6 @@ use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
-use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -34,7 +33,7 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
  */
 class ContactClientModel extends FormModel
 {
-    /** @var ContainerAwareEventDispatcher */
+    /** @var EventDispatcherInterface */
     protected $dispatcher;
 
     /** @var FormModel */
@@ -300,7 +299,11 @@ class ContactClientModel extends FormModel
         $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
         $stat  = new Stat();
         foreach ($stat->getAllTypes() as $type) {
-            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => $type]);
+            $q = $query->prepareTimeDataQuery(
+                'contactclient_stats',
+                'date_added',
+                ['contactclient_id' => $contactClient->getId(), 'type' => $type]
+            );
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
@@ -314,6 +317,18 @@ class ContactClientModel extends FormModel
         }
 
         return $chart->render();
+    }
+
+    /**
+     * Joins the email table and limits created_by to currently logged in user.
+     *
+     * @param QueryBuilder $q
+     */
+    public function limitQueryToCreator(QueryBuilder $q)
+    {
+        $q->join('t', MAUTIC_TABLE_PREFIX.'contactclient', 'm', 'e.id = t.contactclient_id')
+            ->andWhere('m.created_by = :userId')
+            ->setParameter('userId', $this->userHelper->getUser()->getId());
     }
 
     /**
@@ -341,7 +356,15 @@ class ContactClientModel extends FormModel
 
         if ('revenue' != $type) {
             foreach ($utmSources as $utmSource) {
-                $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => $type, 'utmSource' => $utmSource['utmSource']]);
+                $q = $query->prepareTimeDataQuery(
+                    'contactclient_stats',
+                    'date_added',
+                    [
+                        'contactclient_id' => $contactClient->getId(),
+                        'type'             => $type,
+                        'utmSource'        => $utmSource['utmSource'],
+                    ]
+                );
                 if (!$canViewOthers) {
                     $this->limitQueryToCreator($q);
                 }
@@ -358,7 +381,11 @@ class ContactClientModel extends FormModel
             }
         } else {
             // Add attribution to the chart.
-            $q = $query->prepareTimeDataQuery('contactclient_stats', 'date_added', ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_CONVERTED]);
+            $q = $query->prepareTimeDataQuery(
+                'contactclient_stats',
+                'date_added',
+                ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_CONVERTED]
+            );
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
@@ -387,15 +414,24 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * Joins the email table and limits created_by to currently logged in user.
+     * @param ContactClient $contactClient
      *
-     * @param QueryBuilder $q
+     * @return mixed
      */
-    public function limitQueryToCreator(QueryBuilder $q)
+    private function getSourcesByClient(ContactClient $contactClient)
     {
-        $q->join('t', MAUTIC_TABLE_PREFIX.'contactclient', 'm', 'e.id = t.contactclient_id')
-            ->andWhere('m.created_by = :userId')
-            ->setParameter('userId', $this->userHelper->getUser()->getId());
+        $id = $contactClient->getId();
+
+        $q = $this->em->createQueryBuilder()
+            ->from('MauticContactClientBundle:Stat', 'cc')
+            ->select('DISTINCT cc.utmSource');
+
+        $q->where(
+            $q->expr()->eq('cc.contactClient', ':contactClientId')
+        )
+            ->setParameter('contactClientId', $id);
+
+        return $q->getQuery()->getArrayResult();
     }
 
     /**
@@ -485,26 +521,5 @@ class ContactClientModel extends FormModel
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
-    }
-
-    /**
-     * @param ContactClient $contactClient
-     *
-     * @return mixed
-     */
-    private function getSourcesByClient(ContactClient $contactClient)
-    {
-        $id = $contactClient->getId();
-
-        $q = $this->em->createQueryBuilder()
-            ->from('MauticContactClientBundle:Stat', 'cc')
-            ->select('DISTINCT cc.utmSource');
-
-        $q->where(
-            $q->expr()->eq('cc.contactClient', ':contactClientId')
-        )
-            ->setParameter('contactClientId', $id);
-
-        return $q->getQuery()->getArrayResult();
     }
 }

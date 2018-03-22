@@ -30,7 +30,7 @@ class Attribution
     protected $contact;
 
     /** @var float */
-    protected $newAttribution;
+    protected $attributionChange;
 
     /**
      * Attribution constructor.
@@ -65,7 +65,7 @@ class Attribution
         $update              = false;
         $originalAttribution = $this->contact->getFieldValue('attribution');
         $originalAttribution = !empty($originalAttribution) ? $originalAttribution : 0;
-        $newAttribution      = 0;
+        $attributionChange   = 0;
 
         if ($this->payload) {
             $jsonHelper          = new JSONHelper();
@@ -89,19 +89,19 @@ class Attribution
                     // We have a value, apply sign.
                     $sign = isset($attributionSettings->mode->sign) ? $attributionSettings->mode->sign : '+';
                     if ('+' == $sign) {
-                        $newAttribution = abs($responseFieldValue);
+                        $attributionChange = abs($responseFieldValue);
                     } elseif ('-' == $sign) {
-                        $newAttribution = abs($responseFieldValue) * -1;
+                        $attributionChange = abs($responseFieldValue) * -1;
                     } else {
-                        $newAttribution = $responseFieldValue;
+                        $attributionChange = $responseFieldValue;
                     }
 
                     // Apply maths.
                     $math = isset($attributionSettings->mode->math) ? $attributionSettings->mode->math : null;
                     if ('/100' == $math) {
-                        $newAttribution = $newAttribution / 100;
+                        $attributionChange = $attributionChange / 100;
                     } elseif ('*100' == $math) {
-                        $newAttribution = $newAttribution * 100;
+                        $attributionChange = $attributionChange * 100;
                     }
                     $update = true;
                 }
@@ -112,16 +112,16 @@ class Attribution
         if (!$update) {
             $attributionDefault = $this->contactClient->getAttributionDefault();
             if (!empty($attributionDefault) && is_numeric($attributionDefault)) {
-                $newAttribution = $attributionDefault;
-                $update         = true;
+                $attributionChange = $attributionDefault;
+                $update            = true;
             }
         }
 
-        if ($update && $newAttribution) {
-            $this->setNewAttribution($newAttribution);
+        if ($update && $attributionChange) {
+            $this->setNewAttribution($attributionChange);
             $this->contact->addUpdatedField(
                 'attribution',
-                $originalAttribution + $newAttribution,
+                $originalAttribution + $attributionChange,
                 $originalAttribution
             );
             // Unsure if we should keep this next line for BC.
@@ -132,23 +132,23 @@ class Attribution
     }
 
     /**
-     * @return float
-     */
-    public function getNewAttribution()
-    {
-        return $this->newAttribution;
-    }
-
-    /**
-     * @param $newAttribution
+     * @param $attributionChange
      *
      * @return $this
      */
-    public function setNewAttribution($newAttribution)
+    public function setNewAttribution($attributionChange)
     {
-        $this->newAttribution = $newAttribution;
+        $this->attributionChange = $attributionChange;
 
         return $this;
+    }
+
+    /**
+     * @return float
+     */
+    public function getAttributionChange()
+    {
+        return $this->attributionChange;
     }
 
     /**

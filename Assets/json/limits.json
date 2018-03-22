@@ -91,15 +91,15 @@
             {
               "source": [
                 {
-                  "value": "PT1I",
+                  "value": "PT1M",
                   "title": "per minute"
                 },
                 {
-                  "value": "PT10I",
+                  "value": "PT10M",
                   "title": "per 10 minutes"
                 },
                 {
-                  "value": "PT30I",
+                  "value": "PT30M",
                   "title": "per 30 minutes"
                 },
                 {

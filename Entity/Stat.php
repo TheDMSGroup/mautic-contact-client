@@ -23,6 +23,8 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 class Stat
 {
     // Used for querying stats
+    const TYPE_CONVERTED = 'converted';
+
     const TYPE_DUPLICATE = 'duplicate';
 
     const TYPE_ERROR     = 'error';
@@ -38,8 +40,6 @@ class Stat
     const TYPE_REJECT    = 'rejected';
 
     const TYPE_SCHEDULE  = 'schedule';
-
-    const TYPE_CONVERTED   = 'converted';
 
     /** @var int $id */
     private $id;

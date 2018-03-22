@@ -13,26 +13,29 @@ if (!isset($class)) {
 }
 ?>
 
-<?php echo $view['form']->start($chartFilterForm, ['attr' => ['class' => 'form-filter '.$class, 'style' => 'max-width: 380px']]); ?>
-    <div class="input-group">
+<?php echo $view['form']->start(
+    $chartFilterForm,
+    ['attr' => ['class' => 'form-filter '.$class, 'style' => 'max-width: 380px']]
+); ?>
+<div class="input-group">
         <span class="input-group-addon">
             <?php echo $view['form']->label($chartFilterForm['type']); ?>
         </span>
-        <?php echo $view['form']->widget($chartFilterForm['type']); ?>
-    </div>
-    <div class="input-group">
+    <?php echo $view['form']->widget($chartFilterForm['type']); ?>
+</div>
+<div class="input-group">
         <span class="input-group-addon">
             <?php echo $view['form']->label($chartFilterForm['date_from']); ?>
         </span>
-        <?php echo $view['form']->widget($chartFilterForm['date_from']); ?>
-        <span class="input-group-addon" style="border-left: 0;border-right: 0;">
+    <?php echo $view['form']->widget($chartFilterForm['date_from']); ?>
+    <span class="input-group-addon" style="border-left: 0;border-right: 0;">
             <?php echo $view['form']->label($chartFilterForm['date_to']); ?>
         </span>
-        <?php echo $view['form']->widget($chartFilterForm['date_to']); ?>
-        <span class="input-group-btn">
+    <?php echo $view['form']->widget($chartFilterForm['date_to']); ?>
+    <span class="input-group-btn">
             <?php echo $view['form']->row($chartFilterForm['apply']); ?>
         </span>
-    </div>
+</div>
 <?php echo $view['form']->end($chartFilterForm); ?>
 <script>
     /**

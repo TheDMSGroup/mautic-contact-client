@@ -36,37 +36,51 @@ echo $view['form']->start($form);
                 <ul class="nav nav-tabs pr-md pl-md mt-10">
                     <li class="active">
                         <a href="#details" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-cog fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.details'); ?>
+                            <i class="fa fa-cog fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.details'
+                            ); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#duplicate" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-window-restore fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.duplicate'); ?>
+                            <i class="fa fa-window-restore fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.duplicate'
+                            ); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#exclusive" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-user-secret fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.exclusive'); ?>
+                            <i class="fa fa-user-secret fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.exclusive'
+                            ); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#filter" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-filter fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.filter'); ?>
+                            <i class="fa fa-filter fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.filter'
+                            ); ?>
                         </a>
                     </li>
                     <li id="payload-tab">
                         <a href="#payload" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-paper-plane fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.payload'); ?>
+                            <i class="fa fa-paper-plane fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.payload'
+                            ); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#attribution" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-calculator fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.attribution'); ?>
+                            <i class="fa fa-calculator fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.attribution'
+                            ); ?>
                         </a>
                     </li>
                     <li>
                         <a href="#schedule" role="tab" data-toggle="tab" class="contactclient-tab">
-                            <i class="fa fa-calendar-check-o fa-lg pull-left"></i><?php echo $view['translator']->trans('mautic.contactclient.form.group.schedule'); ?>
+                            <i class="fa fa-calendar-check-o fa-lg pull-left"></i><?php echo $view['translator']->trans(
+                                'mautic.contactclient.form.group.schedule'
+                            ); ?>
                         </a>
                     </li>
                 </ul>
@@ -154,7 +168,8 @@ echo $view['form']->start($form);
                         <div class="form-group mb-0">
                             <div class="row api_payload hide">
                                 <div class="col-md-12">
-                                    <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide" data-spy="affix" data-offset-top="173">
+                                    <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide"
+                                         data-spy="affix" data-offset-top="173">
                                         <div class="btn-group mr-20">
                                             <button type="button" class="btn btn-default" id="api_payload_test"
                                                     data-toggle="button" aria-pressed="false" autocomplete="off">
