@@ -152,7 +152,6 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 var $queryBuilder = mQuery(this);
                                 clearTimeout(timeout);
                                 timeout = setTimeout(function () {
-                                    console.log('events');
                                     rules = $queryBuilder.queryBuilder('getRules', {
                                         get_flags: true,
                                         skip_empty: true,
