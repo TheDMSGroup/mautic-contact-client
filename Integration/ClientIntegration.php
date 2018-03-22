@@ -455,7 +455,7 @@ class ClientIntegration extends AbstractIntegration
                             $properties['_token'] === $config['_token']
                             && $properties['campaignId'] === $config['campaignId']
                         ) {
-                            $campaign = $leadEventLog->getCampaign();
+                            $this->campaign = $leadEventLog->getCampaign();
                             break;
                         }
                     }
