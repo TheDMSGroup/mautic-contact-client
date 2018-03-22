@@ -353,8 +353,12 @@
                   "definition": {
                     "propertyOrder": 10,
                     "title": "Validation",
-                    "type": "query",
-                    "format": "textarea"
+                    "type": "string",
+                    "format": "textarea",
+                    "default": "{\"condition\": \"AND\", \"rules\": [{\"id\": \"status\", \"operator\": \"equal\", \"value\": \"200\"}]}",
+                    "options": {
+                      "queryBuilder": true
+                    }
                   }
                 }
               }
