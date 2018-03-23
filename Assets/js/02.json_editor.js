@@ -78,81 +78,6 @@ JSONEditor.defaults.iconlibs.custom = JSONEditor.AbstractIconLib.extend({
     icon_prefix: 'fa fa-'
 });
 
-// Add a "query" field type using the Query Builder.
-if (typeof Mautic.successDefinitionFiltersDefault !== 'undefined') {
-    JSONEditor.defaults.editors.query = JSONEditor.defaults.editors.string.extend({
-        postBuild: function () {
-            // Default success rules (if the status
-            // code is 200).
-            var element = this,
-                successDefinitionRules = {
-                    condition: 'AND',
-                    rules: [{
-                        id: 'status',
-                        operator: 'equal',
-                        value: '200'
-                    }]
-                };
-
-            // Load a saved value if relevant.
-            if (this.input.value) {
-                if (typeof this.input.value === 'object') {
-                    successDefinitionRules = this.input.value;
-                }
-                else {
-                    try {
-                        var obj = mQuery.parseJSON(this.input.value);
-                    }
-                    catch (e) {
-                        console.warn('Invalid JSON in success definition');
-                    }
-                    if (typeof obj === 'object' && obj.length > 0) {
-                        successDefinitionRules = obj;
-                    }
-                }
-            }
-            // Progressively Enhance the textarea into
-            // a Query Builder.
-            mQuery('<div>', {
-                id: 'success-definition-' + this.parent.parent.parent.key,
-                class: 'query-builder'
-            }).insertAfter(element.input)
-                .queryBuilder({
-                    plugins: {
-                        'sortable': {
-                            icon: 'fa fa-sort'
-                        },
-                        'bt-tooltip-errors': null
-                    },
-                    filters: Mautic.successDefinitionFiltersDefault,
-                    icons: {
-                        add_group: 'fa fa-plus',
-                        add_rule: 'fa fa-plus',
-                        remove_group: 'fa fa-times',
-                        remove_rule: 'fa fa-times',
-                        sort: 'fa fa-sort',
-                        error: 'fa fa-exclamation-triangle'
-                    },
-                    rules: successDefinitionRules
-                })
-                // On any change to Success Definition:
-                .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
-                    // Save the value to the hidden
-                    // textarea.
-                    var rules = mQuery(this).queryBuilder('getRules', {
-                        get_flags: true,
-                        skip_empty: true,
-                        allow_invalid: true
-                    });
-                    // Both setValue and input value are required here...
-                    element.setValue(rules);
-                    element.input.value = rules;
-                })
-                .parent().find('textarea').addClass('hide');
-        }
-    });
-}
-
 // Override default settings.
 JSONEditor.defaults.options.ajax = false;
 JSONEditor.defaults.options.theme = 'custom';
@@ -168,6 +93,105 @@ JSONEditor.defaults.options.expand_height = true;
 // Custom validators.
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     var errors = [];
+
+    // When a textarea with option "queryBuilder" is true, render Query Builder.
+    if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.queryBuilder === true) {
+        mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first') // :not(.queryBuilder-checked)
+            .each(function () {
+                var $input = mQuery(this),
+                    val = $input.val(),
+                    rules = {},
+                    error = false,
+                    checked = $input.hasClass('queryBuilder-checked'),
+                    timeout;
+
+                if (!val.length) {
+                    return;
+                }
+                try {
+                    rules = mQuery.parseJSON(val);
+                }
+                catch (e) {
+                    error = true;
+                    errors.push({
+                        path: path,
+                        property: 'format',
+                        message: 'Invalid JSON was found in this Query Builder field.'
+                    });
+                }
+
+                if (!error) {
+                    if (!checked) {
+                        mQuery('<div>',
+                            {
+                                id: 'success-definition-' + path.split('.')[2],
+                                class: 'query-builder'
+                            })
+                            .insertAfter($input)
+                            .queryBuilder({
+                                plugins: {
+                                    'sortable': {
+                                        icon: 'fa fa-sort'
+                                    },
+                                    'bt-tooltip-errors': null
+                                },
+                                filters: Mautic.successDefinitionFiltersDefault,
+                                icons: {
+                                    add_group: 'fa fa-plus',
+                                    add_rule: 'fa fa-plus',
+                                    remove_group: 'fa fa-times',
+                                    remove_rule: 'fa fa-times',
+                                    sort: 'fa fa-sort',
+                                    error: 'fa fa-exclamation-triangle'
+                                },
+                                rules: rules
+                            })
+                            // On any change to Success Definition:
+                            .off('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder')
+                            .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
+                                var $queryBuilder = mQuery(this);
+                                clearTimeout(timeout);
+                                timeout = setTimeout(function () {
+                                    rules = $queryBuilder.queryBuilder('getRules', {
+                                        get_flags: true,
+                                        skip_empty: true,
+                                        allow_invalid: true
+                                    });
+                                    var rulesString = JSON.stringify(rules, null, 2);
+
+                                    if (val !== rulesString) {
+                                        $input.val(rulesString);
+                                        if ('createEvent' in document) {
+                                            var event = document.createEvent('HTMLEvents');
+                                            event.initEvent('change', false, true);
+                                            $input[0].dispatchEvent(event);
+                                        }
+                                        else {
+                                            $input[0].fireEvent('onchange');
+                                        }
+                                    }
+                                }, 50);
+                            });
+                        $input.addClass('queryBuilder-checked');
+                    }
+                    else {
+                        // The QueryBuilder has already been built, update
+                        // value if it has changed.
+                        var $queryBuilder = $input.next('.query-builder'),
+                            oldRules = $queryBuilder.queryBuilder('getRules', {
+                                get_flags: true,
+                                skip_empty: true,
+                                allow_invalid: true
+                            }),
+                            oldRulesString = JSON.stringify(oldRules, null, 2);
+                        if (val !== oldRulesString) {
+                            $queryBuilder.queryBuilder('setRules', rules);
+                        }
+                    }
+                }
+            })
+            .addClass('hide');
+    }
 
     // When a textarea with option "codeMirror" is true, render codeMirror.
     if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
