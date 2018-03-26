@@ -566,14 +566,16 @@ class ClientIntegration extends AbstractIntegration
         // Stat::TYPE_REVENUE
         // Stat::TYPE_SCHEDULE
 
+        $errors         = $this->getLogs('error');
         $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
         if ($this->valid) {
             $statLevel = 'INFO';
             $message   = 'Contact was sent successfully.';
         } else {
             $statLevel = 'ERROR';
-            $message   = isset($this->logs['error']) ? $this->logs['error'] : 'An unexpected error occurred.';
-            // Check for a filter-based rejection.
+            $message   = $errors ? implode(PHP_EOL, $errors) : 'An unexpected error occurred.';
+            // Check for a filter-based rejection
+            // @todo - refactor exception bubbling for this.
             if (isset($this->logs['operations'])) {
                 foreach ($this->logs['operations'] as $operation) {
                     if (isset($operation['filter'])) {
@@ -590,14 +592,14 @@ class ClientIntegration extends AbstractIntegration
         // Session storage for external plugins (should probably be dispatcher instead).
         $session          = $this->dispatcher->getContainer()->get('session');
         $eventId          = isset($this->event['id']) ? $this->event['id'] : 0;
+        $eventName        = isset($this->event['name']) ? $this->event['name'] : null;
         $events           = $session->get('contactclient_events', []);
-        $events[$eventId] = array_merge(
-            $this->event,
-            [
-                'valid'    => $this->valid,
-                'statType' => $this->statType,
-            ]
-        );
+        $events[$eventId] = [
+            'name'     => $eventName,
+            'valid'    => $this->valid,
+            'statType' => $this->statType,
+            'error'    => $this->getLogs('error'),
+        ];
         $session->set('contactclient_events', $events);
         // Indicates that a single (or more) valid sends have been made.
         if ($this->valid) {
@@ -658,13 +660,25 @@ class ClientIntegration extends AbstractIntegration
         $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().': '.$message);
     }
 
-    public function getLogsYAML()
+    /**
+     * @param string $key
+     *
+     * @return array|mixed|null
+     */
+    public function getLogs($key = '')
     {
-        return Yaml::dump($this->getLogs(), 10, 2);
-    }
+        if ($key) {
+            if (isset($this->logs[$key])) {
+                if (!is_array($this->logs[$key])) {
+                    return [$this->logs[$key]];
+                } else {
+                    return $this->logs[$key];
+                }
+            } else {
+                return null;
+            }
+        }
 
-    public function getLogs()
-    {
         return $this->logs;
     }
 
@@ -686,6 +700,14 @@ class ClientIntegration extends AbstractIntegration
         } else {
             $this->logs[] = $value;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
     }
 
     /**
