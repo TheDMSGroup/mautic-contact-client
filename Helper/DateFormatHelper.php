@@ -221,7 +221,7 @@ class DateFormatHelper
             $periods  = new \DatePeriod($date1, $interval, $date2);
 
             $result = max(0, iterator_count($periods) - 1);
-        } catch (\Exception $exception) {
+        } catch (\Exception $e) {
         }
 
         return $result;

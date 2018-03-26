@@ -260,6 +260,7 @@ class Cache extends AbstractCommonModel
                 null,
                 Stat::TYPE_EXCLUSIVE,
                 false,
+                null,
                 $exclusive
             );
         }
@@ -286,6 +287,7 @@ class Cache extends AbstractCommonModel
                 null,
                 Stat::TYPE_DUPLICATE,
                 false,
+                null,
                 $duplicate
             );
         }
@@ -323,6 +325,7 @@ class Cache extends AbstractCommonModel
                 null,
                 Stat::TYPE_LIMITS,
                 false,
+                null,
                 $limits
             );
         }
