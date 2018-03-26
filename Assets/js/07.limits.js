@@ -56,7 +56,8 @@ Mautic.contactclientLimits = function () {
                                 var $value = mQuery(this).parent().parent().parent().find('input[name$="[value]"]');
                                 if (parseInt(mQuery(this).val()) === 1) {
                                     $value.addClass('hide');
-                                } else {
+                                }
+                                else {
                                     $value.removeClass('hide');
                                 }
                             }).addClass('scope-checked').trigger('change');
