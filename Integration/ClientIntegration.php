@@ -76,6 +76,9 @@ class ClientIntegration extends AbstractIntegration
     /** @var \Mautic\CampaignBundle\Entity\Campaign */
     protected $campaign;
 
+    /** @var bool */
+    protected $retry;
+
     public function getDisplayName()
     {
         return 'Clients';
@@ -142,7 +145,9 @@ class ClientIntegration extends AbstractIntegration
 
         $result = $this->sendContact($client, $contact, false, $overrides);
 
-        return $result;
+        // Returning false will typically cause a retry.
+        // If an error occurred and we do not wish to retry we should return true.
+        return $result ? $result : !$this->retry;
     }
 
     /**
@@ -439,6 +444,7 @@ class ClientIntegration extends AbstractIntegration
             $this->valid = false;
             $this->setLogs('Operation completed, but we failed to update our Contact. '.$e->getMessage(), 'error');
             $this->logIntegrationError($e, $this->contact);
+            $this->retry = false;
         }
     }
 
