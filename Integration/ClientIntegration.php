@@ -801,7 +801,7 @@ class ClientIntegration extends AbstractIntegration
                             'onchange' => "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
                                 "    eventName = mQuery('#campaignevent_name');".
                                 'if (client.length && client.val() && eventName.length) {'.
-                                '    eventName.val(client.text().trim());'.
+                                '    eventName.val(client.find("option:selected:first").text().trim());'.
                                 '}',
                         ],
                         'required'    => true,
