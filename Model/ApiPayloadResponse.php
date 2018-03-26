@@ -12,7 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
-use Mautic\PluginBundle\Exception\ApiErrorException;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
@@ -333,37 +334,58 @@ class ApiPayloadResponse
      *
      * @return bool
      *
-     * @throws ApiErrorException
+     * @throws ContactClientException
      */
     public function validate()
     {
         if ($this->valid) {
             if (!$this->responseActual) {
-                throw new ApiErrorException('There was no response to parse.');
+                throw new ContactClientException(
+                    'There was no response to parse.',
+                    0,
+                    null,
+                    Stat::TYPE_ERROR,
+                    true
+                );
             }
 
             // If there is no success definition, than do the default test of a 200 ok status check.
             if (!$this->successDefinition) {
                 if (!$this->responseActual['status'] || 200 != $this->responseActual['status']) {
-                    throw new ApiErrorException('Status code is not 200. Default validation failure.');
+                    throw new ContactClientException(
+                        'Status code is not 200. Default validation failure.',
+                        0,
+                        null,
+                        Stat::TYPE_ERROR,
+                        true
+                    );
                 }
             }
 
             // Standard success definition validation.
+            $filter = new FilterHelper();
             try {
-                $filter      = new FilterHelper();
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
                 if (!$this->valid) {
-                    throw new ApiErrorException(
-                        'Invalid response based on success definition: '.implode(', ', $filter->getErrors())
+                    throw new ContactClientException(
+                        'Invalid response based on success definition.',
+                        0,
+                        null,
+                        Stat::TYPE_REJECT,
+                        false,
+                        null,
+                        $filter->getErrors()
                     );
                 }
             } catch (\Exception $e) {
-                throw new ApiErrorException(
-                    'Error based on your success definition: '.implode(
-                        ', ',
-                        !empty($filter) ? $filter->getErrors() : []
-                    )
+                throw new ContactClientException(
+                    'Error based on success definition.',
+                    0,
+                    $e,
+                    Stat::TYPE_REJECT,
+                    false,
+                    null,
+                    $filter->getErrors()
                 );
             }
         }
@@ -381,11 +403,18 @@ class ApiPayloadResponse
         return isset($this->responseActual) ? $this->responseActual : [];
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;
     }
 
+    /**
+     * @param      $value
+     * @param null $type
+     */
     public function setLogs($value, $type = null)
     {
         if ($type) {

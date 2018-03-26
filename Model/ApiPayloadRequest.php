@@ -12,7 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
-use Mautic\PluginBundle\Exception\ApiErrorException;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 use Symfony\Component\Yaml\Yaml;
@@ -63,7 +64,7 @@ class ApiPayloadRequest
     /**
      * Given a uri and request object, formulate options and make the request.
      *
-     * @throws ApiErrorException
+     * @throws ContactClientException
      */
     public function send()
     {
@@ -218,7 +219,7 @@ class ApiPayloadRequest
      *
      * @return array
      *
-     * @throws ApiErrorException
+     * @throws ContactClientException
      */
     private function fieldValues($fields)
     {
@@ -251,8 +252,13 @@ class ApiPayloadRequest
                 // The field value is empty.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
-                    throw new ApiErrorException(
-                        'A required field is missing/empty: '.$field->key
+                    throw new ContactClientException(
+                        'A required field is missing/empty: '.$field->key,
+                        0,
+                        null,
+                        Stat::TYPE_FIELDS,
+                        false,
+                        $field->key
                     );
                 }
             }
@@ -284,7 +290,7 @@ class ApiPayloadRequest
      *
      * @return array
      *
-     * @throws ApiErrorException
+     * @throws ContactClientException
      */
     private function templateFieldValues($fields)
     {
@@ -317,8 +323,13 @@ class ApiPayloadRequest
                 // The field value is empty.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
-                    throw new ApiErrorException(
-                        'A required template field is missing/empty: '.$field->key
+                    throw new ContactClientException(
+                        'A required template field is missing/empty: '.$field->key,
+                        0,
+                        null,
+                        Stat::TYPE_FIELDS,
+                        false,
+                        $field->key
                     );
                 }
             }

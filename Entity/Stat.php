@@ -31,6 +31,8 @@ class Stat
 
     const TYPE_EXCLUSIVE = 'exclusive';
 
+    const TYPE_FIELDS    = 'fields';
+
     const TYPE_FILTER    = 'filtered';
 
     const TYPE_LIMITS    = 'limited';

@@ -277,24 +277,7 @@ class ClientIntegration extends AbstractIntegration
                 $this->statType = Stat::TYPE_CONVERTED;
             }
         } catch (\Exception $e) {
-            $this->valid = false;
-            $this->setLogs($e->getMessage(), 'error');
-            if ($e instanceof ApiErrorException) {
-                // Critical issue with the API. This will be logged but not retried.
-                $e->setContact($this->contact);
-            } elseif ($e instanceof ContactClientException) {
-                $e->setContact($this->contact);
-                $this->statType = $e->getStatType();
-                $errorData      = $e->getData();
-                if ($errorData) {
-                    $this->setLogs($errorData, $e->getStatType());
-                }
-
-                if ($e->getRetry()) {
-                    // This type of exception indicates that we can requeue the contact.
-                    $this->logIntegrationError($e, $this->contact);
-                }
-            }
+            $this->handleException($e);
         }
 
         if ($this->payload) {
@@ -355,6 +338,48 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $this->payload;
+    }
+
+    /**
+     * @param \Exception $exception
+     */
+    private function handleException(\Exception $exception)
+    {
+        // Any exception means the client send has failed.
+        $this->valid = false;
+        $this->setLogs($exception->getMessage(), 'error');
+
+        $field = null;
+        // $code  = $exception->getCode();
+        if ($exception instanceof ApiErrorException) {
+            // Critical issue with the API. This will be logged and retried.
+            // To be deprecated.
+            if ($this->contact) {
+                $exception->setContact($this->contact);
+            }
+        }
+        if ($exception instanceof ContactClientException) {
+            // A known exception within the Client handling.
+            if ($this->contact) {
+                $exception->setContact($this->contact);
+            }
+
+            $statType = $exception->getStatType();
+            if ($statType) {
+                $this->statType = $statType;
+            }
+
+            $errorData = $exception->getData();
+            if ($errorData) {
+                $this->setLogs($errorData, $statType);
+            }
+
+            if ($exception->getRetry()) {
+                // This type of exception indicates that we can requeue the contact.
+                $this->logIntegrationError($exception, $this->contact);
+                $this->retry = true;
+            }
+        }
     }
 
     /**

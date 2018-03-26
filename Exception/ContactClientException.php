@@ -36,9 +36,10 @@ class ContactClientException extends \Exception
     /** @var array */
     private $data;
 
+    /** @var string */
+    private $field;
+
     /**
-     * ContactClientException constructor.
-     *
      * ContactClientException constructor.
      *
      * @param string          $message
@@ -46,6 +47,7 @@ class ContactClientException extends \Exception
      * @param \Exception|null $previous
      * @param string          $statType
      * @param bool            $retry
+     * @param null            $field
      * @param array           $data
      */
     public function __construct(
@@ -54,12 +56,34 @@ class ContactClientException extends \Exception
         \Exception $previous = null,
         $statType = '',
         $retry = true,
+        $field = null,
         $data = []
     ) {
         $this->statType = $statType;
         $this->retry    = $retry;
+        $this->field    = $field;
         $this->data     = $data;
         parent::__construct($message, $code, $previous);
+    }
+
+    /**
+     * @return string
+     */
+    public function getField()
+    {
+        return $this->field;
+    }
+
+    /**
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function setField($field)
+    {
+        $this->field = $field;
+
+        return $this;
     }
 
     /**
