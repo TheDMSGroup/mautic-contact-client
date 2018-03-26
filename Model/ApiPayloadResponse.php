@@ -268,6 +268,7 @@ class ApiPayloadResponse
     private function domDocumentArray($root)
     {
         $result = [];
+
         if ($root->hasAttributes()) {
             foreach ($root->attributes as $attribute) {
                 $result['@attributes'][$attribute->name] = $attribute->value;
@@ -275,10 +276,9 @@ class ApiPayloadResponse
         }
 
         if ($root->hasChildNodes()) {
-            $children = $root->childNodes;
-            if (1 == $children->length) {
-                $child = $children->item(0);
-                if ($child->nodeType == [XML_TEXT_NODE, XML_CDATA_SECTION_NODE]) {
+            if (1 == $root->childNodes->length) {
+                $child = $root->childNodes->item(0);
+                if (in_array($child->nodeType, [XML_TEXT_NODE, XML_CDATA_SECTION_NODE]) && !empty($child->nodeValue)) {
                     $result['_value'] = $child->nodeValue;
 
                     return 1 == count($result)
@@ -287,7 +287,7 @@ class ApiPayloadResponse
                 }
             }
             $groups = [];
-            foreach ($children as $child) {
+            foreach ($root->childNodes as $child) {
                 if (!isset($result[$child->nodeName])) {
                     $result[$child->nodeName] = $this->domDocumentArray($child);
                 } else {
