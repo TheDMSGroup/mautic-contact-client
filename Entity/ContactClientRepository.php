@@ -61,7 +61,7 @@ class ContactClientRepository extends CommonRepository
      */
     protected function addCatchAllWhereClause($q, $filter)
     {
-        return $this->addStandardCatchAllWhereClause($q, $filter, ['f.name', 'f.website']);
+        return $this->addStandardCatchAllWhereClause($q, $filter, ['f.name', 'f.website', 'f.description']);
     }
 
     /**
