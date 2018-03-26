@@ -41,7 +41,9 @@
     $.fn.tagEditor = function (options, val, blur) {
 
         function splitTags (input) {
-            var matches = input.match(/{{\s*[#|\/]?[\w\.]+\s*}}|[^{}]+/g);
+            // Regex for:  mustache tags | non json | json | lone whitespaces
+            var matches = input.match(/({{\s*[#|\/]?[\w\.]+\s*}})|({.*})|([^{^}]*)|({.*)/g);
+            console.log(matches);
             return matches ? matches : [];
         }
 
@@ -49,7 +51,7 @@
             if (!input) {
                 return false;
             }
-            var matches = input.match(/{{\s*[#|\/]?[\w\.]+\s*}}/);
+            var matches = input.match(/({{\s*[#|\/]?[\w\.]+\s*}})/);
             return !!matches;
         }
 
@@ -59,7 +61,7 @@
                     return 'warn';
                 }
                 if (o.allowedTags instanceof Array) {
-                    if (mQuery.inArray(input, o.allowedTags) === -1) {
+                    if ($.inArray(input, o.allowedTags) === -1) {
                         return 'danger';
                     }
                 }
@@ -78,10 +80,10 @@
                 addSpans = true;
             }
             // Strip initial HTML.
-            tag = $('<div/>').text(tag).html();
+            tag = $('<div/>').text(tag).html().replace(/"/g, '&quot;');
             // Wrap mustache tags.
             if (addSpans) {
-                tag = tag.replace('{{', '<span>{{</span>').replace('}}', '<span>}}</span>');
+                tag = tag.replace(/{{/g, '<span>{{</span>').replace(/}}/g, '<span>}}</span>');
             }
             return tag;
         }
@@ -363,7 +365,7 @@
                     }
                     old_tags.push(tag);
                     if (isMustache(tag)) {
-                        li.before('<li><div class="tag-editor-tag' + className(tag) + '">' + escape(tag) + '</div><div class="tag-editor-delete' + className(tag) + '"><i></i></div></li>');
+                        li.before('<li><div class="tag-editor-tag ' + className(tag) + '">' + escape(tag) + '</div><div class="tag-editor-delete ' + className(tag) + '"><i></i></div></li>');
                     }
                     else {
                         li.before('<li><div class="tag-editor-tag normal">' + escape(tag) + '</div></li>');

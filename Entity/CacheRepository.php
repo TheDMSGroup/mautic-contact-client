@@ -206,15 +206,17 @@ class CacheRepository extends CommonRepository
      * @param Contact       $contact
      * @param ContactClient $contactClient
      * @param array         $rules
+     * @param string        $utmSource
      *
-     * @return bool|mixed
+     * @return mixed|null
      *
      * @throws \Exception
      */
     public function findDuplicate(
         Contact $contact,
         ContactClient $contactClient,
-        $rules = []
+        $rules = [],
+        $utmSource = ''
     ) {
         // Generate our filters based on the rules provided.
         $filters = [];
@@ -292,9 +294,6 @@ class CacheRepository extends CommonRepository
 
             // Scope UTM Source
             if ($scope & self::SCOPE_UTM_SOURCE) {
-                // get the original / first utm source code for contact
-                $utmHelper = $this->factory->get('mautic.contactclient.helper.utmsource');
-                $utmSource = $utmHelper->getFirstUtmSource($contact);
                 if (!empty($utmSource)) {
                     $orx['utm_source'] = $utmSource;
                 }
@@ -416,7 +415,7 @@ class CacheRepository extends CommonRepository
             if (!empty($mobile)) {
                 $filters[] = [
                     'andx' => [
-                        'phone'             => $phone,
+                        'phone'             => $mobile,
                         'exclusive_pattern' => $this->bitwiseIn($matching, self::MATCHING_PHONE),
                     ],
                 ];
