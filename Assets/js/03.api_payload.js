@@ -50,18 +50,23 @@ Mautic.contactclientApiPayload = function () {
             apiPayloadJSONEditor;
 
         function setJSONEditorValue (raw) {
-            var obj;
+            var result = true;
             if (raw.length) {
                 try {
-                    obj = mQuery.parseJSON(raw);
+                    var obj = mQuery.parseJSON(raw);
                     if (typeof obj === 'object') {
-                        apiPayloadJSONEditor.setValue(obj);
+                        if (apiPayloadJSONEditor.getValue() !== obj) {
+                            // console.log('Set value to JSON editor');
+                            apiPayloadJSONEditor.setValue(obj);
+                        }
                     }
                 }
                 catch (e) {
                     console.warn(e);
+                    result = false;
                 }
             }
+            return result;
         }
 
         // Grab the JSON Schema to begin rendering the form with JSONEditor.
@@ -117,12 +122,13 @@ Mautic.contactclientApiPayload = function () {
                 setJSONEditorValue($apiPayload.val());
 
                 // Persist the value to the JSON Editor.
-                apiPayloadJSONEditor.on('change', function () {
+                apiPayloadJSONEditor.off('change').on('change', function () {
+                    // console.log('JSON editor change event');
                     var obj = apiPayloadJSONEditor.getValue();
                     if (typeof obj === 'object') {
-                        var raw = JSON.stringify(obj, null, '  ');
-                        if (raw.length) {
-                            // Set the textarea.
+                        var raw = JSON.stringify(obj, null, 2);
+                        if (raw.length && $apiPayload.val() !== raw) {
+                            // console.log('Change by JSON editor', raw);
                             $apiPayload.val(raw);
                         }
                         // Loop through operations to update success
@@ -386,6 +392,7 @@ Mautic.contactclientApiPayload = function () {
 
                                         // Update the JSONEditor schema value.
                                         if (changes) {
+                                            // console.log('Update the JSONEditor schema value.');
                                             var subEditor = apiPayloadJSONEditor.getEditor('root.operations.' + i + '.request.body');
                                             // Setting to a null value to cause
                                             // re-instantiation of tag-editor.
@@ -535,7 +542,7 @@ Mautic.contactclientApiPayload = function () {
             // Set the value to the hidden textarea.
             var raw = apiPayloadCodeMirror.getValue();
             if (raw.length) {
-                // Always set the textarea.
+                // console.log('Change by codemirror', raw);
                 $apiPayload.val(raw);
             }
         });
@@ -545,12 +552,12 @@ Mautic.contactclientApiPayload = function () {
             $advancedView = $buttons.find('#api_payload_advanced.btn'),
             $codeView = $buttons.find('#api_payload_code.btn'),
             codeStart = function () {
-                var raw = $apiPayload.val(),
-                    error = false;
                 // Activating CodeMirror.
                 // Send the value from JSONEditor to
                 // CodeMirror.
                 if (!$codeView.hasClass('btn-success') && apiPayloadCodeMirror) {
+                    var raw = $apiPayload.val(),
+                        error = false;
                     if (raw.length) {
                         try {
                             if (raw !== apiPayloadCodeMirror.getValue()) {
@@ -574,24 +581,10 @@ Mautic.contactclientApiPayload = function () {
                 }
             },
             codeStop = function () {
-                var raw = $apiPayload.val(),
-                    error = false;
                 // Deactivating CodeMirror.
                 // Send the value to JSONEditor.
                 if ($codeView.hasClass('btn-success') && apiPayloadJSONEditor) {
-                    if (raw.length) {
-                        try {
-                            var obj = mQuery.parseJSON(raw);
-                            if (typeof obj === 'object') {
-                                apiPayloadJSONEditor.setValue(obj);
-                            }
-                        }
-                        catch (e) {
-                            error = true;
-                            console.warn(e);
-                        }
-                    }
-                    if (!error) {
+                    if (setJSONEditorValue($apiPayload.val())) {
                         $apiPayloadCodeMirror.addClass('hide');
                         mQuery('#api_payload_jsoneditor').removeClass('hide');
                         mQuery(this).toggleClass('btn-success');
@@ -699,7 +692,12 @@ Mautic.contactclientApiPayload = function () {
                             }
                         }
                         if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue === 'function') {
-                            setJSONEditorValue(response.payload);
+                            var raw = JSON.stringify(response.payload, null, 2);
+                            if (raw.length && $apiPayload.val() !== raw) {
+                                // console.log('Change by payload', raw);
+                                $apiPayload.val(raw);
+                                setJSONEditorValue($apiPayload.val());
+                            }
                         }
                     },
                     error: function (request, textStatus, errorThrown) {

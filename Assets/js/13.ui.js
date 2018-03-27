@@ -8,7 +8,7 @@ if (
         _renderMenu: function (ul, items) {
             var that = this;
             ul.attr('class', 'nav nav-pills nav-stacked bs-autocomplete-menu');
-            $.each(items, function (index, item) {
+            mQuery.each(items, function (index, item) {
                 that._renderItemData(ul, item);
             });
         },

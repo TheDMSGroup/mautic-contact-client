@@ -46,7 +46,7 @@ Mautic.contactclientLimits = function () {
                 limitsJSONEditor.on('change', function () {
                     var obj = limitsJSONEditor.getValue();
                     if (typeof obj === 'object') {
-                        var raw = JSON.stringify(obj, null, '  ');
+                        var raw = JSON.stringify(obj, null, 2);
                         if (raw.length) {
                             // Set the textarea.
                             $limits.val(raw);
