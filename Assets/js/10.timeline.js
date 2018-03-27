@@ -49,14 +49,24 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
 
             if (activateDetailsState) {
                 $details.addClass('hide');
+                mQuery(this).find('span').first().addClass('fa-plus-square-o');
+                mQuery(this).find('span').first().removeClass('fa-minus-square-o');
                 mQuery(this).removeClass('active');
             }
             else {
                 $details.removeClass('hide');
                 codeMirror($details);
+                mQuery(this).find('span').first().addClass('fa-minus-square-o');
+                mQuery(this).find('span').first().removeClass('fa-plus-square-o');
                 mQuery(this).addClass('active');
             }
         }
+    });
+
+    mQuery('#contactclient-timeline a.timeline-header-sort').on('click', function () {
+        console.log(this);
+        var column = mQuery(this).data('sort');
+
     });
 
     if (response && typeof response.timelineCount !== 'undefined') {

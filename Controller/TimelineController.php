@@ -41,8 +41,6 @@ class TimelineController extends CommonController
         if ('POST' == $request->getMethod() && $request->request->has('search')) {
             $filters = [
                 'search'        => InputHelper::clean($request->request->get('search')),
-                'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
-                'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
             ];
             $session->set('mautic.contactClient.'.$contactClientId.'.timeline.filters', $filters);
         } else {
@@ -73,7 +71,7 @@ class TimelineController extends CommonController
         );
     }
 
-    public function pluginIndexAction(Request $request, $integration, $page = 1)
+    public function pluginIndexAction(Request $request)
     {
         $limit          = 25;
         $contactClients = $this->checkAllAccess('view', $limit);
@@ -88,8 +86,6 @@ class TimelineController extends CommonController
         if ('POST' === $request->getMethod() && $request->request->has('search')) {
             $filters = [
                 'search'        => InputHelper::clean($request->request->get('search')),
-                'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
-                'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
             ];
             $session->set('mautic.plugin.timeline.filters', $filters);
         } else {

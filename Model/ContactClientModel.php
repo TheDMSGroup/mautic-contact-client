@@ -454,6 +454,7 @@ class ContactClientModel extends FormModel
         $limit = 25,
         $forTimeline = true
     ) {
+        $orderBy = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
         $event = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,
             new ContactClientTimelineEvent(
@@ -467,7 +468,7 @@ class ContactClientModel extends FormModel
             )
         );
 
-        if (!isset($filters['search'])) {
+        if (!isset($filters['search']) || empty($filters['search'])) {
             $filters['search'] = null;
         }
         $payload = [

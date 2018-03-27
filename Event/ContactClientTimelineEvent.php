@@ -133,7 +133,7 @@ class ContactClientTimelineEvent extends Event
      * @param array              $filters
      * @param array|null         $orderBy
      * @param int                $page
-     * @param int                $limit         Limit per type
+     * @param int                $limit Limit per type
      * @param bool               $forTimeline
      * @param string|null        $siteDomain
      */
@@ -147,15 +147,8 @@ class ContactClientTimelineEvent extends Event
         $siteDomain = null
     ) {
         $this->contactClient = $contactClient;
-        $this->filters       = !empty($filters)
-            ? $filters
-            :
-            [
-                'search'        => '',
-                'includeEvents' => [],
-                'excludeEvents' => [],
-            ];
-        $this->orderBy       = $orderBy;
+        $this->filters       = !empty($filters) ? $filters : ['search' => ''];
+        $this->orderBy       = empty($orderBy)? ['date_added', 'DESC'] : $orderBy;
         $this->page          = $page;
         $this->limit         = $limit;
         $this->forTimeline   = $forTimeline;
@@ -474,6 +467,7 @@ class ContactClientTimelineEvent extends Event
         return array_merge(
             [
                 'search'     => $this->filters['search'],
+                'logs'       => $this->filters['logs'],
                 'order'      => $this->orderBy,
                 'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
@@ -518,35 +512,6 @@ class ContactClientTimelineEvent extends Event
     public function getContactClientId()
     {
         return ($this->contactClient instanceof ContactClient) ? $this->contactClient->getId() : null;
-    }
-
-    /**
-     * Determine if an event type should be included.
-     *
-     * @param      $eventType
-     * @param bool $inclusive
-     *
-     * @return bool
-     */
-    public function isApplicable($eventType, $inclusive = false)
-    {
-        if ($this->fetchTypesOnly) {
-            return false;
-        }
-
-        if (in_array($eventType, $this->filters['excludeEvents'])) {
-            return false;
-        }
-
-        if (!empty($this->filters['includeEvents'])) {
-            if (!in_array($eventType, $this->filters['includeEvents'])) {
-                return false;
-            }
-        } elseif ($inclusive) {
-            return false;
-        }
-
-        return true;
     }
 
     /**

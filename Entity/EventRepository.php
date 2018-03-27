@@ -13,14 +13,12 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
-use Mautic\LeadBundle\Entity\TimelineTrait;
 
 /**
  * Class EventRepository.
  */
 class EventRepository extends CommonRepository
 {
-    use TimelineTrait;
 
     /**
      * Fetch the base event data from the database.
@@ -65,9 +63,8 @@ class EventRepository extends CommonRepository
      *
      * @return array
      */
-    public function getEventsForTimeline($contactClientId, $contactId = 0, array $options = [])
+    public function getEventsForTimeline($contactClientId, $contactId = null, array $options = [])
     {
-        $eventType = null;
 
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
@@ -78,27 +75,70 @@ class EventRepository extends CommonRepository
         )
             ->setParameter('contactClientId', $contactClientId);
 
-        if ($eventType) {
-            $query->andWhere(
-                $query->expr()->eq('c.type', ':type')
-            )
-                ->setParameter('type', $eventType);
-        }
-
         if ($contactId) {
             $query->andWhere('c.contact_id = '.(int) $contactId);
         }
 
         if (isset($options['search']) && $options['search']) {
-            $query->andWhere(
-                $query->expr()->orX(
+
+            if (isset($options['logs']) && $options['logs']) {
+                $expr = $query->expr()->orX(
                     $query->expr()->like('c.type', $query->expr()->literal('%'.$options['search'].'%')),
+                    $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%')),
                     $query->expr()->like('c.logs', $query->expr()->literal('%'.$options['search'].'%'))
-                )
-            );
+                );
+            } else {
+                $expr = $query->expr()->orX(
+                    $query->expr()->like('c.type', $query->expr()->literal('%'.$options['search'].'%')),
+                    $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%'))
+                );
+            }
+            $query->andWhere($expr);
+
         }
 
-        return $this->getTimelineResults($query, $options, 'c.type', 'c.date_added', [], ['date_added']);
+        if (!empty($options['fromDate']) && !empty($options['toDate'])) {
+            $query->andWhere($timestampColumn.' BETWEEN :dateFrom AND :dateTo')
+                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+        } elseif (!empty($options['fromDate'])) {
+            $query->andWhere($query->expr()->gte('fs.date_submitted', ':dateFrom'))
+                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
+        } elseif (!empty($options['toDate'])) {
+            $query->andWhere($query->expr()->lte('fs.date_submitted', ':dateTo'))
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+        }
+
+        if (isset($options['order']) && !empty($options['order'])) {
+            list($orderBy, $orderByDir) = $options['order'];
+            $query->orderBy($orderBy, $orderByDir);
+        }
+
+        if (!empty($options['limit'])) {
+            $query->setMaxResults($options['limit']);
+            if (!empty($options['start'])) {
+                $query->setFirstResult($options['start']);
+            }
+        }
+
+        $results = $query->execute()->fetchAll();
+
+        if (!empty($options['paginated'])) {
+            // Get a total count along with results
+            $query->resetQueryParts(['select', 'orderBy'])
+                ->setFirstResult(null)
+                ->setMaxResults(null)
+                ->select('count(*)');
+
+            $total = $query->execute()->fetchColumn();
+
+            return [
+                'total'   => $total,
+                'results' => $results,
+            ];
+        }
+
+        return $results;
     }
 
     /**

@@ -12,6 +12,7 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Timeline:index.html.php');
 }
 
+$order = $events['order'];
 $baseUrl = $view['router']->path(
     'mautic_contactclient_timeline_action',
     [
@@ -25,7 +26,7 @@ $baseUrl = $view['router']->path(
     <table class="table table-hover table-bordered" id="contactclient-timeline" style="z-index: 2; position: relative;">
         <thead>
         <tr>
-            <th class="timeline-icon">
+            <th class="visible-md visible-lg timeline-icon">
                 <a class="btn btn-sm btn-nospin btn-default" data-activate-details="all" data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.timeline.toggle_all_details'
@@ -33,55 +34,46 @@ $baseUrl = $view['router']->path(
                     <span class="fa fa-fw fa-level-down"></span>
                 </a>
             </th>
-            <?php
-            echo $view->render(
-                'MauticCoreBundle:Helper:tableheader.html.php',
-                [
-                    'orderBy'    => 'message',
-                    'text'       => 'mautic.contactclient.timeline.message',
-                    'class'      => 'timeline-name',
-                    'sessionVar' => 'contactclient.'.$contactClient->getId().'.timeline',
-                    'baseUrl'    => $baseUrl,
-                    'target'     => '#timeline-table',
-                ]
-            );
-
-            echo $view->render(
-                'MauticCoreBundle:Helper:tableheader.html.php',
-                [
-                    'orderBy'    => 'contactId',
-                    'text'       => 'mautic.contactclient.timeline.contact_id',
-                    'class'      => 'visible-md visible-lg timeline-contact-id',
-                    'sessionVar' => 'contactclient.'.$contactClient->getId().'.timeline',
-                    'baseUrl'    => $baseUrl,
-                    'target'     => '#timeline-table',
-                ]
-            );
-
-            echo $view->render(
-                'MauticCoreBundle:Helper:tableheader.html.php',
-                [
-                    'orderBy'    => 'eventType',
-                    'text'       => 'mautic.contactclient.timeline.event_type',
-                    'class'      => 'visible-md visible-lg timeline-type',
-                    'sessionVar' => 'contactclient.'.$contactClient->getId().'.timeline',
-                    'baseUrl'    => $baseUrl,
-                    'target'     => '#timeline-table',
-                ]
-            );
-
-            echo $view->render(
-                'MauticCoreBundle:Helper:tableheader.html.php',
-                [
-                    'orderBy'    => 'timestamp',
-                    'text'       => 'mautic.contactclient.timeline.event_timestamp',
-                    'class'      => 'visible-md visible-lg timeline-timestamp',
-                    'sessionVar' => 'contactclient.'.$contactClient->getId().'.timeline',
-                    'baseUrl'    => $baseUrl,
-                    'target'     => '#timeline-table',
-                ]
-            );
-            ?>
+            <th class="visible-md visible-lg timeline-message">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="message"
+                   title="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.timeline.message'
+                   ); ?>">
+                    <?php echo $view['translator']->trans(
+                        'mautic.contactclient.timeline.message'
+                    ); ?>
+                </a>
+            </th>
+            <th class="visible-md visible-lg timeline-contact-id">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="contact_id"
+                   title="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.timeline.contact_id'
+                   ); ?>">
+                    <?php echo $view['translator']->trans(
+                        'mautic.contactclient.timeline.contact_id'
+                    ); ?>
+                </a>
+            </th>
+            <th class="visible-md visible-lg timeline-event-type">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
+                   title="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.timeline.event_type'
+                   ); ?>">
+                    <?php echo $view['translator']->trans(
+                        'mautic.contactclient.timeline.event_type'
+                    ); ?>
+                </a>
+            </th>
+            <th class="visible-md visible-lg timeline-timestamp">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="date_added"
+                   title="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.timeline.event_timestamp'
+                   ); ?>">
+                    <?php echo $view['translator']->trans(
+                        'mautic.contactclient.timeline.event_timestamp'
+                    ); ?>
+                </a>
+            </th>
         </tr>
         <tbody>
         <?php foreach ($events['events'] as $counter => $event): ?>
@@ -153,5 +145,11 @@ $baseUrl = $view['router']->path(
         'totalItems' => $events['total'],
     ]
 ); ?>
-
+<script>
+    mQuery(function() {
+        var sortedColumn = mQuery('#contactclient-timeline a[data-sort="<?php echo $order[0];?>"]');
+        console.log(sortedColumn);
+        var sortedColumn.append('<i class="fa fa-sort-amount-<?php echo strtolower($order[1]);?>"></i>');
+    });
+</script>
 <!--/ timeline -->
