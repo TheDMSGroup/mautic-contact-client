@@ -34,7 +34,7 @@ class CacheRepository extends CommonRepository
 
     const SCOPE_GLOBAL      = 1;
 
-    const SCOPE_UTM_SOURCE  = 3;
+    const SCOPE_UTM_SOURCE  = 4;
 
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
