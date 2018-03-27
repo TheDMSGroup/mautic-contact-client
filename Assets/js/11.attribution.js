@@ -131,7 +131,7 @@ Mautic.contactclientAttribution = function () {
                 attributionJSONEditor.on('change', function () {
                     var obj = attributionJSONEditor.getValue();
                     if (typeof obj === 'object') {
-                        var raw = JSON.stringify(obj, null, '  ');
+                        var raw = JSON.stringify(obj, null, 2);
                         if (raw.length) {
                             // Set the textarea.
                             $attribution.val(raw);

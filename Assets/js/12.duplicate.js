@@ -45,7 +45,7 @@ Mautic.contactclientDuplicate = function () {
                 duplicateJSONEditor.on('change', function () {
                     var obj = duplicateJSONEditor.getValue();
                     if (typeof obj === 'object') {
-                        var raw = JSON.stringify(obj, null, '  ');
+                        var raw = JSON.stringify(obj, null, 2);
                         if (raw.length) {
                             // Set the textarea.
                             $duplicate.val(raw);
