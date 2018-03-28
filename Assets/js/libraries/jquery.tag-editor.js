@@ -43,7 +43,6 @@
         function splitTags (input) {
             // Regex for:  mustache tags | non json | json | lone whitespaces
             var matches = input.match(/({{\s*[#|\/]?[\w\.]+\s*}})|({.*})|([^{^}]*)|({.*)/g);
-            console.log(matches);
             return matches ? matches : [];
         }
 

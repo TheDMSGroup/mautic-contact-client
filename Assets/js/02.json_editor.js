@@ -159,7 +159,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     });
                                     var rulesString = JSON.stringify(rules, null, 2);
 
-                                    if (val !== rulesString) {
+                                    if ($input.val() !== rulesString) {
                                         $input.val(rulesString);
                                         if ('createEvent' in document) {
                                             var event = document.createEvent('HTMLEvents');

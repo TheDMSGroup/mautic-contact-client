@@ -80,7 +80,7 @@ Mautic.contactclientSchedule = function () {
         });
         $scheduleHoursSource.addClass('hide');
         mQuery('#contactclient_schedule_hours_widget .operationState, #contactclient_schedule_hours_widget input').change(function () {
-            mQuery('#contactclient_schedule_hours').val(JSON.stringify(scheduleHours.serialize()));
+            mQuery('#contactclient_schedule_hours').val(JSON.stringify(scheduleHours.serialize(), null, 2));
         });
 
     }
@@ -130,7 +130,7 @@ Mautic.contactclientSchedule = function () {
                 exclusionsJSONEditor.on('change', function () {
                     var obj = exclusionsJSONEditor.getValue();
                     if (typeof obj === 'object') {
-                        var raw = JSON.stringify(obj, null, '  ');
+                        var raw = JSON.stringify(obj, null, 2);
                         if (raw.length) {
                             // Set the textarea.
                             $exclusions.val(raw);
