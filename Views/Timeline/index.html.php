@@ -11,9 +11,9 @@
 ?>
 
 <?php
-        $orderBy = isset($events['filters']['order']) && !empty($events['filters']['order'][0]) ? $events['filters']['order'][0] : 'date_added';
+        $orderBy          = isset($events['filters']['order']) && !empty($events['filters']['order'][0]) ? $events['filters']['order'][0] : 'date_added';
         $orderByDirection = isset($events['filters']['order']) && !empty($events['filters']['order'][1]) ? $events['filters']['order'][1] : 'DESC';
-        $page = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
+        $page             = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
 
         ?>
 

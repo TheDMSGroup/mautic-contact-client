@@ -455,7 +455,7 @@ class ContactClientModel extends FormModel
         $forTimeline = true
     ) {
         $orderBy = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
-        $event = $this->dispatcher->dispatch(
+        $event   = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,
             new ContactClientTimelineEvent(
                 $contactClient,

@@ -19,7 +19,6 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class EventRepository extends CommonRepository
 {
-
     /**
      * Fetch the base event data from the database.
      *
@@ -65,7 +64,6 @@ class EventRepository extends CommonRepository
      */
     public function getEventsForTimeline($contactClientId, $contactId = null, array $options = [])
     {
-
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
             ->select('c.*');
@@ -80,7 +78,6 @@ class EventRepository extends CommonRepository
         }
 
         if (isset($options['search']) && $options['search']) {
-
             if (isset($options['logs']) && $options['logs']) {
                 $expr = $query->expr()->orX(
                     $query->expr()->like('c.type', $query->expr()->literal('%'.$options['search'].'%')),
@@ -94,7 +91,6 @@ class EventRepository extends CommonRepository
                 );
             }
             $query->andWhere($expr);
-
         }
 
         if (!empty($options['fromDate']) && !empty($options['toDate'])) {

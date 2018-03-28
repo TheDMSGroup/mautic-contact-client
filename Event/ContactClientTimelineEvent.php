@@ -120,7 +120,7 @@ class ContactClientTimelineEvent extends Event
     protected $fetchTypesOnly = false;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $queryTotal;
 
@@ -138,7 +138,7 @@ class ContactClientTimelineEvent extends Event
      * @param array              $filters
      * @param array|null         $orderBy
      * @param int                $page
-     * @param int                $limit Limit per type
+     * @param int                $limit         Limit per type
      * @param bool               $forTimeline
      * @param string|null        $siteDomain
      */
@@ -153,7 +153,7 @@ class ContactClientTimelineEvent extends Event
     ) {
         $this->contactClient = $contactClient;
         $this->filters       = !empty($filters) ? $filters : ['search' => ''];
-        $this->orderBy       = empty($orderBy)? ['date_added', 'DESC'] : $orderBy;
+        $this->orderBy       = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
         $this->page          = $page;
         $this->limit         = $limit;
         $this->forTimeline   = $forTimeline;
@@ -393,10 +393,10 @@ class ContactClientTimelineEvent extends Event
                             return $a['timestamp'] < $b['timestamp'] ? -1 : 1;
 
                         case 'contact_id':
-                            if($a['contactId'] == $b['contactId'])
-                            {
+                            if ($a['contactId'] == $b['contactId']) {
                                 return 0;
                             }
+
                             return $a['contactId'] < $b['contactId'] ? -1 : 1;
 
                         case 'type':
@@ -501,10 +501,10 @@ class ContactClientTimelineEvent extends Event
         return $this->queryTotal;
     }
 
-
     public function setQueryTotal($queryTotal)
     {
         $this->queryTotal = $queryTotal;
+
         return $this;
     }
 

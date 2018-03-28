@@ -12,7 +12,7 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Timeline:index.html.php');
 }
 
-$order = $events['order'];
+$order   = $events['order'];
 $baseUrl = $view['router']->path(
     'mautic_contactclient_timeline_action',
     [
@@ -82,7 +82,7 @@ $baseUrl = $view['router']->path(
         <tbody>
         <?php foreach ($events['events'] as $counter => $event): ?>
             <?php
-            $counter += 1; // prevent 0
+            ++$counter; // prevent 0
             $icon       = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
             $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
             $message    = (isset($event['message'])) ? $event['message'] : null;
@@ -152,7 +152,7 @@ echo $view->render(
 ); ?>
 <script>
     // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $order[0];?>';
-    var sortDirection = '<?php echo strtolower($order[1]);?>';
+    var sortField = '<?php echo $order[0]; ?>';
+    var sortDirection = '<?php echo strtolower($order[1]); ?>';
 </script>
 <!--/ timeline -->
