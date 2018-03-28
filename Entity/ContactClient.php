@@ -651,9 +651,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * Returns the user to be used for permissions.
-     *
-     * @return User|int
+     * @return int
      */
     public function getPermissionUser()
     {
