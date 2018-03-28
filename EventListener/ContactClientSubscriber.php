@@ -177,19 +177,17 @@ class ContactClientSubscriber extends CommonSubscriber
         $options = $event->getQueryOptions();
         foreach ($types as $eventTypeKey) {
             $eventTypeName = ucwords($eventTypeKey);
-            if (!$event->isApplicable($eventTypeKey)) {
-                continue;
-            }
             $event->addEventType($eventTypeKey, $eventTypeName);
         }
 
-        $rows = $eventRepository->getEvents($options['contactClientId']);
-        foreach ($rows as $row) {
+        $rows = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), null, $options);
+        foreach ($rows['results'] as $row) {
             $eventTypeKey  = $row['type'];
             $eventTypeName = ucwords($eventTypeKey);
 
             // Add total to counter
-            $event->addToCounter($eventTypeKey, 1);
+            $event->setQueryTotal($rows['total']);
+            //$event->addToCounter($eventTypeKey, 1);
 
             if (!$event->isEngagementCount()) {
 //                if (!$this->pageModel) {

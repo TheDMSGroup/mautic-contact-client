@@ -30,6 +30,48 @@ class AjaxController extends CommonAjaxController
     /**
      * @param Request $request
      *
+     * @return mixed
+     */
+    public function ajaxTimelineAction(Request $request)
+    {
+        $filters     = [];
+        $eventsModel = $this->get('mautic.contactclient.model.contactclient');
+
+        foreach ($request->request->get('filters') as $key => $filter) {
+            $filter['name']           = str_replace(
+                '[]',
+                '',
+                $filter['name']
+            ); // the serializeArray() js method seems to add [] to the key ???
+            $filters[$filter['name']] = $filter['value'];
+        }
+        if (isset($filters['contactClientId'])) {
+            if (!$contactClient = $eventsModel->getEntity($filters['contactClientId'])) {
+                throw new \InvalidArgumentException('Contact Client argument is Invalid.');
+            }
+        } else {
+            throw new \InvalidArgumentException('Contact Client argument is Missing.');
+        }
+        $orderBy = isset($filters['orderBy']) ? explode(':', $filters['orderBy']) : null;
+        $page    = isset($filters['page']) ? $filters['page'] : 1;
+        $limit   = isset($filters['limit']) ? $filters['limit'] : 25;
+
+        $events = $eventsModel->getEngagements($contactClient, $filters, $orderBy, $page, $limit, true);
+        $view   = $this->render(
+            'MauticContactClientBundle:Timeline:list.html.php',
+            [
+                'events'        => $events,
+                'contactClient' => $contactClient,
+                'tmpl'          => '',
+            ]
+        );
+
+        return $view;
+    }
+
+    /**
+     * @param Request $request
+     *
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      *
      * @throws \Exception

@@ -649,4 +649,13 @@ class ContactClient extends FormEntity
 
         return $this;
     }
+
+    /**
+     * @return int
+     */
+    public function getPermissionUser()
+    {
+        // @todo add Contact Client ownership? => $this->>getOwner() else getCreatedBy()
+        return $this->getCreatedBy();
+    }
 }
