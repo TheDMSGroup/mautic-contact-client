@@ -120,6 +120,11 @@ class ContactClientTimelineEvent extends Event
     protected $fetchTypesOnly = false;
 
     /**
+     * @var integer
+     */
+    protected $queryTotal;
+
+    /**
      * @var array
      */
     protected $serializerGroups = [
@@ -377,7 +382,7 @@ class ContactClientTimelineEvent extends Event
 
                             return strnatcmp($aLabel, $bLabel);
 
-                        case 'timestamp':
+                        case 'date_added':
                             if ($a['timestamp'] == $b['timestamp']) {
                                 $aPriority = isset($a['eventPriority']) ? (int) $a['eventPriority'] : 0;
                                 $bPriority = isset($b['eventPriority']) ? (int) $b['eventPriority'] : 0;
@@ -386,6 +391,21 @@ class ContactClientTimelineEvent extends Event
                             }
 
                             return $a['timestamp'] < $b['timestamp'] ? -1 : 1;
+
+                        case 'contact_id':
+                            if($a['contactId'] == $b['contactId'])
+                            {
+                                return 0;
+                            }
+                            return $a['contactId'] < $b['contactId'] ? -1 : 1;
+
+                        case 'type':
+
+                            return strnatcmp($a['eventType'], $b['eventType']);
+
+                        default:
+
+                            return strnatcmp($a[$this->orderBy[0]], $b[$this->orderBy[0]]);
                     }
                 }
             );
@@ -405,15 +425,8 @@ class ContactClientTimelineEvent extends Event
      */
     public function getMaxPage()
     {
-        if (!$this->totalEvents) {
-            return 1;
-        }
-
-        // Find the type that has the largest number of total records
-        $largest = max($this->totalEvents);
-
-        // Max page is $largest / $limit
-        return ($largest) ? ceil($largest / $this->limit) : 1;
+        // Max page is total count (queryTotal) / $limit
+        return ($this->queryTotal) ? ceil($this->queryTotal / $this->limit) : 1;
     }
 
     /**
@@ -467,7 +480,7 @@ class ContactClientTimelineEvent extends Event
         return array_merge(
             [
                 'search'     => $this->filters['search'],
-                'logs'       => $this->filters['logs'],
+                'logs'       => isset($this->filters['logs']) ? $this->filters['logs'] : null,
                 'order'      => $this->orderBy,
                 'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
@@ -478,6 +491,21 @@ class ContactClientTimelineEvent extends Event
             ],
             $this->getEventLimit()
         );
+    }
+
+    /**
+     * @return int
+     */
+    public function getQueryTotal()
+    {
+        return $this->queryTotal;
+    }
+
+
+    public function setQueryTotal($queryTotal)
+    {
+        $this->queryTotal = $queryTotal;
+        return $this;
     }
 
     /**

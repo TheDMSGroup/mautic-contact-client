@@ -14,6 +14,8 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
@@ -160,14 +162,21 @@ class ApiPayload
      *
      * @param string $payload
      *
-     * @return mixed
+     * @return $this
      *
+     * @throws ContactClientException
      * @throws \Exception
      */
     private function setPayload(string $payload)
     {
         if (!$payload) {
-            throw new \Exception('API instructions payload is blank.');
+            throw new ContactClientException(
+                'API instructions payload is blank.',
+                0,
+                null,
+                Stat::TYPE_ERROR,
+                false
+            );
         }
 
         $jsonHelper    = new JSONHelper();
@@ -210,12 +219,18 @@ class ApiPayload
      *
      * @return bool
      *
-     * @throws \Exception
+     * @throws ContactClientException
      */
     public function run()
     {
         if (!isset($this->payload->operations) || !count($this->payload->operations)) {
-            throw new \Exception('API instructions payload has no operations to run.');
+            throw new ContactClientException(
+                'There are no API operations to run.',
+                0,
+                null,
+                Stat::TYPE_ERROR,
+                false
+            );
         }
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $transport */
@@ -228,14 +243,9 @@ class ApiPayload
             $apiOperation = new ApiOperation(
                 $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
             );
-            try {
-                $apiOperation->run();
-                $this->valid = $apiOperation->getValid();
-            } catch (\Exception $e) {
-                $logs[]      = $e->getMessage();
-                $this->valid = false;
-            }
-            $logs = array_merge($apiOperation->getLogs(), $logs);
+            $apiOperation->run();
+            $this->valid = $apiOperation->getValid();
+            $logs        = array_merge($apiOperation->getLogs(), $logs);
             $this->setLogs($logs, $id);
 
             if (!$this->valid) {

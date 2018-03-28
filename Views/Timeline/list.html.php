@@ -42,6 +42,7 @@ $baseUrl = $view['router']->path(
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.message'
                     ); ?>
+                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-contact-id">
@@ -52,6 +53,7 @@ $baseUrl = $view['router']->path(
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.contact_id'
                     ); ?>
+                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-event-type">
@@ -62,6 +64,7 @@ $baseUrl = $view['router']->path(
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.event_type'
                     ); ?>
+                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-timestamp">
@@ -72,6 +75,7 @@ $baseUrl = $view['router']->path(
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.event_timestamp'
                     ); ?>
+                    <i class="fa fa-sort"></i>
                 </a>
             </th>
         </tr>
@@ -134,22 +138,21 @@ $baseUrl = $view['router']->path(
         </tbody>
     </table>
 </div>
-<?php echo $view->render(
+<?php
+echo $view->render(
     'MauticCoreBundle:Helper:pagination.html.php',
     [
         'page'       => $events['page'],
         'fixedPages' => $events['maxPages'],
         'fixedLimit' => true,
-        'baseUrl'    => $baseUrl,
-        'target'     => '#timeline-table',
+        'baseUrl'    => '/page',
+        'target'     => '',
         'totalItems' => $events['total'],
     ]
 ); ?>
 <script>
-    mQuery(function() {
-        var sortedColumn = mQuery('#contactclient-timeline a[data-sort="<?php echo $order[0];?>"]');
-        console.log(sortedColumn);
-        var sortedColumn.append('<i class="fa fa-sort-amount-<?php echo strtolower($order[1]);?>"></i>');
-    });
+    // put correct sort icons on timeline table headers
+    var sortField = '<?php echo $order[0];?>';
+    var sortDirection = '<?php echo strtolower($order[1]);?>';
 </script>
 <!--/ timeline -->

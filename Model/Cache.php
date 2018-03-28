@@ -38,6 +38,9 @@ class Cache extends AbstractCommonModel
     /** @var \Symfony\Component\DependencyInjection\Container */
     protected $container;
 
+    /** @var string */
+    protected $utmSource;
+
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
      *
@@ -168,11 +171,9 @@ class Cache extends AbstractCommonModel
         if (!empty($mobile)) {
             $entity->setMobile($mobile);
         }
-        // get the original / first utm source code for contact
-        $utmHelper = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
-        $utmSource = $utmHelper->getFirstUtmSource($this->contact);
+        $utmSource = $this->getUtmSource();
         if (!empty($utmSource)) {
-            $entity->setUtmSource(trim($utmSource));
+            $entity->setUtmSource($utmSource);
         }
 
         return $entity;
@@ -201,6 +202,23 @@ class Cache extends AbstractCommonModel
         }
 
         return $result;
+    }
+
+    /**
+     * Get the original / first utm source code for contact.
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    private function getUtmSource()
+    {
+        if (!$this->utmSource) {
+            $utmHelper       = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
+            $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
+        }
+
+        return $this->utmSource;
     }
 
     /**
@@ -242,6 +260,7 @@ class Cache extends AbstractCommonModel
                 null,
                 Stat::TYPE_EXCLUSIVE,
                 false,
+                null,
                 $exclusive
             );
         }
@@ -258,7 +277,8 @@ class Cache extends AbstractCommonModel
         $duplicate = $this->getRepository()->findDuplicate(
             $this->contact,
             $this->contactClient,
-            $this->getDuplicateRules()
+            $this->getDuplicateRules(),
+            $this->getUtmSource()
         );
         if ($duplicate) {
             throw new ContactClientException(
@@ -267,6 +287,7 @@ class Cache extends AbstractCommonModel
                 null,
                 Stat::TYPE_DUPLICATE,
                 false,
+                null,
                 $duplicate
             );
         }
@@ -304,6 +325,7 @@ class Cache extends AbstractCommonModel
                 null,
                 Stat::TYPE_LIMITS,
                 false,
+                null,
                 $limits
             );
         }

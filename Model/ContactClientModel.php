@@ -476,7 +476,7 @@ class ContactClientModel extends FormModel
             'filters'  => $filters,
             'order'    => $orderBy,
             'types'    => $event->getEventTypes(),
-            'total'    => $event->getEventCounter()['total'],
+            'total'    => $event->getQueryTotal(),
             'page'     => $page,
             'limit'    => $limit,
             'maxPages' => $event->getMaxPage(),

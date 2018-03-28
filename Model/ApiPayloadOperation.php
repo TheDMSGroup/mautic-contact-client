@@ -11,7 +11,6 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Mautic\PluginBundle\Exception\ApiErrorException;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
@@ -151,37 +150,24 @@ class ApiPayloadOperation
         $this->setLogs($apiResponse->getLogs(), 'response');
 
         // Validate the API response with the given success definition.
+        $valid = false;
         try {
-            $this->setValid($apiResponse->validate());
-            $this->setLogs($this->getValid(), 'valid');
-        } catch (ApiErrorException $e) {
-            $this->setValid(false);
-            $this->setLogs($this->getValid(), 'valid');
-            $this->setLogs($e->getMessage(), 'filter');
-            $this->setFilter($e->getMessage());
+            $valid = $apiResponse->validate();
+        } catch (\Exception $e) {
         }
 
+        $this->setValid($valid);
+        $this->setLogs($valid, 'valid');
         if ($this->updatePayload) {
             $this->updatePayloadResponse();
         }
 
+        // Allow any exception encountered during validation to bubble upward.
+        if (!empty($e)) {
+            throw $e;
+        }
+
         return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function getValid()
-    {
-        return $this->valid;
-    }
-
-    /**
-     * @param $valid
-     */
-    public function setValid($valid)
-    {
-        $this->valid = $valid;
     }
 
     /**
@@ -258,6 +244,22 @@ class ApiPayloadOperation
         if ($updates) {
             $this->operation->response = $result;
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function getValid()
+    {
+        return $this->valid;
+    }
+
+    /**
+     * @param $valid
+     */
+    public function setValid($valid)
+    {
+        $this->valid = $valid;
     }
 
     /**

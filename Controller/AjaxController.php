@@ -151,7 +151,7 @@ class AjaxController extends CommonAjaxController
         } else {
             throw new \InvalidArgumentException('Contact Client argument is Missing.');
         }
-        $orderBy = isset($filters['orderBy']) ? $filters['orderBy'] : null;
+        $orderBy = isset($filters['orderBy']) ? explode(':', $filters['orderBy']) : null;
         $page = isset($filters['page']) ? $filters['page'] : 1;
         $limit = isset($filters['limit']) ? $filters['limit'] : 25;
 

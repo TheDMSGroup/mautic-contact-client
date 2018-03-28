@@ -10,6 +10,13 @@
  */
 ?>
 
+<?php
+        $orderBy = isset($events['filters']['order']) && !empty($events['filters']['order'][0]) ? $events['filters']['order'][0] : 'date_added';
+        $orderByDirection = isset($events['filters']['order']) && !empty($events['filters']['order'][1]) ? $events['filters']['order'][1] : 'DESC';
+        $page = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
+
+        ?>
+
 <!-- filter form -->
 <h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>
     <form method="post" action="<?php echo $view['router']->path(
@@ -45,6 +52,9 @@
 
 
         <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $contactClient->getId(); ?>"/>
+        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $orderBy; ?>:<?php echo $orderByDirection; ?>"/>
+        <input type="hidden" name="page" id="page" value="<?php echo $page; ?>"/>
+
     </form>
 
 <script>

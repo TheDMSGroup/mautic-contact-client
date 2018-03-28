@@ -186,7 +186,8 @@ class ContactClientSubscriber extends CommonSubscriber
             $eventTypeName = ucwords($eventTypeKey);
 
             // Add total to counter
-            $event->addToCounter($eventTypeKey, 1);
+            $event->setQueryTotal($rows['total']);
+            //$event->addToCounter($eventTypeKey, 1);
 
             if (!$event->isEngagementCount()) {
 //                if (!$this->pageModel) {
