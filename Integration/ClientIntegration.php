@@ -462,7 +462,7 @@ class ClientIntegration extends AbstractIntegration
             $campaign, $this->contactClient, $this->statType, '0 Revenue conversion', $this->contact
         );
         $this->dispatcher->dispatch(
-            'mauticplugin.contactledger.context_create',
+            'mautic.contactledger.context_create',
             $event
         );
     }
@@ -512,7 +512,7 @@ class ClientIntegration extends AbstractIntegration
             $campaign, $this->contactClient, $this->statType, null, $this->contact
         );
         $this->dispatcher->dispatch(
-            'mauticplugin.contactledger.context_capture',
+            'mautic.contactledger.context_capture',
             $event
         );
     }
