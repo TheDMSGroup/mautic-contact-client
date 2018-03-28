@@ -362,7 +362,7 @@ class ContactClientModel extends FormModel
                     [
                         'contactclient_id' => $contactClient->getId(),
                         'type'             => $type,
-                        'utmSource'        => $utmSource['utmSource'],
+                        'utm_source'       => $utmSource['utmSource'],
                     ]
                 );
                 if (!$canViewOthers) {
@@ -394,8 +394,8 @@ class ContactClientModel extends FormModel
             $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
             foreach ($utmSources as $utmSource) {
                 $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
-                    ->where('utmSource= :utmSource')
-                    ->setParameter('utmSource', $utmSource['utmSource'])
+                    ->where('utm_source= :utm_source')
+                    ->setParameter('utm_source', $utmSource['utmSource'])
                     ->groupBy($dateConstruct);
                 $data = $query->loadAndBuildTimeData($q);
                 foreach ($data as $val) {
@@ -424,7 +424,7 @@ class ContactClientModel extends FormModel
 
         $q = $this->em->createQueryBuilder()
             ->from('MauticContactClientBundle:Stat', 'cc')
-            ->select('DISTINCT cc.utmSource');
+            ->select('DISTINCT cc.utm_source');
 
         $q->where(
             $q->expr()->eq('cc.contactClient', ':contactClientId')

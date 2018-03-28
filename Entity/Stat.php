@@ -92,11 +92,16 @@ class Stat
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
 
-        $builder->addNullableField('utmSource', 'string');
+        $builder->addNamedField('utmSource', 'string', 'utm_source', true);
 
         $builder->addIndex(
             ['contactclient_id', 'type', 'date_added'],
             'contactclient_type_date_added'
+        );
+
+        $builder->addIndex(
+            ['contactclient_id', 'utm_source'],
+            'contactclient_utm_source'
         );
     }
 
