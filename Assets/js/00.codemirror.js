@@ -1,6 +1,6 @@
 /* Overlay CodeMirror editor modes with custom mustache mode to style our mustache tags */
 var CodeMirrorMustacheOverlay = function (config, parserConfig) {
-    console.log(config);
+    // console.log(config);
     var originalMode = config.mode.replace('/mustache', '');
     if (originalMode === 'json') {
         originalMode = {

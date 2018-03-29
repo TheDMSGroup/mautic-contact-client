@@ -14,7 +14,6 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
-use Mautic\PluginBundle\Entity\IntegrationEntityRepository;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -644,10 +643,10 @@ class ClientIntegration extends AbstractIntegration
         if ($this->valid) {
             $integrationEntities = [
                 $this->saveSyncedData(
-                    $this->contact,
-                    $this->contactClient->getName(),
-                    'lead',
-                    $integration_entity_id
+                    'Client',
+                    'ContactClient',
+                    $this->contactClient->getId(),
+                    $this->contact
                 ),
             ];
             if (!empty($integrationEntities)) {
@@ -711,40 +710,41 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param $entity
-     * @param $object
-     * @param $mauticObjectReference
-     * @param $integrationEntityId
+     * Create a new integration record (we are never updating here).
      *
-     * @return IntegrationEntity|null|object
+     * @param        $integrationName
+     * @param        $integrationEntity
+     * @param        $integrationEntityId
+     * @param        $entity
+     * @param string $internalEntityType
+     * @param null   $internalData
+     *
+     * @return IntegrationEntity
      */
-    public function saveSyncedData($entity, $object, $mauticObjectReference, $integrationEntityId)
-    {
-        /** @var IntegrationEntityRepository $integrationEntityRepo */
-        $integrationEntityRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
-        $integrationEntities   = $integrationEntityRepo->getIntegrationEntities(
-            $this->getName(),
-            $object,
-            $mauticObjectReference,
-            [$entity->getId()]
-        );
+    private function saveSyncedData(
+        $integrationName,
+        $integrationEntity,
+        $integrationEntityId,
+        $entity,
+        $internalEntityType = 'lead',
+        $internalData = null
+    ) {
+        /** @var IntegrationEntity $newIntegrationEntity */
+        $newIntegrationEntity = new IntegrationEntity();
+        $newIntegrationEntity->setDateAdded(new \DateTime());
+        $newIntegrationEntity->setIntegration($integrationName);
+        $newIntegrationEntity->setIntegrationEntity($integrationEntity);
+        $newIntegrationEntity->setIntegrationEntityId($integrationEntityId);
+        $newIntegrationEntity->setInternalEntity($internalEntityType);
+        $newIntegrationEntity->setInternalEntityId($entity->getId());
+        $newIntegrationEntity->setLastSyncDate(new \DateTime());
 
-        if ($integrationEntities) {
-            $integrationEntity = reset($integrationEntities);
-        } else {
-            $integrationEntity = new IntegrationEntity();
-            $integrationEntity->setDateAdded(new \DateTime());
-            $integrationEntity->setIntegration($this->getName());
-            $integrationEntity->setIntegrationEntity($object);
-            $integrationEntity->setIntegrationEntityId($integrationEntityId);
-            $integrationEntity->setInternalEntity($mauticObjectReference);
-            $integrationEntity->setInternalEntityId($entity->getId());
+        // This is too heavy of data to log in multiple locations.
+        if ($internalData) {
+            $newIntegrationEntity->setInternal($internalData);
         }
-        // We may not want to log here as well in future.
-        $integrationEntity->setInternal($this->logs);
-        $integrationEntity->setLastSyncDate(new \DateTime());
 
-        return $integrationEntity;
+        return $newIntegrationEntity;
     }
 
     /**
