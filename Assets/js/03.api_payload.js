@@ -189,11 +189,11 @@ Mautic.contactclientApiPayload = function () {
                         }
 
                         // Apply CodeMirror typecasting.
-                        var lastFormat;
+                        var lastFormat, initialFormat;
                         var editorMode = function ($template, format) {
                                 format = format.toLowerCase();
                                 setTimeout(function () {
-                                    if (format === lastFormat) {
+                                    if (format === lastFormat && format !== initialFormat) {
                                         return;
                                     }
                                     var $cm = $template.find('div.CodeMirror-wrap:first');
@@ -240,6 +240,9 @@ Mautic.contactclientApiPayload = function () {
                                             }
                                         }
                                     }
+                                    if (!initialFormat) {
+                                        initialFormat = format;
+                                    }
                                     lastFormat = format;
                                 }, 200);
                             },
@@ -249,6 +252,7 @@ Mautic.contactclientApiPayload = function () {
                                     set = [];
                                 if (format === 'json') {
                                     output += JSON.stringify(fields, null, 2);
+                                    output = output.replace(/"true"/ig, 'true').replace(/"false"/ig, 'false');
                                 }
                                 else if (format === 'xml') {
                                     output += '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -392,7 +396,8 @@ Mautic.contactclientApiPayload = function () {
 
                                         // Update the JSONEditor schema value.
                                         if (changes) {
-                                            // console.log('Update the JSONEditor schema value.');
+                                            // console.log('Update the
+                                            // JSONEditor schema value.');
                                             var subEditor = apiPayloadJSONEditor.getEditor('root.operations.' + i + '.request.body');
                                             // Setting to a null value to cause
                                             // re-instantiation of tag-editor.
@@ -416,8 +421,7 @@ Mautic.contactclientApiPayload = function () {
                                     if ($format.length) {
                                         $format.off('change').on('change', function () {
                                             editorMode($template, mQuery(this).val());
-                                        }).addClass('format-checked');
-                                        $format.trigger('change');
+                                        }).trigger('change').addClass('format-checked');
                                     }
                                     $template.show();
                                     $body.addClass('manual');
@@ -470,7 +474,7 @@ Mautic.contactclientApiPayload = function () {
                                                 // "value" because there
                                                 // could be multiple.
                                                 var fieldTokens = val.match(tokenRegex);
-                                                if (typeof fieldTokens === 'object' && fieldTokens.length) {
+                                                if (typeof fieldTokens === 'object' && fieldTokens) {
                                                     // Compare against
                                                     // tokens found in the
                                                     // template.
