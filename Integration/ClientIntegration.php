@@ -740,8 +740,8 @@ class ClientIntegration extends AbstractIntegration
             $integrationEntity->setInternalEntity($mauticObjectReference);
             $integrationEntity->setInternalEntityId($entity->getId());
         }
-        // We may not want to log here as well in future.
-        $integrationEntity->setInternal($this->logs);
+        // This is too heavy of data to log in multiple locations.
+        // $integrationEntity->setInternal($this->logs);
         $integrationEntity->setLastSyncDate(new \DateTime());
 
         return $integrationEntity;
