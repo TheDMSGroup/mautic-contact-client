@@ -86,11 +86,12 @@ class Cache extends AbstractCommonModel
      * @param null $timezone
      *
      * @return string
+     *
      * @throws \Exception
      */
     private function oldestDateAdded($duration, $timezone = null)
     {
-        if (strpos($duration, 'P') === 0) {
+        if (0 === strpos($duration, 'P')) {
             // Standard rolling interval.
             $oldest = new \DateTime();
         } else {
@@ -123,7 +124,6 @@ class Cache extends AbstractCommonModel
 
         return $oldest->format('Y-m-d H:i:s');
     }
-
 
     /**
      * Given the Contact and Contact Client, discern which exclusivity entries need to be cached.
@@ -356,9 +356,10 @@ class Cache extends AbstractCommonModel
     }
 
     /**
-     * Get the global timezone setting
+     * Get the global timezone setting.
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     private function getTimezone()

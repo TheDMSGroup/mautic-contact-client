@@ -47,6 +47,7 @@ class CacheRepository extends CommonRepository
      * @param string        $timezone
      *
      * @return array|null
+     *
      * @throws \Exception
      */
     public function findLimit(
@@ -108,11 +109,12 @@ class CacheRepository extends CommonRepository
      * @param null $timezone
      *
      * @return string
+     *
      * @throws \Exception
      */
     public function oldestDateAdded($duration, $timezone = null)
     {
-        if (strpos($duration, 'P') === 0) {
+        if (0 === strpos($duration, 'P')) {
             // Standard rolling interval.
             $oldest = new \DateTime();
         } else {
@@ -260,6 +262,7 @@ class CacheRepository extends CommonRepository
      * @param string        $timezone
      *
      * @return mixed|null
+     *
      * @throws \Exception
      */
     public function findDuplicate(
