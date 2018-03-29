@@ -143,18 +143,6 @@
                   "title": "for 1 week"
                 },
                 {
-                  "value": "P2W",
-                  "title": "for 2 weeks"
-                },
-                {
-                  "value": "P3W",
-                  "title": "for 3 weeks"
-                },
-                {
-                  "value": "P30D",
-                  "title": "for 30 days"
-                },
-                {
                   "value": "1W",
                   "title": "for 1 week (non-rolling)"
                 },
