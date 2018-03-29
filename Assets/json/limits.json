@@ -86,7 +86,7 @@
           "options": {
             "infoText": "Specify how long this budget should last, before expiring and allowing the contact to go to other clients within the scope."
           },
-          "default": "P30D",
+          "default": "1M",
           "enumSource": [
             {
               "source": [
@@ -119,6 +119,10 @@
                   "title": "per day"
                 },
                 {
+                  "value": "1D",
+                  "title": "per day (non-rolling)"
+                },
+                {
                   "value": "P2D",
                   "title": "per 2 days"
                 },
@@ -140,19 +144,27 @@
                 },
                 {
                   "value": "P1W",
-                  "title": "per Week"
+                  "title": "per week"
+                },
+                {
+                  "value": "1W",
+                  "title": "per week (non-rolling)"
                 },
                 {
                   "value": "P2W",
-                  "title": "per 2 Weeks"
+                  "title": "per 2 weeks"
                 },
                 {
                   "value": "P3W",
-                  "title": "per 3 Weeks"
+                  "title": "per 3 weeks"
                 },
                 {
                   "value": "P30D",
                   "title": "per 30 days"
+                },
+                {
+                  "value": "1M",
+                  "title": "per month (non-rolling)"
                 }
               ],
               "title": "{{item.title}}",

@@ -41,6 +41,9 @@ class Cache extends AbstractCommonModel
     /** @var string */
     protected $utmSource;
 
+    /** @var string */
+    protected $timezone;
+
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
      *
@@ -61,8 +64,7 @@ class Cache extends AbstractCommonModel
                     $entity = clone $entity;
                 }
                 // Each entry may have different exclusion expiration.
-                $expireDate = new \DateTime();
-                $expireDate->add(new \DateInterval($rule['duration']));
+                $expireDate = $this->getRepository()->oldestDateAdded($rule['duration'], $this->getTimezone());
                 $entity->setExclusiveExpireDate($expireDate);
                 $entity->setExclusivePattern($rule['matching']);
                 $entity->setExclusiveScope($rule['scope']);
@@ -75,6 +77,52 @@ class Cache extends AbstractCommonModel
         if (count($entities)) {
             $this->getRepository()->saveEntities($entities);
         }
+    }
+
+    /**
+     * Support non-rolling durations when P is not prefixing.
+     *
+     * @param      $duration
+     * @param null $timezone
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    private function oldestDateAdded($duration, $timezone = null)
+    {
+        if (0 === strpos($duration, 'P')) {
+            // Standard rolling interval.
+            $oldest = new \DateTime();
+        } else {
+            // Non-rolling interval, go to previous interval segment.
+            // Will only work for simple (singular) intervals.
+            if (!$timezone) {
+                $timezone = date_default_timezone_get();
+            }
+            $timezone = new \DateTimeZone($timezone);
+            switch (strtoupper(substr($duration, -1))) {
+                case 'Y':
+                    $oldest = new \DateTime('next year jan 1 midnight', $timezone);
+                    break;
+                case 'M':
+                    $oldest = new \DateTime('first day of next month midnight', $timezone);
+                    break;
+                case 'W':
+                    $oldest = new \DateTime('sunday next week midnight', $timezone);
+                    break;
+                case 'D':
+                    $oldest = new \DateTime('tomorrow midnight', $timezone);
+                    break;
+                default:
+                    $oldest = new \DateTime();
+            }
+            // Add P so that we can now use standard interval
+            $duration = 'P'.$duration;
+        }
+        $oldest->sub(new \DateInterval($duration));
+
+        return $oldest->format('Y-m-d H:i:s');
     }
 
     /**
@@ -278,7 +326,8 @@ class Cache extends AbstractCommonModel
             $this->contact,
             $this->contactClient,
             $this->getDuplicateRules(),
-            $this->getUtmSource()
+            $this->getUtmSource(),
+            $this->getTimezone()
         );
         if ($duplicate) {
             throw new ContactClientException(
@@ -307,6 +356,24 @@ class Cache extends AbstractCommonModel
     }
 
     /**
+     * Get the global timezone setting.
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    private function getTimezone()
+    {
+        if (!$this->timezone) {
+            $this->timezone = $this->getContainer()->get('mautic.helper.core_parameters')->getParameter(
+                'default_timezone'
+            );
+        }
+
+        return $this->timezone;
+    }
+
+    /**
      * Using the duplicate rules, evaluate if the current contact matches any entry in the cache.
      *
      * @throws ContactClientException
@@ -316,7 +383,8 @@ class Cache extends AbstractCommonModel
     {
         $limits = $this->getRepository()->findLimit(
             $this->contactClient,
-            $this->getLimitRules()
+            $this->getLimitRules(),
+            $this->getTimezone()
         );
         if ($limits) {
             throw new ContactClientException(
