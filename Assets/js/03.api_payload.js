@@ -252,7 +252,7 @@ Mautic.contactclientApiPayload = function () {
                                     set = [];
                                 if (format === 'json') {
                                     output += JSON.stringify(fields, null, 2);
-                                    output = output.replace(/"true"/ig, 'true').replace(/"false"/ig, 'false');
+                                    output = output.replace(/"true"/ig, 'true').replace(/"false"/ig, 'false').replace(/"null"/ig, 'null');
                                 }
                                 else if (format === 'xml') {
                                     output += '<?xml version="1.0" encoding="UTF-8"?>\n';

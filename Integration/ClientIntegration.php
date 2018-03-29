@@ -718,7 +718,7 @@ class ClientIntegration extends AbstractIntegration
      *
      * @return IntegrationEntity|null|object
      */
-    public function saveSyncedData($entity, $object, $mauticObjectReference, $integrationEntityId)
+    private function saveSyncedData($entity, $object, $mauticObjectReference, $integrationEntityId)
     {
         /** @var IntegrationEntityRepository $integrationEntityRepo */
         $integrationEntityRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
