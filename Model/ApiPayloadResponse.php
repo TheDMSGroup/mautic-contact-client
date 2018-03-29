@@ -229,6 +229,12 @@ class ApiPayloadResponse
                             }
                         }
                     }
+                    // Fall back to a raw string (no key-value pairs at all)
+                    if (!$result) {
+                        foreach (explode("\n", $data) as $l => $line) {
+                            $result['line '.$l] = $line;
+                        }
+                    }
                     break;
 
                 case 'yaml':
