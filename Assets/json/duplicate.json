@@ -98,7 +98,7 @@
           "options": {
             "infoText": "Specify how long this duplicate rule should last, before expiring and allowing the contact to go to other clients within the scope."
           },
-          "default": "P30D",
+          "default": "1M",
           "enumSource": [
             {
               "source": [
@@ -116,43 +116,63 @@
                 },
                 {
                   "value": "P1D",
-                  "title": "for 1 Day"
+                  "title": "for 1 day"
                 },
                 {
                   "value": "P2D",
-                  "title": "for 2 Days"
+                  "title": "for 2 days"
                 },
                 {
                   "value": "P3D",
-                  "title": "for 3 Days"
+                  "title": "for 3 days"
                 },
                 {
                   "value": "P4D",
-                  "title": "for 4 Days"
+                  "title": "for 4 days"
                 },
                 {
                   "value": "P5D",
-                  "title": "for 5 Days"
+                  "title": "for 5 days"
                 },
                 {
                   "value": "P6D",
-                  "title": "for 6 Days"
+                  "title": "for 6 days"
                 },
                 {
                   "value": "P1W",
-                  "title": "for 1 Week"
+                  "title": "for 1 week"
                 },
                 {
                   "value": "P2W",
-                  "title": "for 2 Weeks"
+                  "title": "for 2 weeks"
                 },
                 {
                   "value": "P3W",
-                  "title": "for 3 Weeks"
+                  "title": "for 3 weeks"
                 },
                 {
                   "value": "P30D",
-                  "title": "for 30 Days"
+                  "title": "for 30 days"
+                },
+                {
+                  "value": "1W",
+                  "title": "for 1 week (non-rolling)"
+                },
+                {
+                  "value": "P2W",
+                  "title": "for 2 weeks"
+                },
+                {
+                  "value": "P3W",
+                  "title": "for 3 weeks"
+                },
+                {
+                  "value": "P30D",
+                  "title": "for 30 days"
+                },
+                {
+                  "value": "1M",
+                  "title": "for 1 month (non-rolling)"
                 }
               ],
               "title": "{{item.title}}",

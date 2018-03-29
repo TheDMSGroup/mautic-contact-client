@@ -93,25 +93,29 @@
           "options": {
             "infoText": "Specify how long this exclusivity rule should last, before expiring and allowing the contact to go to other clients within the scope. There are intentionally few options here to reduce overhead when matching exclusivity."
           },
-          "default": "P1W",
+          "default": "1M",
           "enumSource": [
             {
               "source": [
                 {
                   "value": "PT1H",
-                  "title": "for hour"
+                  "title": "for 1 hour"
                 },
                 {
                   "value": "P1D",
-                  "title": "for day"
+                  "title": "for 1 day"
                 },
                 {
                   "value": "P1W",
-                  "title": "for week"
+                  "title": "for 1 week"
                 },
                 {
                   "value": "P30D",
                   "title": "for 30 days"
+                },
+                {
+                  "value": "1M",
+                  "title": "for 1 month (non-rolling)"
                 }
               ],
               "title": "{{item.title}}",
