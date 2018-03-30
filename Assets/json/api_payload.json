@@ -355,7 +355,7 @@
                     "title": "Validation",
                     "type": "string",
                     "format": "textarea",
-                    "default": "{\"condition\": \"AND\", \"rules\": [{\"id\": \"status\", \"operator\": \"equal\", \"value\": \"200\"}]}",
+                    "default": "{\"condition\": \"AND\", \"rules\": [{\"id\": \"status\", \"field\": \"status\", \"type\": \"string\", \"input\": \"select\", \"operator\": \"equal\", \"value\": \"200\"}], \"valid\": true}",
                     "options": {
                       "queryBuilder": true
                     }
