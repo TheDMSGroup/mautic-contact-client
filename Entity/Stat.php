@@ -62,7 +62,7 @@ class Stat
     private $attribution;
 
     /** @var string $utmSource */
-    private $utmSource;
+    private $utm_source;
 
     /**
      * @param ORM\ClassMetadata $metadata
@@ -92,7 +92,7 @@ class Stat
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
 
-        $builder->addNamedField('utmSource', 'string', 'utm_source', true);
+        $builder->addNamedField('utm_source', 'string', 'utm_source', true);
 
         $builder->addIndex(
             ['contactclient_id', 'type', 'date_added'],
@@ -236,7 +236,7 @@ class Stat
      */
     public function getUtmSource()
     {
-        return $this->utmSource;
+        return $this->utm_source;
     }
 
     /**
@@ -246,7 +246,7 @@ class Stat
      */
     public function setUtmSource($utmSource)
     {
-        $this->utmSource = $utmSource;
+        $this->utm_source = $utmSource;
 
         return $this;
     }
