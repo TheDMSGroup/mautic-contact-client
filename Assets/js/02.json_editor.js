@@ -110,13 +110,21 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 }
                 try {
                     rules = mQuery.parseJSON(val);
+                    if (typeof rules !== 'object') {
+                        error = true;
+                        errors.push({
+                            path: path,
+                            property: 'format',
+                            message: 'This Query Builder field does not contain an object.'
+                        });
+                    }
                 }
                 catch (e) {
                     error = true;
                     errors.push({
                         path: path,
                         property: 'format',
-                        message: 'Invalid JSON was found in this Query Builder field.'
+                        message: 'Could not parse the JSON in this Query Builder field.'
                     });
                 }
 
@@ -185,7 +193,17 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                             }),
                             oldRulesString = JSON.stringify(oldRules, null, 2);
                         if (val !== oldRulesString) {
-                            $queryBuilder.queryBuilder('setRules', rules);
+                            try {
+                                $queryBuilder.queryBuilder('setRules', rules);
+                            }
+                            catch (e) {
+                                error = true;
+                                errors.push({
+                                    path: path,
+                                    property: 'format',
+                                    message: 'This Query Builder field is invalid.'
+                                });
+                            }
                         }
                     }
                 }
