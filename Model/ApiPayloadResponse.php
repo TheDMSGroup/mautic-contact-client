@@ -385,7 +385,7 @@ class ApiPayloadResponse
                 }
             } catch (\Exception $e) {
                 throw new ContactClientException(
-                    'Response did not pass validation. ' . $e->getMessage(),
+                    'Response did not pass validation. '.$e->getMessage(),
                     0,
                     $e,
                     Stat::TYPE_REJECT,
