@@ -374,7 +374,7 @@ class ApiPayloadResponse
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
                 if (!$this->valid) {
                     throw new ContactClientException(
-                        'Invalid response based on success definition.',
+                        'Response did not pass validation.',
                         0,
                         null,
                         Stat::TYPE_REJECT,
@@ -385,7 +385,7 @@ class ApiPayloadResponse
                 }
             } catch (\Exception $e) {
                 throw new ContactClientException(
-                    'Error based on success definition.',
+                    'Response did not pass validation. '.$e->getMessage(),
                     0,
                     $e,
                     Stat::TYPE_REJECT,

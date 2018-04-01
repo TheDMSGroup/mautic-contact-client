@@ -362,7 +362,7 @@ class ContactClientModel extends FormModel
                     [
                         'contactclient_id' => $contactClient->getId(),
                         'type'             => $type,
-                        'utm_source'       => $utmSource['utmSource'],
+                        'utm_source'       => $utmSource,
                     ]
                 );
                 if (!$canViewOthers) {
@@ -371,10 +371,10 @@ class ContactClientModel extends FormModel
                 $data = $query->loadAndBuildTimeData($q);
                 foreach ($data as $val) {
                     if (0 !== $val) {
-                        if (empty($utmSource['utmSource'])) {
-                            $utmSource['utmSource'] = 'No Source';
+                        if (empty($utmSource)) {
+                            $utmSource = 'No Source';
                         }
-                        $chart->setDataset($utmSource['utmSource'], $data);
+                        $chart->setDataset($utmSource, $data);
                         break;
                     }
                 }
@@ -394,16 +394,16 @@ class ContactClientModel extends FormModel
             $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
             foreach ($utmSources as $utmSource) {
                 $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
-                    ->where('utm_source= :utm_source')
-                    ->setParameter('utm_source', $utmSource['utmSource'])
+                    ->where('utm_source = :utmSource')
+                    ->setParameter('utmSource', $utmSource)
                     ->groupBy($dateConstruct);
                 $data = $query->loadAndBuildTimeData($q);
                 foreach ($data as $val) {
                     if (0 !== $val) {
-                        if (empty($utmSource['utmSource'])) {
-                            $utmSource['utmSource'] = 'No Source';
+                        if (empty($utmSource)) {
+                            $utmSource = 'No Source';
                         }
-                        $chart->setDataset($utmSource['utmSource'], $data);
+                        $chart->setDataset($utmSource, $data);
                         break;
                     }
                 }
@@ -420,7 +420,8 @@ class ContactClientModel extends FormModel
      */
     private function getSourcesByClient(ContactClient $contactClient)
     {
-        $id = $contactClient->getId();
+        $utmSources = [];
+        $id         = $contactClient->getId();
 
         $q = $this->em->createQueryBuilder()
             ->from('MauticContactClientBundle:Stat', 'cc')
@@ -428,10 +429,15 @@ class ContactClientModel extends FormModel
 
         $q->where(
             $q->expr()->eq('cc.contactClient', ':contactClientId')
-        )
-            ->setParameter('contactClientId', $id);
+        );
 
-        return $q->getQuery()->getArrayResult();
+        $q->setParameter('contactClientId', $id);
+
+        foreach ($q->getQuery()->getScalarResult() as $row) {
+            $utmSources[] = $row['utm_source'];
+        }
+
+        return $utmSources;
     }
 
     /**
