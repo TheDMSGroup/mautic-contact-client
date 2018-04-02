@@ -253,7 +253,7 @@ class ApiPayloadRequest
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required field is missing/empty: '.$field->key,
+                        'A required request field is missing or empty: '.$field->key,
                         0,
                         null,
                         Stat::TYPE_FIELDS,
@@ -324,7 +324,7 @@ class ApiPayloadRequest
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required template field is missing/empty: '.$field->key,
+                        'A required request template field is missing or empty: '.$field->key,
                         0,
                         null,
                         Stat::TYPE_FIELDS,

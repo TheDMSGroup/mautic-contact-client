@@ -232,7 +232,7 @@ class ApiPayloadResponse
                     // Fall back to a raw string (no key-value pairs at all)
                     if (!$result) {
                         foreach (explode("\n", $data) as $l => $line) {
-                            $result['line '.$l] = $line;
+                            $result['line '.($l + 1)] = $line;
                         }
                     }
                     break;
@@ -369,25 +369,17 @@ class ApiPayloadResponse
             }
 
             // Standard success definition validation.
+            $e      = false;
             $filter = new FilterHelper();
             try {
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
-                if (!$this->valid) {
-                    throw new ContactClientException(
-                        'Response did not pass validation.',
-                        0,
-                        null,
-                        Stat::TYPE_REJECT,
-                        false,
-                        null,
-                        $filter->getErrors()
-                    );
-                }
             } catch (\Exception $e) {
+            }
+            if (!$this->valid || $e) {
                 throw new ContactClientException(
-                    'Response did not pass validation. '.$e->getMessage(),
+                    'Response did not pass validation.'.$e ? ' '.$e->getMessage() : null,
                     0,
-                    $e,
+                    $e ? $e : null,
                     Stat::TYPE_REJECT,
                     false,
                     null,

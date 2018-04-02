@@ -235,8 +235,13 @@ class DateFormatHelper
      */
     public function format($date, $format = 'iso8601')
     {
-        $format = $this->validateFormat($format);
+        $result = null;
+        try {
+            $format = $this->validateFormat($format);
+            $result = $this->parse($date)->format($format);
+        } catch (\Exception $e) {
+        }
 
-        return $this->parse($date)->format($format);
+        return $result;
     }
 }
