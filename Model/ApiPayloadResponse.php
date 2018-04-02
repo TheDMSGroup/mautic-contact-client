@@ -223,7 +223,7 @@ class ApiPayloadResponse
                                         }
                                     }
                                     list($key, $value) = $elements;
-                                    $result[$key]      = $value;
+                                    $result[$key] = $value;
                                     break;
                                 }
                             }
@@ -369,23 +369,15 @@ class ApiPayloadResponse
             }
 
             // Standard success definition validation.
+            $e = null;
             $filter = new FilterHelper();
             try {
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
-                if (!$this->valid) {
-                    throw new ContactClientException(
-                        'Response did not pass validation.',
-                        0,
-                        null,
-                        Stat::TYPE_REJECT,
-                        false,
-                        null,
-                        $filter->getErrors()
-                    );
-                }
             } catch (\Exception $e) {
+            }
+            if (!$this->valid) {
                 throw new ContactClientException(
-                    'Response did not pass validation. '.$e->getMessage(),
+                    'Response did not pass validation.'.$e ? ' '.$e->getMessage() : null,
                     0,
                     $e,
                     Stat::TYPE_REJECT,
