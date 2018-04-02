@@ -379,7 +379,7 @@ class ApiPayloadResponse
                 throw new ContactClientException(
                     'Response did not pass validation.'.$e ? ' '.$e->getMessage() : null,
                     0,
-                    $e,
+                    $e ? $e : null,
                     Stat::TYPE_REJECT,
                     false,
                     null,
