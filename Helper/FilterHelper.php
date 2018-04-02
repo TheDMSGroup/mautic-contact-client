@@ -183,7 +183,7 @@ class FilterHelper
         $result = $this->evaluateRuleAgainstContext($rule, $contextValue, $ruleValue);
         if (!$result) {
             $contextValue = $contextValue ? '"'.$contextValue.'"' : 'empty';
-            $ruleValue = $ruleValue ? '"'.$ruleValue.'"' : 'empty';
+            $ruleValue    = $ruleValue ? '"'.$ruleValue.'"' : 'empty';
             $this->setError(
                 $rule->field.' must '.rtrim($rule->operator, 's').' '.$ruleValue.' (value was '.$contextValue.').'
             );
