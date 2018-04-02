@@ -369,17 +369,25 @@ class ApiPayloadResponse
             }
 
             // Standard success definition validation.
-            $e      = false;
             $filter = new FilterHelper();
             try {
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
             } catch (\Exception $e) {
-            }
-            if (!$this->valid || $e) {
                 throw new ContactClientException(
-                    'Response did not pass validation.'.$e ? ' '.$e->getMessage() : null,
+                    'Error in validation: '.$e->getMessage(),
                     0,
-                    $e ? $e : null,
+                    $e,
+                    Stat::TYPE_REJECT,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
+            }
+            if (!$this->valid && !isset($e)) {
+                throw new ContactClientException(
+                    'Failed validation: '.implode(', ', $filter->getErrors()),
+                    0,
+                    null,
                     Stat::TYPE_REJECT,
                     false,
                     null,
