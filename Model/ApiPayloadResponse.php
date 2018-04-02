@@ -223,7 +223,7 @@ class ApiPayloadResponse
                                         }
                                     }
                                     list($key, $value) = $elements;
-                                    $result[$key] = $value;
+                                    $result[$key]      = $value;
                                     break;
                                 }
                             }
@@ -369,7 +369,7 @@ class ApiPayloadResponse
             }
 
             // Standard success definition validation.
-            $e = false;
+            $e      = false;
             $filter = new FilterHelper();
             try {
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);

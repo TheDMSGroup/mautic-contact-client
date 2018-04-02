@@ -241,6 +241,7 @@ class DateFormatHelper
             $result = $this->parse($date)->format($format);
         } catch (\Exception $e) {
         }
+
         return $result;
     }
 }
