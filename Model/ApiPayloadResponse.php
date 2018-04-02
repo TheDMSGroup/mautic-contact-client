@@ -369,13 +369,13 @@ class ApiPayloadResponse
             }
 
             // Standard success definition validation.
-            $e = null;
+            $e = false;
             $filter = new FilterHelper();
             try {
                 $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
             } catch (\Exception $e) {
             }
-            if (!$this->valid) {
+            if (!$this->valid || $e) {
                 throw new ContactClientException(
                     'Response did not pass validation.'.$e ? ' '.$e->getMessage() : null,
                     0,
