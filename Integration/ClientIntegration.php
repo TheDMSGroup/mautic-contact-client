@@ -29,8 +29,6 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
 
-// use Mautic\LeadBundle\Entity\LeadEventLog;
-
 /**
  * Class ClientIntegration.
  */
@@ -285,7 +283,10 @@ class ClientIntegration extends AbstractIntegration
         }
 
         if ($this->payload) {
-            $this->setLogs($this->payload->getLogs(), 'operations');
+            $operationLogs = $this->payload->getLogs();
+            if ($operationLogs) {
+                $this->setLogs($operationLogs, 'operations');
+            }
         }
 
         $this->updateContact();
@@ -371,6 +372,7 @@ class ClientIntegration extends AbstractIntegration
             $statType = $exception->getStatType();
             if ($statType) {
                 $this->statType = $statType;
+                $this->setLogs($this->statType, 'status');
             }
 
             $errorData = $exception->getData();
@@ -382,6 +384,7 @@ class ClientIntegration extends AbstractIntegration
                 // This type of exception indicates that we can requeue the contact.
                 $this->logIntegrationError($exception, $this->contact);
                 $this->retry = true;
+                $this->setLogs($this->retry, 'retry');
             }
         }
     }
@@ -540,8 +543,6 @@ class ClientIntegration extends AbstractIntegration
      *      contactclient_stats
      *      contactclient_events
      *      integration_entity.
-     *
-     * Use LeadTimelineEvent
      */
     private function logResults()
     {
@@ -555,16 +556,6 @@ class ClientIntegration extends AbstractIntegration
         $clientModel = $this->getContactClientModel();
 
         // Stats - contactclient_stats
-
-        // @todo - additional stat logging:
-        // Stat::TYPE_QUEUED - Queued should happen before pushLead when a lead is discerned that it should go to this client.
-        // Stat::TYPE_DUPLICATE
-        // Stat::TYPE_EXCLUSIVE
-        // Stat::TYPE_FILTER
-        // Stat::TYPE_LIMITS
-        // Stat::TYPE_REVENUE
-        // Stat::TYPE_SCHEDULE
-
         $errors         = $this->getLogs('error');
         $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
         if ($this->valid) {
@@ -572,20 +563,7 @@ class ClientIntegration extends AbstractIntegration
             $message   = 'Contact was sent successfully.';
         } else {
             $statLevel = 'ERROR';
-            $message   = $errors ? implode(PHP_EOL, $errors) : 'An unexpected error occurred.';
-            // Check for a filter-based rejection
-            // @todo - refactor exception bubbling for this.
-            if (isset($this->logs['operations'])) {
-                foreach ($this->logs['operations'] as $operation) {
-                    if (isset($operation['filter'])) {
-                        // Contact was rejected due to success definition filters.
-                        $this->statType = Stat::TYPE_REJECT;
-                        $statLevel      = 'WARNING';
-                        $message        = $operation['filter'];
-                        break;
-                    }
-                }
-            }
+            $message   = $errors ? implode(PHP_EOL, $errors) : 'An unexpected issue occurred.';
         }
 
         // Session storage for external plugins (should probably be dispatcher instead).
@@ -597,7 +575,7 @@ class ClientIntegration extends AbstractIntegration
             'name'     => $eventName,
             'valid'    => $this->valid,
             'statType' => $this->statType,
-            'error'    => $this->getLogs('error'),
+            'error'    => $errors,
         ];
         $session->set('contactclient_events', $events);
         // Indicates that a single (or more) valid sends have been made.
@@ -605,8 +583,13 @@ class ClientIntegration extends AbstractIntegration
             $session->set('contactclient_valid', true);
         }
         // get the original / first utm source code for contact
-        $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
-        $utmSource = $utmHelper->getFirstUtmSource($this->contact);
+        try {
+            /** @var \MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper $utmHelper */
+            $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
+            $utmSource = $utmHelper->getFirstUtmSource($this->contact);
+        } catch (\Exception $e) {
+            $utmSource = null;
+        }
 
         // Add log entry for statistics / charts.
         $attribution = !empty($this->logs['attribution']) ? $this->logs['attribution'] : 0;
@@ -681,6 +664,10 @@ class ClientIntegration extends AbstractIntegration
         return $this->logs;
     }
 
+    /**
+     * @param      $value
+     * @param null $type
+     */
     public function setLogs($value, $type = null)
     {
         if ($type) {
@@ -928,6 +915,9 @@ class ClientIntegration extends AbstractIntegration
         return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
     }
 
+    /**
+     * @return bool
+     */
     public function getValid()
     {
         return $this->valid;

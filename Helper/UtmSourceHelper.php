@@ -46,6 +46,7 @@ class UtmSourceHelper
             $utmTags = $contact->getUtmTags();
             if ($utmTags) {
                 $utmTags = $utmTags->toArray();
+                /** @var \Mautic\LeadBundle\Entity\UtmTag $utmTag */
                 foreach ($utmTags as $utmTag) {
                     $tags[$utmTag->getDateAdded()->getTimestamp()] = $utmTag;
                 }
