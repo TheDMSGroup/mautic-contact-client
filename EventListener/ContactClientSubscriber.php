@@ -181,6 +181,7 @@ class ContactClientSubscriber extends CommonSubscriber
         }
 
         $rows = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), null, $options);
+        $rows = isset($rows['results']) ? $rows['results'] : $rows;
         foreach ($rows['results'] as $row) {
             $eventTypeKey  = $row['type'];
             $eventTypeName = ucwords($eventTypeKey);
