@@ -184,7 +184,7 @@ class ContactClientSubscriber extends CommonSubscriber
         $rows = isset($results['results']) ? $results['results'] : $results;
         $total = isset($results['total']) ? $results['total'] : count($rows);
 
-        foreach ($rows['results'] as $row) {
+        foreach ($rows as $row) {
             $eventTypeKey  = $row['type'];
             $eventTypeName = ucwords($eventTypeKey);
 
