@@ -23,7 +23,7 @@
         'mautic_contactclient_timeline_action',
         ['contactClientId' => $contactClient->getId()]
     ); ?>" id="timeline-filters">
-        <div class=""col-xs-8 col-lg-10 va-m form-inline">
+        <div class="col-xs-8 col-lg-10 va-m form-inline">
             <div class="input-group col-xs-8">
                 <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
                        placeholder="<?php echo $view['translator']->trans('mautic.contactclient.search.placeholder'); ?>"
