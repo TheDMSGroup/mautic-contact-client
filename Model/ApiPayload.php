@@ -174,7 +174,9 @@ class ApiPayload
                 0,
                 null,
                 Stat::TYPE_ERROR,
-                false
+                false,
+                null,
+                $this->contactClient ? $this->contactClient->toArray() : null
             );
         }
 
@@ -183,11 +185,13 @@ class ApiPayload
             $this->payload = $jsonHelper->decodeObject($payload, 'Payload');
         } catch (\Exception $e) {
             throw new ContactClientException(
-                'API instructions are incomplete.',
+                'API instructions malformed.',
                 0,
                 $e,
                 Stat::TYPE_ERROR,
-                false
+                false,
+                null,
+                $this->contactClient ? $this->contactClient->toArray() : null
             );
         }
         $this->setSettings(!empty($this->payload->settings) ? $this->payload->settings : null);
