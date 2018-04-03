@@ -12,17 +12,16 @@
 namespace MauticPlugin\MauticContactClientBundle\Constraints;
 
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * Class JsonArrayValidator
+ * Class JsonArrayValidator.
  */
 class JsonArrayValidator extends ConstraintValidator
 {
-
     /**
      * @param mixed      $value
      * @param Constraint $constraint
@@ -41,12 +40,12 @@ class JsonArrayValidator extends ConstraintValidator
                 if ($this->context instanceof ExecutionContextInterface) {
                     $this->context->buildViolation($constraint->message)
                         ->setParameter('{{ value }}', $this->formatValue($value))
-                        ->setCode(JsonObject::IS_JSON_ARRAY_ERROR)
+                        ->setCode(JsonArray::IS_JSON_ARRAY_ERROR)
                         ->addViolation();
                 } else {
                     $this->buildViolation($constraint->message)
                         ->setParameter('{{ value }}', $this->formatValue($value))
-                        ->setCode(JsonObject::IS_JSON_ARRAY_ERROR)
+                        ->setCode(JsonArray::IS_JSON_ARRAY_ERROR)
                         ->addViolation();
                 }
             }

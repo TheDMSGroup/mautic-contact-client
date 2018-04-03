@@ -14,7 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Constraints;
 use Symfony\Component\Validator\Constraint;
 
 /**
- * Class JsonObject
+ * Class JsonObject.
  */
 class JsonObject extends Constraint
 {

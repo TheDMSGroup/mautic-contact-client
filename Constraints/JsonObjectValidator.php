@@ -12,17 +12,16 @@
 namespace MauticPlugin\MauticContactClientBundle\Constraints;
 
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * Class JsonObjectValidator
+ * Class JsonObjectValidator.
  */
 class JsonObjectValidator extends ConstraintValidator
 {
-
     /**
      * @param mixed      $value
      * @param Constraint $constraint

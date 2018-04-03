@@ -95,7 +95,7 @@ class ContactClientType extends AbstractType
                     'class' => 'form-control file-payload',
                     'rows'  => 12,
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
@@ -139,7 +139,7 @@ class ContactClientType extends AbstractType
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
@@ -154,7 +154,7 @@ class ContactClientType extends AbstractType
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
@@ -169,7 +169,7 @@ class ContactClientType extends AbstractType
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
@@ -184,7 +184,7 @@ class ContactClientType extends AbstractType
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
@@ -199,7 +199,7 @@ class ContactClientType extends AbstractType
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
@@ -231,7 +231,7 @@ class ContactClientType extends AbstractType
                     'rows'    => 12,
                     'tooltip' => 'mautic.contactclient.form.schedule_hours.tooltip',
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonArray()],
             ]
         );
@@ -247,7 +247,7 @@ class ContactClientType extends AbstractType
                     'rows'    => 12,
                     'tooltip' => 'mautic.contactclient.form.schedule_exclusions.tooltip',
                 ],
-                'required'   => false,
+                'required'    => false,
                 'constraints' => [new JsonArray()],
             ]
         );

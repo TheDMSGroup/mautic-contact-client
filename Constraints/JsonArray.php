@@ -14,7 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Constraints;
 use Symfony\Component\Validator\Constraint;
 
 /**
- * Class JsonArray
+ * Class JsonArray.
  */
 class JsonArray extends Constraint
 {
