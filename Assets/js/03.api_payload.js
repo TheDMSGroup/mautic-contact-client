@@ -695,12 +695,19 @@ Mautic.contactclientApiPayload = function () {
                                 Mautic.onPageLoad('#api_payload_test_result', response);
                             }
                         }
-                        if (typeof response.payload !== 'undefined' && response.payload.length && typeof setJSONEditorValue === 'function') {
-                            var raw = JSON.stringify(response.payload, null, 2);
+                        if (
+                            typeof response.payload !== 'undefined'
+                            && response.payload.length
+                            && typeof setJSONEditorValue === 'function'
+                        ) {
+                            // response.payload is already a raw string,
+                            // but it may be parsed differently.
+                            var raw = mQuery.parseJSON(response.payload);
+                            raw = JSON.stringify(raw, null, 2);
                             if (raw.length && $apiPayload.val() !== raw) {
                                 // console.log('Change by payload', raw);
                                 $apiPayload.val(raw);
-                                setJSONEditorValue($apiPayload.val());
+                                setJSONEditorValue(raw);
                             }
                         }
                     },
