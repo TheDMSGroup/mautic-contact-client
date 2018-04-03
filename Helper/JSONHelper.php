@@ -25,7 +25,7 @@ class JSONHelper
      *
      * @throws \Exception
      */
-    public function decodeArray($string, $fieldName = 'Unknown', $assoc = false)
+    public function decodeArray($string, $fieldName = null, $assoc = false)
     {
         if (empty($string)) {
             return [];
@@ -77,7 +77,7 @@ class JSONHelper
                 break;
         }
         if ($jsonError) {
-            throw new \Exception('JSON is invalid in field: '.$fieldName.' JSON error: '.$jsonError);
+            throw new \Exception('JSON is invalid in field '.$fieldName.' JSON error: '.$jsonError);
         }
 
         return $result;
@@ -91,7 +91,7 @@ class JSONHelper
      *
      * @throws \Exception
      */
-    public function decodeObject($string, $fieldName = 'Unknown')
+    public function decodeObject($string, $fieldName = null)
     {
         if (empty($string)) {
             return new \stdClass();
