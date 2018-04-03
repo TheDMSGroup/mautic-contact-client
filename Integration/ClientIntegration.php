@@ -760,9 +760,16 @@ class ClientIntegration extends AbstractIntegration
 
                         // Get overridable fields from the payload of the type needed.
                         if ('api' == $contactClientEntity->getType()) {
-                            $payload = $this->getApiPayloadModel();
-                            $payload->setContactClient($contactClientEntity);
-                            $overridableFields[$id] = $payload->getOverridableFields();
+                            try {
+                                $payload = $this->getApiPayloadModel();
+                                $payload->setContactClient($contactClientEntity);
+                                $overridableFields[$id] = $payload->getOverridableFields();
+                            } catch (\Exception $e) {
+                                if ($this->logger) {
+                                    $this->logger->error($e->getMessage());
+                                }
+                                $clients[$id] .= ' ('.$e->getMessage().')';
+                            }
                         } else {
                             // @todo - File based payload.
                         }

@@ -180,18 +180,24 @@ class ApiPayloadResponse
 
                 case 'xml':
                 case 'html':
-                    $doc          = new DOMDocument();
-                    $doc->recover = true;
-                    // Ensure UTF-8 encoding is handled correctly.
-                    if (1 !== preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
-                        $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
+                    if (
+                        false !== strpos($data, '<')
+                        && false !== strpos($data, '>')
+                    ) {
+                        $doc          = new DOMDocument();
+                        $doc->recover = true;
+                        $data         = trim($data);
+                        // Ensure UTF-8 encoding is handled correctly.
+                        if (1 !== preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
+                            $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
+                        }
+                        if ('html' == $responseExpectedFormat) {
+                            @$doc->loadHTML($data);
+                        } else {
+                            @$doc->loadXML($data);
+                        }
+                        $hierarchy = $this->domDocumentArray($doc);
                     }
-                    if ('html' == $responseExpectedFormat) {
-                        $doc->loadHTML($data);
-                    } else {
-                        $doc->loadXML($data);
-                    }
-                    $hierarchy = $this->domDocumentArray($doc);
                     break;
 
                 case 'json':
@@ -248,6 +254,9 @@ class ApiPayloadResponse
 
         // Flatten hierarchical data, if needed.
         if ($hierarchy) {
+            if (!is_array($hierarchy) && !is_object($hierarchy)) {
+                $hierarchy = [$hierarchy];
+            }
             $result = $this->flattenStructure($hierarchy);
         }
 
