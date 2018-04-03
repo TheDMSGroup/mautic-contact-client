@@ -170,7 +170,7 @@ class ApiPayload
     {
         if (!$payload) {
             throw new ContactClientException(
-                'API instructions payload is blank for Client '.$this->getContactClientId(),
+                'API instructions not set.',
                 0,
                 null,
                 Stat::TYPE_ERROR,
@@ -183,7 +183,7 @@ class ApiPayload
             $this->payload = $jsonHelper->decodeObject($payload, 'Payload');
         } catch (\Exception $e) {
             throw new ContactClientException(
-                'API instructions are invalid for Client '.$this->getContactClientId(),
+                'API instructions are incomplete.',
                 0,
                 $e,
                 Stat::TYPE_ERROR,
@@ -193,14 +193,6 @@ class ApiPayload
         $this->setSettings(!empty($this->payload->settings) ? $this->payload->settings : null);
 
         return $this;
-    }
-
-    /**
-     * @return ContactClient
-     */
-    private function getContactClientId()
-    {
-        return $this->contactClient ? $this->contactClient->getId() : null;
     }
 
     /**
