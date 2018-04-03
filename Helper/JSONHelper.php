@@ -30,7 +30,10 @@ class JSONHelper
         if (empty($string)) {
             return [];
         }
-        $array = self::decode(!empty($string) ? $string : '[]', $fieldName, $assoc);
+        $array = self::decode($string, $fieldName, $assoc);
+        if (is_string($array)) {
+            $array = self::decode($array, $fieldName, $assoc);
+        }
         if (!is_array($array)) {
             throw new \Exception('The field '.$fieldName.' is not a JSON array as expected.');
         }
@@ -94,6 +97,9 @@ class JSONHelper
             return new \stdClass();
         }
         $object = self::decode($string, $fieldName);
+        if (is_string($object)) {
+            $object = self::decode($object, $fieldName);
+        }
         if (!is_object($object)) {
             throw new \Exception('The field '.$fieldName.' is not a JSON object as expected.');
         }
