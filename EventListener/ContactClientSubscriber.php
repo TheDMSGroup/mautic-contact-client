@@ -181,8 +181,8 @@ class ContactClientSubscriber extends CommonSubscriber
         }
 
         $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), null, $options);
-        $rows = isset($results['results']) ? $results['results'] : $results;
-        $total = isset($results['total']) ? $results['total'] : count($rows);
+        $rows    = isset($results['results']) ? $results['results'] : $results;
+        $total   = isset($results['total']) ? $results['total'] : count($rows);
 
         foreach ($rows as $row) {
             $eventTypeKey  = $row['type'];
