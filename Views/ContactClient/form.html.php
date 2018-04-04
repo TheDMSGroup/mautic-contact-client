@@ -240,11 +240,9 @@ echo $view['form']->start($form);
                                                 </div>
                                             </div>
                                         </div>
-                                        <?php /* @todo - Add a Save & Close option for when the test passes (could be done via js).
-                                        <div class="modal-footer">
+                                        <div class="modal-footer hide">
                                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary">Save changes</button>
-                                        </div> */ ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -654,6 +654,8 @@ Mautic.contactclientApiPayload = function () {
                 $result = $resultContainer.find('#api_payload_test_result_yaml'),
                 $message = $resultContainer.find('#api_payload_test_result_message'),
                 $error = $resultContainer.find('#api_payload_test_result_error'),
+                $footer = $resultContainer.find('.modal-footer'),
+                $saveButton = $footer.find('.btn-save'),
                 $attributionDefault = mQuery('#contactclient_attribution_default:first'),
                 $attributionSettings = mQuery('#contactclient_attribution_settings:first');
             if ($button.hasClass('active')) {
@@ -670,6 +672,7 @@ Mautic.contactclientApiPayload = function () {
                 $result.addClass('hide');
                 $message.addClass('hide');
                 $error.addClass('hide');
+                $footer.addClass('hide');
                 mQuery.ajax({
                     url: mauticAjaxUrl,
                     type: 'POST',
@@ -724,6 +727,24 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                     $error.html($list.html()).removeClass('hide');
                                 }
+                                if (response.valid) {
+                                    if ($saveButton.length) {
+                                        $saveButton.removeClass('hide');
+                                    } else {
+                                        // Make a new save button.
+                                        $saveButton = mQuery('#contactclient_buttons_save_toolbar:first').clone();
+                                        $footer.append($saveButton);
+                                        $saveButton.click(function(){
+                                            mQuery('#contactclient_buttons_save_toolbar:first').trigger('click');
+                                            setTimeout(function(){
+                                                $resultContainer.modal('hide');
+                                            }, 500);
+                                        });
+                                    }
+                                } else {
+                                    $saveButton.addClass('hide');
+                                }
+                                $footer.removeClass('hide');
                                 Mautic.onPageLoad(resultContainerSelector, response, true);
                             }
                         }
