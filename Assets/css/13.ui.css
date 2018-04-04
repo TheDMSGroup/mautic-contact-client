@@ -3,7 +3,7 @@ ul.bs-autocomplete-menu {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: auto !important;
     min-width: 150px;
     max-height: 200px;
     overflow: auto;
