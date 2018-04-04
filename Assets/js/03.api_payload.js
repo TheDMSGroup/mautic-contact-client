@@ -738,7 +738,7 @@ Mautic.contactclientApiPayload = function () {
                                             mQuery('#contactclient_buttons_save_toolbar:first').trigger('click');
                                             setTimeout(function(){
                                                 $resultContainer.modal('hide');
-                                            }, 500);
+                                            }, 1500);
                                         });
                                     }
                                 } else {
