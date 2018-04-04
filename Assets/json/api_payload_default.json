@@ -1,0 +1,55 @@
+{
+  "operations": [
+    {
+      "request": {
+        "body": [
+          {
+            "key": "firstname",
+            "value": "{{firstname}}",
+            "test_value": "Test"
+          },
+          {
+            "key": "lastname",
+            "value": "{{lastname}}",
+            "test_value": "Testerson"
+          },
+          {
+            "key": "address1",
+            "value": "{{address1}}",
+            "test_value": "1234 Test St."
+          },
+          {
+            "key": "address2",
+            "value": "{{address2}}",
+            "test_value": "Apt. 123"
+          },
+          {
+            "key": "city",
+            "value": "{{city}}",
+            "test_value": "Testopolis"
+          },
+          {
+            "key": "state",
+            "value": "{{state}}",
+            "test_value": "TN"
+          },
+          {
+            "key": "zipcode",
+            "value": "{{zipcode}}",
+            "test_value": "90210"
+          },
+          {
+            "key": "email",
+            "value": "{{email}}",
+            "test_value": "test.testerson@testing.com"
+          },
+          {
+            "key": "phone",
+            "value": "{{phone}}",
+            "test_value": "+15555555555"
+          }
+        ]
+      }
+    }
+  ]
+}
