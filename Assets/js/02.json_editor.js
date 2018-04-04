@@ -97,7 +97,8 @@ JSONEditor.defaults.options.expand_height = true;
  * @param tokenSource
  */
 JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
-    var allowedTagArr = [];
+    var allowedTagArr = [],
+        changed = false;
     $text.tagEditor({
         placeholder: tokenPlaceholder,
         allowedTags: function () {
@@ -128,18 +129,25 @@ JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
             delay: 120
         },
         onChange: function (el, ed, tag_list) {
-            if ('createEvent' in document) {
-                var event = document.createEvent('HTMLEvents');
-                event.initEvent('change', false, true);
-                $text[0].dispatchEvent(event);
-                // console.log('Entered: ' + tag_list.join(''));
+            if (!changed) {
+                if ('createEvent' in document) {
+                    changed = true;
+                    var event = document.createEvent('HTMLEvents');
+                    event.initEvent('change', false, true);
+                    $text[0].dispatchEvent(event);
+                }
+                else {
+                    $text[0].fireEvent('onchange');
+                }
             }
             else {
-                $text[0].fireEvent('onchange');
+                changed = true;
             }
         },
         beforeTagSave: function () {},
         beforeTagDelete: function () {}
+    }).on('change', function () {
+        console.log('changed');
     });
 };
 
@@ -483,6 +491,19 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
         }
+
+        // Re-render any who's values have been altered by reordering or deletion.
+        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first.tag-editor-hidden-src').each(function(){
+            var $text = mQuery(this),
+                $tagEditor = mQuery(this).parent().find('ul.tag-editor:first');
+            if ($tagEditor.length) {
+                var tagValue = $tagEditor.data('tags').join('');
+                if ($text.val() !== tagValue) {
+                    $tagEditor.remove();
+                    $text.removeClass('tokens-checked').removeClass('tag-editor-hidden-src');
+                }
+            }
+        });
 
         mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.tokens-checked)').each(function () {
             var $text = mQuery(this),
