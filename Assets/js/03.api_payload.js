@@ -149,7 +149,7 @@ Mautic.contactclientApiPayload = function () {
                                                     id: 'headers.' + obj.operations[i].response.headers[j].key,
                                                     label: 'Header Field: ' + obj.operations[i].response.headers[j].key,
                                                     type: 'string',
-                                                    operators: Mautic.contactclientSuccessDefinitionDefaultOps
+                                                    operators: Mautic.contactclientQBDefaultOps
                                                 });
                                             }
                                         }
@@ -165,7 +165,7 @@ Mautic.contactclientApiPayload = function () {
                                                     id: 'body.' + obj.operations[i].response.body[k].key,
                                                     label: 'Body Field: ' + obj.operations[i].response.body[k].key,
                                                     type: 'string',
-                                                    operators: Mautic.contactclientSuccessDefinitionDefaultOps
+                                                    operators: Mautic.contactclientQBDefaultOps
                                                 });
                                             }
                                         }
@@ -176,7 +176,7 @@ Mautic.contactclientApiPayload = function () {
                                     if (additionalFilters.length) {
                                         var $queryBuilder = mQuery('#success-definition-' + i);
                                         if ($queryBuilder.length) {
-                                            $queryBuilder.queryBuilder('setFilters', true, Mautic.successDefinitionFiltersDefault.concat(additionalFilters));
+                                            $queryBuilder.queryBuilder('setFilters', false, Mautic.contactclientQBDefaultFilters.concat(additionalFilters));
                                         }
                                     }
                                 }
@@ -515,7 +515,7 @@ Mautic.contactclientApiPayload = function () {
                             }).addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }
-                });
+                }).trigger('change');
             }
         });
 
@@ -735,10 +735,8 @@ Mautic.contactclientApiPayload = function () {
                                         $saveButton = mQuery('#contactclient_buttons_save_toolbar:first').clone();
                                         $footer.append($saveButton);
                                         $saveButton.click(function(){
+                                            $resultContainer.modal('hide');
                                             mQuery('#contactclient_buttons_save_toolbar:first').trigger('click');
-                                            setTimeout(function(){
-                                                $resultContainer.modal('hide');
-                                            }, 1500);
                                         });
                                     }
                                 } else {
