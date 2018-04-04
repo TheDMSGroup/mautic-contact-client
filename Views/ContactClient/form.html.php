@@ -207,13 +207,27 @@ echo $view['form']->start($form);
                                         </div>
                                     </div>
                                     <?php echo $view['form']->row($form['api_payload']); ?>
-                                    <div id="api_payload_test_result" class="hide">
-                                        <hr/>
-                                        <strong><?php echo $view['translator']->trans(
-                                                'mautic.contactclient.form.test_results'
-                                            ); ?></strong>
-                                        <div id="api_payload_test_result_yaml">
+                                    <div id="api_payload_test_result" class="hide modal fade bg-white" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <h4 class="modal-title" id="testResultsModalTitle">
+                                                <?php echo $view['translator']->trans(
+                                                    'mautic.contactclient.form.test_results'
+                                                ); ?>
+                                            </h4>
                                         </div>
+                                        <div class="modal-body modal-md" role="document">
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1">
+                                                    <div id="api_payload_test_result_yaml"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php /* @todo - Add a Save & Close option for when the test passes (could be done via js).
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-primary">Save changes</button>
+                                        </div> */ ?>
                                     </div>
                                 </div>
                             </div>

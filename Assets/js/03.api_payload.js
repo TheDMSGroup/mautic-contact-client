@@ -648,8 +648,9 @@ Mautic.contactclientApiPayload = function () {
          */
         var apiPayloadTestCodeMirror;
         mQuery('#api_payload_test').click(function () {
-            var $button = mQuery(this),
-                $resultContainer = mQuery('#api_payload_test_result'),
+            var resultContainerSelector = '#api_payload_test_result',
+                $button = mQuery(this),
+                $resultContainer = mQuery(resultContainerSelector),
                 $result = $resultContainer.find('#api_payload_test_result_yaml'),
                 $attributionDefault = mQuery('#contactclient_attribution_default:first'),
                 $attributionSettings = mQuery('#contactclient_attribution_settings:first');
@@ -673,26 +674,30 @@ Mautic.contactclientApiPayload = function () {
                     dataType: 'json',
                     success: function (response) {
                         if (typeof response.html !== 'undefined') {
-                            $resultContainer.removeClass('hide');
-                            $result.removeClass('hide');
+                            $resultContainer.removeClass('hide').modal('show');
+                            $result.addClass('hide');
 
                             // sends markup through core js parsers
                             if (response.html !== '') {
                                 if (!apiPayloadTestCodeMirror) {
-                                    apiPayloadTestCodeMirror = CodeMirror($result[0], {
-                                        value: response.html,
-                                        mode: 'yaml',
-                                        theme: 'material',
-                                        gutters: [],
-                                        lineNumbers: false,
-                                        lineWrapping: true,
-                                        readOnly: true
-                                    });
+                                    setTimeout(function(){
+                                        $result.removeClass('hide');
+                                        apiPayloadTestCodeMirror = CodeMirror($result[0], {
+                                            value: response.html,
+                                            mode: 'yaml',
+                                            theme: 'material',
+                                            gutters: [],
+                                            lineNumbers: false,
+                                            lineWrapping: true,
+                                            readOnly: true
+                                        });
+                                    }, 100);
                                 }
                                 else {
                                     apiPayloadTestCodeMirror.setValue(response.html, -1);
+                                    $result.removeClass('hide');
                                 }
-                                Mautic.onPageLoad('#api_payload_test_result', response);
+                                Mautic.onPageLoad(resultContainerSelector, response, true);
                             }
                         }
                         if (
