@@ -90,6 +90,59 @@ JSONEditor.defaults.options.remove_empty_properties = false;
 JSONEditor.defaults.options.required_by_default = true;
 JSONEditor.defaults.options.expand_height = true;
 
+/**
+ * Convert a standard text field to a tagEditor field using predefined tokens.
+ *
+ * @param $text
+ * @param tokenSource
+ */
+JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
+    var allowedTagArr = [];
+    $text.tagEditor({
+        placeholder: tokenPlaceholder,
+        allowedTags: function () {
+            if (!allowedTagArr.length && typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                    allowedTagArr.push('{{' + key + '}}');
+                });
+            }
+            return allowedTagArr;
+        },
+        autocomplete: {
+            minLength: 2,
+            source: function (request, response) {
+                var tokens = [];
+                if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                    var regex = new RegExp(request.term.replace(/\{|\}/g, ''), 'i');
+                    mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                        if (regex.test(key) || regex.test(value)) {
+                            tokens.push({
+                                label: value,
+                                value: '{{' + key + '}}'
+                            });
+                        }
+                    });
+                }
+                response(tokens);
+            },
+            delay: 120
+        },
+        onChange: function (el, ed, tag_list) {
+            if ('createEvent' in document) {
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent('change', false, true);
+                $text[0].dispatchEvent(event);
+                // console.log('Entered: ' + tag_list.join(''));
+            }
+            else {
+                $text[0].fireEvent('onchange');
+            }
+        },
+        beforeTagSave: function () {},
+        beforeTagDelete: function () {}
+    });
+};
+
 // Custom validators.
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     var errors = [];
@@ -222,7 +275,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     allowedTagArr = [],
                     hintTimer,
                     // Wait till the textarea is visible before codemirror.
-                    pollVisibility = setInterval(function(){
+                    pollVisibility = setInterval(function () {
                         if ($input.is(':visible')) {
                             var cm = CodeMirror.fromTextArea($input[0], {
                                 mode: {
@@ -289,7 +342,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 }
                             });
                             cm.on('change', function (cm) {
-                                // Push changes to the textarea and ensure event fires.
+                                // Push changes to the textarea and ensure
+                                // event fires.
                                 $input.val(cm.getValue());
                                 if ('createEvent' in document) {
                                     var event = document.createEvent('HTMLEvents');
@@ -311,7 +365,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                             clearInterval(pollVisibility);
                             $input.addClass('codeMirror-active');
                             // @todo - Remove this hack.
-                            $input.parent().parent().parent().parent().find('div[data-schemaid="requestFormat"]:first select:first').trigger('change')
+                            $input.parent().parent().parent().parent().find('div[data-schemaid="requestFormat"]:first select:first').trigger('change');
                         }
                     }, 250);
             }).addClass('codeMirror-checked');
@@ -425,52 +479,6 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     }
     // Add support for a token text field.
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
-        function tagEditor ($text, tokenSource) {
-            var allowedTagArr = [];
-            $text.tagEditor({
-                placeholder: (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null),
-                allowedTags: function () {
-                    if (!allowedTagArr.length && typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
-                        mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
-                            allowedTagArr.push('{{' + key + '}}');
-                        });
-                    }
-                    return allowedTagArr;
-                },
-                autocomplete: {
-                    minLength: 2,
-                    source: function (request, response) {
-                        var tokens = [];
-                        if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
-                            var regex = new RegExp(request.term.replace(/\{|\}/g, ''), 'i');
-                            mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
-                                if (regex.test(key) || regex.test(value)) {
-                                    tokens.push({
-                                        label: value,
-                                        value: '{{' + key + '}}'
-                                    });
-                                }
-                            });
-                        }
-                        response(tokens);
-                    },
-                    delay: 120
-                },
-                onChange: function (el, ed, tag_list) {
-                    if ('createEvent' in document) {
-                        var event = document.createEvent('HTMLEvents');
-                        event.initEvent('change', false, true);
-                        $text[0].dispatchEvent(event);
-                        // console.log('Entered: ' + tag_list.join(''));
-                    }
-                    else {
-                        $text[0].fireEvent('onchange');
-                    }
-                },
-                beforeTagSave: function () {},
-                beforeTagDelete: function () {}
-            });
-        }
 
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
@@ -478,8 +486,10 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
         mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.tokens-checked)').each(function () {
             var $text = mQuery(this),
-                tokenSource = schema.options.tokenSource;
-            $text.data('tokenSource', tokenSource);
+                tokenSource = schema.options.tokenSource,
+                tokenPlaceholder = (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null);
+
+            // $text.data('tokenSource', tokenSource);
 
             if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
                 window.JSONEditor.tokenCache[tokenSource] = {};
@@ -495,10 +505,16 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         if (typeof response.tokens !== 'undefined') {
                             window.JSONEditor.tokenCache[tokenSource] = response.tokens;
                         }
+                        JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+                    },
+                    error: function () {
+                        JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
                     }
                 });
             }
-            tagEditor($text, tokenSource);
+            else {
+                JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+            }
 
         }).addClass('tokens-checked');
     }
