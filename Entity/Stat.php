@@ -22,26 +22,77 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
  */
 class Stat
 {
-    // Used for querying stats
+    /**
+     * Indicates that the contact was fully accepted by the client, and we passed validation on the response/s.
+     *
+     * Contact sent:    Yes
+     */
     const TYPE_CONVERTED = 'converted';
 
+    /**
+     * Indicates that the client has recently accepted a similar contact based on "duplicate rules".
+     *
+     * Contact sent:    No (was sent previously)
+     */
     const TYPE_DUPLICATE = 'duplicate';
 
-    const TYPE_ERROR     = 'error';
+    /**
+     * Indicates that an error occurred on the client side. Something like a 500 error, empty body, etc.
+     *
+     * Contact sent:    Yes
+     */
+    const TYPE_ERROR = 'error';
 
+    /**
+     * Indicates that our client configuration is invalid. Likely it hasn't been fully configured.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_INVALID = 'invalid';
+
+    /**
+     * Indicates that a contact matching this one was recently accepted by a client with "exclusivity rules".
+     * That other client locked a contact matching this one for a period of time, from clients that match this one.
+     *
+     * Contact sent:    No (was sent previously by another client)
+     */
     const TYPE_EXCLUSIVE = 'exclusive';
 
-    const TYPE_FIELDS    = 'fields';
+    /**
+     * Indicates required fields were not provided or empty for this contact.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_FIELDS = 'fields';
 
-    const TYPE_FILTER    = 'filtered';
+    /**
+     * Indicates that this contact did not match the filter rules.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_FILTER = 'filtered';
 
-    const TYPE_LIMITS    = 'limited';
+    /**
+     * Indicates that a budget/cap matching this contact/scenario was reached.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_LIMITS = 'limited';
 
-    const TYPE_QUEUED    = 'queued';
+    /**
+     * Indicates that the client did not accept the contact (based on the success definition aka. validation rules).
+     *
+     * Contact sent:    Yes
+     */
+    const TYPE_REJECT = 'rejected';
 
-    const TYPE_REJECT    = 'rejected';
-
-    const TYPE_SCHEDULE  = 'schedule';
+    /**
+     * Indicates that the client is currently off-schedule and that this contact can not be queued to be sent later,
+     * because the contact would be too old by the point in time of the next open hour.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_SCHEDULE = 'schedule';
 
     /** @var int $id */
     private $id;

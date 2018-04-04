@@ -173,7 +173,7 @@ class ApiPayload
                 'API instructions not set.',
                 0,
                 null,
-                Stat::TYPE_ERROR,
+                Stat::TYPE_INVALID,
                 false,
                 null,
                 $this->contactClient ? $this->contactClient->toArray() : null
@@ -188,7 +188,7 @@ class ApiPayload
                 'API instructions malformed.',
                 0,
                 $e,
-                Stat::TYPE_ERROR,
+                Stat::TYPE_INVALID,
                 false,
                 null,
                 $this->contactClient ? $this->contactClient->toArray() : null
@@ -242,7 +242,7 @@ class ApiPayload
                 'There are no API operations to run.',
                 0,
                 null,
-                Stat::TYPE_ERROR,
+                Stat::TYPE_INVALID,
                 false
             );
         }
