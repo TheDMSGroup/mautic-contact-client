@@ -364,6 +364,17 @@ class ApiPayloadResponse
                 );
             }
 
+            // Always consider a 500 to be an error.
+            if (isset($this->responseActual['status']) && 500 == $this->responseActual['status']) {
+                throw new ContactClientException(
+                    'Client responded with a 500 server error code.',
+                    0,
+                    null,
+                    Stat::TYPE_ERROR,
+                    true
+                );
+            }
+
             // If there is no success definition, than do the default test of a 200 ok status check.
             if (!$this->successDefinition) {
                 if (!$this->responseActual['status'] || 200 != $this->responseActual['status']) {
