@@ -34,5 +34,7 @@
     transition: right .1s ease-in-out;
 
     top: 14px;
-    right: 200px;
+    margin-right: 15px;
+    -webkit-box-shadow: 0 0 10px 10px rgba(255, 255, 255, 1);
+    box-shadow: 0 0 10px 10px rgba(255, 255, 255, 1);
 }

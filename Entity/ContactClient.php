@@ -26,6 +26,12 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 class ContactClient extends FormEntity
 {
     /**
+     * The relative path to a file containing the default API payload for new clients.
+     * This file should only contain the minimum fields as required properties will be enforced automatically.
+     */
+    const API_PAYLOAD_DEFAULT_FILE = '/../Assets/json/api_payload_default.json';
+
+    /**
      * @var int
      */
     private $id;
@@ -127,6 +133,12 @@ class ContactClient extends FormEntity
     {
         if (!$this->type) {
             $this->type = 'api';
+        }
+        if (!$this->api_payload) {
+            $defaultFile = __DIR__.self::API_PAYLOAD_DEFAULT_FILE;
+            if (file_exists($defaultFile)) {
+                $this->api_payload = file_get_contents($defaultFile);
+            }
         }
     }
 
