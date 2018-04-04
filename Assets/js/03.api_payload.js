@@ -700,12 +700,15 @@ Mautic.contactclientApiPayload = function () {
                                     $result.removeClass('hide');
                                 }
                                 if (response.message) {
+                                    var html = response.message;
                                     if (response.valid) {
-                                        $message.removeClass('text-warning').addClass('text-success');
+                                        $message.removeClass('text-danger').addClass('text-success');
+                                        html = '<i class="fa fa-thumbs-o-up faa-bounce animated"></i> ' + html;
                                     } else {
-                                        $message.addClass('text-warning').removeClass('text-success');
+                                        $message.addClass('text-danger').removeClass('text-success');
+                                        html = '<i class="fa fa-warning faa-flash animated"></i> ' + html;
                                     }
-                                    $message.text(response.message).removeClass('hide');
+                                    $message.html(html).removeClass('hide');
                                 }
                                 if (response.error !== null) {
                                     var $list = mQuery('<ul></ul>'),

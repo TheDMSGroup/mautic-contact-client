@@ -224,7 +224,7 @@ echo $view['form']->start($form);
                                             </div>
                                             <div class="row">
                                                 <div class="col-md-10 col-md-offset-1 mt-10 mb-10">
-                                                    <div id="api_payload_test_result_error" class="hide pl-20 text-warning"></div>
+                                                    <div id="api_payload_test_result_error" class="hide pl-20 text-danger"></div>
                                                 </div>
                                             </div>
                                             <div class="row">
