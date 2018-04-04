@@ -80,15 +80,6 @@ class Stat
     const TYPE_LIMITS = 'limited';
 
     /**
-     * Indicates that this contact will be sent to the client at a later time (by file or scheduling).
-     *
-     * Contact sent:    No (not yet)
-     *
-     * @todo - We may want to not log this status, since it could cause issues in reporting, since we don't want to double-log the same client/contact relationship.
-     */
-    const TYPE_QUEUED = 'queued';
-
-    /**
      * Indicates that the client did not accept the contact (based on the success definition aka. validation rules).
      *
      * Contact sent:    Yes
