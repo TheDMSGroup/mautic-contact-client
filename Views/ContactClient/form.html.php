@@ -218,6 +218,23 @@ echo $view['form']->start($form);
                                         </div>
                                         <div class="modal-body modal-md" role="document">
                                             <div class="row">
+                                                <div class="col-md-10 col-md-offset-1 mt-20 mb-10">
+                                                    <h3 id="api_payload_test_result_message" class="hide"></h3>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1 mt-10 mb-10">
+                                                    <div id="api_payload_test_result_error" class="hide pl-20 text-warning"></div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1 mt-10 mb-10">
+                                                    <label>
+                                                        <?php echo $view['translator']->trans(
+                                                            'mautic.contactclient.form.test_results.logs'
+                                                        ); ?>
+                                                    </label>
+                                                </div>
                                                 <div class="col-md-10 col-md-offset-1">
                                                     <div id="api_payload_test_result_yaml"></div>
                                                 </div>

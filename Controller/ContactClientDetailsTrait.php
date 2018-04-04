@@ -207,7 +207,7 @@ trait ContactClientDetailsTrait
         $model       = $this->getModel('contactClient');
         $engagements = $model->getEngagementCount($contactClient, $fromDate, $toDate, 'm', $chartQuery);
         $lineChart->setDataset(
-            $translator->trans('mautic.contactClient.graph.line.all_engagements'),
+            $translator->trans('mautic.contactclient.graph.line.all_engagements'),
             $engagements['byUnit']
         );
 
@@ -216,7 +216,7 @@ trait ContactClientDetailsTrait
             'date_added',
             ['contactClient_id' => $contactClient->getId()]
         );
-        $lineChart->setDataset($translator->trans('mautic.contactClient.graph.line.points'), $pointStats);
+        $lineChart->setDataset($translator->trans('mautic.contactclient.graph.line.points'), $pointStats);
 
         return $lineChart->render();
     }

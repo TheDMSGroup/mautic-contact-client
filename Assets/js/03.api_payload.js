@@ -652,6 +652,8 @@ Mautic.contactclientApiPayload = function () {
                 $button = mQuery(this),
                 $resultContainer = mQuery(resultContainerSelector),
                 $result = $resultContainer.find('#api_payload_test_result_yaml'),
+                $message = $resultContainer.find('#api_payload_test_result_message'),
+                $error = $resultContainer.find('#api_payload_test_result_error'),
                 $attributionDefault = mQuery('#contactclient_attribution_default:first'),
                 $attributionSettings = mQuery('#contactclient_attribution_settings:first');
             if ($button.hasClass('active')) {
@@ -665,8 +667,9 @@ Mautic.contactclientApiPayload = function () {
                     attributionDefault: $attributionDefault.length ? $attributionDefault.val() : '',
                     attributionSettings: $attributionSettings.length ? $attributionSettings.val() : ''
                 };
-                $resultContainer.addClass('hide');
                 $result.addClass('hide');
+                $message.addClass('hide');
+                $error.addClass('hide');
                 mQuery.ajax({
                     url: mauticAjaxUrl,
                     type: 'POST',
@@ -675,7 +678,6 @@ Mautic.contactclientApiPayload = function () {
                     success: function (response) {
                         if (typeof response.html !== 'undefined') {
                             $resultContainer.removeClass('hide').modal('show');
-                            $result.addClass('hide');
 
                             // sends markup through core js parsers
                             if (response.html !== '') {
@@ -691,11 +693,33 @@ Mautic.contactclientApiPayload = function () {
                                             lineWrapping: true,
                                             readOnly: true
                                         });
-                                    }, 100);
+                                    }, 250);
                                 }
                                 else {
                                     apiPayloadTestCodeMirror.setValue(response.html, -1);
                                     $result.removeClass('hide');
+                                }
+                                if (response.message) {
+                                    if (response.valid) {
+                                        $message.removeClass('text-warning').addClass('text-success');
+                                    } else {
+                                        $message.addClass('text-warning').removeClass('text-success');
+                                    }
+                                    $message.text(response.message).removeClass('hide');
+                                }
+                                if (response.error !== null) {
+                                    var $list = mQuery('<ul></ul>'),
+                                        $item = mQuery('<li></li>'),
+                                        $clone;
+
+                                    if (typeof response.error === 'string') {
+                                        response.error = [response.error];
+                                    }
+                                    for (var i = 0; i < response.error.length; i++) {
+                                        $clone = $item;
+                                        $list.append($clone.text(response.error[i]));
+                                    }
+                                    $error.html($list.html()).removeClass('hide');
                                 }
                                 Mautic.onPageLoad(resultContainerSelector, response, true);
                             }
