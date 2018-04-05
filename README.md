@@ -57,6 +57,7 @@ The Timezone of the Client will always be applied if provided.... [more](./DATES
 * [JSON Editor](https://github.com/json-editor/json-editor)
 * [JSON Lint](https://github.com/zaach/jsonlint)
 * [Mustache.php](https://github.com/bobthecow/mustache.php)
+* [font-awesome-animation](https://github.com/l-lin/font-awesome-animation)
 
 ## Todo
 - [ ] Filtering: Rules to globally exclude contacts from sending to a client based on fields.

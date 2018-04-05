@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Helper\UTF8Helper;
+use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
@@ -87,24 +88,29 @@ class AjaxController extends CommonAjaxController
 
         // default to empty
         $dataArray = [
-            'html'    => '',
-            'success' => 0,
+            'html'  => '',
+            'valid' => false,
         ];
 
         if (!empty($apiPayload)) {
+            /** @var Translator $translator */
+            $translator = $this->get('translator');
+
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
-            $result               = $clientIntegration->sendTest(
+            $valid                = $clientIntegration->sendTest(
                 $apiPayload,
                 $attributionDefault,
                 $attributionSettings
             );
-            $dataArray['success'] = $result['valid'];
-            $dataArray['payload'] = $result['payload'];
-
-            $logs              = $clientIntegration->getLogsYAML();
-            $dataArray['html'] = UTF8Helper::fixUTF8($logs);
+            $dataArray['valid']   = $valid;
+            $dataArray['payload'] = $apiPayload;
+            $dataArray['message'] = $valid ? $translator->trans(
+                'mautic.contactclient.form.test_results.passed'
+            ) : $translator->trans('mautic.contactclient.form.test_results.failed');
+            $dataArray['error']   = $clientIntegration->getLogs('error');
+            $dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsYAML());
         }
 
         return $this->sendJsonResponse($dataArray);

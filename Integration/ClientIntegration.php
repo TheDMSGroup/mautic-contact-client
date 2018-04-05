@@ -858,13 +858,15 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param string $apiPayload
+     * Sends a test and updates the payload as needed.
+     *
+     * @param        $apiPayload
      * @param string $attributionDefault
      * @param string $attributionSettings
      *
-     * @return array
+     * @return bool
      */
-    public function sendTest($apiPayload, $attributionDefault = '', $attributionSettings = '')
+    public function sendTest(&$apiPayload, $attributionDefault = '', $attributionSettings = '')
     {
         $client = new ContactClient();
         $client->setAPIPayload($apiPayload);
@@ -878,10 +880,7 @@ class ClientIntegration extends AbstractIntegration
 
         $this->sendContact($client, $contact, true);
 
-        return [
-            'valid'   => $this->valid,
-            'payload' => $client->getAPIPayload(),
-        ];
+        return $this->valid;
     }
 
     /**

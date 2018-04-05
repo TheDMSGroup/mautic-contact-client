@@ -257,10 +257,18 @@ class ApiPayload
             $apiOperation = new ApiOperation(
                 $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
             );
-            $apiOperation->run();
-            $this->valid = $apiOperation->getValid();
+            try {
+                $this->valid = false;
+                $apiOperation->run();
+                $this->valid = $apiOperation->getValid();
+            } catch (\Exception $e) {
+                // Log results before throwing the exception.
+            }
             $logs        = array_merge($apiOperation->getLogs(), $logs);
             $this->setLogs($logs, $id);
+            if (isset($e)) {
+                throw $e;
+            }
 
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
@@ -370,11 +378,18 @@ class ApiPayload
         }
     }
 
+    /**
+     * @return array
+     */
     public function getLogs()
     {
         return $this->logs;
     }
 
+    /**
+     * @param      $value
+     * @param null $type
+     */
     public function setLogs($value, $type = null)
     {
         if ($type) {

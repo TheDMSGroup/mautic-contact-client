@@ -146,8 +146,6 @@ JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
         },
         beforeTagSave: function () {},
         beforeTagDelete: function () {}
-    }).on('change', function () {
-        console.log('changed');
     });
 };
 
@@ -197,35 +195,13 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 class: 'query-builder'
                             })
                             .insertAfter($input)
-                            .queryBuilder({
-                                plugins: {
-                                    'sortable': {
-                                        icon: 'fa fa-sort'
-                                    },
-                                    'bt-tooltip-errors': null
-                                },
-                                filters: Mautic.successDefinitionFiltersDefault,
-                                icons: {
-                                    add_group: 'fa fa-plus',
-                                    add_rule: 'fa fa-plus',
-                                    remove_group: 'fa fa-times',
-                                    remove_rule: 'fa fa-times',
-                                    sort: 'fa fa-sort',
-                                    error: 'fa fa-exclamation-triangle'
-                                },
-                                rules: rules
-                            })
+                            .queryBuilder(Mautic.contactclientQBDefaultSettings)
                             // On any change to Success Definition:
-                            .off('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder')
-                            .on('afterDeleteGroup.queryBuilder afterUpdateRuleFilter.queryBuilder afterAddRule.queryBuilder afterDeleteRule.queryBuilder afterUpdateRuleValue.queryBuilder afterUpdateRuleOperator.queryBuilder afterUpdateGroupCondition.queryBuilder', function () {
+                            .on('rulesChanged.queryBuilder', function () {
                                 var $queryBuilder = mQuery(this);
                                 clearTimeout(timeout);
                                 timeout = setTimeout(function () {
-                                    rules = $queryBuilder.queryBuilder('getRules', {
-                                        get_flags: true,
-                                        skip_empty: true,
-                                        allow_invalid: true
-                                    });
+                                    rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
                                     var rulesString = JSON.stringify(rules, null, 2);
 
                                     if ($input.val() !== rulesString) {
@@ -247,11 +223,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         // The QueryBuilder has already been built, update
                         // value if it has changed.
                         var $queryBuilder = $input.next('.query-builder'),
-                            oldRules = $queryBuilder.queryBuilder('getRules', {
-                                get_flags: true,
-                                skip_empty: true,
-                                allow_invalid: true
-                            }),
+                            oldRules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet),
                             oldRulesString = JSON.stringify(oldRules, null, 2);
                         if (val !== oldRulesString) {
                             try {

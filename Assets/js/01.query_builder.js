@@ -1,7 +1,6 @@
 // Establish default success definition settings.
-// Note: Some operators are not going to be directly
-// useful.
-Mautic.contactclientSuccessDefinitionDefaultOps = [
+// Note: Some operators are not going to be directly useful.
+Mautic.contactclientQBDefaultOps = [
     'equal',
     'not_equal',
     // 'in',
@@ -23,7 +22,8 @@ Mautic.contactclientSuccessDefinitionDefaultOps = [
     // 'is_null'
 ];
 
-Mautic.successDefinitionFiltersDefault = [{
+// Used as the default filters (others are added on demand).
+Mautic.contactclientQBDefaultFilters = [{
     id: 'status',
     label: 'Status Code',
     type: 'string',
@@ -97,12 +97,12 @@ Mautic.successDefinitionFiltersDefault = [{
     id: 'headersRaw',
     label: 'Header Text (raw)',
     type: 'string',
-    operators: Mautic.contactclientSuccessDefinitionDefaultOps
+    operators: Mautic.contactclientQBDefaultOps
 }, {
     id: 'bodyRaw',
     label: 'Body Text (raw)',
     type: 'string',
-    operators: Mautic.contactclientSuccessDefinitionDefaultOps
+    operators: Mautic.contactclientQBDefaultOps
 }, {
     id: 'bodySize',
     label: 'Body Size',
@@ -117,3 +117,30 @@ Mautic.successDefinitionFiltersDefault = [{
     ]
 }];
 
+// Used whenever we use getRules for consistency.
+Mautic.contactclientQBDefaultGet = {
+    get_flags: false,
+    skip_empty: true
+};
+
+// Used whenever instantiating.
+Mautic.contactclientQBDefaultSettings = {
+    plugins: {
+        'sortable': {
+            icon: 'fa fa-sort'
+        },
+        'bt-tooltip-errors': null
+    },
+    filters: Mautic.contactclientQBDefaultFilters,
+    icons: {
+        add_group: 'fa fa-plus',
+        add_rule: 'fa fa-plus',
+        remove_group: 'fa fa-times',
+        remove_rule: 'fa fa-times',
+        sort: 'fa fa-sort',
+        error: 'fa fa-exclamation-triangle'
+    }
+    // Note: Providing rules upfront fails because the filters may not include fields.
+    // Allow rules to be put in place on change when the JSONSchema renders.
+    // rules: null
+};
