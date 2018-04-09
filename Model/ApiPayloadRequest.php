@@ -304,7 +304,6 @@ class ApiPayloadRequest
     {
         $result = [];
         foreach ($fields as $field) {
-            $testValueUsed = false;
             if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
                 // Skip this field as it is for test mode only.
                 continue;
@@ -320,9 +319,6 @@ class ApiPayloadRequest
                 if (!empty($field->{$valueSource})) {
                     $value = $this->renderTokens($field->{$valueSource});
                     if (!empty($value)) {
-                        if ('test_value' == $valueSource) {
-                            $testValueUsed = true;
-                        }
                         break;
                     }
                 }
@@ -346,13 +342,11 @@ class ApiPayloadRequest
                 }
             }
             $result[$key] = $value;
-            // During a test, tokens may not have contact context.
-            if ($testValueUsed) {
-                if (1 === preg_match('/^{{\s*[\w\.]+\s*}}$/', trim($field->value))) {
-                    $testKey = trim(str_replace(['{', '}'], '', $field->value));
-                    if (empty($result[$testKey])) {
-                        $result[$testKey] = $value;
-                    }
+            // Support pure mustache tags as keys as well.
+            if (1 === preg_match('/^{{\s*[\w\.]+\s*}}$/', trim($field->value))) {
+                $mustacheTag = trim(str_replace(['{', '}'], '', $field->value));
+                if (empty($result[$mustacheTag])) {
+                    $result[$mustacheTag] = $value;
                 }
             }
         }
