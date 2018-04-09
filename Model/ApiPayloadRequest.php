@@ -149,7 +149,11 @@ class ApiPayloadRequest
             $templateFields = $this->templateFieldValues($request->body);
             $body           = $this->renderTokens($request->template, $templateFields);
             if (!empty(trim($body))) {
-                $options['body'] = $body;
+                if ('json' == $requestFormat) {
+                    $options['json'] = $body;
+                } else {
+                    $options['body'] = $body;
+                }
             }
         } else {
             if (is_string($request->body) && !empty(trim($request->body))) {
@@ -165,7 +169,11 @@ class ApiPayloadRequest
         if (!empty($request->headers)) {
             $headers = $this->fieldValues($request->headers);
             if (!empty($headers)) {
-                $options['headers'] = $headers;
+                if (isset($options['headers'])) {
+                    $options['headers'] = array_merge($options['headers'], $headers);
+                } else {
+                    $options['headers'] = $headers;
+                }
             }
         }
 
@@ -301,10 +309,6 @@ class ApiPayloadRequest
                 continue;
             }
             $key = isset($field->key) ? trim($field->key) : null;
-            if (empty($key)) {
-                // Skip if we have an empty key.
-                continue;
-            }
             // Exclude default_value (may add this functionality in the future if desired).
             $valueSources = ['value'];
             if ($this->test) {
@@ -320,6 +324,10 @@ class ApiPayloadRequest
                 }
             }
             if (empty($value) && 0 !== $value) {
+                if (empty($key)) {
+                    // Skip if we have an empty key as well (nothing useful).
+                    continue;
+                }
                 // The field value is empty.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
@@ -334,6 +342,13 @@ class ApiPayloadRequest
                 }
             }
             $result[$key] = $value;
+            // Support pure mustache tags as keys as well.
+            if (1 === preg_match('/^{{\s*[\w\.]+\s*}}$/', trim($field->value))) {
+                $mustacheTag = trim(str_replace(['{', '}'], '', $field->value));
+                if (empty($result[$mustacheTag])) {
+                    $result[$mustacheTag] = $value;
+                }
+            }
         }
 
         return $result;

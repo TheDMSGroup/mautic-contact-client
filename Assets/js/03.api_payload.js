@@ -699,8 +699,10 @@ Mautic.contactclientApiPayload = function () {
                                     }, 250);
                                 }
                                 else {
-                                    apiPayloadTestCodeMirror.setValue(response.html, -1);
-                                    $result.removeClass('hide');
+                                    setTimeout(function () {
+                                        $result.removeClass('hide');
+                                        apiPayloadTestCodeMirror.setValue(response.html, -1);
+                                    }, 250);
                                 }
                                 if (response.message) {
                                     var html = response.message;
