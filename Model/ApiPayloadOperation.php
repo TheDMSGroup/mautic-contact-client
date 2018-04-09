@@ -181,7 +181,7 @@ class ApiPayloadOperation
             if (isset($this->responseActual[$type])) {
                 $fieldKeys = [];
                 foreach ($result->{$type} as $id => $value) {
-                    if (!empty($value->key) && is_numeric($id)) {
+                    if (isset($value->key) && is_numeric($id)) {
                         $fieldKeys[$value->key] = intval($id);
                     }
                 }
