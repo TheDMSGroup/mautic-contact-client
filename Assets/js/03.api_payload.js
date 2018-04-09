@@ -685,7 +685,7 @@ Mautic.contactclientApiPayload = function () {
                             // sends markup through core js parsers
                             if (response.html !== '') {
                                 if (!apiPayloadTestCodeMirror) {
-                                    setTimeout(function(){
+                                    setTimeout(function () {
                                         $result.removeClass('hide');
                                         apiPayloadTestCodeMirror = CodeMirror($result[0], {
                                             value: response.html,
@@ -707,7 +707,8 @@ Mautic.contactclientApiPayload = function () {
                                     if (response.valid) {
                                         $message.removeClass('text-danger').addClass('text-success');
                                         html = '<i class="fa fa-thumbs-o-up faa-bounce animated"></i> ' + html;
-                                    } else {
+                                    }
+                                    else {
                                         $message.addClass('text-danger').removeClass('text-success');
                                         html = '<i class="fa fa-warning faa-flash animated"></i> ' + html;
                                     }
@@ -730,16 +731,18 @@ Mautic.contactclientApiPayload = function () {
                                 if (response.valid) {
                                     if ($saveButton.length) {
                                         $saveButton.removeClass('hide');
-                                    } else {
+                                    }
+                                    else {
                                         // Make a new save button.
                                         $saveButton = mQuery('#contactclient_buttons_save_toolbar:first').clone();
                                         $footer.append($saveButton);
-                                        $saveButton.click(function(){
+                                        $saveButton.click(function () {
                                             $resultContainer.modal('hide');
                                             mQuery('#contactclient_buttons_save_toolbar:first').trigger('click');
                                         });
                                     }
-                                } else {
+                                }
+                                else {
                                     $saveButton.addClass('hide');
                                 }
                                 $footer.removeClass('hide');
@@ -749,16 +752,18 @@ Mautic.contactclientApiPayload = function () {
                         if (
                             typeof response.payload !== 'undefined'
                             && response.payload.length
-                            && typeof setJSONEditorValue === 'function'
                         ) {
                             // response.payload is already a raw string,
-                            // but it may be parsed differently.
-                            var raw = mQuery.parseJSON(response.payload);
-                            raw = JSON.stringify(raw, null, 2);
+                            // but it may be parsed differently, depending on
+                            // browser.
+                            var obj = mQuery.parseJSON(response.payload),
+                                raw = JSON.stringify(obj, null, 2);
                             if (raw.length && $apiPayload.val() !== raw) {
-                                // console.log('Change by payload', raw);
-                                $apiPayload.val(raw);
-                                setJSONEditorValue(raw);
+                                if (typeof setJSONEditorValue !== 'undefined') {
+                                    setJSONEditorValue(raw);
+                                } else {
+                                    $apiPayload.val(raw);
+                                }
                             }
                         }
                     },

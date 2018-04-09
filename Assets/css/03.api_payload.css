@@ -38,3 +38,9 @@
     -webkit-box-shadow: 0 0 10px 10px rgba(255, 255, 255, 1);
     box-shadow: 0 0 10px 10px rgba(255, 255, 255, 1);
 }
+
+#api_payload_test_result .modal-body {
+    height: 90%;
+    overflow-y: auto;
+    max-height: calc(100vh - 120px) !important;
+}
