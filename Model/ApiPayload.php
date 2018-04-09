@@ -365,6 +365,7 @@ class ApiPayload
     private function updatePayload()
     {
         if ($this->contactClient) {
+            $this->sortPayloadFields();
             $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
                 $this->contactClient->setAPIPayload($payloadJSON);
@@ -379,6 +380,30 @@ class ApiPayload
             }
         }
     }
+
+    /**
+     * Sort the fields by keys, so that the user doesn't have to.
+     * Only applies when AutoUpdate is enabled.
+     */
+    private function sortPayloadFields()
+    {
+        if (isset($this->payload->operations)) {
+            foreach ($this->payload->operations as $id => $operation) {
+                foreach (['request', 'response'] as $opType) {
+                    if (isset($operation->{$opType})) {
+                        foreach (['headers', 'body'] as $fieldType) {
+                            if (is_array($operation->{$opType}->{$fieldType})) {
+                                usort(
+                                    $operation->{$opType}->{$fieldType},
+                                    function ($a, $b) {
+                                        return strnatcmp(
+                                            isset($a->key) ? $a->key : null,
+                                            isset($b->key) ? $b->key : null
+                                        );
+                                    }
+                                );
+                            }
+                        }
                     }
                 }
             }
