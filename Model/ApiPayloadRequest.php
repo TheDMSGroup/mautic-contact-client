@@ -304,15 +304,12 @@ class ApiPayloadRequest
     {
         $result = [];
         foreach ($fields as $field) {
+            $testValueUsed = false;
             if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
                 // Skip this field as it is for test mode only.
                 continue;
             }
             $key = isset($field->key) ? trim($field->key) : null;
-            if (empty($key)) {
-                // Skip if we have an empty key.
-                continue;
-            }
             // Exclude default_value (may add this functionality in the future if desired).
             $valueSources = ['value'];
             if ($this->test) {
@@ -323,11 +320,18 @@ class ApiPayloadRequest
                 if (!empty($field->{$valueSource})) {
                     $value = $this->renderTokens($field->{$valueSource});
                     if (!empty($value)) {
+                        if ($valueSource == 'test_value') {
+                            $testValueUsed = true;
+                        }
                         break;
                     }
                 }
             }
             if (empty($value) && 0 !== $value) {
+                if (empty($key)) {
+                    // Skip if we have an empty key as well (nothing useful).
+                    continue;
+                }
                 // The field value is empty.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
@@ -342,6 +346,15 @@ class ApiPayloadRequest
                 }
             }
             $result[$key] = $value;
+            // During a test, tokens may not have contact context.
+            if ($testValueUsed) {
+                if (1 === preg_match('/^{{\s*[\w\.]+\s*}}$/', trim($field->value))) {
+                    $testKey = trim(str_replace(['{', '}'], '', $field->value));
+                    if (empty($result[$testKey])) {
+                        $result[$testKey] = $value;
+                    }
+                }
+            }
         }
 
         return $result;
