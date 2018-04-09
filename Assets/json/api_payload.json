@@ -163,8 +163,7 @@
                   "infoText": "Here you can customize the body as a raw string for services that require a specific/nested structure. Keep in mind this must match the Request Format specified above. Use ",
                   "codeMirror": true,
                   "grid_columns": 12,
-                  "tokenSource": "plugin:mauticContactClient:getTokens",
-                  "hidden": true
+                  "tokenSource": "plugin:mauticContactClient:getTokens"
                 }
               },
               "body": {
