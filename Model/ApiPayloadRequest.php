@@ -149,7 +149,11 @@ class ApiPayloadRequest
             $templateFields = $this->templateFieldValues($request->body);
             $body           = $this->renderTokens($request->template, $templateFields);
             if (!empty(trim($body))) {
-                $options['body'] = $body;
+                if ($requestFormat == 'json') {
+                    $options['json'] = $body;
+                } else {
+                    $options['body'] = $body;
+                }
             }
         } else {
             if (is_string($request->body) && !empty(trim($request->body))) {
@@ -165,7 +169,11 @@ class ApiPayloadRequest
         if (!empty($request->headers)) {
             $headers = $this->fieldValues($request->headers);
             if (!empty($headers)) {
-                $options['headers'] = $headers;
+                if (isset($options['headers'])) {
+                    $options['headers'] = array_merge($options['headers'], $headers);
+                } else {
+                    $options['headers'] = $headers;
+                }
             }
         }
 
