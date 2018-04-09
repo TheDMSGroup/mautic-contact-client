@@ -388,7 +388,7 @@ class ApiPayloadResponse
                 }
             }
 
-            if ($this->successDefinition) {
+            if (!empty($this->successDefinition) && $this->successDefinition !== 'null') {
                 // Standard success definition validation.
                 $filter = new FilterHelper();
                 try {
