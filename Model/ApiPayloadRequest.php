@@ -149,7 +149,7 @@ class ApiPayloadRequest
             $templateFields = $this->templateFieldValues($request->body);
             $body           = $this->renderTokens($request->template, $templateFields);
             if (!empty(trim($body))) {
-                if ($requestFormat == 'json') {
+                if ('json' == $requestFormat) {
                     $options['json'] = $body;
                 } else {
                     $options['body'] = $body;
@@ -320,7 +320,7 @@ class ApiPayloadRequest
                 if (!empty($field->{$valueSource})) {
                     $value = $this->renderTokens($field->{$valueSource});
                     if (!empty($value)) {
-                        if ($valueSource == 'test_value') {
+                        if ('test_value' == $valueSource) {
                             $testValueUsed = true;
                         }
                         break;
