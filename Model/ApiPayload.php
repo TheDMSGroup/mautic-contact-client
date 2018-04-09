@@ -262,13 +262,10 @@ class ApiPayload
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
             } catch (\Exception $e) {
-                // Log results before throwing the exception.
+                // Delay this exception throw...
             }
-            $logs        = array_merge($apiOperation->getLogs(), $logs);
+            $logs = array_merge($apiOperation->getLogs(), $logs);
             $this->setLogs($logs, $id);
-            if (isset($e)) {
-                throw $e;
-            }
 
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
@@ -288,6 +285,11 @@ class ApiPayload
         // Update the payload if enabled.
         if ($updatePayload) {
             $this->updatePayload();
+        }
+
+        // Intentionally delayed exception till after logging and payload update.
+        if (isset($e)) {
+            throw $e;
         }
 
         return $this->valid;
@@ -371,7 +373,12 @@ class ApiPayload
                         $this->contactClientModel->saveEntity($this->contactClient);
                         $this->setLogs('Updated our response payload expectations.', 'payload');
                     } catch (\Exception $e) {
-                        $this->setLogs('Unable to save updates to the Contact Client. '.$e->getMessage(), 'error');
+                        $this->setLogs('Unable to save updates to the payload. '.$e->getMessage(), 'error');
+                    }
+                }
+            }
+        }
+    }
                     }
                 }
             }

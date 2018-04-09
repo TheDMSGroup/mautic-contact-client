@@ -879,6 +879,7 @@ class ClientIntegration extends AbstractIntegration
         $contact = new Contact();
 
         $this->sendContact($client, $contact, true);
+        $apiPayload = $client->getAPIPayload();
 
         return $this->valid;
     }
