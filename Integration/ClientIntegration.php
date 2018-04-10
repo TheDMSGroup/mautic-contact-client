@@ -113,11 +113,11 @@ class ClientIntegration extends AbstractIntegration
     public function pushLead($contact, $config = [])
     {
         // Reset variables for the next run since we could be in a batch.
-        $this->logs = [];
+        $this->logs          = [];
         $this->contactClient = null;
-        $this->contact = null;
-        $this->valid = true;
-        $this->payload = null;
+        $this->contact       = null;
+        $this->valid         = true;
+        $this->payload       = null;
 
         $this->event = $config;
         $config      = $this->mergeConfigToFeatureSettings($config);
