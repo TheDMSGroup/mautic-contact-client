@@ -53,6 +53,7 @@ class ClientIntegration extends AbstractIntegration
     protected $payload;
 
     /** @var bool $valid */
+    // @todo - Change the default to false/null like Sources, and cleanup associated methods.
     protected $valid = true;
 
     /** @var Container $container */
@@ -111,6 +112,13 @@ class ClientIntegration extends AbstractIntegration
      */
     public function pushLead($contact, $config = [])
     {
+        // Reset variables for the next run since we could be in a batch.
+        $this->logs          = [];
+        $this->contactClient = null;
+        $this->contact       = null;
+        $this->valid         = true;
+        $this->payload       = null;
+
         $this->event = $config;
         $config      = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
@@ -140,11 +148,11 @@ class ClientIntegration extends AbstractIntegration
             }
         }
 
-        $result = $this->sendContact($client, $contact, false, $overrides);
+        $this->sendContact($client, $contact, false, $overrides);
 
         // Returning false will typically cause a retry.
         // If an error occurred and we do not wish to retry we should return true.
-        return $result ? $result : !$this->retry;
+        return $this->valid ? $this->valid : !$this->retry;
     }
 
     /**
@@ -213,7 +221,7 @@ class ClientIntegration extends AbstractIntegration
      * @param bool          $test
      * @param array         $overrides
      *
-     * @return bool
+     * @return $this
      */
     public function sendContact(
         ContactClient $client,
@@ -295,7 +303,7 @@ class ClientIntegration extends AbstractIntegration
 
         $this->logResults();
 
-        return $this->valid;
+        return $this;
     }
 
     /**
@@ -415,6 +423,7 @@ class ClientIntegration extends AbstractIntegration
                 $this->contact = $this->payload->getContact();
             }
 
+            // @todo - Remove need for logs to carry over attribution to other tables/entities.
             // Update attribution based on attribution settings.
             /** @var Attribution $attribution */
             $attribution = new Attribution($this->contactClient, $this->contact);
@@ -592,7 +601,7 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Add log entry for statistics / charts.
-        $attribution = !empty($this->logs['attribution']) ? $this->logs['attribution'] : 0;
+        $attribution = !empty($this->logs['attribution']) ? floatval($this->logs['attribution']) : 0;
         $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $attribution, $utmSource);
 
         // Add transactional event for deep dive into logs.
