@@ -149,11 +149,9 @@ class ApiPayloadRequest
             $templateFields = $this->templateFieldValues($request->body);
             $body           = $this->renderTokens($request->template, $templateFields);
             if (!empty(trim($body))) {
-                if ('json' == $requestFormat) {
-                    $options['json'] = $body;
-                } else {
-                    $options['body'] = $body;
-                }
+                $options['body'] = $body;
+                // Prevent double-encoding JSON.
+                unset($options['json']);
             }
         } else {
             if (is_string($request->body) && !empty(trim($request->body))) {
