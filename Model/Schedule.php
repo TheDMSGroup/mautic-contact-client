@@ -64,16 +64,14 @@ class Schedule
      */
     private function setTimezone()
     {
-        if (!$this->timezone) {
-            $timezone = $this->contactClient->getScheduleTimezone();
-            if (!$timezone) {
-                $timezone = $this->container->get('mautic.helper.core_parameters')->getParameter(
-                    'default_timezone'
-                );
-                $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();
-            }
-            $this->timezone = new \DateTimeZone($timezone);
+        $timezone = $this->contactClient->getScheduleTimezone();
+        if (!$timezone) {
+            $timezone = $this->container->get('mautic.helper.core_parameters')->getParameter(
+                'default_timezone'
+            );
+            $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();
         }
+        $this->timezone = new \DateTimeZone($timezone);
     }
 
     /**

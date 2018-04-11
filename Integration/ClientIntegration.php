@@ -101,6 +101,26 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Reset local class variables.
+     *
+     * @param array $exclusions Optional array of local variables to keep current values.
+     *
+     * @return $this
+     */
+    public function reset($exclusions = [])
+    {
+        foreach (array_diff_key(
+                     get_class_vars(get_class($this)),
+                     get_class_vars(get_parent_class($this)),
+                     array_flip($exclusions)
+                 ) as $name => $default) {
+            $this->$name = $default;
+        }
+
+        return $this;
+    }
+
+    /**
      * Push a contact to a preconfigured Contact Client.
      *
      * @param Contact $contact
@@ -112,13 +132,7 @@ class ClientIntegration extends AbstractIntegration
      */
     public function pushLead($contact, $config = [])
     {
-        // Reset variables for the next run since we could be in a batch.
-        $this->logs          = [];
-        $this->contactClient = null;
-        $this->contact       = null;
-        $this->valid         = true;
-        $this->payload       = null;
-
+        $this->reset();
         $this->event = $config;
         $config      = $this->mergeConfigToFeatureSettings($config);
         if (empty($config['contactclient'])) {
@@ -273,10 +287,10 @@ class ClientIntegration extends AbstractIntegration
             }
 
             // Configure the payload.
-            $this->getApiPayloadModel();
-            $this->payload
-                ->setTest($test)
+            $this->getApiPayloadModel()
+                ->reset()
                 ->setContactClient($this->contactClient)
+                ->setTest($test)
                 ->setContact($this->contact)
                 ->setOverrides($overrides);
 
@@ -346,9 +360,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function getApiPayloadModel()
     {
-        if (!$this->payload) {
-            $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
-        }
+        $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
 
         return $this->payload;
     }
@@ -603,6 +615,7 @@ class ClientIntegration extends AbstractIntegration
         // Add log entry for statistics / charts.
         $attribution = !empty($this->logs['attribution']) ? floatval($this->logs['attribution']) : 0;
         $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $attribution, $utmSource);
+        $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
 
         // Add transactional event for deep dive into logs.
         $clientModel->addEvent(
@@ -613,6 +626,7 @@ class ClientIntegration extends AbstractIntegration
             $message,
             $integration_entity_id
         );
+        $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Event');
 
         // Lead event log (lead_event_log) I've decided to leave this out for now because it's not very useful.
         //$contactModel = $this->getContainer()->get('mautic.lead.model.lead');
