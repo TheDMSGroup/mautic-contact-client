@@ -103,7 +103,7 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Reset local class variables.
      *
-     * @param array $exclusions Optional array of local variables to keep current values.
+     * @param array $exclusions optional array of local variables to keep current values
      *
      * @return $this
      */
