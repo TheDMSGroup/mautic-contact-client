@@ -115,6 +115,25 @@ class ApiPayload
     }
 
     /**
+     * Reset local class variables.
+     *
+     * @param array $exclusions optional array of local variables to keep current values
+     *
+     * @return $this
+     */
+    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper', 'coreParametersHelper'])
+    {
+        foreach (array_diff_key(
+                     get_class_vars(get_class($this)),
+                     array_flip($exclusions)
+                 ) as $name => $default) {
+            $this->$name = $default;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return Contact
      */
     public function getContact()
