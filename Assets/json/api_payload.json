@@ -281,9 +281,20 @@
           "format": "checkbox",
           "default": true
         },
-        "limit": {
-          "title": "Rate Limit",
+        "verify": {
+          "title": "Verify SSL",
           "options": {
+            "infoText": "If an SSL certificate is used, it will be verified as authentic."
+          },
+          "propertyOrder": 20,
+          "type": "boolean",
+          "format": "checkbox",
+          "default": false
+        },
+        "limit": {
+          "title": "Rate Limit - To be deprecated!",
+          "options": {
+            "hidden": true,
             "infoText": "Maximum number of requests we will allow per minute, including failures. To prevent disruption of service with the client and reduce errors."
           },
           "propertyOrder": 20,
@@ -315,8 +326,9 @@
           "maximum": 30
         },
         "attempts": {
-          "title": "Attempts",
+          "title": "Attempts - To be deprecated.",
           "options": {
+            "hidden": true,
             "infoText": "Attempts that will be made to send this payload, before aborting due to critical errors or timeouts. Set to 1 to prevent retries."
           },
           "propertyOrder": 50,

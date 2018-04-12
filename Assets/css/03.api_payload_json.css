@@ -29,6 +29,7 @@
     background-color: #fff !important;
 }
 
+.api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.verify"] > div,
 .api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.autoUpdate"] > div {
     padding-top: 20px;
 }
