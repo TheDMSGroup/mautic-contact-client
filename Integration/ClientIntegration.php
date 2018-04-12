@@ -77,6 +77,9 @@ class ClientIntegration extends AbstractIntegration
     /** @var bool */
     protected $retry;
 
+    /**
+     * @return string
+     */
     public function getDisplayName()
     {
         return 'Clients';
