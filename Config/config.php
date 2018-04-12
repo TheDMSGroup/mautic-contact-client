@@ -10,9 +10,9 @@
  */
 
 return [
-    'name'        => 'Mautic Contact Client',
+    'name'        => 'Contact Client',
     'description' => 'Send contacts to third party APIs or enhance your contacts without code.',
-    'version'     => '0.3',
+    'version'     => '1.0',
     'author'      => 'Mautic',
 
     'routes' => [
