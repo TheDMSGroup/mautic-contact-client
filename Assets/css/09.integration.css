@@ -5,3 +5,22 @@
     border: 0;
     border-radius: 0;
 }
+#campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr > td {
+    min-width: 150px;
+}
+
+#campaignevent_properties_config .contactclient_jsoneditor {
+    overflow-y: auto;
+}
+@media (min-width: 768px) {
+    #CampaignEventModal .modal-dialog.expanded {
+        width: auto;
+        min-width: 600px;
+        max-width: 95%;
+        -webkit-transition: width 300ms ease-in-out;
+        -moz-transition: width 300ms ease-in-out;
+        -ms-transition: width 300ms ease-in-out;
+        -o-transition: width 300ms ease-in-out;
+        transition: width 300ms ease-in-out;
+    }
+}
