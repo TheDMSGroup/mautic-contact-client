@@ -53,7 +53,7 @@ class Transport implements TransportInterface
         'cookies'         => true,
         'http_errors'     => false,
         'synchronous'     => true,
-        'verify'          => true,
+        'verify'          => false,
         'timeout'         => 30,
         'version'         => 1.1,
         'headers'         => null,
