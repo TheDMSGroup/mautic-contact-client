@@ -96,13 +96,13 @@ class EventRepository extends CommonRepository
         if (!empty($options['fromDate']) && !empty($options['toDate'])) {
             $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
                 ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d 23:59:59'));
         } elseif (!empty($options['fromDate'])) {
             $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
                 ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
         } elseif (!empty($options['toDate'])) {
             $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d 23:59:59'));
         }
 
         if (isset($options['order']) && !empty($options['order'])) {
