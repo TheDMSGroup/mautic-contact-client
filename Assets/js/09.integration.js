@@ -4,6 +4,11 @@ Mautic.contactclientIntegration = function () {
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:not(.contactclient-checked):first');
     if ($client.length && $overrides.length) {
 
+        if (typeof window.contactClientIntegrationStyles === 'undefined') {
+            window.contactClientIntegrationStyles = true;
+            mQuery('head').append('<link rel="stylesheet" href="' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css' + '" data-source="mautic" />');
+        }
+
         // Get the JSON from the client selector, if not already present.
         $client.off('change').on('change', function () {
             var clientId = parseInt(mQuery(this).val()),
