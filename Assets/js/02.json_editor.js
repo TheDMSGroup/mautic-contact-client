@@ -464,8 +464,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             window.JSONEditor.tokenCache = {};
         }
 
-        // Re-render any who's values have been altered by reordering or deletion.
-        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first.tag-editor-hidden-src').each(function(){
+        // Re-render any who's values have been altered by reordering or
+        // deletion.
+        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first.tag-editor-hidden-src').each(function () {
             var $text = mQuery(this),
                 $tagEditor = mQuery(this).parent().find('ul.tag-editor:first');
             if ($tagEditor.length) {
@@ -498,15 +499,30 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         if (typeof response.tokens !== 'undefined') {
                             window.JSONEditor.tokenCache[tokenSource] = response.tokens;
                         }
-                        JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+                        if (!mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
+                            JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+                        } else {
+                            console.log('No tokens found for ' + tokenSource);
+                        }
                     },
-                    error: function () {
-                        JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+                    error: function (e) {
+                        console.warn('Could not retrieve tokens for ' + tokenSource, e);
                     }
                 });
             }
             else {
-                JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+                var tries = 0,
+                    checkTokens = setInterval(function () {
+                        tries++;
+                        if (tries > 300) {
+                            console.warn('Took too long to retrieve tokens for ' + tokenSource);
+                            clearInterval(checkTokens);
+                        }
+                        if (!mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
+                            clearInterval(checkTokens);
+                            JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
+                        }
+                    }, 100);
             }
 
         }).addClass('tokens-checked');

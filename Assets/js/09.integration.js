@@ -4,8 +4,8 @@ Mautic.contactclientIntegration = function () {
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:not(.contactclient-checked):first');
     if ($client.length && $overrides.length) {
 
-        if (typeof window.contactClientIntegrationStyles === 'undefined') {
-            window.contactClientIntegrationStyles = true;
+        if (typeof Mautic.contactclientIntegrationStylesLoaded === 'undefined') {
+            Mautic.contactclientIntegrationStylesLoaded = true;
             mQuery('head').append('<link rel="stylesheet" href="' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css' + '" data-source="mautic" />');
         }
 
