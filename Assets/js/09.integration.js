@@ -90,5 +90,15 @@ Mautic.contactclientIntegration = function () {
         });
         $client.addClass('contactclient-checked');
         $overrides.addClass('contactclient-checked');
+
+        // Expand the modal view.
+        var $modal = mQuery('#CampaignEventModal:first');
+        if ($modal.length) {
+            var $dialog = $modal.find('.modal-dialog:first');
+            $dialog.addClass('expanded');
+            $modal.on('hidden.bs.modal', function(){
+                $dialog.removeClass('expanded');
+            });
+        }
     }
 };

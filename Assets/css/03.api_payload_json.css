@@ -124,6 +124,10 @@
     pointer-events: none;
 }
 
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] .tag-editor .tag-editor-tag.normal {
+    color: #fff;
+}
+
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul {
     background: none;
     border: 0;
