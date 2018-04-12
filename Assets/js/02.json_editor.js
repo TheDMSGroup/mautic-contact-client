@@ -301,7 +301,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                             if (
                                                                 allowedTagArr[i].length >= len
                                                                 && allowedTagArr[i].substr(0, len) === word
-                                                                && allowedTagArr[i] !== word
+                                                                // && allowedTagArr[i] !== word
                                                             ) {
                                                                 matches.push('{{' + allowedTagArr[i] + '}}');
                                                             }
