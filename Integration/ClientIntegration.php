@@ -161,7 +161,6 @@ class ClientIntegration extends AbstractIntegration
                 }
             }
         }
-
         $this->sendContact($client, $contact, false, $overrides);
 
         // Returning false will typically cause a retry.
