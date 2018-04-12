@@ -1,0 +1,7 @@
+/* Style the body key column to prevent user confusion/clicking */
+#campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr > td[data-schemapath*=".key"] > div > input {
+    pointer-events: none;
+    background: none;
+    border: 0;
+    border-radius: 0;
+}

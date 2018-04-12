@@ -561,6 +561,7 @@ class ApiPayload
      */
     public function setOverrides($overrides)
     {
+        $fieldsOverridden = [];
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $id => &$operation) {
                 if (isset($operation->request)) {
@@ -571,15 +572,20 @@ class ApiPayload
                                     isset($field->overridable)
                                     && true === $field->overridable
                                     && isset($field->key)
-                                    && isset($overrideValues[$field->key])
+                                    && isset($overrides[$field->key])
+                                    && null !== $overrides[$field->key]
                                 ) {
-                                    $field->value = $overrides[$field->key];
+                                    $field->value                  = $overrides[$field->key];
+                                    $fieldsOverridden[$field->key] = $overrides[$field->key];
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+        if ($fieldsOverridden) {
+            $this->setLogs($fieldsOverridden, 'fieldsOverridden');
         }
 
         return $this;

@@ -161,7 +161,6 @@ class ClientIntegration extends AbstractIntegration
                 }
             }
         }
-
         $this->sendContact($client, $contact, false, $overrides);
 
         // Returning false will typically cause a retry.
@@ -847,14 +846,13 @@ class ClientIntegration extends AbstractIntegration
                     [
                         'label' => 'mautic.contactclient.integration.overrides',
                         'attr'  => [
-                            'class'   => 'btn btn-default btn-nospin',
+                            'class'   => 'btn btn-default',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                             // Shim to get our javascript over the border and into Integration land.
                             'onclick' => "if (typeof Mautic.contactclientIntegration === 'undefined') {".
                                 "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){".
                                 '        Mautic.contactclientIntegration();'.
                                 '    });'.
-                                "    mQuery('head').append('<"."link rel=\'stylesheet\' href=\'' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css\' type=\'text/css\' />');".
                                 '} else {'.
                                 '    Mautic.contactclientIntegration();'.
                                 '}',
