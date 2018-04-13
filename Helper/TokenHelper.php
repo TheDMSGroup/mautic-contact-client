@@ -111,7 +111,36 @@ class TokenHelper
      */
     public function addContext($context = [])
     {
+        $this->nestContext($context);
         $this->context = array_merge($this->context, $context);
+    }
+
+    /**
+     * Nest keys containing dots as Mustache contextual arrays.
+     * ex. ['utm.source' => 'value'] becomes ['utm' => ['source' => 'value']].
+     *
+     * @param $context
+     *
+     * @return mixed
+     */
+    private function nestContext(&$context)
+    {
+        foreach ($context as $key => $value) {
+            $dot = strpos($key, '.');
+            if ($dot && $dot !== strlen($key) - 1) {
+                $currentContext = &$context;
+                foreach (explode('.', $key) as $k) {
+                    if (!isset($currentContext[$k])) {
+                        $currentContext[$k] = [];
+                    }
+                    $currentContext = &$currentContext[$k];
+                }
+                $currentContext = $value;
+                unset($context[$key]);
+            }
+        }
+
+        return $context;
     }
 
     /**
