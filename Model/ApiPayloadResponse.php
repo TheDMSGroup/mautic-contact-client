@@ -321,21 +321,33 @@ class ApiPayloadResponse
     /**
      * Recursively flatten an structure to an array including only key/value pairs.
      *
-     * @param       $subject
-     * @param array $result
+     * @param        $subject
+     * @param array  $result
+     * @param string $prefix
+     * @param string $delimiter
      *
      * @return array
      */
-    private function flattenStructure($subject, &$result = [])
+    private function flattenStructure($subject, &$result = [], $prefix = '', $delimiter = '.')
     {
         foreach ($subject as $key => $value) {
             if (is_array($value) || is_object($value)) {
-                $this->flattenStructure($value, $result);
+                $this->flattenStructure($value, $result, $prefix ? $prefix.$delimiter.$key : $key);
             } else {
+                if ($prefix) {
+                    $key = $prefix.$delimiter.$key;
+                }
                 // Do not nullify existing key/value pairs if already present.
                 if (empty($value) && false !== $value && !isset($result[$key])) {
                     $result[$key] = null;
                 } else {
+                    // Handle repeated arrays without unique keys.
+                    $originalKey = $key;
+                    $count       = 0;
+                    while (isset($result[$key])) {
+                        $key = $originalKey.$delimiter.$count;
+                        ++$count;
+                    }
                     $result[$key] = $value;
                 }
             }
