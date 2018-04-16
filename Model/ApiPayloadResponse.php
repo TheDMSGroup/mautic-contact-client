@@ -49,9 +49,9 @@ class ApiPayloadResponse
     protected $contentTypes = [
         'json',
         'xml',
-        'yaml',
         'html',
         'text',
+        'yaml',
     ];
 
     /**
