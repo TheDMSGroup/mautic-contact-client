@@ -244,7 +244,7 @@ class ApiPayloadResponse
                     break;
 
                 case 'yaml':
-                    $hierarchy = Yaml::dump($data);
+                    $hierarchy = Yaml::parse($data);
                     break;
             }
         } catch (\Exception $e) {
