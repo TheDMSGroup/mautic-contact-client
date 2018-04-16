@@ -21,137 +21,128 @@
         {
           "title": "CSV (default)",
           "type": "object",
+          "format": "grid",
           "options": {
             "collapsed": false,
             "disable_collapse": true
           },
           "properties": {
-            "settings": {
-              "title": "CSV Settings",
-              "type": "object",
-              "format": "grid",
-              "options": {
-                "collapsed": true
-              },
-              "properties": {
-                "delimiter": {
-                  "type": "string",
-                  "title": "CSV Delimiter",
-                  "default": ",",
-                  "enumSource": [
+            "delimiter": {
+              "type": "string",
+              "title": "CSV Delimiter",
+              "default": ",",
+              "enumSource": [
+                {
+                  "source": [
                     {
-                      "source": [
-                        {
-                          "value": ",",
-                          "title": "Commas (default)"
-                        },
-                        {
-                          "value": "\\t",
-                          "title": "Tabs"
-                        },
-                        {
-                          "value": ";",
-                          "title": "Semicolons"
-                        },
-                        {
-                          "value": " ",
-                          "title": "Spaces"
-                        }
-                      ],
-                      "title": "{{item.title}}",
-                      "value": "{{item.value}}"
-                    }
-                  ]
-                },
-                "enclosure": {
-                  "type": "string",
-                  "title": "CSV Enclosure character",
-                  "default": "\"",
-                  "enumSource": [
+                      "value": ",",
+                      "title": "Commas (default)"
+                    },
                     {
-                      "source": [
-                        {
-                          "value": "\"",
-                          "title": "Double-quotes (default)"
-                        },
-                        {
-                          "value": "'",
-                          "title": "Single-quotes"
-                        }
-                      ],
-                      "title": "{{item.title}}",
-                      "value": "{{item.value}}"
-                    }
-                  ]
-                },
-                "escape": {
-                  "type": "string",
-                  "title": "CSV escape character",
-                  "default": "\\",
-                  "enumSource": [
+                      "value": "\\t",
+                      "title": "Tabs"
+                    },
                     {
-                      "source": [
-                        {
-                          "value": "\\",
-                          "title": "Backslash (default)"
-                        },
-                        {
-                          "value": "\"",
-                          "title": "Double-quotes"
-                        }
-                      ],
-                      "title": "{{item.title}}",
-                      "value": "{{item.value}}"
-                    }
-                  ]
-                },
-                "terminate": {
-                  "type": "string",
-                  "title": "CSV line termination",
-                  "default": "\\n",
-                  "enumSource": [
+                      "value": ";",
+                      "title": "Semicolons"
+                    },
                     {
-                      "source": [
-                        {
-                          "value": "\\n",
-                          "title": "NewLine (default)"
-                        },
-                        {
-                          "value": "\\r\\n",
-                          "title": "Return and NewLine (Windows)"
-                        },
-                        {
-                          "value": "\\r",
-                          "title": "Return"
-                        }
-                      ],
-                      "title": "{{item.title}}",
-                      "value": "{{item.value}}"
+                      "value": " ",
+                      "title": "Spaces"
                     }
-                  ]
-                },
-                "null": {
-                  "type": "string",
-                  "title": "CSV empty value treatment",
-                  "default": "",
-                  "enumSource": [
-                    {
-                      "source": [
-                        {
-                          "value": "",
-                          "title": "Empty (default)"
-                        },
-                        {
-                          "value": "NULL",
-                          "title": "NULL"
-                        }
-                      ],
-                      "title": "{{item.title}}",
-                      "value": "{{item.value}}"
-                    }
-                  ]
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
                 }
-              }
+              ]
+            },
+            "enclosure": {
+              "type": "string",
+              "title": "CSV Enclosure character",
+              "default": "\"",
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "\"",
+                      "title": "Double-quotes (default)"
+                    },
+                    {
+                      "value": "'",
+                      "title": "Single-quotes"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
+            },
+            "escape": {
+              "type": "string",
+              "title": "CSV escape character",
+              "default": "\\",
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "\\",
+                      "title": "Backslash (default)"
+                    },
+                    {
+                      "value": "\"",
+                      "title": "Double-quotes"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
+            },
+            "terminate": {
+              "type": "string",
+              "title": "CSV line termination",
+              "default": "\\n",
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "\\n",
+                      "title": "NewLine (default)"
+                    },
+                    {
+                      "value": "\\r\\n",
+                      "title": "Return and NewLine (Windows)"
+                    },
+                    {
+                      "value": "\\r",
+                      "title": "Return"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
+            },
+            "null": {
+              "type": "string",
+              "title": "CSV empty value treatment",
+              "default": "",
+              "enumSource": [
+                {
+                  "source": [
+                    {
+                      "value": "",
+                      "title": "Empty (default)"
+                    },
+                    {
+                      "value": "NULL",
+                      "title": "NULL"
+                    }
+                  ],
+                  "title": "{{item.title}}",
+                  "value": "{{item.value}}"
+                }
+              ]
             }
           }
         },
@@ -197,10 +188,10 @@
       "title": "Include Headers",
       "type": "boolean",
       "format": "checkbox",
+      "default": true,
       "options": {
-        "infoText": "Headers will be autogenerated based on the field labels provided."
-      },
-      "default": true
+        "infoText": "Headers will be sent based on the field keys provided below."
+      }
     },
     "empty": {
       "title": "Send even if empty",
@@ -212,7 +203,6 @@
       "default": false
     },
     "body": {
-      "propertyOrder": 30,
       "title": "Fields",
       "type": "array",
       "format": "table",
