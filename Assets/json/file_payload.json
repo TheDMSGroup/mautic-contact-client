@@ -15,6 +15,52 @@
       },
       "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}"
     },
+    "compression": {
+      "title": "Compression",
+      "type": "string",
+      "default": "zip",
+      "options": {
+        "infoText": "It is strongly advised that a form of compression is chosen."
+      },
+      "enumSource": [
+        {
+          "source": [
+            {
+              "value": "zip",
+              "title": "ZIP (default)"
+            },
+            {
+              "value": "gzip",
+              "title": "GZIP"
+            },
+            {
+              "value": "none",
+              "title": "None (not advised)"
+            }
+          ],
+          "title": "{{item.title}}",
+          "value": "{{item.value}}"
+        }
+      ]
+    },
+    "headers": {
+      "title": "Include Headers",
+      "type": "boolean",
+      "format": "checkbox",
+      "default": true,
+      "options": {
+        "infoText": "Headers will be sent based on the field keys provided below."
+      }
+    },
+    "empty": {
+      "title": "Send even if empty",
+      "type": "boolean",
+      "format": "checkbox",
+      "options": {
+        "infoText": "A file will be sent even if there are no contacts to send. The file will be blank."
+      },
+      "default": false
+    },
     "type": {
       "title": "File type",
       "oneOf": [
@@ -155,52 +201,6 @@
           }
         }
       ]
-    },
-    "compression": {
-      "title": "Compression",
-      "type": "string",
-      "default": "zip",
-      "options": {
-        "infoText": "It is strongly advised that a form of compression is chosen."
-      },
-      "enumSource": [
-        {
-          "source": [
-            {
-              "value": "zip",
-              "title": "ZIP (default)"
-            },
-            {
-              "value": "gzip",
-              "title": "GZIP"
-            },
-            {
-              "value": "none",
-              "title": "None (not advised)"
-            }
-          ],
-          "title": "{{item.title}}",
-          "value": "{{item.value}}"
-        }
-      ]
-    },
-    "headers": {
-      "title": "Include Headers",
-      "type": "boolean",
-      "format": "checkbox",
-      "default": true,
-      "options": {
-        "infoText": "Headers will be sent based on the field keys provided below."
-      }
-    },
-    "empty": {
-      "title": "Send even if empty",
-      "type": "boolean",
-      "format": "checkbox",
-      "options": {
-        "infoText": "A file will be sent even if there are no contacts to send. The file will be blank."
-      },
-      "default": false
     },
     "body": {
       "title": "Fields",
