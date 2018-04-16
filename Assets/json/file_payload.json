@@ -15,150 +15,143 @@
       },
       "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}"
     },
-    "body": {
-      "propertyOrder": 30,
-      "title": "Fields",
-      "type": "array",
-      "format": "table",
-      "uniqueItems": true,
-      "options": {
-        "collapsed": false,
-        "disable_collapse": true,
-        "disable_array_reorder": true
-      },
-      "items": {
-        "title": "Field",
-        "$ref": "#/definitions/requestField"
-      }
-    },
     "type": {
       "title": "File type",
       "oneOf": [
         {
           "title": "CSV (default)",
           "type": "object",
-          "format": "grid",
           "options": {
             "collapsed": false,
             "disable_collapse": true
           },
           "properties": {
-            "delimiter": {
-              "type": "string",
-              "title": "CSV Delimiter",
-              "default": ",",
-              "enumSource": [
-                {
-                  "source": [
+            "settings": {
+              "title": "CSV Settings",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": true
+              },
+              "properties": {
+                "delimiter": {
+                  "type": "string",
+                  "title": "CSV Delimiter",
+                  "default": ",",
+                  "enumSource": [
                     {
-                      "value": ",",
-                      "title": "Commas (default)"
-                    },
-                    {
-                      "value": "\\t",
-                      "title": "Tabs"
-                    },
-                    {
-                      "value": ";",
-                      "title": "Semicolons"
-                    },
-                    {
-                      "value": " ",
-                      "title": "Spaces"
+                      "source": [
+                        {
+                          "value": ",",
+                          "title": "Commas (default)"
+                        },
+                        {
+                          "value": "\\t",
+                          "title": "Tabs"
+                        },
+                        {
+                          "value": ";",
+                          "title": "Semicolons"
+                        },
+                        {
+                          "value": " ",
+                          "title": "Spaces"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
                     }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "enclosure": {
-              "type": "string",
-              "title": "CSV Enclosure character",
-              "default": "\"",
-              "enumSource": [
-                {
-                  "source": [
+                  ]
+                },
+                "enclosure": {
+                  "type": "string",
+                  "title": "CSV Enclosure character",
+                  "default": "\"",
+                  "enumSource": [
                     {
-                      "value": "\"",
-                      "title": "Double-quotes (default)"
-                    },
-                    {
-                      "value": "'",
-                      "title": "Single-quotes"
+                      "source": [
+                        {
+                          "value": "\"",
+                          "title": "Double-quotes (default)"
+                        },
+                        {
+                          "value": "'",
+                          "title": "Single-quotes"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
                     }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "escape": {
-              "type": "string",
-              "title": "CSV escape character",
-              "default": "\\",
-              "enumSource": [
-                {
-                  "source": [
+                  ]
+                },
+                "escape": {
+                  "type": "string",
+                  "title": "CSV escape character",
+                  "default": "\\",
+                  "enumSource": [
                     {
-                      "value": "\\",
-                      "title": "Backslash (default)"
-                    },
-                    {
-                      "value": "\"",
-                      "title": "Double-quotes"
+                      "source": [
+                        {
+                          "value": "\\",
+                          "title": "Backslash (default)"
+                        },
+                        {
+                          "value": "\"",
+                          "title": "Double-quotes"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
                     }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "terminate": {
-              "type": "string",
-              "title": "CSV line termination",
-              "default": "\\n",
-              "enumSource": [
-                {
-                  "source": [
+                  ]
+                },
+                "terminate": {
+                  "type": "string",
+                  "title": "CSV line termination",
+                  "default": "\\n",
+                  "enumSource": [
                     {
-                      "value": "\\n",
-                      "title": "NewLine (default)"
-                    },
-                    {
-                      "value": "\\r\\n",
-                      "title": "Return and NewLine (Windows)"
-                    },
-                    {
-                      "value": "\\r",
-                      "title": "Return"
+                      "source": [
+                        {
+                          "value": "\\n",
+                          "title": "NewLine (default)"
+                        },
+                        {
+                          "value": "\\r\\n",
+                          "title": "Return and NewLine (Windows)"
+                        },
+                        {
+                          "value": "\\r",
+                          "title": "Return"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
                     }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "null": {
-              "type": "string",
-              "title": "CSV empty value treatment",
-              "default": "",
-              "enumSource": [
-                {
-                  "source": [
+                  ]
+                },
+                "null": {
+                  "type": "string",
+                  "title": "CSV empty value treatment",
+                  "default": "",
+                  "enumSource": [
                     {
-                      "value": "",
-                      "title": "Empty (default)"
-                    },
-                    {
-                      "value": "NULL",
-                      "title": "NULL"
+                      "source": [
+                        {
+                          "value": "",
+                          "title": "Empty (default)"
+                        },
+                        {
+                          "value": "NULL",
+                          "title": "NULL"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
                     }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
+                  ]
                 }
-              ]
+              }
             }
           }
         },
@@ -217,6 +210,22 @@
         "infoText": "A file will be sent even if there are no contacts to send. The file will be blank."
       },
       "default": false
+    },
+    "body": {
+      "propertyOrder": 30,
+      "title": "Fields",
+      "type": "array",
+      "format": "table",
+      "uniqueItems": true,
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true,
+        "disable_array_reorder": true
+      },
+      "items": {
+        "title": "Field",
+        "$ref": "#/definitions/requestField"
+      }
     },
     "methods": {
       "title": "Delivery Methods",
