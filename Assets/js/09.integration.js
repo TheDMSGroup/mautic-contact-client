@@ -3,7 +3,6 @@ Mautic.contactclientIntegration = function () {
     var $client = mQuery('#campaignevent_properties_config_contactclient:not(.contactclient-checked):first'),
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:not(.contactclient-checked):first');
     if ($client.length && $overrides.length) {
-
         if (typeof Mautic.contactclientIntegrationStylesLoaded === 'undefined') {
             Mautic.contactclientIntegrationStylesLoaded = true;
             mQuery('head').append('<link rel="stylesheet" href="' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css' + '" data-source="mautic" />');
@@ -24,11 +23,35 @@ Mautic.contactclientIntegration = function () {
                 mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
             }
 
+            if ($overrides.val().length > 0) {
+                // Merge new overrides with whatever was configured before if
+                // possible.
+                try {
+                    var arra = mQuery.parseJSON(json),
+                        arrb = mQuery.parseJSON($overrides.val()),
+                        obj = {};
+                    mQuery.each(arra, function (a, vala) {
+                        if (typeof vala.key !== 'undefined') {
+                            mQuery.each(arrb, function (b, valb) {
+                                if (typeof valb.key !== 'undefined' && vala.key === valb.key) {
+                                    vala = valb;
+                                }
+                            });
+                            obj[vala.key] = {
+                                key: vala.key,
+                                value: vala.value,
+                                description: vala.description
+                            };
+                        }
+                    });
+                    json = JSON.stringify(obj, null, 2);
+                }
+                catch (e) {
+                    console.warn('Could not merge overrides', e);
+                }
+            }
             $overrides.val(json);
-        });
-        if ($overrides.val().length === 0) {
-            $client.trigger('change');
-        }
+        }).trigger('change');
 
         var overridesJSONEditor;
 
@@ -96,7 +119,7 @@ Mautic.contactclientIntegration = function () {
         if ($modal.length) {
             var $dialog = $modal.find('.modal-dialog:first');
             $dialog.addClass('expanded');
-            $modal.on('hidden.bs.modal', function(){
+            $modal.on('hidden.bs.modal', function () {
                 $dialog.removeClass('expanded');
             });
         }
