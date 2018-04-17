@@ -35,6 +35,9 @@ before_install:
 
   # Clone the latest core release.
   - git clone -b master --single-branch --depth 1 https://github.com/mautic/mautic.git /tmp/mautic
+  - cd /tmp/mautic
+  - git describe --long
+  - cd -
 
   # Combine core with our plugin.
   - mkdir -p /tmp/mautic/plugins/$MAUTIC_PLUGIN
