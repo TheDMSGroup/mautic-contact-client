@@ -306,7 +306,7 @@ class ContactClientModel extends FormModel
         }
         $chart     = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
         $query     = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
-        $stat  = new Stat();
+        $stat      = new Stat();
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',
@@ -332,7 +332,7 @@ class ContactClientModel extends FormModel
                 $interval   = abs($userTZ->getOffset() / 3600);
                 $groupBy    = $q->getQueryPart('groupBy')[0];
                 $newGroupBy = str_replace(
-                    "DATE_FORMAT(t.date_added,",
+                    'DATE_FORMAT(t.date_added,',
                     "DATE_FORMAT(DATE_SUB(t.date_added, INTERVAL $interval HOUR),",
                     $groupBy
                 );
@@ -391,8 +391,8 @@ class ContactClientModel extends FormModel
             // draw the chart with the correct intervals for intra-day
             $dateToAdjusted->setTime(23, 59, 59);
         }
-        $chart     = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
-        $query     = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
+        $chart      = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
+        $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
         $utmSources = $this->getSourcesByClient($contactClient);
 
         if ('revenue' != $type) {
@@ -406,7 +406,7 @@ class ContactClientModel extends FormModel
                         'utm_source'       => $utmSource,
                     ]
                 );
-                
+
                 if (!in_array($unit, ['H', 'i', 's'])) {
                     // For some reason, Mautic only sets UTC in Query Date builder
                     // if its an intra-day date range ¯\_(ツ)_/¯
@@ -425,7 +425,7 @@ class ContactClientModel extends FormModel
                     $interval   = abs($userTZ->getOffset() / 3600);
                     $groupBy    = $q->getQueryPart('groupBy')[0];
                     $newGroupBy = str_replace(
-                        "DATE_FORMAT(t.date_added,",
+                        'DATE_FORMAT(t.date_added,',
                         "DATE_FORMAT(DATE_SUB(t.date_added, INTERVAL $interval HOUR),",
                         $groupBy
                     );
@@ -613,8 +613,8 @@ class ContactClientModel extends FormModel
         if ($dayDiff <= 1) {
             $unit = 'H';
 
-            $sameDay = $dateTo->format('d') == $dateFrom->format('d') ? 1 : 0;
-            $hourDiff = $dateTo->diff($dateFrom)->format('%h');
+            $sameDay    = $dateTo->format('d') == $dateFrom->format('d') ? 1 : 0;
+            $hourDiff   = $dateTo->diff($dateFrom)->format('%h');
             $minuteDiff = $dateTo->diff($dateFrom)->format('%i');
             if ($sameDay && !intval($hourDiff) && intval($minutesDiff)) {
                 $unit = 'i';
