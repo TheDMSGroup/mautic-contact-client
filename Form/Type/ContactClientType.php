@@ -11,7 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Form\Type;
 
-use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
+// use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
 use Mautic\CoreBundle\Form\EventListener\FormExitSubscriber;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use MauticPlugin\MauticContactClientBundle\Constraints\JsonArray;
@@ -46,7 +46,9 @@ class ContactClientType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url']));
+        // CleanFormSubscriber causes JSON payloads containing XML to be purged :(
+        // @todo - We may have to run clean on individual fields instead.
+        // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url']));
         $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
 
         $builder->add(

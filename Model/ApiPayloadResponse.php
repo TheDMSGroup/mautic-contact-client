@@ -49,9 +49,9 @@ class ApiPayloadResponse
     protected $contentTypes = [
         'json',
         'xml',
-        'yaml',
         'html',
         'text',
+        'yaml',
     ];
 
     /**
@@ -244,7 +244,10 @@ class ApiPayloadResponse
                     break;
 
                 case 'yaml':
-                    $hierarchy = Yaml::dump($data);
+                    $yaml = Yaml::parse($data, true);
+                    if (is_array($yaml) || is_object($yaml)) {
+                        $hierarchy = $yaml;
+                    }
                     break;
             }
         } catch (\Exception $e) {
