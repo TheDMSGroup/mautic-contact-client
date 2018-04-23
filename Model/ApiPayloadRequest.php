@@ -215,6 +215,22 @@ class ApiPayloadRequest
                 $transport->put($uri, $options);
                 break;
         }
+        $transportRecords = $transport->getRecords();
+        if ($transportRecords) {
+            $debug = [];
+            foreach ($transportRecords as $transportRecord) {
+                if (
+                    isset($transportRecord['channel'])
+                    && $transportRecord['channel'] == 'guzzle.to.curl'
+                    && isset($transportRecord['message'])
+                ) {
+                    $debug[] = $transportRecord['message'];
+                }
+            }
+            if ($debug) {
+                $this->setLogs($debug, 'debug');
+            }
+        }
         $this->setLogs(microtime(true) - $startTime, 'duration');
     }
 
