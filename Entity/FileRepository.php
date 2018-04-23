@@ -14,44 +14,40 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
- * Class StatRepository.
+ * Class FileRepository.
  */
-class StatRepository extends CommonRepository
+class FileRepository extends CommonRepository
 {
     /**
-     * Fetch the base stat data from the database.
+     * Get the files for a client.
      *
-     * @param      $id
-     * @param      $type
+     * @param      $contactClientId
      * @param null $fromDate
      * @param null $toDate
      *
      * @return array
      */
-    public function getStats($id, $type, $fromDate = null, $toDate = null)
+    public function getFiles($contactClientId, $fromDate = null, $toDate = null)
     {
-        $q = $this->createQueryBuilder('s');
+
+        $q = $this->createQueryBuilder('f');
 
         $expr = $q->expr()->andX(
-            $q->expr()->eq('IDENTITY(s.contactclient)', (int) $id),
-            $q->expr()->eq('s.type', ':type')
+            $q->expr()->eq('IDENTITY(f.contactclient)', (int) $contactClientId)
         );
 
         if ($fromDate) {
             $expr->add(
-                $q->expr()->gte('s.dateAdded', ':fromDate')
+                $q->expr()->gte('f.dateAdded', ':fromDate')
             );
             $q->setParameter('fromDate', $fromDate);
         }
         if ($toDate) {
             $expr->add(
-                $q->expr()->lte('s.dateAdded', ':toDate')
+                $q->expr()->lte('f.dateAdded', ':toDate')
             );
             $q->setParameter('toDate', $toDate);
         }
-
-        $q->where($expr)
-            ->setParameter('type', $type);
 
         return $q->getQuery()->getArrayResult();
     }
