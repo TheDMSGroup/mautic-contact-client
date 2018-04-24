@@ -137,7 +137,6 @@ class EventRepository extends CommonRepository
         return $results;
     }
 
-
     /**
      * @param       $contactClientId
      * @param int   $contactId
@@ -171,8 +170,7 @@ class EventRepository extends CommonRepository
             $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
                 ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
         }
-            $query->orderBy('c.date_added', 'DESC');
-
+        $query->orderBy('c.date_added', 'DESC');
 
         if (!empty($options['limit'])) {
             $query->setMaxResults($options['limit']);

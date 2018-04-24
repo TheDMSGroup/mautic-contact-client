@@ -289,6 +289,7 @@ class TimelineController extends CommonController
      * @param         $contactClientId
      *
      * @return StreamedResponse
+     *
      * @throws \Exception
      */
     public function exportTimelineAction(Request $request, $contactClientId)
@@ -305,7 +306,7 @@ class TimelineController extends CommonController
             // 'valid',
             // 'uri',
             // 'options',
-            'blob'
+            'blob',
         ];
         $params  = $this->getDateParams();
         /** @var EventRepository $eventRepository */
@@ -325,14 +326,13 @@ class TimelineController extends CommonController
                     $params['start'] = $start;
                     $timelineData    = $eventRepository->getEventsForTimelineExport($contactClientId, $params, false);
                     foreach ($timelineData as $data) {
-                    //     $csvRows = $this->parseLogYAMLBlob(
-                    //         $data
-                    //     ); // a single data row can be multiple operations and subsequent rows
-                    //     foreach ($csvRows as $csvRow) {
-                    //         fputcsv($handle, array_values($csvRow));
-                    //     }
+                        //     $csvRows = $this->parseLogYAMLBlob(
+                        //         $data
+                        //     ); // a single data row can be multiple operations and subsequent rows
+                        //     foreach ($csvRows as $csvRow) {
+                        //         fputcsv($handle, array_values($csvRow));
+                        //     }
                         fputcsv($handle, $data);
-
                     }
                     $start = $start + $params['limit'];
                 }
@@ -349,6 +349,7 @@ class TimelineController extends CommonController
 
     /**
      * @return array
+     *
      * @throws \Exception
      */
     private function getDateParams()
@@ -397,7 +398,7 @@ class TimelineController extends CommonController
                     if (isset($operation['request']['options'])) {
                         $string = '';
                         foreach ($operation['request']['options'] as $key => $option) {
-                            $string .= "$key: ".implode(',', $option)."; ";
+                            $string .= "$key: ".implode(',', $option).'; ';
                         }
                         $row['options'] = $string;
                     }
