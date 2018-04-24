@@ -585,9 +585,9 @@ class CacheRepository extends CommonRepository
         }
     }
 
-
     /**
      * @todo - finish this deletion method and add to a cron cli task for cleanup.
+     *
      * @return mixed
      */
     public function deleteExpired()

@@ -16,11 +16,10 @@ use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
- * Class Queue
+ * Class Queue.
  */
 class Queue
 {
-
     /** @var int $id */
     private $id;
 
@@ -59,27 +58,6 @@ class Queue
             ['file_id', 'contact_id'],
             'contactclient_queue_file_id_contact_id'
         );
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getLocation()
-    {
-        return $this->location;
-    }
-
-    /**
-     * @param $location
-     *
-     * @return $this
-     */
-    public function setLocation($location)
-    {
-        $this->location = $location;
-
-        return $this;
     }
 
     /**
@@ -152,5 +130,4 @@ class Queue
 
         return $this;
     }
-
 }

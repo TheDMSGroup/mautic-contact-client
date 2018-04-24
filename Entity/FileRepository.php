@@ -60,5 +60,4 @@ class FileRepository extends CommonRepository
     {
         return 'f';
     }
-
 }

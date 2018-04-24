@@ -270,6 +270,7 @@ class FilePayload
      * Step through all operations defined.
      *
      * @return bool
+     *
      * @throws ContactClientException
      */
     public function run()
@@ -279,9 +280,9 @@ class FilePayload
             !isset($this->payload->methods)
             || !count($this->payload->methods)
             || (
-                (!isset($this->payload->methods->email) || $this->payload->methods->email === false)
-                && (!isset($this->payload->methods->ftp) || $this->payload->methods->ftp === false)
-                && (!isset($this->payload->methods->sftp) || $this->payload->methods->sftp === false)
+                (!isset($this->payload->methods->email) || false === $this->payload->methods->email)
+                && (!isset($this->payload->methods->ftp) || false === $this->payload->methods->ftp)
+                && (!isset($this->payload->methods->sftp) || false === $this->payload->methods->sftp)
             )
         ) {
             // There are no file operations to run. Assume manual file queue.
@@ -300,7 +301,6 @@ class FilePayload
         // @todo - If there isn't a file queued up for the next available time, create one.
 
         // @todo - Add the current contact to the queue.
-
 
         // $tokenHelper = $this->getTokenHelper();
         // foreach ($this->payload->methods as $method => &$operation) {

@@ -17,7 +17,7 @@ use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Model\FormModel;
 
 /**
- * Class File
+ * Class File.
  */
 class File extends FormModel
 {
@@ -52,7 +52,7 @@ class File extends FormModel
     /** @var string */
     private $type;
 
-    /** @var boolean */
+    /** @var bool */
     private $headers;
 
     /** @var ContactClient $contactClient */
@@ -79,7 +79,7 @@ class File extends FormModel
     /** @var string */
     private $location;
 
-    /** @var integer */
+    /** @var int */
     private $contacts;
 
     /** @var string */
@@ -100,7 +100,7 @@ class File extends FormModel
     public function __construct()
     {
         // Default status for a new file is "building".
-        $this->status    = File::STATUS_BUILDING;
+        $this->status    = self::STATUS_BUILDING;
         $this->dateAdded = new \DateTime();
         $this->headers   = true;
     }
@@ -309,7 +309,6 @@ class File extends FormModel
     public function getLogs()
     {
         return $this->logs;
-
     }
 
     /**
@@ -331,7 +330,6 @@ class File extends FormModel
     {
         return $this->contacts;
     }
-
 
     /**
      * @param $contacts
@@ -451,7 +449,6 @@ class File extends FormModel
     public function getLocation()
     {
         return $this->location;
-
     }
 
     /**
@@ -549,5 +546,4 @@ class File extends FormModel
 
         return $this;
     }
-
 }

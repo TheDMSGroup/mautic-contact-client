@@ -62,6 +62,7 @@ class ContactClientRepository extends CommonRepository
     protected function addCatchAllWhereClause($q, $filter)
     {
         $alias = $this->getTableAlias();
+
         return $this->addStandardCatchAllWhereClause(
             $q,
             $filter,

@@ -221,7 +221,7 @@ class ApiPayloadRequest
             foreach ($transportRecords as $transportRecord) {
                 if (
                     isset($transportRecord['channel'])
-                    && $transportRecord['channel'] == 'guzzle.to.curl'
+                    && 'guzzle.to.curl' == $transportRecord['channel']
                     && isset($transportRecord['message'])
                 ) {
                     $debug[] = $transportRecord['message'];
