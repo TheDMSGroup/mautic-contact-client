@@ -14,12 +14,12 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
-use Mautic\CoreBundle\Model\FormModel;
+use Mautic\CoreBundle\Entity\FormEntity;
 
 /**
  * Class File.
  */
-class File extends FormModel
+class File extends FormEntity
 {
     /**
      * Indicates that we are building a list of contacts to send at the next appropriate time.
@@ -228,9 +228,9 @@ class File extends FormModel
     }
 
     /**
-     * @param mixed $publishUp
+     * @param $publishUp
      *
-     * @return ContactClient
+     * @return $this
      */
     public function setPublishUp($publishUp)
     {
@@ -250,9 +250,9 @@ class File extends FormModel
     }
 
     /**
-     * @param mixed $publishDown
+     * @param $publishDown
      *
-     * @return ContactClient
+     * @return $this
      */
     public function setPublishDown($publishDown)
     {
