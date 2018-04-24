@@ -12,13 +12,37 @@
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
+use Mautic\CoreBundle\Model\FormModel;
 
 /**
  * Class File
  */
-class File
+class File extends FormModel
 {
+    /**
+     * Indicates that we are building a list of contacts to send at the next appropriate time.
+     * This is the default status.
+     *
+     * Contacts sent:   No
+     */
+    const STATUS_BUILDING = 'building';
+
+    /**
+     * Indicates that all attempts to upload/send this file failed.
+     *
+     * Contacts sent:   No (unable to confirm)
+     */
+    const STATUS_ERROR = 'error';
+
+    /**
+     * Indicates that the file has been successfully sent to the client.
+     *
+     * Contacts sent:   Yes
+     */
+    const STATUS_SENT = 'sent';
+
     /** @var int $id */
     private $id;
 
@@ -64,6 +88,58 @@ class File
     /** @var string */
     private $status;
 
+    /** @var \DateTime */
+    private $publishUp;
+
+    /** @var \DateTime */
+    private $publishDown;
+
+    /**
+     * File constructor.
+     */
+    public function __construct()
+    {
+        // Default status for a new file is "building".
+        $this->status    = File::STATUS_BUILDING;
+        $this->dateAdded = new \DateTime();
+        $this->headers   = true;
+    }
+
+    /**
+     * Prepares the metadata for API usage.
+     *
+     * @param $metadata
+     */
+    public static function loadApiMetadata(ApiMetadataDriver $metadata)
+    {
+        $metadata
+            ->addListProperties(
+                [
+                    'id',
+                    'name',
+                    'contactclient_id',
+                ]
+            )
+            ->addProperties(
+                [
+                    'type',
+                    'headers',
+                    'compression',
+                    'publishUp',
+                    'publishDown',
+                    'sha1',
+                    'md5',
+                    'crc32',
+                    'tmp',
+                    'location',
+                    'contacts',
+                    'status',
+                    'logs',
+                ]
+            )
+            ->build();
+    }
+
     /**
      * @param ORM\ClassMetadata $metadata
      */
@@ -77,6 +153,8 @@ class File
         $builder->addId();
 
         $builder->addDateAdded();
+
+        $builder->addPublishDates();
 
         $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', true, false, null)
@@ -133,12 +211,56 @@ class File
             ->nullable()
             ->build();
 
-        $builder->addNamedField('logs', 'text', 'logs');
+        $builder->addNamedField('logs', 'text', 'logs', true);
 
         // $builder->addIndex(
         //     ['id', 'file_id', 'contact_id'],
         //     'contactclient_queue_file_id'
         // );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPublishUp()
+    {
+        return $this->publishUp;
+    }
+
+    /**
+     * @param mixed $publishUp
+     *
+     * @return ContactClient
+     */
+    public function setPublishUp($publishUp)
+    {
+        $this->isChanged('publishUp', $publishUp);
+
+        $this->publishUp = $publishUp;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPublishDown()
+    {
+        return $this->publishDown;
+    }
+
+    /**
+     * @param mixed $publishDown
+     *
+     * @return ContactClient
+     */
+    public function setPublishDown($publishDown)
+    {
+        $this->isChanged('publishDown', $publishDown);
+
+        $this->publishDown = $publishDown;
+
+        return $this;
     }
 
     /**

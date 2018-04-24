@@ -229,6 +229,14 @@ class ContactClientModel extends FormModel
      */
     public function getStatRepository()
     {
+        if (!$this->em->isOpen()) {
+            $this->em = $this->em->create(
+                $this->em->getConnection(),
+                $this->em->getConfiguration(),
+                $this->em->getEventManager()
+            );
+        }
+
         return $this->em->getRepository('MauticContactClientBundle:Stat');
     }
 
@@ -304,9 +312,9 @@ class ContactClientModel extends FormModel
             // draw the chart with the correct intervals for intra-day
             $dateToAdjusted->setTime(23, 59, 59);
         }
-        $chart     = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
-        $query     = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
-        $stat      = new Stat();
+        $chart = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
+        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
+        $stat  = new Stat();
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',
@@ -352,6 +360,46 @@ class ContactClientModel extends FormModel
         }
 
         return $chart->render();
+    }
+
+    /**
+     * Returns appropriate time unit from a date range so the line/bar charts won't be too full/empty.
+     *
+     * @param $dateFrom
+     * @param $dateTo
+     *
+     * @return string
+     */
+    public function getTimeUnitFromDateRange($dateFrom, $dateTo)
+    {
+        $dayDiff = $dateTo->diff($dateFrom)->format('%a');
+        $unit    = 'd';
+
+        if ($dayDiff <= 1) {
+            $unit = 'H';
+
+            $sameDay    = $dateTo->format('d') == $dateFrom->format('d') ? 1 : 0;
+            $hourDiff   = $dateTo->diff($dateFrom)->format('%h');
+            $minuteDiff = $dateTo->diff($dateFrom)->format('%i');
+            if ($sameDay && !intval($hourDiff) && intval($minutesDiff)) {
+                $unit = 'i';
+            }
+            $secondDiff = $dateTo->diff($dateFrom)->format('%s');
+            if (!intval($minuteDiff) && intval($secondDiff)) {
+                $unit = 'm';
+            }
+        }
+        if ($dayDiff > 31) {
+            $unit = 'W';
+        }
+        if ($dayDiff > 100) {
+            $unit = 'm';
+        }
+        if ($dayDiff > 1000) {
+            $unit = 'Y';
+        }
+
+        return $unit;
     }
 
     /**
@@ -595,45 +643,5 @@ class ContactClientModel extends FormModel
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
-    }
-
-    /**
-     * Returns appropriate time unit from a date range so the line/bar charts won't be too full/empty.
-     *
-     * @param $dateFrom
-     * @param $dateTo
-     *
-     * @return string
-     */
-    public function getTimeUnitFromDateRange($dateFrom, $dateTo)
-    {
-        $dayDiff = $dateTo->diff($dateFrom)->format('%a');
-        $unit    = 'd';
-
-        if ($dayDiff <= 1) {
-            $unit = 'H';
-
-            $sameDay    = $dateTo->format('d') == $dateFrom->format('d') ? 1 : 0;
-            $hourDiff   = $dateTo->diff($dateFrom)->format('%h');
-            $minuteDiff = $dateTo->diff($dateFrom)->format('%i');
-            if ($sameDay && !intval($hourDiff) && intval($minutesDiff)) {
-                $unit = 'i';
-            }
-            $secondDiff = $dateTo->diff($dateFrom)->format('%s');
-            if (!intval($minuteDiff) && intval($secondDiff)) {
-                $unit = 'm';
-            }
-        }
-        if ($dayDiff > 31) {
-            $unit = 'W';
-        }
-        if ($dayDiff > 100) {
-            $unit = 'm';
-        }
-        if ($dayDiff > 1000) {
-            $unit = 'Y';
-        }
-
-        return $unit;
     }
 }

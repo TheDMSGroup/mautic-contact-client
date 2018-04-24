@@ -18,37 +18,47 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class FileRepository extends CommonRepository
 {
+    // /**
+    //  * Get the files for a client.
+    //  *
+    //  * @param      $contactClientId
+    //  * @param null $fromDate
+    //  * @param null $toDate
+    //  *
+    //  * @return array
+    //  */
+    // public function getFiles($contactClientId, $fromDate = null, $toDate = null)
+    // {
+    //     $alias = $this->getTableAlias();
+    //     $q     = $this->createQueryBuilder($alias);
+    //
+    //     $expr = $q->expr()->andX(
+    //         $q->expr()->eq('IDENTITY('.$alias.'.contactclient)', (int) $contactClientId)
+    //     );
+    //
+    //     if ($fromDate) {
+    //         $expr->add(
+    //             $q->expr()->gte($alias.'.dateAdded', ':fromDate')
+    //         );
+    //         $q->setParameter('fromDate', $fromDate);
+    //     }
+    //     if ($toDate) {
+    //         $expr->add(
+    //             $q->expr()->lte($alias.'.dateAdded', ':toDate')
+    //         );
+    //         $q->setParameter('toDate', $toDate);
+    //     }
+    //     $q->andWhere($expr);
+    //
+    //     return $q->getQuery()->getArrayResult();
+    // }
+
     /**
-     * Get the files for a client.
-     *
-     * @param      $contactClientId
-     * @param null $fromDate
-     * @param null $toDate
-     *
-     * @return array
+     * @return string
      */
-    public function getFiles($contactClientId, $fromDate = null, $toDate = null)
+    public function getTableAlias()
     {
-
-        $q = $this->createQueryBuilder('f');
-
-        $expr = $q->expr()->andX(
-            $q->expr()->eq('IDENTITY(f.contactclient)', (int) $contactClientId)
-        );
-
-        if ($fromDate) {
-            $expr->add(
-                $q->expr()->gte('f.dateAdded', ':fromDate')
-            );
-            $q->setParameter('fromDate', $fromDate);
-        }
-        if ($toDate) {
-            $expr->add(
-                $q->expr()->lte('f.dateAdded', ':toDate')
-            );
-            $q->setParameter('toDate', $toDate);
-        }
-
-        return $q->getQuery()->getArrayResult();
+        return 'f';
     }
+
 }

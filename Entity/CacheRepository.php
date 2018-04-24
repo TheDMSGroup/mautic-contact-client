@@ -584,4 +584,21 @@ class CacheRepository extends CommonRepository
             }
         }
     }
+
+
+    /**
+     * @todo - finish this deletion method and add to a cron cli task for cleanup.
+     * @return mixed
+     */
+    public function deleteExpired()
+    {
+        $query  = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $result = $query
+            ->remove()
+            ->field('dateAdded')->lt(time() - (32 * 24 * 60))
+            ->getQuery(['safe' => true])
+            ->execute();
+
+        return $result['n'];
+    }
 }

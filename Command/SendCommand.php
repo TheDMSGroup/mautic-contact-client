@@ -108,8 +108,7 @@ class SendCommand extends ModeratedCommand
             return 0;
         }
 
-        $clientType = $client->getType();
-        if ('api' == $clientType) {
+        if (in_array($client->getType(), ['api', 'file'])) {
             // Load the integration helper for our general ClientIntegration
             /** @var IntegrationHelper $integrationHelper */
             $integrationHelper = $container->get('mautic.helper.integration');
@@ -125,18 +124,16 @@ class SendCommand extends ModeratedCommand
             }
             $integrationObject->sendContact($client, $contact, $options['test']);
             if ($integrationObject->getValid()) {
-                $output->writeln('<info>Contact sent and accepted.</info>');
+                $output->writeln('<info>Contact accepted.</info>');
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             } else {
-                $output->writeln('<error>The Contact was not sent or accepted. See logs for details.</error>');
+                $output->writeln('<error>The Contact was accepted. See logs for details.</error>');
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             }
-        } elseif ('file' == $clientType) {
-            // @todo - Support file payloads.
         } else {
             $output->writeln('<error>Client type is not recognized.</error>');
 

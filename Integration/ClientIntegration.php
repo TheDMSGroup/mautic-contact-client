@@ -25,6 +25,7 @@ use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
@@ -104,26 +105,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Reset local class variables.
-     *
-     * @param array $exclusions optional array of local variables to keep current values
-     *
-     * @return $this
-     */
-    public function reset($exclusions = [])
-    {
-        foreach (array_diff_key(
-                     get_class_vars(get_class($this)),
-                     get_class_vars(get_parent_class($this)),
-                     array_flip($exclusions)
-                 ) as $name => $default) {
-            $this->$name = $default;
-        }
-
-        return $this;
-    }
-
-    /**
      * Push a contact to a preconfigured Contact Client.
      *
      * @param Contact $contact
@@ -169,6 +150,26 @@ class ClientIntegration extends AbstractIntegration
         // Returning false will typically cause a retry.
         // If an error occurred and we do not wish to retry we should return true.
         return $this->valid ? $this->valid : !$this->retry;
+    }
+
+    /**
+     * Reset local class variables.
+     *
+     * @param array $exclusions optional array of local variables to keep current values
+     *
+     * @return $this
+     */
+    public function reset($exclusions = [])
+    {
+        foreach (array_diff_key(
+                     get_class_vars(get_class($this)),
+                     get_class_vars(get_parent_class($this)),
+                     array_flip($exclusions)
+                 ) as $name => $default) {
+            $this->$name = $default;
+        }
+
+        return $this;
     }
 
     /**
@@ -267,6 +268,7 @@ class ClientIntegration extends AbstractIntegration
             if (!$this->test) {
                 /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
                 $schedule = $this->getScheduleModel();
+                // @todo - file - Support finding the next hours/included day to queue.
                 $schedule->evaluateHours($this->contactClient);
                 $schedule->evaluateExclusions($this->contactClient);
             }
@@ -275,30 +277,33 @@ class ClientIntegration extends AbstractIntegration
 
             // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
+                // @todo - file - evaluate for the next queue slot and suggest future slot if over limit?
                 $this->getCacheModel()->evaluateLimits();
             }
 
             // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
             if (!$this->test) {
+                // @todo - file - evaluate for the next queue slot and suggest future slot if over limit?
                 $this->getCacheModel()->evaluateDuplicate();
             }
 
             // Exclusivity - Check exclusivity rules on the cache to ensure this contact hasn't been sent to a disallowed competitor.
             if (!$this->test) {
+                // @todo - file - evaluate for the next queue slot and suggest future slot if over limit?
                 $this->getCacheModel()->evaluateExclusive();
             }
 
             // Configure the payload.
-            $this->getApiPayloadModel()
-                ->reset()
+            /** @var ApiPayload|FilePayload $model */
+            $model = $this->getPayloadModel();
+            $model->reset()
                 ->setContactClient($this->contactClient)
                 ->setTest($test)
                 ->setContact($this->contact)
                 ->setOverrides($overrides);
 
-            // Run the payload and all operations.
+            // Send all operations (API) or queue the contact (file).
             $this->valid = $this->payload->run();
-
             if ($this->valid) {
                 $this->statType = Stat::TYPE_CONVERTED;
             }
@@ -358,11 +363,20 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return ApiPayload
+     * @param null $clientType
+     *
+     * @return ApiPayload|object
      */
-    private function getApiPayloadModel()
+    private function getPayloadModel($clientType = null)
     {
-        $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+        $clientType = $clientType ? $clientType : $this->contactClient->getType();
+        if ('api' == $clientType) {
+            $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+        } elseif ('file' == $clientType) {
+            $this->payload = $this->getContainer()->get('mautic.contactclient.model.filepayload');
+        } else {
+            throw new \InvalidArgumentException('Client type is invalid.');
+        }
 
         return $this->payload;
     }
@@ -424,6 +438,10 @@ class ClientIntegration extends AbstractIntegration
 
         // Only update contacts if success definitions are met.
         if (!$this->valid) {
+            return;
+        }
+
+        if ('api' !== $this->contactClient->getType()) {
             return;
         }
 
@@ -786,7 +804,7 @@ class ClientIntegration extends AbstractIntegration
                         // Get overridable fields from the payload of the type needed.
                         if ('api' == $contactClientEntity->getType()) {
                             try {
-                                $payload = $this->getApiPayloadModel();
+                                $payload = $this->getPayloadModel('api');
                                 $payload->setContactClient($contactClientEntity);
                                 $overridableFields[$id] = $payload->getOverridableFields();
                             } catch (\Exception $e) {

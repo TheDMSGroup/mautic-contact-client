@@ -106,6 +106,15 @@ return [
                     'mautic.helper.core_parameters',
                 ],
             ],
+            'mautic.contactclient.model.filepayload'   => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Model\FilePayload',
+                'arguments' => [
+                    'mautic.contactclient.model.contactclient',
+                    'mautic.contactclient.helper.token',
+                    'mautic.helper.core_parameters',
+                    'doctrine.orm.entity_manager',
+                ],
+            ],
             'mautic.contactclient.model.cache'         => [
                 'class' => 'MauticPlugin\MauticContactClientBundle\Model\Cache',
             ],
