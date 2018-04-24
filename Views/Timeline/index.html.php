@@ -11,14 +11,15 @@
 ?>
 
 <?php
-        $orderBy          = isset($events['filters']['order']) && !empty($events['filters']['order'][0]) ? $events['filters']['order'][0] : 'date_added';
-        $orderByDirection = isset($events['filters']['order']) && !empty($events['filters']['order'][1]) ? $events['filters']['order'][1] : 'DESC';
-        $page             = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
+$orderBy = isset($events['filters']['order']) && !empty($events['filters']['order'][0]) ? $events['filters']['order'][0] : 'date_added';
+$orderByDirection = isset($events['filters']['order']) && !empty($events['filters']['order'][1]) ? $events['filters']['order'][1] : 'DESC';
+$page = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
 
-        ?>
+?>
 
-<!-- filter form -->
-<h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>
+<div class="panel-body box-layout">
+    <!-- filter form -->
+    <h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>
     <form method="post" action="<?php echo $view['router']->path(
         'mautic_contactclient_timeline_action',
         ['contactClientId' => $contactClient->getId()]
@@ -26,25 +27,34 @@
         <div class="col-xs-8 col-lg-10 va-m form-inline">
             <div class="input-group col-xs-8">
                 <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
-                       placeholder="<?php echo $view['translator']->trans('mautic.contactclient.search.placeholder'); ?>"
+                       placeholder="<?php echo $view['translator']->trans(
+                           'mautic.contactclient.search.placeholder'
+                       ); ?>"
                        value="<?php echo $events['filters']['search']; ?>">
 
                 <div class="input-group-btn">
-                    <button type="submit" id="contactClientTimelineFilterApply" name="contactClientTimelineFilterApply" class="btn btn-default btn-search btn-nospin">
+                    <button type="submit" id="contactClientTimelineFilterApply" name="contactClientTimelineFilterApply"
+                            class="btn btn-default btn-search btn-nospin">
                         <i class="the-icon fa fa-search fa-fw"></i>
                     </button>
                 </div>
 
                 <?php /* @todo - export action. Doesn't yet have a router/controller config.
                  * <div class="col-sm-2">
-                 * <a class="btn btn-default btn-block" href="<?php echo $view['router']->generate('mautic_contactclient_timeline_export_action', ['contactClientId' => $contactClient->getId()]); ?>" data-toggle="download">
+                 * <a class="btn btn-default btn-block" href="<?php echo
+                 * $view['router']->generate('mautic_contactclient_timeline_export_action', ['contactClientId' =>
+                 * $contactClient->getId()]); ?>" data-toggle="download">
                  * <span>
-                 * <i class="fa fa-download"></i> <span class="hidden-xs hidden-sm"><?php echo $view['translator']->trans('mautic.core.export'); ?></span>
+                 * <i class="fa fa-download"></i> <span class="hidden-xs hidden-sm"><?php echo
+                 * $view['translator']->trans('mautic.core.export'); ?></span>
                  * </span>
                  * </a>
                  * </div>*/ ?>
-                <div class="input-group-btn" style="width:auto;font-size:1em;padding-left:4px;"">
-                    <input id="include-logs" type="checkbox" title="Apply search term to verbose logs - may cause unexpected results." name="logs" class="bdr-w-0">
+                <div class="input-group-btn" style="width:auto;font-size:1em;padding-left:4px;"
+                ">
+                    <input id="include-logs" type="checkbox"
+                           title="Apply search term to verbose logs - may cause unexpected results." name="logs"
+                           class="bdr-w-0">
                     <label style="padding:4px;" for="include-logs">Apply search term to verbose logs.</label>
                 </div>
             </div>
@@ -56,6 +66,18 @@
         <input type="hidden" name="page" id="page" value="<?php echo $page; ?>"/>
 
     </form>
+<!-- Export button -->
+    <div class="std-toolbar btn-group">
+        <a class="btn btn-default"
+           onclick="Mautic.exportContactClientTimeline(<?php echo  $contactClient->getId(); ?>);">
+            <span>
+                <i class="fa fa-download "></i>
+                <span class="hidden-xs hidden-sm">Export</span>
+            </span>
+        </a>
+    </div>
+</div>
+
 
 <script>
     mauticLang['showMore'] = '<?php echo $view['translator']->trans('mautic.core.more.show'); ?>';
@@ -66,22 +88,22 @@
     <?php $view['slots']->output('_content'); ?>
 </div>
 <script>
-    mQuery(function() {
+    mQuery(function () {
         var filterForm = mQuery('#timeline-filters');
-        var dateFrom = document.createElement("input");
-        dateFrom.type = "hidden";
-        dateFrom.name = "dateFrom";
+        var dateFrom = document.createElement('input');
+        dateFrom.type = 'hidden';
+        dateFrom.name = 'dateFrom';
         dateFrom.value = mQuery('#chartfilter_date_from').val();
 
-        var dateTo = document.createElement("input");
-        dateTo.type = "hidden";
-        dateTo.name = "dateTo";
+        var dateTo = document.createElement('input');
+        dateTo.type = 'hidden';
+        dateTo.name = 'dateTo';
         dateTo.value = mQuery('#chartfilter_date_to').val();
 
         filterForm.append(dateFrom);
         filterForm.append(dateTo);
 
-        filterForm.submit(function(event) {
+        filterForm.submit(function (event) {
             event.preventDefault(); // Prevent the form from submitting via the browser
             var form = $(this);
             mQuery.ajax({
@@ -91,15 +113,48 @@
                     action: 'plugin:mauticContactClient:ajaxTimeline',
                     filters: form.serializeArray(),
                 },
-            }).done(function(data) {
+            }).done(function (data) {
                 mQuery('div#timeline-table').html(data);
                 if (mQuery('#contactclient-timeline').length) {
                     Mautic.contactclientTimelineOnLoad();
                 }
-            }).fail(function(data) {
+            }).fail(function (data) {
                 // Optionally alert the user of an error here...
-                alert("Ooops! Something went wrong");
+                alert('Ooops! Something went wrong');
             });
         });
     });
+
+    Mautic.exportContactClientTimeline= function (contactClient_id) {
+        var dateFrom = mQuery('#chartfilter_date_from').val();
+        var dateTo = mQuery('#chartfilter_date_to').val()
+
+        console.log(dateFrom, dateTo, contactClient_id);
+
+        var redeemFrame = document.createElement("iframe");
+        var src = '/s/contactclient/timeline/export/' + contactClient_id;
+        redeemFrame.setAttribute("src",src);
+        redeemFrame.setAttribute("style","display: none");
+        document.body.appendChild(redeemFrame);
+
+
+
+
+        // mQuery.ajax({
+        //     type: 'GET',
+        //     url: mauticAjaxUrl,
+        //     data: {
+        //         action: 'plugin:mauticContactClient:ajaxExportTimeline',
+        //         filters: [dateFrom,
+        //                   dateTo,
+        //                   contactClient_id
+        //         ],
+        //     },
+        // }).done(function (data) {
+        //     console.log('ExportComplete');
+        // }).fail(function (data) {
+        //     // Optionally alert the user of an error here...
+        //     alert('Ooops! Something went wrong', data);
+        // });
+    }
 </script>

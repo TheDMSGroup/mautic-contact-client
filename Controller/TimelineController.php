@@ -15,6 +15,8 @@ use Mautic\CoreBundle\Controller\CommonController;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class TimelineController.
@@ -40,7 +42,7 @@ class TimelineController extends CommonController
         $session = $this->get('session');
         if ('POST' == $request->getMethod() && $request->request->has('search')) {
             $filters = [
-                'search'        => InputHelper::clean($request->request->get('search')),
+                'search' => InputHelper::clean($request->request->get('search')),
             ];
             $session->set('mautic.contactClient.'.$contactClientId.'.timeline.filters', $filters);
         } else {
@@ -85,7 +87,7 @@ class TimelineController extends CommonController
         $session = $this->get('session');
         if ('POST' === $request->getMethod() && $request->request->has('search')) {
             $filters = [
-                'search'        => InputHelper::clean($request->request->get('search')),
+                'search' => InputHelper::clean($request->request->get('search')),
             ];
             $session->set('mautic.plugin.timeline.filters', $filters);
         } else {
@@ -280,5 +282,132 @@ class TimelineController extends CommonController
         }
 
         return $this->exportResultsAs($toExport, $dataType, 'contact_timeline');
+    }
+
+    /**
+     * @param Request $request
+     * @param         $contactClientId
+     *
+     * @return StreamedResponse
+     * @throws \Exception
+     */
+    public function exportTimelineAction(Request $request, $contactClientId)
+    {
+        // send a stream csv file of the timeline
+        $name    = 'ContactClientExport';
+        $headers = [
+            'type',
+            'message',
+            'date_added',
+            'contact_id',
+            // 'body_raw',
+            // 'status',
+            // 'valid',
+            // 'uri',
+            // 'options',
+            'blob'
+        ];
+        $params  = $this->getDateParams();
+        /** @var EventRepository $eventRepository */
+        $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(
+            'MauticContactClientBundle:Event'
+        );
+        $count           = $eventRepository->getEventsForTimelineExport($contactClientId, $params, true);
+        $start           = 0;
+        $params['limit'] = 1000;
+        ini_set('max_execution_time', 0);
+        $response = new StreamedResponse();
+        $response->setCallback(
+            function () use ($params, $name, $headers, $contactClientId, $count, $eventRepository, $start) {
+                $handle          = fopen('php://output', 'w+');
+                fputcsv($handle, $headers);
+                while ($start < $count[0]['count']) {
+                    $params['start'] = $start;
+                    $timelineData    = $eventRepository->getEventsForTimelineExport($contactClientId, $params, false);
+                    foreach ($timelineData as $data) {
+                    //     $csvRows = $this->parseLogYAMLBlob(
+                    //         $data
+                    //     ); // a single data row can be multiple operations and subsequent rows
+                    //     foreach ($csvRows as $csvRow) {
+                    //         fputcsv($handle, array_values($csvRow));
+                    //     }
+                        fputcsv($handle, $data);
+
+                    }
+                    $start = $start + $params['limit'];
+                }
+                fclose($handle);
+            }
+        );
+        $fileName = $name.'.csv';
+        $response->setStatusCode(200);
+        $response->headers->set('Content-Type', 'application/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$fileName.'"');
+
+        return $response;
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    private function getDateParams()
+    {
+        $params    = [];
+        $lastMonth = new \DateTime();
+        $lastMonth->sub(new \DateInterval('P30D'));
+        $today = new \DateTime();
+
+        $from = new \DateTime(
+            $this->request->getSession()
+                ->get('mautic.dashboard.date.from', $lastMonth->format('Y-m-d 00:00:00'))
+        );
+
+        $to = new \DateTime(
+            $this->request->getSession()
+                ->get('mautic.dashboard.date.to', $today->format('Y-m-d H:i:s'))
+        );
+
+        $params['fromDate'] = $from;
+
+        $params['toDate'] = $to;
+
+        return $params;
+    }
+
+    private function parseLogYAMLBlob($data)
+    {
+        $yaml = Yaml::parse($data['logs']);
+        unset($data['logs']);
+        $rows             = [];
+        $data['body_raw'] = '';
+        $data['status']   = '';
+        $data['valid']    = '';
+        $data['uri']      = '';
+        $data['options']  = '';
+        if (isset($yaml['operations'])) {
+            foreach ($yaml['operations'] as $id => $operation) {
+                if (is_numeric($id)) {
+                    $row             = $data;
+                    $row['body_raw'] = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['status']   = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['valid']    = isset($operation['response']['valid']) ? $operation['response']['valid'] : '';
+                    $row['uri']      = isset($operation['request']['uri']) ? $operation['request']['uri'] : '';
+                    $row['options']  = '';
+                    if (isset($operation['request']['options'])) {
+                        $string = '';
+                        foreach ($operation['request']['options'] as $key => $option) {
+                            $string .= "$key: ".implode(',', $option)."; ";
+                        }
+                        $row['options'] = $string;
+                    }
+                    $rows[$id] = $row;
+                }
+            }
+        } else {
+            $rows[0] = $data;
+        }
+
+        return $rows;
     }
 }
