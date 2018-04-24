@@ -301,12 +301,16 @@ class TimelineController extends CommonController
             'message',
             'date_added',
             'contact_id',
-            // 'body_raw',
-            // 'status',
-            // 'valid',
-            // 'uri',
-            // 'options',
-            'blob',
+            'request_format',
+            'request_method',
+            'request_headers',
+            'request_body',
+            'request_duration',
+            'status',
+            'response_headers',
+            'response_body_raw',
+            'response_format',
+            'valid',
         ];
         $params  = $this->getDateParams();
         /** @var EventRepository $eventRepository */
@@ -320,19 +324,24 @@ class TimelineController extends CommonController
         $response = new StreamedResponse();
         $response->setCallback(
             function () use ($params, $name, $headers, $contactClientId, $count, $eventRepository, $start) {
-                $handle          = fopen('php://output', 'w+');
+                $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
                 while ($start < $count[0]['count']) {
                     $params['start'] = $start;
                     $timelineData    = $eventRepository->getEventsForTimelineExport($contactClientId, $params, false);
                     foreach ($timelineData as $data) {
-                        //     $csvRows = $this->parseLogYAMLBlob(
-                        //         $data
-                        //     ); // a single data row can be multiple operations and subsequent rows
-                        //     foreach ($csvRows as $csvRow) {
-                        //         fputcsv($handle, array_values($csvRow));
-                        //     }
-                        fputcsv($handle, $data);
+                        // depracating use of YAML for event logs, but need to be backward compatible
+                        $csvRows = $data['logs'][0] === '{' ?
+                            $this->parseLogJSONBlob(
+                                $data
+                            ) :
+                            $this->parseLogYAMLBlob(
+                                $data
+                            );
+                        // a single data row can be multiple operations and subsequent rows
+                        foreach ($csvRows as $csvRow) {
+                            fputcsv($handle, array_values($csvRow));
+                        }
                     }
                     $start = $start + $params['limit'];
                 }
@@ -376,32 +385,116 @@ class TimelineController extends CommonController
         return $params;
     }
 
-    private function parseLogYAMLBlob($data)
+    /**
+     * @param $data
+     *
+     * @return array
+     */
+    private function parseLogJSONBlob($data)
     {
-        $yaml = Yaml::parse($data['logs']);
+        $json = json_decode($data['logs']);
         unset($data['logs']);
-        $rows             = [];
-        $data['body_raw'] = '';
-        $data['status']   = '';
-        $data['valid']    = '';
-        $data['uri']      = '';
-        $data['options']  = '';
-        if (isset($yaml['operations'])) {
-            foreach ($yaml['operations'] as $id => $operation) {
+        $rows                      = [];
+        $data['request_format']    = '';
+        $data['request_method']    = '';
+        $data['request_headers']   = '';
+        $data['request_body']      = '';
+        $data['request_duration']  = '';
+        $data['status']            = '';
+        $data['response_headers']  = '';
+        $data['response_body_raw'] = '';
+        $data['response_format']   = '';
+        $data['valid']             = '';
+        if (isset($json['operations'])) {
+            foreach ($json['operations'] as $id => $operation) {
                 if (is_numeric($id)) {
-                    $row             = $data;
-                    $row['body_raw'] = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
-                    $row['status']   = isset($operation['response']['status']) ? $operation['response']['status'] : '';
-                    $row['valid']    = isset($operation['response']['valid']) ? $operation['response']['valid'] : '';
-                    $row['uri']      = isset($operation['request']['uri']) ? $operation['request']['uri'] : '';
-                    $row['options']  = '';
+                    $row                    = $data;
+                    $row['request_format']  = isset($operation['request']['format']) ? $operation['request']['format'] : '';
+                    $row['request_method']  = isset($operation['request']['method']) ? $operation['request']['method'] : '';
+                    $row['request_headers'] = '';
+                    $row['request_body']    = '';
                     if (isset($operation['request']['options'])) {
+                        if (isset($operation['request']['options']['headers'])) {
+                            $row['request_headers'] = implode('; ', $operation['request']['options']['headers']);
+                            unset($operation['request']['options']['headers']);
+                        }
+
                         $string = '';
                         foreach ($operation['request']['options'] as $key => $option) {
                             $string .= "$key: ".implode(',', $option).'; ';
                         }
-                        $row['options'] = $string;
+                        $row['request_body'] = $string;
                     }
+                    $row['request_duration'] = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
+                    $row['response_status']  = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['response_headers'] = isset($operation['response']['headers']) ? implode(
+                        '; ',
+                        $operation['response']['headers']
+                    ) : '';
+                    $row['body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['response_format']  = isset($operation['response']['format']) ? $operation['response']['format'] : '';
+                    $row['valid']            = isset($operation['response']['valid']) ? $operation['response']['valid'] : '';
+
+                    $rows[$id] = $row;
+                }
+            }
+        } else {
+            $rows[0] = $data;
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param $data
+     *
+     * @return array
+     */
+    private function parseLogYAMLBlob($data)
+    {
+        $yaml = Yaml::parse($data['logs']);
+        unset($data['logs']);
+        $rows                      = [];
+        $data['request_format']    = '';
+        $data['request_method']    = '';
+        $data['request_headers']   = '';
+        $data['request_body']      = '';
+        $data['request_duration']  = '';
+        $data['status']            = '';
+        $data['response_headers']  = '';
+        $data['response_body_raw'] = '';
+        $data['response_format']   = '';
+        $data['valid']             = '';
+        if (isset($yaml['operations'])) {
+            foreach ($yaml['operations'] as $id => $operation) {
+                if (is_numeric($id)) {
+                    $row                    = $data;
+                    $row['request_format']  = isset($operation['request']['format']) ? $operation['request']['format'] : '';
+                    $row['request_method']  = isset($operation['request']['method']) ? $operation['request']['method'] : '';
+                    $row['request_headers'] = '';
+                    $row['request_body']    = '';
+                    if (isset($operation['request']['options'])) {
+                        if (isset($operation['request']['options']['headers'])) {
+                            $row['request_headers'] = implode('; ', $operation['request']['options']['headers']);
+                            unset($operation['request']['options']['headers']);
+                        }
+
+                        $string = '';
+                        foreach ($operation['request']['options'] as $key => $option) {
+                            $string .= "$key: ".implode(',', $option).'; ';
+                        }
+                        $row['request_body'] = $string;
+                    }
+                    $row['request_duration'] = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
+                    $row['response_status']  = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['response_headers'] = isset($operation['response']['headers']) ? implode(
+                        '; ',
+                        $operation['response']['headers']
+                    ) : '';
+                    $row['body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['response_format']  = isset($operation['response']['format']) ? $operation['response']['format'] : '';
+                    $row['valid']            = isset($operation['response']['valid']) ? $operation['response']['valid'] : '';
+
                     $rows[$id] = $row;
                 }
             }
