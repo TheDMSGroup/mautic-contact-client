@@ -22,8 +22,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Command;
 
 use Mautic\CoreBundle\Command\ModeratedCommand;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\Yaml\Yaml;
@@ -62,7 +62,6 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
                 'The max number of records to process.'
             );
 
-
         parent::configure();
     }
 
@@ -73,7 +72,7 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
     {
         $options   = $input->getArguments();
         $container = $this->getContainer();
-        $em = $container->get('doctrine.orm.entity_manager');
+        $em        = $container->get('doctrine.orm.entity_manager');
         // if (!$this->checkRunStatus($input, $output, $options['bundle'])) {
         //     return 0;
         // }
@@ -96,24 +95,23 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
             return 0;
         }
 
-        $entity = $options['bundle'] == 'client' ? 'MauticContactClientBundle:Event' : 'MauticContactSourceBundle:Event';
+        $entity = 'client' == $options['bundle'] ? 'MauticContactClientBundle:Event' : 'MauticContactSourceBundle:Event';
 
-        $start = !empty($options['start']) ? $options['start'] : $this->getFirstID($em, $entity);
-        $last  = !empty($options['limit']) ? $options['limit'] : $this->getLastID($em, $entity);
-        $count = $last - $start;
-        $updated=0;
-        $batch = 1;
-        $previous = $original = $start;
+        $start      = !empty($options['start']) ? $options['start'] : $this->getFirstID($em, $entity);
+        $last       = !empty($options['limit']) ? $options['limit'] : $this->getLastID($em, $entity);
+        $count      = $last - $start;
+        $updated    =0;
+        $batch      = 1;
+        $previous   = $original   = $start;
         $time_start = microtime(true);
 
         $output->writeln("<info>Converting $count $entity logs from YAML to JSON, startung at $start and ending at $last.</info>");
 
         while ($start <= $count) {
-            $id     = $start;
-            $result = $this->getLogByID($em, $id, $entity);
+            $id      = $start;
+            $result  = $this->getLogByID($em, $id, $entity);
             $logBlob = $result->getLogs();
-            if ($logBlob[0] != '{') // is YAML
-            {
+            if ('{' != $logBlob[0]) { // is YAML
                 //convert YAML to array
                 $array = YAML::Parse($logBlob);
 
@@ -124,51 +122,47 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
                 $result->setLogs($json);
                 $this->saveJSONLog($em, $result, $entity);
                 $timeSoFar = microtime(true);
-                $soFar = ($timeSoFar - $time_start)/60;
-                $percent = number_format($updated/$count * 100, 2, '.', ',');
+                $soFar     = ($timeSoFar - $time_start) / 60;
+                $percent   = number_format($updated / $count * 100, 2, '.', ',');
                 //$output->writeln("<info> >>> $id: Saved $entity Entity in Batch # $batch. (Elapsed Time So Far: $soFar)</info>");
 
-
                 //batch the SQL
-                if (($start % 300) === 0) {
+                if (0 === ($start % 300)) {
                     $em->flush();
                     $em->clear(); // Detaches all objects from Doctrine!
                     $output->writeln("<question>Batch # $batch flushed.</question>");
                     $output->writeln("<info> >>> Saved $entity Entity ids $previous - $start. (Elapsed Time So Far: $soFar minutes, $percent%.)</info>");
-                    $batch++;
+                    ++$batch;
                     $previous = $start;
-
                 }
 
-                $updated++;
-
+                ++$updated;
             } else {
                 $output->writeln("<comment> >>> Skipping $id.</comment>");
-
             }
             usleep(50);
-            $start++;
+            ++$start;
         }
 
         $this->completeRun();
 
         return 0;
         $output->writeln("<info>Complete With No Errors. $count records processed, $updated records updated.</info>");
-        $time_end = microtime(true);
+        $time_end    = microtime(true);
         $elapsedTime = $time_end - $time_start;
         $output->writeln("<info>Total Execution Time: $elapsedTime.</info>");
     }
 
     protected function getFirstID($em, $entity)
     {
-        $result  = $em->getRepository($entity)->findBy(array(),array('id' => 'ASC'),1);
+        $result  = $em->getRepository($entity)->findBy([], ['id' => 'ASC'], 1);
 
         return $result[0]->getId();
     }
 
     protected function getLastID($em, $entity)
     {
-        $result  = $em->getRepository($entity)->findBy(array(),array('id' => 'DESC'),1);
+        $result  = $em->getRepository($entity)->findBy([], ['id' => 'DESC'], 1);
 
         return $result[0]->getId();
     }
