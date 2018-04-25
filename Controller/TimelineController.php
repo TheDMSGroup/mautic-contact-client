@@ -392,7 +392,7 @@ class TimelineController extends CommonController
      */
     private function parseLogJSONBlob($data)
     {
-        $json = json_decode($data['logs']);
+        $json = json_decode($data['logs'], true);
         unset($data['logs']);
         $rows                      = [];
         $data['request_format']    = '';
