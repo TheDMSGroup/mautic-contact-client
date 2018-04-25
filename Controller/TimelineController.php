@@ -323,7 +323,7 @@ class TimelineController extends CommonController
         ini_set('max_execution_time', 0);
         $response = new StreamedResponse();
         $response->setCallback(
-            function () use ($params, $name, $headers, $contactClientId, $count, $eventRepository, $start) {
+            function () use ($params, $headers, $contactClientId, $count, $eventRepository, $start) {
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
                 while ($start < $count[0]['count']) {
