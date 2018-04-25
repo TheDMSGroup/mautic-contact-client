@@ -400,7 +400,7 @@ class TimelineController extends CommonController
         $data['request_headers']   = '';
         $data['request_body']      = '';
         $data['request_duration']  = '';
-        $data['status']            = '';
+        $data['response_status']            = '';
         $data['response_headers']  = '';
         $data['response_body_raw'] = '';
         $data['response_format']   = '';
@@ -431,9 +431,9 @@ class TimelineController extends CommonController
                         '; ',
                         $operation['response']['headers']
                     ) : '';
-                    $row['body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['response_body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
                     $row['response_format']  = isset($operation['response']['format']) ? $operation['response']['format'] : '';
-                    $row['valid']            = isset($operation['response']['valid']) ? $operation['response']['valid'] : '';
+                    $row['valid']            = isset($operation['valid']) ? $operation['valid'] : '';
 
                     $rows[$id] = $row;
                 }
@@ -460,7 +460,7 @@ class TimelineController extends CommonController
         $data['request_headers']   = '';
         $data['request_body']      = '';
         $data['request_duration']  = '';
-        $data['status']            = '';
+        $data['response_status']            = '';
         $data['response_headers']  = '';
         $data['response_body_raw'] = '';
         $data['response_format']   = '';
@@ -491,9 +491,9 @@ class TimelineController extends CommonController
                         '; ',
                         $operation['response']['headers']
                     ) : '';
-                    $row['body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['response_body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
                     $row['response_format']  = isset($operation['response']['format']) ? $operation['response']['format'] : '';
-                    $row['valid']            = isset($operation['response']['valid']) ? $operation['response']['valid'] : '';
+                    $row['valid']            = isset($operation['valid']) ? $operation['valid'] : '';
 
                     $rows[$id] = $row;
                 }
