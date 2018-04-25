@@ -11,7 +11,6 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use FOS\RestBundle\Util\Codes;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
@@ -25,25 +24,11 @@ use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 
-// use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadOperation as ApiOperation;
-// use MauticPlugin\MauticContactClientBundle\Services\Transport;
-
 /**
  * Class FilePayload.
  */
 class FilePayload
 {
-    // const SETTING_DEF_ATTEMPTS        = 3;
-    //
-    // const SETTING_DEF_AUTOUPDATE      = true;
-    //
-    // const SETTING_DEF_CONNECT_TIMEOUT = 10;
-    //
-    // const SETTING_DEF_DELAY           = 15;
-    //
-    // const SETTING_DEF_LIMIT           = 300;
-    //
-    // const SETTING_DEF_TIMEOUT         = 30;
 
     /**
      * Simple settings for this integration instance from the payload.
@@ -56,7 +41,9 @@ class FilePayload
         'headers'     => true,
         'rate'        => 1,
         'required'    => true,
-        'type'        => 'csv',
+        'type'        => [
+            'key' => 'csv',
+        ],
     ];
 
     /** @var array Standard CSV settings that can be overridden by the setting 'type' if it comes in as an array. */
@@ -110,6 +97,9 @@ class FilePayload
     /** @var FormModel */
     protected $formModel;
 
+    /** @var Queue */
+    protected $queue;
+
     /**
      * FilePayload constructor.
      *
@@ -131,6 +121,14 @@ class FilePayload
         $this->coreParametersHelper = $coreParametersHelper;
         $this->em                   = $em;
         $this->formModel            = $formModel;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getValid()
+    {
+        return $this->valid;
     }
 
     /**
@@ -249,7 +247,11 @@ class FilePayload
         if ($settings) {
             foreach ($this->settings as $key => &$value) {
                 if (!empty($settings->{$key}) && $settings->{$key}) {
-                    $value = $settings->{$key};
+                    if (is_object($settings->{$key})) {
+                        $value = json_decode(json_encode($settings->{$key}, JSON_FORCE_OBJECT), true);
+                    } else {
+                        $value = $settings->{$key};
+                    }
                 }
             }
         }
@@ -290,8 +292,7 @@ class FilePayload
     /**
      * Step through all operations defined.
      *
-     * @return bool
-     *
+     * @return $this
      * @throws ContactClientException
      */
     public function run()
@@ -299,6 +300,8 @@ class FilePayload
         // @todo - Discern next appropriate file time based on the schedule and file rate.
 
         $this->getFile();
+        $this->updateFileSettings();
+        $this->saveFile();
         $this->addContactToQueue();
 
         if ($this->valid) {
@@ -307,11 +310,12 @@ class FilePayload
             $this->setLogs('Contact NOT queued.', 'message');
         }
 
-        return $this->valid;
+        return $this;
     }
 
     /**
      * @return File|null|object
+     * @throws ContactClientException
      */
     private function getFile()
     {
@@ -320,22 +324,30 @@ class FilePayload
 
             // Get the newest unsent file entity from the repository.
             $file = $this->getFileRepository()->findOneBy(
-                ['contactClient' => $this->contactClient->getId(), 'status' => File::STATUS_QUEUEING],
+                ['contactClient' => $this->contactClient, 'status' => File::STATUS_QUEUEING],
                 ['dateAdded' => 'desc']
             );
-
             if (!$file) {
                 // There isn't currently a file being built, let's create one.
                 $file = new File();
                 $file->setContactClient($this->contactClient);
                 $file->setIsPublished(true);
-                $this->formModel->saveEntity($file, false);
             }
 
-            if ($file && $file->getId()) {
+            if ($file) {
                 $this->file = $file;
                 $this->setLogs($this->file->getStatus(), 'fileStatus');
             }
+        }
+
+        if (!$this->file) {
+            throw new ContactClientException(
+                'Could not discern the next file to append.',
+                0,
+                null,
+                Stat::TYPE_ERROR,
+                false
+            );
         }
 
         return $this->file;
@@ -350,46 +362,85 @@ class FilePayload
     }
 
     /**
-     * Add a contact to the queue for the next appropriate file generation.
-     *
+     * Update fields that are setting-based.
+     */
+    private function updateFileSettings()
+    {
+        if (!$this->file) {
+            return;
+        }
+        if (!empty($this->settings['name'])) {
+            $this->file->setName($this->settings['name']);
+        }
+        if (!empty($this->settings['type']['key'])) {
+            $this->file->setType($this->settings['type']['key']);
+        }
+        if (!empty($this->settings['compression'])) {
+            $this->file->setCompression($this->settings['compression']);
+        }
+        if (!empty($this->settings['headers'])) {
+            $this->file->setHeaders($this->settings['headers']);
+        }
+    }
+
+    /**
+     * Save any file changes using the form model.
+     */
+    public function saveFile()
+    {
+        if (!$this->file) {
+            return;
+        }
+        if ($this->file->isNew() || $this->file->getChanges()) {
+            $this->formModel->saveEntity($this->file, true);
+        }
+    }
+
+    /**
+     * @return Queue|null|object
      * @throws ContactClientException
      */
     private function addContactToQueue()
     {
-        if (!$this->file) {
-            throw new ContactClientException(
-                'Could not discern the next file to append.',
-                0,
-                null,
-                Stat::TYPE_ERROR,
-                false
+        if (
+            !$this->queue
+            && $this->file
+            && $this->contactClient
+            && $this->contact
+        ) {
+            // Check for a pre-existing instance of this contact queued for this file.
+            $queue = $this->getQueueRepository()->findOneBy(
+                [
+                    'contactClient' => $this->contactClient,
+                    'file'          => $this->file,
+                    'contact'       => $this->contact,
+                ]
             );
-        }
-
-        $queue = new Queue();
-        $queue->setContactClient($this->contactClient);
-        $queue->setContact($this->contact);
-        $queue->setFile($this->file);
-        try {
-            /** @var Queue $queue */
-            $this->getQueueRepository()->saveEntity($queue);
-        } catch (\Exception $e) {
-            if ($e instanceof UniqueConstraintViolationException) {
+            if ($queue) {
                 throw new ContactClientException(
                     'Skipping duplicate Contact. Already queued for file delivery.',
                     Codes::HTTP_CONFLICT,
-                    $e,
+                    null,
                     Stat::TYPE_DUPLICATE,
                     false,
-                    null
+                    $queue
                 );
+            } else {
+                /** @var Queue $queue */
+                $queue = new Queue();
+                $queue->setContactClient($this->contactClient);
+                $queue->setContact($this->contact);
+                $queue->setFile($this->file);
+            }
+            if ($queue) {
+                $this->getQueueRepository()->saveEntity($queue);
+                $this->queue = $queue;
+                $this->valid = true;
+                $this->setLogs($this->queue->getId(), 'queueId');
             }
         }
 
-        if ($queue && $queue->getId()) {
-            $this->setLogs($queue->getId(), 'queueId');
-            $this->valid = true;
-        } else {
+        if (!$this->queue) {
             throw new ContactClientException(
                 'Could not append this contact to the queue.',
                 Codes::HTTP_INTERNAL_SERVER_ERROR,
@@ -398,6 +449,8 @@ class FilePayload
                 false
             );
         }
+
+        return $this->queue;
     }
 
     /**
@@ -526,21 +579,6 @@ class FilePayload
     public function getExternalId()
     {
         return null;
-    }
-
-    /**
-     * Update fields that are setting-based, such as:
-     *      name
-     *      type
-     *      headers
-     *      compression
-     */
-    private function updateFileSettings()
-    {
-        if (!$this->file) {
-            return;
-        }
-
     }
 
     /**

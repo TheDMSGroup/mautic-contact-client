@@ -186,7 +186,7 @@ class ApiPayload
      */
     private function setPayload(string $payload = null)
     {
-        if (!$payload && $this->contactClient){
+        if (!$payload && $this->contactClient) {
             $payload = $this->contactClient->getApiPayload();
         }
         if (!$payload) {
@@ -236,6 +236,14 @@ class ApiPayload
         }
     }
 
+    /**
+     * @return bool
+     */
+    public function getValid()
+    {
+        return $this->valid;
+    }
+
     public function getTest()
     {
         return $this->test;
@@ -251,10 +259,8 @@ class ApiPayload
     /**
      * Step through all operations defined.
      *
-     * @return bool
-     *
+     * @return $this
      * @throws ContactClientException
-     * @throws \Exception
      */
     public function run()
     {
@@ -278,7 +284,7 @@ class ApiPayload
             $apiOperation = new ApiOperation(
                 $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
             );
-            $this->valid = false;
+            $this->valid  = false;
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
@@ -313,7 +319,7 @@ class ApiPayload
             throw $e;
         }
 
-        return $this->valid;
+        return $this;
     }
 
     /**

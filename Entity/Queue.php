@@ -52,7 +52,7 @@ class Queue
             ->addJoinColumn('file_id', 'id', true, false, null)
             ->build();
 
-        $builder->addNamedField('contact', 'integer', 'contact_id', true);
+        $builder->addContact(true, null);
 
         $builder->addUniqueConstraint(['file_id', 'contact_id'], 'contactclient_queue');
     }

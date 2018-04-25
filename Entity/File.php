@@ -91,8 +91,8 @@ class File extends FormEntity
     public function __construct()
     {
         // Default status for a new file is "queueing".
-        $this->status   = self::STATUS_QUEUEING;
-        $this->headers  = true;
+        $this->status  = self::STATUS_QUEUEING;
+        $this->headers = true;
     }
 
     /**
@@ -221,6 +221,7 @@ class File extends FormEntity
      */
     public function setContactClient($contactClient)
     {
+        $this->isChanged('contactClient', $contactClient);
         $this->contactClient = $contactClient;
 
         return $this;
@@ -241,6 +242,7 @@ class File extends FormEntity
      */
     public function setStatus($status)
     {
+        $this->isChanged('status', $status);
         $this->status = $status;
 
         return $this;
@@ -261,6 +263,7 @@ class File extends FormEntity
      */
     public function setLogs($logs)
     {
+        $this->isChanged('logs', $logs);
         $this->logs = $logs;
 
         return $this;
@@ -281,6 +284,7 @@ class File extends FormEntity
      */
     public function setContacts($contacts)
     {
+        $this->isChanged('contacts', $contacts);
         $this->contacts = $contacts;
 
         return $this;
@@ -301,6 +305,7 @@ class File extends FormEntity
      */
     public function setTmp($tmp)
     {
+        $this->isChanged('tmp', $tmp);
         $this->tmp = $tmp;
 
         return $this;
@@ -321,6 +326,7 @@ class File extends FormEntity
      */
     public function setCrc32($crc32)
     {
+        $this->isChanged('crc32', $crc32);
         $this->crc32 = $crc32;
 
         return $this;
@@ -341,6 +347,7 @@ class File extends FormEntity
      */
     public function setMd5($md5)
     {
+        $this->isChanged('md5', $md5);
         $this->md5 = $md5;
 
         return $this;
@@ -361,6 +368,7 @@ class File extends FormEntity
      */
     public function setSha1($sha1)
     {
+        $this->isChanged('sha1', $sha1);
         $this->sha1 = $sha1;
 
         return $this;
@@ -381,6 +389,7 @@ class File extends FormEntity
      */
     public function setCompression($compression)
     {
+        $this->isChanged('compression', $compression);
         $this->compression = $compression;
 
         return $this;
@@ -399,6 +408,7 @@ class File extends FormEntity
      */
     public function setLocation($location)
     {
+        $this->isChanged('location', $location);
         $this->location = $location;
     }
 
@@ -417,6 +427,7 @@ class File extends FormEntity
      */
     public function setHeaders($headers)
     {
+        $this->isChanged('headers', $headers);
         $this->headers = $headers;
 
         return $this;
@@ -437,6 +448,7 @@ class File extends FormEntity
      */
     public function setType($type)
     {
+        $this->isChanged('type', $type);
         $this->type = $type;
 
         return $this;
@@ -457,6 +469,7 @@ class File extends FormEntity
      */
     public function setName($name)
     {
+        $this->isChanged('name', $name);
         $this->name = $name;
 
         return $this;

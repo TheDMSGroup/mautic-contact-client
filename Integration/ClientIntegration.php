@@ -54,8 +54,7 @@ class ClientIntegration extends AbstractIntegration
     protected $payloadModel;
 
     /** @var bool $valid */
-    // @todo - Change the default to false/null like Sources, and cleanup associated methods.
-    protected $valid = true;
+    protected $valid = false;
 
     /** @var Container $container */
     protected $container;
@@ -295,15 +294,16 @@ class ClientIntegration extends AbstractIntegration
                 $this->getCacheModel()->evaluateExclusive();
             }
 
-            // Configure the payload.
             /** @var ApiPayload|FilePayload $model */
-            $this->valid = $this->getPayloadModel()
-                ->reset()
+            $payloadModel = $this->getPayloadModel();
+            $payloadModel->reset()
                 ->setContactClient($this->contactClient)
                 ->setContact($this->contact)
                 ->setTest($test)
                 ->setOverrides($overrides)
                 ->run();
+
+            $this->valid = $payloadModel->getValid();
 
             // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
@@ -392,7 +392,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function getPayloadModel(ContactClient $contactClient = null)
     {
-        $model      = null;
+        $model = null;
         if (!$contactClient) {
             $contactClient = $this->contactClient;
         }
