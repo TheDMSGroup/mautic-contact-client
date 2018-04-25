@@ -117,7 +117,7 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
                 $logBlob = $result->getLogs();
                 if ('{' != $logBlob[0]) { // is YAML
                     //convert YAML to array
-                    $array = YAML::Parse($logBlob);
+                    $array = YAML::parse($logBlob);
 
                     // convert array to JSON
                     $json = json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
