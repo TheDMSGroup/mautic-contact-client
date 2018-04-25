@@ -494,6 +494,7 @@ class ClientIntegration extends AbstractIntegration
             return;
         }
 
+        // Only API has a map to update contacts based on the response.
         if ('api' !== $this->contactClient->getType()) {
             return;
         }
@@ -512,7 +513,7 @@ class ClientIntegration extends AbstractIntegration
             // Update attribution based on attribution settings.
             /** @var Attribution $attribution */
             $attribution = new Attribution($this->contactClient, $this->contact);
-            $attribution->setPayload($this->payloadModel);
+            $attribution->setPayloadModel($this->payloadModel);
             /** @var bool $updatedAttribution */
             $updatedAttribution = $attribution->applyAttribution();
             if ($updatedAttribution) {

@@ -11,8 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
+use FOS\RestBundle\Util\Codes;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Model\FormModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\File;
@@ -48,12 +51,21 @@ class FilePayload
      * @var array
      */
     protected $settings = [
-        // 'limit'           => self::SETTING_DEF_LIMIT,
-        // 'timeout'         => self::SETTING_DEF_TIMEOUT,
-        // 'connect_timeout' => self::SETTING_DEF_CONNECT_TIMEOUT,
-        // 'attempts'        => self::SETTING_DEF_ATTEMPTS,
-        // 'delay'           => self::SETTING_DEF_DELAY,
-        // 'autoUpdate'      => self::SETTING_DEF_AUTOUPDATE,
+        'name'        => 'Contacts-{{date}}-{{time}}-{{count}}{{test}}',
+        'compression' => 'zip',
+        'headers'     => true,
+        'rate'        => 1,
+        'required'    => true,
+        'type'        => 'csv',
+    ];
+
+    /** @var array Standard CSV settings that can be overridden by the setting 'type' if it comes in as an array. */
+    protected $csvSettings = [
+        'delimiter' => ',',
+        'enclosure' => '"',
+        'escape'    => "\\",
+        'terminate' => "\n",
+        'null'      => null,
     ];
 
     /** @var ContactClient */
@@ -75,7 +87,7 @@ class FilePayload
     protected $logs = [];
 
     /** @var bool */
-    protected $valid = true;
+    protected $valid = false;
 
     /** @var TokenHelper */
     protected $tokenHelper;
@@ -95,6 +107,9 @@ class FilePayload
     /** @var File */
     protected $file;
 
+    /** @var FormModel */
+    protected $formModel;
+
     /**
      * FilePayload constructor.
      *
@@ -102,17 +117,20 @@ class FilePayload
      * @param TokenHelper          $tokenHelper
      * @param CoreParametersHelper $coreParametersHelper
      * @param EntityManager        $em
+     * @param FormModel            $formModel
      */
     public function __construct(
         contactClientModel $contactClientModel,
         tokenHelper $tokenHelper,
         CoreParametersHelper $coreParametersHelper,
-        EntityManager $em
+        EntityManager $em,
+        FormModel $formModel
     ) {
         $this->contactClientModel   = $contactClientModel;
         $this->tokenHelper          = $tokenHelper;
         $this->coreParametersHelper = $coreParametersHelper;
         $this->em                   = $em;
+        $this->formModel            = $formModel;
     }
 
     /**
@@ -122,8 +140,8 @@ class FilePayload
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'tokenHelper', 'coreParametersHelper', 'em'])
-    {
+    public function reset($exclusions = ['contactClientModel', 'tokenHelper', 'coreParametersHelper', 'em', 'formModel']
+    ) {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
                      array_flip($exclusions)
@@ -180,14 +198,16 @@ class FilePayload
     /**
      * Take the stored JSON string and parse for use.
      *
-     * @param string $payload
+     * @param string|null $payload
      *
      * @return $this
-     *
      * @throws ContactClientException
      */
-    private function setPayload(string $payload)
+    private function setPayload(string $payload = null)
     {
+        if (!$payload && $this->contactClient) {
+            $payload = $this->contactClient->getFilePayload();
+        }
         if (!$payload) {
             throw new ContactClientException(
                 'File instructions not set.',
@@ -276,27 +296,6 @@ class FilePayload
      */
     public function run()
     {
-        // if (
-        //     !isset($this->payload->methods)
-        //     || !count($this->payload->methods)
-        //     || (
-        //         (!isset($this->payload->methods->email) || false === $this->payload->methods->email)
-        //         && (!isset($this->payload->methods->ftp) || false === $this->payload->methods->ftp)
-        //         && (!isset($this->payload->methods->sftp) || false === $this->payload->methods->sftp)
-        //     )
-        // ) {
-        //     // There are no file operations to run. Assume manual file queue.
-        //     throw new ContactClientException(
-        //         'There are no file operations to run.',
-        //         0,
-        //         null,
-        //         Stat::TYPE_INVALID,
-        //         false
-        //     );
-        // }
-
-        $this->valid = false;
-
         // @todo - Discern next appropriate file time based on the schedule and file rate.
 
         $this->getFile();
@@ -312,41 +311,30 @@ class FilePayload
     }
 
     /**
-     * By cron/cli send appropriate files for this time.
+     * @return File|null|object
      */
-    public function sendFiles(){
-        //
-    }
-
-    /**
-     * @param null $contactClientId
-     *
-     * @return File
-     */
-    private function getFile($contactClientId = null)
+    private function getFile()
     {
-        if (!$this->file && !$contactClientId) {
-            $contactClientId = $this->contactClient->getId();
-        }
-        if (!$this->file && $contactClientId) {
+        if (!$this->file && $this->contactClient) {
             // Discern the next file entity to use.
 
             // Get the newest unsent file entity from the repository.
-            $fileEntity = $this->getFileRepository()->findOneBy(
-                ['contactClient' => $contactClientId, 'status' => File::STATUS_QUEUEING],
+            $file = $this->getFileRepository()->findOneBy(
+                ['contactClient' => $this->contactClient->getId(), 'status' => File::STATUS_QUEUEING],
                 ['dateAdded' => 'desc']
             );
 
-            if (!$fileEntity) {
+            if (!$file) {
                 // There isn't currently a file being built, let's create one.
                 $file = new File();
-
                 $file->setContactClient($this->contactClient);
-                $this->getFileRepository()->saveEntity($file);
-                if ($file && $file->getId()) {
-                    $this->file = $file;
-                    $this->setLogs($this->file->getStatus(), 'fileStatus');
-                }
+                $file->setIsPublished(true);
+                $this->formModel->saveEntity($file, false);
+            }
+
+            if ($file && $file->getId()) {
+                $this->file = $file;
+                $this->setLogs($this->file->getStatus(), 'fileStatus');
             }
         }
 
@@ -378,22 +366,34 @@ class FilePayload
             );
         }
 
-        /** @var Queue $queue */
         $queue = new Queue();
         $queue->setContactClient($this->contactClient);
         $queue->setContact($this->contact);
         $queue->setFile($this->file);
-
-        $this->getQueueRepository()->saveEntity($queue);
+        try {
+            /** @var Queue $queue */
+            $this->getQueueRepository()->saveEntity($queue);
+        } catch (\Exception $e) {
+            if ($e instanceof UniqueConstraintViolationException) {
+                throw new ContactClientException(
+                    'Skipping duplicate Contact. Already queued for file delivery.',
+                    Codes::HTTP_CONFLICT,
+                    $e,
+                    Stat::TYPE_DUPLICATE,
+                    false,
+                    null
+                );
+            }
+        }
 
         if ($queue && $queue->getId()) {
-            $this->setLogs($queue->getId(), 'queue');
+            $this->setLogs($queue->getId(), 'queueId');
             $this->valid = true;
         } else {
             throw new ContactClientException(
                 'Could not append this contact to the queue.',
-                0,
-                null,
+                Codes::HTTP_INTERNAL_SERVER_ERROR,
+                isset($e) ? $e : null,
                 Stat::TYPE_ERROR,
                 false
             );
@@ -406,6 +406,14 @@ class FilePayload
     public function getQueueRepository()
     {
         return $this->em->getRepository('MauticContactClientBundle:Queue');
+    }
+
+    /**
+     * By cron/cli send appropriate files for this time.
+     */
+    public function sendFiles()
+    {
+        //
     }
 
     /**
@@ -518,6 +526,21 @@ class FilePayload
     public function getExternalId()
     {
         return null;
+    }
+
+    /**
+     * Update fields that are setting-based, such as:
+     *      name
+     *      type
+     *      headers
+     *      compression
+     */
+    private function updateFileSettings()
+    {
+        if (!$this->file) {
+            return;
+        }
+
     }
 
     /**

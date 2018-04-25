@@ -23,8 +23,8 @@ class Attribution
     /** @var ContactClient $contactClient */
     protected $contactClient;
 
-    /** @var ApiPayload */
-    protected $payload;
+    /** @var ApiPayload|FilePayload */
+    protected $payloadModel;
 
     /** @var Contact */
     protected $contact;
@@ -47,9 +47,9 @@ class Attribution
     /**
      * @param ApiPayload|FilePayload $payload
      */
-    public function setPayload($payload)
+    public function setPayloadModel($payload)
     {
-        $this->payload = $payload;
+        $this->payloadModel = $payload;
     }
 
     /**
@@ -67,7 +67,7 @@ class Attribution
         $originalAttribution = !empty($originalAttribution) ? $originalAttribution : 0;
         $attributionChange   = 0;
 
-        if ($this->payload) {
+        if ($this->payloadModel) {
             $jsonHelper          = new JSONHelper();
             $attributionSettings = $jsonHelper->decodeObject(
                 $this->contactClient->getAttributionSettings(),
@@ -84,7 +84,7 @@ class Attribution
                 $key = $attributionSettings->mode->key;
 
                 // Attempt to get this field value from the response operations.
-                $responseFieldValue = $this->payload->getAggregateResponseFieldValue($key);
+                $responseFieldValue = $this->payloadModel->getAggregateResponseFieldValue($key);
                 if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
                     // We have a value, apply sign.
                     $sign = isset($attributionSettings->mode->sign) ? $attributionSettings->mode->sign : '+';

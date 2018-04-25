@@ -113,6 +113,7 @@ return [
                     'mautic.contactclient.helper.token',
                     'mautic.helper.core_parameters',
                     'doctrine.orm.entity_manager',
+                    'mautic.core.model.form',
                 ],
             ],
             'mautic.contactclient.model.cache'         => [

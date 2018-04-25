@@ -54,10 +54,7 @@ class Queue
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
 
-        $builder->addIndex(
-            ['file_id', 'contact_id'],
-            'contactclient_queue_file_id_contact_id'
-        );
+        $builder->addUniqueConstraint(['file_id', 'contact_id'], 'contactclient_queue');
     }
 
     /**
@@ -81,7 +78,7 @@ class Queue
      *
      * @return $this
      */
-    public function setContactClient($contactClient)
+    public function setContactClient(ContactClient $contactClient)
     {
         $this->contactClient = $contactClient;
 
@@ -121,11 +118,8 @@ class Queue
      *
      * @return $this
      */
-    public function setContact($contact)
+    public function setContact(Contact $contact)
     {
-        if ($contact instanceof Contact) {
-            $contact = $contact->getId();
-        }
         $this->contact = $contact;
 
         return $this;

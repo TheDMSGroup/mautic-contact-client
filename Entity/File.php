@@ -22,19 +22,19 @@ use Mautic\CoreBundle\Entity\FormEntity;
 class File extends FormEntity
 {
     /**
+     * Indicates that all attempts to upload/send this file failed.
+     *
+     * Contacts sent:   No (unable to confirm)
+     */
+    const STATUS_ERROR = 'error';
+
+    /**
      * Indicates that we are building a list of contacts to send at the next appropriate time.
      * This is the default status.
      *
      * Contacts sent:   No
      */
     const STATUS_QUEUEING = 'queueing';
-
-    /**
-     * Indicates that all attempts to upload/send this file failed.
-     *
-     * Contacts sent:   No (unable to confirm)
-     */
-    const STATUS_ERROR = 'error';
 
     /**
      * Indicates that the file has been successfully sent to the client.
@@ -73,9 +73,6 @@ class File extends FormEntity
     /** @var string */
     private $tmp;
 
-    /** \DateTime */
-    private $dateAdded;
-
     /** @var string */
     private $location;
 
@@ -88,21 +85,14 @@ class File extends FormEntity
     /** @var string */
     private $status;
 
-    /** @var \DateTime */
-    private $publishUp;
-
-    /** @var \DateTime */
-    private $publishDown;
-
     /**
      * File constructor.
      */
     public function __construct()
     {
         // Default status for a new file is "queueing".
-        $this->status    = self::STATUS_QUEUEING;
-        $this->dateAdded = new \DateTime();
-        $this->headers   = true;
+        $this->status   = self::STATUS_QUEUEING;
+        $this->headers  = true;
     }
 
     /**
@@ -125,6 +115,7 @@ class File extends FormEntity
                     'type',
                     'headers',
                     'compression',
+                    'dateAdded',
                     'publishUp',
                     'publishDown',
                     'sha1',
@@ -151,8 +142,6 @@ class File extends FormEntity
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\FileRepository');
 
         $builder->addId();
-
-        $builder->addPublishDates();
 
         $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', true, false, null)
@@ -215,50 +204,6 @@ class File extends FormEntity
         //     ['id', 'file_id', 'contact_id'],
         //     'contactclient_queue_file_id'
         // );
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPublishUp()
-    {
-        return $this->publishUp;
-    }
-
-    /**
-     * @param $publishUp
-     *
-     * @return $this
-     */
-    public function setPublishUp($publishUp)
-    {
-        $this->isChanged('publishUp', $publishUp);
-
-        $this->publishUp = $publishUp;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPublishDown()
-    {
-        return $this->publishDown;
-    }
-
-    /**
-     * @param $publishDown
-     *
-     * @return $this
-     */
-    public function setPublishDown($publishDown)
-    {
-        $this->isChanged('publishDown', $publishDown);
-
-        $this->publishDown = $publishDown;
-
-        return $this;
     }
 
     /**
@@ -523,25 +468,5 @@ class File extends FormEntity
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDateAdded()
-    {
-        return $this->dateAdded;
-    }
-
-    /**
-     * @param $dateAdded
-     *
-     * @return $this
-     */
-    public function setDateAdded($dateAdded)
-    {
-        $this->dateAdded = $dateAdded;
-
-        return $this;
     }
 }

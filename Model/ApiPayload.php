@@ -74,7 +74,7 @@ class ApiPayload
     protected $transport;
 
     /** @var bool */
-    protected $valid = true;
+    protected $valid = false;
 
     /** @var TokenHelper */
     protected $tokenHelper;
@@ -179,14 +179,16 @@ class ApiPayload
     /**
      * Take the stored JSON string and parse for use.
      *
-     * @param string $payload
+     * @param string|null $payload
      *
      * @return $this
-     *
      * @throws ContactClientException
      */
-    private function setPayload(string $payload)
+    private function setPayload(string $payload = null)
     {
+        if (!$payload && $this->contactClient){
+            $payload = $this->contactClient->getApiPayload();
+        }
         if (!$payload) {
             throw new ContactClientException(
                 'API instructions not set.',
@@ -276,8 +278,8 @@ class ApiPayload
             $apiOperation = new ApiOperation(
                 $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
             );
+            $this->valid = false;
             try {
-                $this->valid = false;
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
             } catch (\Exception $e) {

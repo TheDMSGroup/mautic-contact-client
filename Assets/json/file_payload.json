@@ -7,212 +7,227 @@
     "disable_collapse": true
   },
   "properties": {
-    "name": {
-      "type": "string",
-      "title": "File name",
-      "options": {
-        "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}} and {{test}}. Extension will be added automatically based on the type desired and compression."
-      },
-      "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}"
+    "title": "Settings",
+    "options": {
+      "collapsed": false,
+      "disable_collapse": true
     },
-    "compression": {
-      "title": "Compression",
-      "type": "string",
-      "default": "zip",
-      "options": {
-        "infoText": "It is strongly advised that a form of compression is chosen."
-      },
-      "enumSource": [
-        {
-          "source": [
-            {
-              "value": "zip",
-              "title": "ZIP (default)"
-            },
-            {
-              "value": "gzip",
-              "title": "GZIP"
-            },
-            {
-              "value": "none",
-              "title": "None (not advised)"
-            }
-          ],
-          "title": "{{item.title}}",
-          "value": "{{item.value}}"
-        }
-      ]
-    },
-    "headers": {
-      "title": "Headers",
-      "type": "boolean",
-      "format": "checkbox",
-      "default": true,
-      "options": {
-        "infoText": "A row of headers will be sent based on the field keys provided."
-      }
-    },
-    "rate": {
-      "title": "Files per day",
-      "type": "integer",
-      "format": "range",
-      "default": 1,
-      "minimum": 1,
-      "maximum": 24,
-      "step": 1,
-      "options": {
-        "infoText": "The maximum number of files to be prepared per day. Default: 1"
-      }
-    },
-    "empty": {
-      "title": "Send even if empty",
-      "type": "boolean",
-      "format": "checkbox",
-      "options": {
-        "infoText": "A file will be sent even if there are no contacts to send. The file will be blank."
-      },
-      "default": false
-    },
-    "type": {
-      "title": "File type",
-      "oneOf": [
-        {
-          "title": "CSV (default)",
-          "type": "object",
-          "format": "grid",
-          "options": {
-            "collapsed": false,
-            "disable_collapse": true
-          },
-          "properties": {
-            "delimiter": {
-              "type": "string",
-              "title": "CSV Delimiter",
-              "default": ",",
-              "enumSource": [
-                {
-                  "source": [
-                    {
-                      "value": ",",
-                      "title": "Commas (default)"
-                    },
-                    {
-                      "value": "\\t",
-                      "title": "Tabs"
-                    },
-                    {
-                      "value": ";",
-                      "title": "Semicolons"
-                    },
-                    {
-                      "value": " ",
-                      "title": "Spaces"
-                    }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "enclosure": {
-              "type": "string",
-              "title": "CSV Enclosure character",
-              "default": "\"",
-              "enumSource": [
-                {
-                  "source": [
-                    {
-                      "value": "\"",
-                      "title": "Double-quotes (default)"
-                    },
-                    {
-                      "value": "'",
-                      "title": "Single-quotes"
-                    }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "escape": {
-              "type": "string",
-              "title": "CSV escape character",
-              "default": "\\",
-              "enumSource": [
-                {
-                  "source": [
-                    {
-                      "value": "\\",
-                      "title": "Backslash (default)"
-                    },
-                    {
-                      "value": "\"",
-                      "title": "Double-quotes"
-                    }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "terminate": {
-              "type": "string",
-              "title": "CSV line termination",
-              "default": "\\n",
-              "enumSource": [
-                {
-                  "source": [
-                    {
-                      "value": "\\n",
-                      "title": "NewLine (default)"
-                    },
-                    {
-                      "value": "\\r\\n",
-                      "title": "Return and NewLine (Windows)"
-                    },
-                    {
-                      "value": "\\r",
-                      "title": "Return"
-                    }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            },
-            "null": {
-              "type": "string",
-              "title": "CSV empty value treatment",
-              "default": "",
-              "enumSource": [
-                {
-                  "source": [
-                    {
-                      "value": "",
-                      "title": "Empty (default)"
-                    },
-                    {
-                      "value": "NULL",
-                      "title": "NULL"
-                    }
-                  ],
-                  "title": "{{item.title}}",
-                  "value": "{{item.value}}"
-                }
-              ]
-            }
-          }
+    "properties": {
+      "name": {
+        "type": "string",
+        "title": "File name",
+        "options": {
+          "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}} and {{test}}. Extension will be added automatically based on the type desired and compression."
         },
-        {
-          "title": "Excel 2007",
-          "type": "string",
-          "default": "Excel2007",
-          "options": {
-            "hidden": true
+        "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}"
+      },
+      "compression": {
+        "title": "Compression",
+        "type": "string",
+        "default": "zip",
+        "options": {
+          "infoText": "It is strongly advised that a form of compression is chosen."
+        },
+        "enumSource": [
+          {
+            "source": [
+              {
+                "value": "zip",
+                "title": "ZIP (default)"
+              },
+              {
+                "value": "gzip",
+                "title": "GZIP"
+              },
+              {
+                "value": "none",
+                "title": "None (not advised)"
+              }
+            ],
+            "title": "{{item.title}}",
+            "value": "{{item.value}}"
           }
+        ]
+      },
+      "headers": {
+        "title": "Headers",
+        "type": "boolean",
+        "format": "checkbox",
+        "default": true,
+        "options": {
+          "infoText": "A row of headers will be sent based on the field keys provided."
         }
-      ]
+      },
+      "rate": {
+        "title": "Files per day",
+        "type": "integer",
+        "format": "range",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 24,
+        "step": 1,
+        "options": {
+          "infoText": "The maximum number of files to be prepared per day. Default: 1"
+        }
+      },
+      "required": {
+        "title": "Require contacts",
+        "type": "boolean",
+        "format": "checkbox",
+        "options": {
+          "infoText": "A file will only be sent even if there are no contacts to send. A blank file will not be sent if this is checked."
+        },
+        "default": false
+      },
+      "type": {
+        "title": "File type",
+        "oneOf": [
+          {
+            "title": "Standard CSV (default)",
+            "type": "string",
+            "default": "csv",
+            "options": {
+              "hidden": true
+            }
+          },
+          {
+            "title": "Custom CSV",
+            "type": "object",
+            "format": "grid",
+            "options": {
+              "collapsed": false,
+              "disable_collapse": true
+            },
+            "properties": {
+              "delimiter": {
+                "type": "string",
+                "title": "CSV Delimiter",
+                "default": ",",
+                "enumSource": [
+                  {
+                    "source": [
+                      {
+                        "value": ",",
+                        "title": "Commas (default)"
+                      },
+                      {
+                        "value": "\\t",
+                        "title": "Tabs"
+                      },
+                      {
+                        "value": ";",
+                        "title": "Semicolons"
+                      },
+                      {
+                        "value": " ",
+                        "title": "Spaces"
+                      }
+                    ],
+                    "title": "{{item.title}}",
+                    "value": "{{item.value}}"
+                  }
+                ]
+              },
+              "enclosure": {
+                "type": "string",
+                "title": "CSV Enclosure character",
+                "default": "\"",
+                "enumSource": [
+                  {
+                    "source": [
+                      {
+                        "value": "\"",
+                        "title": "Double-quotes (default)"
+                      },
+                      {
+                        "value": "'",
+                        "title": "Single-quotes"
+                      }
+                    ],
+                    "title": "{{item.title}}",
+                    "value": "{{item.value}}"
+                  }
+                ]
+              },
+              "escape": {
+                "type": "string",
+                "title": "CSV escape character",
+                "default": "\\",
+                "enumSource": [
+                  {
+                    "source": [
+                      {
+                        "value": "\\",
+                        "title": "Backslash (default)"
+                      },
+                      {
+                        "value": "\"",
+                        "title": "Double-quotes"
+                      }
+                    ],
+                    "title": "{{item.title}}",
+                    "value": "{{item.value}}"
+                  }
+                ]
+              },
+              "terminate": {
+                "type": "string",
+                "title": "CSV line termination",
+                "default": "\\n",
+                "enumSource": [
+                  {
+                    "source": [
+                      {
+                        "value": "\\n",
+                        "title": "NewLine (default)"
+                      },
+                      {
+                        "value": "\\r\\n",
+                        "title": "Return and NewLine (Windows)"
+                      },
+                      {
+                        "value": "\\r",
+                        "title": "Return"
+                      }
+                    ],
+                    "title": "{{item.title}}",
+                    "value": "{{item.value}}"
+                  }
+                ]
+              },
+              "null": {
+                "type": "string",
+                "title": "CSV empty value treatment",
+                "default": "",
+                "enumSource": [
+                  {
+                    "source": [
+                      {
+                        "value": "",
+                        "title": "Empty (default)"
+                      },
+                      {
+                        "value": "NULL",
+                        "title": "NULL"
+                      }
+                    ],
+                    "title": "{{item.title}}",
+                    "value": "{{item.value}}"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "title": "Excel 2007",
+            "type": "string",
+            "default": "Excel2007",
+            "options": {
+              "hidden": true
+            }
+          }
+        ]
+      },
     },
     "body": {
       "title": "Fields",
@@ -229,7 +244,7 @@
         "$ref": "#/definitions/requestField"
       }
     },
-    "methods": {
+    "operations": {
       "title": "Delivery Methods",
       "options": {
         "collapsed": false,
