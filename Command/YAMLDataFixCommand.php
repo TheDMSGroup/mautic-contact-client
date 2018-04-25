@@ -73,9 +73,11 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
         $options   = $input->getArguments();
         $container = $this->getContainer();
         $em        = $container->get('doctrine.orm.entity_manager');
-        // if (!$this->checkRunStatus($input, $output, $options['bundle'])) {
-        //     return 0;
-        // }
+
+        if (!$this->checkRunStatus($input, $output, $options['bundle'])) {
+            $output->writeln('<error>Something failed in CheckRunStatus.</error>');
+            //return 0;
+        }
 
         if (!$options['bundle'] || !in_array($options['bundle'], ['client', 'source'])) {
             $output->writeln("<error>Bundle is required and must be 'client' or 'source' .</error>");
@@ -105,46 +107,51 @@ class YAMLDataFixCommand extends ModeratedCommand implements ContainerAwareInter
         $previous   = $original   = $start;
         $time_start = microtime(true);
 
-        $output->writeln("<info>Converting $count $entity logs from YAML to JSON, startung at $start and ending at $last.</info>");
+        $output->writeln("<info>Converting $count $entity logs from YAML to JSON, starting at $start and ending at $last.</info>");
 
-        while ($start <= $count) {
-            $id      = $start;
-            $result  = $this->getLogByID($em, $id, $entity);
-            $logBlob = $result->getLogs();
-            if ('{' != $logBlob[0]) { // is YAML
-                //convert YAML to array
-                $array = YAML::Parse($logBlob);
 
-                // convert array to JSON
-                $json = json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            while ($start <= $last) {
 
-                // save record back to DB
-                $result->setLogs($json);
-                $this->saveJSONLog($em, $result, $entity);
-                $timeSoFar = microtime(true);
-                $soFar     = ($timeSoFar - $time_start) / 60;
-                $percent   = number_format($updated / $count * 100, 2, '.', ',');
-                //$output->writeln("<info> >>> $id: Saved $entity Entity in Batch # $batch. (Elapsed Time So Far: $soFar)</info>");
+                $id      = $start;
+                $result  = $this->getLogByID($em, $id, $entity);
+                $logBlob = $result->getLogs();
+                if ('{' != $logBlob[0]) { // is YAML
+                    //convert YAML to array
+                    $array = YAML::Parse($logBlob);
 
-                //batch the SQL
-                if (0 === ($start % 300)) {
-                    $em->flush();
-                    $em->clear(); // Detaches all objects from Doctrine!
-                    $output->writeln("<question>Batch # $batch flushed.</question>");
-                    $output->writeln("<info> >>> Saved $entity Entity ids $previous - $start. (Elapsed Time So Far: $soFar minutes, $percent%.)</info>");
-                    ++$batch;
-                    $previous = $start;
+                    // convert array to JSON
+                    $json = json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+
+                    // save record back to DB
+                    $result->setLogs($json);
+                    $this->saveJSONLog($em, $result, $entity);
+                    $timeSoFar = microtime(true);
+                    $soFar     = number_format(($timeSoFar - $time_start) / 60, 2, '.', ',');
+                    $percent   = number_format($updated / $count * 100, 2, '.', ',');
+                    //$output->writeln("<info> >>> $id: Saved $entity Entity in Batch # $batch. (Elapsed Time So Far: $soFar)</info>");
+
+                    //batch the SQL
+                    if (0 === ($start % 1000)) {
+                        $em->flush();
+                        $em->clear(); // Detaches all objects from Doctrine!
+                        $output->writeln("<question>Batch # $batch flushed.</question>");
+                        $output->writeln(
+                            "<info> >>> Saved $entity Entity ids $previous - $start. (Elapsed Time So Far: $soFar minutes, $percent%.)</info>"
+                        );
+                        ++$batch;
+                        $previous = $start;
+                    }
+
+                    ++$updated;
+                } else {
+                    $output->writeln("<comment> >>> Skipping $id.</comment>");
                 }
-
-                ++$updated;
-            } else {
-                $output->writeln("<comment> >>> Skipping $id.</comment>");
+                usleep(50);
+                ++$start;
             }
-            usleep(50);
-            ++$start;
-        }
 
-        $this->completeRun();
+            $this->completeRun();
+
 
         return 0;
         $output->writeln("<info>Complete With No Errors. $count records processed, $updated records updated.</info>");
