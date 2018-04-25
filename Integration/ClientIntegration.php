@@ -386,12 +386,17 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @param ContactClient|null $contactClient
+     *
      * @return ApiPayload|FilePayload|null|object
      */
-    private function getPayloadModel()
+    private function getPayloadModel(ContactClient $contactClient = null)
     {
         $model      = null;
-        $clientType = $this->contactClient->getType();
+        if (!$contactClient) {
+            $contactClient = $this->contactClient;
+        }
+        $clientType = $contactClient->getType();
         if ('api' == $clientType) {
             $model = $this->getApiPayloadModel();
         } elseif ('file' == $clientType) {
@@ -851,7 +856,7 @@ class ClientIntegration extends AbstractIntegration
 
                         // Get overridable fields from the payload of the type needed.
                         try {
-                            $overrides[$id] = $this->getPayloadModel()
+                            $overrides[$id] = $this->getPayloadModel($contactClientEntity)
                                 ->reset()
                                 ->setContactClient($contactClientEntity)
                                 ->getOverrides();
