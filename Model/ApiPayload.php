@@ -500,7 +500,7 @@ class ApiPayload
      *
      * @return array
      */
-    public function getOverridableFields()
+    public function getOverrides()
     {
         $result = [];
         if (isset($this->payload->operations)) {

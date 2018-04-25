@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\File;
+use MauticPlugin\MauticContactClientBundle\Entity\Queue;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
@@ -275,61 +276,46 @@ class FilePayload
      */
     public function run()
     {
-        $logs = [];
-        if (
-            !isset($this->payload->methods)
-            || !count($this->payload->methods)
-            || (
-                (!isset($this->payload->methods->email) || false === $this->payload->methods->email)
-                && (!isset($this->payload->methods->ftp) || false === $this->payload->methods->ftp)
-                && (!isset($this->payload->methods->sftp) || false === $this->payload->methods->sftp)
-            )
-        ) {
-            // There are no file operations to run. Assume manual file queue.
-            // throw new ContactClientException(
-            //     'There are no file operations to run.',
-            //     0,
-            //     null,
-            //     Stat::TYPE_INVALID,
-            //     false
-            // );
-        }
-
-        // @todo - Determine the next file queued to be sent (if not provided).
-        $file = $this->getFile();
-
-        // @todo - If there isn't a file queued up for the next available time, create one.
-
-        // @todo - Add the current contact to the queue.
-
-        // $tokenHelper = $this->getTokenHelper();
-        // foreach ($this->payload->methods as $method => &$operation) {
-        //     $logs          = [];
-        //     $fileOperation = new ApiOperation(
-        //         $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
+        // if (
+        //     !isset($this->payload->methods)
+        //     || !count($this->payload->methods)
+        //     || (
+        //         (!isset($this->payload->methods->email) || false === $this->payload->methods->email)
+        //         && (!isset($this->payload->methods->ftp) || false === $this->payload->methods->ftp)
+        //         && (!isset($this->payload->methods->sftp) || false === $this->payload->methods->sftp)
+        //     )
+        // ) {
+        //     // There are no file operations to run. Assume manual file queue.
+        //     throw new ContactClientException(
+        //         'There are no file operations to run.',
+        //         0,
+        //         null,
+        //         Stat::TYPE_INVALID,
+        //         false
         //     );
-        //     try {
-        //         $this->valid = false;
-        //         $fileOperation->run();
-        //         $this->valid = $fileOperation->getValid();
-        //     } catch (\Exception $e) {
-        //         // Delay this exception throw...
-        //     }
-        //     $logs = array_merge($fileOperation->getLogs(), $logs);
-        //     $this->setLogs($logs, $id);
-        //
-        //     if (!$this->valid) {
-        //         // Break the chain of operations if an invalid response or exception occurs.
-        //         break;
-        //     }
         // }
 
-        // Intentionally delayed exception till after logging and payload update.
-        if (isset($e)) {
-            throw $e;
+        $this->valid = false;
+
+        // @todo - Discern next appropriate file time based on the schedule and file rate.
+
+        $this->getFile();
+        $this->addContactToQueue();
+
+        if ($this->valid) {
+            $this->setLogs('Contact was added to the queue for the next appropriate file payload.', 'message');
+        } else {
+            $this->setLogs('Contact NOT queued.', 'message');
         }
 
         return $this->valid;
+    }
+
+    /**
+     * By cron/cli send appropriate files for this time.
+     */
+    public function sendFiles(){
+        //
     }
 
     /**
@@ -347,7 +333,7 @@ class FilePayload
 
             // Get the newest unsent file entity from the repository.
             $fileEntity = $this->getFileRepository()->findOneBy(
-                ['contactClient' => $contactClientId, 'status' => File::STATUS_BUILDING],
+                ['contactClient' => $contactClientId, 'status' => File::STATUS_QUEUEING],
                 ['dateAdded' => 'desc']
             );
 
@@ -357,8 +343,9 @@ class FilePayload
 
                 $file->setContactClient($this->contactClient);
                 $this->getFileRepository()->saveEntity($file);
-                if ($file->getId()) {
+                if ($file && $file->getId()) {
                     $this->file = $file;
+                    $this->setLogs($this->file->getStatus(), 'fileStatus');
                 }
             }
         }
@@ -372,6 +359,53 @@ class FilePayload
     public function getFileRepository()
     {
         return $this->em->getRepository('MauticContactClientBundle:File');
+    }
+
+    /**
+     * Add a contact to the queue for the next appropriate file generation.
+     *
+     * @throws ContactClientException
+     */
+    private function addContactToQueue()
+    {
+        if (!$this->file) {
+            throw new ContactClientException(
+                'Could not discern the next file to append.',
+                0,
+                null,
+                Stat::TYPE_ERROR,
+                false
+            );
+        }
+
+        /** @var Queue $queue */
+        $queue = new Queue();
+        $queue->setContactClient($this->contactClient);
+        $queue->setContact($this->contact);
+        $queue->setFile($this->file);
+
+        $this->getQueueRepository()->saveEntity($queue);
+
+        if ($queue && $queue->getId()) {
+            $this->setLogs($queue->getId(), 'queue');
+            $this->valid = true;
+        } else {
+            throw new ContactClientException(
+                'Could not append this contact to the queue.',
+                0,
+                null,
+                Stat::TYPE_ERROR,
+                false
+            );
+        }
+    }
+
+    /**
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\QueueRepository
+     */
+    public function getQueueRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
     /**
@@ -411,7 +445,7 @@ class FilePayload
      *
      * @return array
      */
-    public function getOverridableFields()
+    public function getOverrides()
     {
         $result = [];
         if (isset($this->payload->operations)) {

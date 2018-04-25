@@ -27,7 +27,7 @@ class File extends FormEntity
      *
      * Contacts sent:   No
      */
-    const STATUS_BUILDING = 'building';
+    const STATUS_QUEUEING = 'queueing';
 
     /**
      * Indicates that all attempts to upload/send this file failed.
@@ -99,8 +99,8 @@ class File extends FormEntity
      */
     public function __construct()
     {
-        // Default status for a new file is "building".
-        $this->status    = self::STATUS_BUILDING;
+        // Default status for a new file is "queueing".
+        $this->status    = self::STATUS_QUEUEING;
         $this->dateAdded = new \DateTime();
         $this->headers   = true;
     }
@@ -151,8 +151,6 @@ class File extends FormEntity
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\FileRepository');
 
         $builder->addId();
-
-        $builder->addDateAdded();
 
         $builder->addPublishDates();
 

@@ -49,54 +49,34 @@ class Schedule
     /**
      * @param ContactClient $contactClient
      *
-     * @throws \Exception
+     * @return $this
      */
     public function setContactClient(ContactClient $contactClient)
     {
         $this->contactClient = $contactClient;
-        $this->setTimezone();
+
+        return $this;
     }
 
     /**
-     * Set Client timezone, defaulting to Mautic or System as is relevant.
-     *
-     * @throws \Exception
-     */
-    private function setTimezone()
-    {
-        $timezone = $this->contactClient->getScheduleTimezone();
-        if (!$timezone) {
-            $timezone = $this->container->get('mautic.helper.core_parameters')->getParameter(
-                'default_timezone'
-            );
-            $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();
-        }
-        $this->timezone = new \DateTimeZone($timezone);
-    }
-
-    /**
-     * @param ContactClient $contactClient
-     *
+     * @return $this
      * @throws ContactClientException
-     * @throws \Exception
      */
-    public function evaluateHours(ContactClient $contactClient)
+    public function evaluateHours()
     {
-        $jsonHelper = new JSONHelper();
-        $hours      = $jsonHelper->decodeArray($contactClient->getScheduleHours(), 'ScheduleHours');
+        $jsonHelper  = new JSONHelper();
+        $hoursString = $this->contactClient->getScheduleHours();
+        $hours       = $jsonHelper->decodeArray($hoursString, 'ScheduleHours');
 
         if ($hours) {
-            $now      = $this->getNow();
-            $timezone = $this->getTimezone();
-
-            $day = intval($now->format('N')) - 1;
+            $day = intval($this->now->format('N')) - 1;
             if (isset($hours[$day])) {
                 if (
                     isset($hours[$day]->isActive)
                     && !$hours[$day]->isActive
                 ) {
                     throw new ContactClientException(
-                        'This contact client does not allow contacts on a '.$now->format('l').'.',
+                        'This contact client does not allow contacts on a '.$this->now->format('l').'.',
                         0,
                         null,
                         Stat::TYPE_SCHEDULE
@@ -104,9 +84,9 @@ class Schedule
                 } else {
                     $timeFrom  = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
                     $timeTill  = !empty($hours[$day]->timeTill) ? $hours[$day]->timeTill : '23:59';
-                    $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $timezone);
-                    $endDate   = \DateTime::createFromFormat('H:i', $timeTill, $timezone);
-                    if (!($now > $startDate && $now < $endDate)) {
+                    $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $this->timezone);
+                    $endDate   = \DateTime::createFromFormat('H:i', $timeTill, $this->timezone);
+                    if (!($this->now > $startDate && $this->now < $endDate)) {
                         throw new ContactClientException(
                             'This contact client does not allow contacts during this time of day.',
                             0,
@@ -117,59 +97,119 @@ class Schedule
                 }
             }
         }
+
+        return $this;
     }
 
     /**
      * @return \Datetime
      */
-    private function getNow()
+    public function getNow()
     {
-        if (!$this->now) {
+        return $this->now;
+    }
+
+    /**
+     * @param \DateTime $now
+     *
+     * @return $this
+     */
+    public function setNow(\DateTime $now = null)
+    {
+        if (!$now) {
             $now = new \Datetime();
-            $now->setTimezone($this->timezone);
-            $this->now = $now;
         }
 
-        return $this->now;
+        $this->now = $now;
+
+        return $this;
     }
 
     /**
      * @return \DateTimeZone
      */
-    private function getTimezone()
+    public function getTimezone()
     {
         return $this->timezone;
     }
 
     /**
-     * @param ContactClient $contactClient
+     * Set Client timezone, defaulting to Mautic or System as is relevant.
      *
-     * @throws ContactClientException
-     * @throws \Exception
+     * @param \DateTimeZone $timezone
+     *
+     * @return $this
      */
-    public function evaluateExclusions(ContactClient $contactClient)
+    public function setTimezone(\DateTimeZone $timezone = null)
+    {
+        if (!$timezone) {
+            $timezone = $this->contactClient->getScheduleTimezone();
+            if (!$timezone) {
+                $timezone = $this->container->get('mautic.helper.core_parameters')->getParameter(
+                    'default_timezone'
+                );
+                $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();
+            }
+            $timezone = new \DateTimeZone($timezone);
+        }
+        $this->timezone = $timezone;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     * @throws ContactClientException
+     */
+    public function evaluateExclusions()
     {
         // Check dates of exclusion (if there are any).
-        $jsonHelper = new JSONHelper();
-        $exclusions = $jsonHelper->decodeArray($contactClient->getScheduleExclusions(), 'ScheduleExclusions');
+        $jsonHelper       = new JSONHelper();
+        $exclusionsString = $this->contactClient->getScheduleExclusions();
+        $exclusions       = $jsonHelper->decodeArray($exclusionsString, 'ScheduleExclusions');
         if ($exclusions) {
-            $now = $this->getNow();
-
             // Fastest way to compare dates is by string.
-            $todaysDateString = $now->format('Y-m-d');
+            $todaysDateString = $this->now->format('Y-m-d');
             foreach ($exclusions as $exclusion) {
                 if (!empty($exclusion->value)) {
                     $dateString   = trim(str_ireplace('yyyy-', '', $exclusion->value));
                     $segments     = explode('-', $dateString);
                     $segmentCount = count($segments);
                     if (3 == $segmentCount) {
-                        $year  = !empty($segments[0]) ? str_pad($segments[0], 4, '0', STR_PAD_LEFT) : $now->format('Y');
-                        $month = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('m');
-                        $day   = !empty($segments[2]) ? str_pad($segments[2], 2, '0', STR_PAD_LEFT) : $now->format('d');
+                        $year  = !empty($segments[0]) ? str_pad(
+                            $segments[0],
+                            4,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $this->now->format(
+                            'Y'
+                        );
+                        $month = !empty($segments[1]) ? str_pad(
+                            $segments[1],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $this->now->format('m');
+                        $day   = !empty($segments[2]) ? str_pad(
+                            $segments[2],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $this->now->format('d');
                     } elseif (2 == $segmentCount) {
-                        $year  = $now->format('Y');
-                        $month = !empty($segments[0]) ? str_pad($segments[0], 2, '0', STR_PAD_LEFT) : $now->format('m');
-                        $day   = !empty($segments[1]) ? str_pad($segments[1], 2, '0', STR_PAD_LEFT) : $now->format('d');
+                        $year  = $this->now->format('Y');
+                        $month = !empty($segments[0]) ? str_pad(
+                            $segments[0],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $this->now->format('m');
+                        $day   = !empty($segments[1]) ? str_pad(
+                            $segments[1],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $this->now->format('d');
                     } else {
                         continue;
                     }
@@ -185,5 +225,7 @@ class Schedule
                 }
             }
         }
+
+        return $this;
     }
 }

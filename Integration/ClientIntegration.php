@@ -50,8 +50,8 @@ class ClientIntegration extends AbstractIntegration
     /** @var bool $test */
     protected $test = false;
 
-    /** @var ApiPayload $payload */
-    protected $payload;
+    /** @var ApiPayload|FilePayload $payloadModel */
+    protected $payloadModel;
 
     /** @var bool $valid */
     // @todo - Change the default to false/null like Sources, and cleanup associated methods.
@@ -65,6 +65,12 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var ContactClientModel */
     protected $contactClientModel;
+
+    /** @var FilePayload */
+    protected $filePayloadModel;
+
+    /** @var ApiPayload */
+    protected $apiPayloadModel;
 
     /** @var \MauticPlugin\MauticContactClientBundle\Model\Cache */
     protected $cacheModel;
@@ -266,11 +272,7 @@ class ClientIntegration extends AbstractIntegration
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
             if (!$this->test) {
-                /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
-                $schedule = $this->getScheduleModel();
-                // @todo - file - Support finding the next hours/included day to queue.
-                $schedule->evaluateHours($this->contactClient);
-                $schedule->evaluateExclusions($this->contactClient);
+                $this->evaluateSchedule();
             }
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable.
@@ -295,15 +297,15 @@ class ClientIntegration extends AbstractIntegration
 
             // Configure the payload.
             /** @var ApiPayload|FilePayload $model */
-            $model = $this->getPayloadModel();
-            $model->reset()
+            $this->valid = $this->getPayloadModel()
+                ->reset()
                 ->setContactClient($this->contactClient)
-                ->setTest($test)
                 ->setContact($this->contact)
-                ->setOverrides($overrides);
+                ->setTest($test)
+                ->setOverrides($overrides)
+                ->run();
 
             // Send all operations (API) or queue the contact (file).
-            $this->valid = $this->payload->run();
             if ($this->valid) {
                 $this->statType = Stat::TYPE_CONVERTED;
             }
@@ -311,8 +313,8 @@ class ClientIntegration extends AbstractIntegration
             $this->handleException($e);
         }
 
-        if ($this->payload) {
-            $operationLogs = $this->payload->getLogs();
+        if ($this->payloadModel) {
+            $operationLogs = $this->payloadModel->getLogs();
             if ($operationLogs) {
                 $this->setLogs($operationLogs, 'operations');
             }
@@ -325,6 +327,27 @@ class ClientIntegration extends AbstractIntegration
         $this->logResults();
 
         return $this;
+    }
+
+    /**
+     * @param string|null $clientType
+     *
+     * @throws ContactClientException
+     */
+    private function evaluateSchedule(string $clientType = null)
+    {
+        $clientType = $clientType ? $clientType : $this->contactClient->getType();
+        /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
+        $schedule = $this->getScheduleModel();
+        if ('api' == $clientType) {
+            // Standard now will be fine.
+        } elseif ('file' == $clientType) {
+            // Do not evaluate on ingestion at this time. We'll evalutate for the future.
+        } else {
+            throw new \InvalidArgumentException('Client type is invalid.');
+        }
+        $schedule->evaluateHours();
+        $schedule->evaluateExclusions();
     }
 
     /**
@@ -363,22 +386,47 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param null $clientType
-     *
-     * @return ApiPayload|object
+     * @return ApiPayload|FilePayload|null|object
      */
-    private function getPayloadModel($clientType = null)
+    private function getPayloadModel()
     {
-        $clientType = $clientType ? $clientType : $this->contactClient->getType();
+        $model      = null;
+        $clientType = $this->contactClient->getType();
         if ('api' == $clientType) {
-            $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+            $model = $this->getApiPayloadModel();
         } elseif ('file' == $clientType) {
-            $this->payload = $this->getContainer()->get('mautic.contactclient.model.filepayload');
+            $model = $this->getFilePayloadModel();
         } else {
             throw new \InvalidArgumentException('Client type is invalid.');
         }
 
-        return $this->payload;
+        return $model;
+    }
+
+    /**
+     * @return ApiPayload|object
+     */
+    private function getApiPayloadModel()
+    {
+        if (!$this->apiPayloadModel) {
+            /** @var ApiPayload apiPayloadModel */
+            $this->apiPayloadModel = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+        }
+
+        return $this->apiPayloadModel;
+    }
+
+    /**
+     * @return FilePayload|object
+     */
+    private function getFilePayloadModel()
+    {
+        if (!$this->filePayloadModel) {
+            /** @var FilePayload filePayloadModel */
+            $this->filePayloadModel = $this->getContainer()->get('mautic.contactclient.model.filepayload');
+        }
+
+        return $this->filePayloadModel;
     }
 
     /**
@@ -432,7 +480,7 @@ class ClientIntegration extends AbstractIntegration
     private function updateContact()
     {
         // Do not update contacts for test runs.
-        if ($this->test || !$this->payload) {
+        if ($this->test || !$this->payloadModel) {
             return;
         }
 
@@ -450,16 +498,16 @@ class ClientIntegration extends AbstractIntegration
 
             // Update any fields based on the response map.
             /** @var bool $updatedFields */
-            $updatedFields = $this->payload->applyResponseMap();
+            $updatedFields = $this->payloadModel->applyResponseMap();
             if ($updatedFields) {
-                $this->contact = $this->payload->getContact();
+                $this->contact = $this->payloadModel->getContact();
             }
 
             // @todo - Remove need for logs to carry over attribution to other tables/entities.
             // Update attribution based on attribution settings.
             /** @var Attribution $attribution */
             $attribution = new Attribution($this->contactClient, $this->contact);
-            $attribution->setPayload($this->payload);
+            $attribution->setPayload($this->payloadModel);
             /** @var bool $updatedAttribution */
             $updatedAttribution = $attribution->applyAttribution();
             if ($updatedAttribution) {
@@ -496,7 +544,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function dispatchContextCreate()
     {
-        if ($this->test || !$this->payload) {
+        if ($this->test || !$this->payloadModel) {
             return;
         }
 
@@ -546,7 +594,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function dispatchContextCapture()
     {
-        if ($this->test || !$this->valid || !$this->payload || Stat::TYPE_CONVERTED !== $this->statType) {
+        if ($this->test || !$this->valid || !$this->payloadModel || Stat::TYPE_CONVERTED !== $this->statType) {
             return;
         }
 
@@ -591,7 +639,7 @@ class ClientIntegration extends AbstractIntegration
         if ($this->test) {
             return;
         }
-        $integration_entity_id = !empty($this->payload) ? $this->payload->getExternalId() : null;
+        $integration_entity_id = !empty($this->payloadModel) ? $this->payloadModel->getExternalId() : null;
 
         /** @var contactClientModel $clientModel */
         $clientModel = $this->getContactClientModel();
@@ -795,26 +843,23 @@ class ClientIntegration extends AbstractIntegration
                 $contactClientRepo     = $clientModel->getRepository();
                 $contactClientEntities = $contactClientRepo->getEntities();
                 $clients               = ['' => ''];
-                $overridableFields     = [];
+                $overrides             = [];
                 foreach ($contactClientEntities as $contactClientEntity) {
                     if ($contactClientEntity->getIsPublished()) {
                         $id           = $contactClientEntity->getId();
                         $clients[$id] = $contactClientEntity->getName();
 
                         // Get overridable fields from the payload of the type needed.
-                        if ('api' == $contactClientEntity->getType()) {
-                            try {
-                                $payload = $this->getPayloadModel('api');
-                                $payload->setContactClient($contactClientEntity);
-                                $overridableFields[$id] = $payload->getOverridableFields();
-                            } catch (\Exception $e) {
-                                if ($this->logger) {
-                                    $this->logger->error($e->getMessage());
-                                }
-                                $clients[$id] .= ' ('.$e->getMessage().')';
+                        try {
+                            $overrides[$id] = $this->getPayloadModel()
+                                ->reset()
+                                ->setContactClient($contactClientEntity)
+                                ->getOverrides();
+                        } catch (\Exception $e) {
+                            if ($this->logger) {
+                                $this->logger->error($e->getMessage());
                             }
-                        } else {
-                            // @todo - File based payload.
+                            $clients[$id] .= ' ('.$e->getMessage().')';
                         }
                     }
                 }
@@ -847,13 +892,13 @@ class ClientIntegration extends AbstractIntegration
                                 ['message' => 'mautic.core.value.required']
                             ),
                         ],
-                        'choice_attr' => function ($val, $key, $index) use ($overridableFields) {
+                        'choice_attr' => function ($val, $key, $index) use ($overrides) {
                             $results = [];
                             // adds a class like attending_yes, attending_no, etc
-                            if ($val && isset($overridableFields[$val])) {
+                            if ($val && isset($overrides[$val])) {
                                 $results['class'] = 'contact-client-'.$val;
                                 // Change format to match json schema.
-                                $results['data-overridable-fields'] = json_encode($overridableFields[$val]);
+                                $results['data-overridable-fields'] = json_encode($overrides[$val]);
                             }
 
                             return $results;

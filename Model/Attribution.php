@@ -45,9 +45,9 @@ class Attribution
     }
 
     /**
-     * @param ApiPayload $payload
+     * @param ApiPayload|FilePayload $payload
      */
-    public function setPayload(ApiPayload $payload)
+    public function setPayload($payload)
     {
         $this->payload = $payload;
     }
