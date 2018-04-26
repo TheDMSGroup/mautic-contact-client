@@ -163,6 +163,62 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Merges a config from integration_list with feature settings.
+     *
+     * @param array $event To merge configuration.
+     *
+     * @return array|mixed
+     */
+    public function getEvent($event = [])
+    {
+        if (!$this->event) {
+            $this->event = $event;
+            if (isset($event['config'])
+                && (empty($event['integration'])
+                    || (
+                        !empty($event['integration'])
+                        && $event['integration'] == $this->getName()
+                    )
+                )
+            ) {
+                $this->event['config'] = array_merge($this->settings->getFeatureSettings(), $event['config']);
+            }
+            // If the campaign event ID is missing, backfill it.
+            if (empty($this->event['id'])) {
+                try {
+                    $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
+                    if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
+                        /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
+                        foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
+                            $properties = $leadEventLog->getEvent()->getProperties();
+                            if (
+                                $properties['_token'] === $this->event['_token']
+                                && $properties['campaignId'] === $this->event['campaignId']
+                            ) {
+                                $this->event['id'] = $leadEventLog->getEvent()->getId();
+                                break;
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+        }
+
+        return $this->event;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return 'Client';
+    }
+
+    /**
      * @return ContactClientModel
      */
     private function getContactClientModel()
@@ -246,16 +302,17 @@ class ClientIntegration extends AbstractIntegration
             }
 
             /** @var ApiPayload|FilePayload $model */
-            $payloadModel = $this->getPayloadModel();
-            $payloadModel->reset()
+            $this->payloadModel = $this->getPayloadModel();
+            $this->payloadModel->reset()
                 ->setContactClient($this->contactClient)
                 ->setContact($this->contact)
                 ->setTest($test)
-                ->setEvent($this->event)
                 ->setCampaign($this->getCampaign())
-                ->run();
+                ->setEvent($this->event);
 
-            $this->valid = $payloadModel->getValid();
+            $this->payloadModel->run();
+
+            $this->valid = $this->payloadModel->getValid();
 
             // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
@@ -615,7 +672,15 @@ class ClientIntegration extends AbstractIntegration
         $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
         if ($this->valid) {
             $statLevel = 'INFO';
-            $message   = 'Contact was sent successfully.';
+            switch ($this->contactClient->getType()) {
+                case 'api':
+                    $message = 'Contact was sent successfully.';
+                    break;
+
+                case 'file':
+                    $message = 'Contact queued for the next file send.';
+                    break;
+            }
         } else {
             $statLevel = 'ERROR';
             $message   = $errors ? implode(PHP_EOL, $errors) : 'An unexpected issue occurred.';
@@ -789,62 +854,6 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $newIntegrationEntity;
-    }
-
-    /**
-     * Merges a config from integration_list with feature settings.
-     *
-     * @param array $event To merge configuration.
-     *
-     * @return array|mixed
-     */
-    public function getEvent($event = [])
-    {
-        if (!$this->event) {
-            $this->event = $event;
-            if (isset($event['config'])
-                && (empty($event['integration'])
-                    || (
-                        !empty($event['integration'])
-                        && $event['integration'] == $this->getName()
-                    )
-                )
-            ) {
-                $this->event['config'] = array_merge($this->settings->getFeatureSettings(), $event['config']);
-            }
-            // If the campaign event ID is missing, backfill it.
-            if (empty($this->event['id'])) {
-                try {
-                    $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
-                    if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
-                        /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
-                        foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
-                            $properties = $leadEventLog->getEvent()->getProperties();
-                            if (
-                                $properties['_token'] === $this->event['_token']
-                                && $properties['campaignId'] === $this->event['campaignId']
-                            ) {
-                                $this->event['id'] = $leadEventLog->getEvent()->getId();
-                                break;
-                            }
-                        }
-                    }
-                } catch (\Exception $e) {
-                }
-            }
-        }
-
-        return $this->event;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return 'Client';
     }
 
     /**

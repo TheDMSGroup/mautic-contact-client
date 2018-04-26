@@ -345,6 +345,7 @@ class FilePayload
 
             if ($file) {
                 $this->file = $file;
+                $this->setLogs($this->file->getId(), 'fileId');
                 $this->setLogs($this->file->getStatus(), 'fileStatus');
             }
         }
@@ -491,7 +492,7 @@ class FilePayload
      */
     public function setCampaign(Campaign $campaign = null)
     {
-        $this->setLogs($campaign->getId(), 'campaign');
+        $this->setLogs($campaign->getId(), 'campaignId');
         $this->campaign = $campaign;
 
         return $this;
@@ -506,7 +507,7 @@ class FilePayload
     public function setEvent($event = [])
     {
         if (!empty($event['id'])) {
-            $this->setLogs($event['id'], 'campaignEvent');
+            $this->setLogs($event['id'], 'campaignEventId');
         }
         $this->event = $event;
 
