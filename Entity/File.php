@@ -43,6 +43,21 @@ class File extends FormEntity
      */
     const STATUS_SENT = 'sent';
 
+    /** @var string */
+    private $delimiter;
+
+    /** @var string */
+    private $enclosure;
+
+    /** @var string */
+    private $escape;
+
+    /** @var string */
+    private $terminate;
+
+    /** @var string */
+    private $null;
+
     /** @var int $id */
     private $id;
 
@@ -151,6 +166,36 @@ class File extends FormEntity
 
         $builder->createField('type', 'string')
             ->columnName('type')
+            ->length(10)
+            ->nullable()
+            ->build();
+
+        $builder->createField('delimiter', 'string')
+            ->columnName('delimiter')
+            ->length(4)
+            ->nullable()
+            ->build();
+
+        $builder->createField('enclosure', 'string')
+            ->columnName('enclosure')
+            ->length(4)
+            ->nullable()
+            ->build();
+
+        $builder->createField('escape', 'string')
+            ->columnName('escape')
+            ->length(4)
+            ->nullable()
+            ->build();
+
+        $builder->createField('terminate', 'string')
+            ->columnName('terminate')
+            ->length(4)
+            ->nullable()
+            ->build();
+
+        $builder->createField('null', 'string')
+            ->columnName('null')
             ->length(4)
             ->nullable()
             ->build();
@@ -481,5 +526,105 @@ class File extends FormEntity
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDelimiter()
+    {
+        return $this->delimiter;
+    }
+
+    /**
+     * @param $tmp
+     *
+     * @return $this
+     */
+    public function setDelimiter($delimiter)
+    {
+        $this->delimiter = $delimiter;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEnclosure()
+    {
+        return $this->enclosure;
+    }
+
+    /**
+     * @param $tmp
+     *
+     * @return $this
+     */
+    public function setEnclosure($enclosure)
+    {
+        $this->enclosure = $enclosure;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEscape()
+    {
+        return $this->escape;
+    }
+
+    /**
+     * @param $escape
+     *
+     * @return $this
+     */
+    public function setEscape($escape)
+    {
+        $this->escape = $escape;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTerminate()
+    {
+        return $this->terminate;
+    }
+
+    /**
+     * @param $terminate
+     *
+     * @return $this
+     */
+    public function setTerminate($terminate)
+    {
+        $this->terminate = $terminate;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNull()
+    {
+        return $this->null;
+    }
+
+    /**
+     * @param $null
+     *
+     * @return $this
+     */
+    public function setNull($null)
+    {
+        $this->terminate = $null;
+
+        return $this;
     }
 }

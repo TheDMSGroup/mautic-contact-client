@@ -114,6 +114,7 @@ return [
                     'mautic.helper.core_parameters',
                     'doctrine.orm.entity_manager',
                     'mautic.core.model.form',
+                    'mautic.campaign.model.event'
                 ],
             ],
             'mautic.contactclient.model.cache'         => [

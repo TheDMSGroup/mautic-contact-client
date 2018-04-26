@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Command;
 
 use Mautic\CoreBundle\Command\ModeratedCommand;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -65,7 +66,8 @@ class SendFileCommand extends ModeratedCommand
         $container = $this->getContainer();
         $options   = $input->getOptions();
         /** @var ContactClientModel $clientModel */
-        $clientModel  = $container->get('mautic.contactclient.model.contactclient');
+        $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        /** @var FilePayload $payloadModel */
         $payloadModel = $container->get('mautic.contactclient.model.filepayload');
         $em           = $container->get('doctrine')->getManager();
         $translator   = $container->get('translator');
@@ -109,26 +111,37 @@ class SendFileCommand extends ModeratedCommand
                 true === $client->getIsPublished()
                 && 'file' == $client->getType()
             ) {
-                // Check if there is a file waiting to send for this client.
-                $file = $payloadModel->reset()
-                    ->setContactClient($client)
-                    ->setTest(isset($options['test']) && $options['test'])
-                    ->GetFileBeingBuilt();
 
-                if ($file) {
-                    // @todo - Update the translation here. Note, translation supports tokens, we'll need to refactor budgets to match.
+                // @todo - Update the translation here. Note, translation supports tokens, we'll need to refactor budgets to match.
+                $output->writeln(
+                    '<info>'.$translator->trans(
+                        'mautic.contactclient.file.building',
+                        ['%client%' => $client->getId()]
+                    ).'</info>'
+                );
+                try {
+                    $payloadModel->reset()
+                        ->setContactClient($client)
+                        ->setTest($options['test'])
+                        ->getFileToBuild(false)
+                        ->updateFileSettings()
+                        ->buildFile()
+                        ->sendFile();
+
+                } catch (\Exception $e) {
+                    // @todo - error handling.
                     $output->writeln(
-                        '<info>'.$translator->trans(
-                            'mautic.campaign.trigger.triggering',
-                            ['%id%' => $client->getId()]
-                        ).'</info>'
+                        '<warn>'.$translator->trans(
+                            'mautic.contactclient.file.error',
+                            ['%client%' => $client->getId(), '%message%' => $e->getMessage()]
+                        ).'</warn>'
                     );
 
-                    // Begin operation processing here.
+                    $tmp = 1;
                 }
             }
             $em->detach($client);
-            unset($c);
+            unset($client);
         }
         unset($clients);
 

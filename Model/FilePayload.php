@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Doctrine\ORM\EntityManager;
 use FOS\RestBundle\Util\Codes;
 use Mautic\CampaignBundle\Entity\Campaign;
+use Mautic\CampaignBundle\Model\EventModel;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -107,6 +108,9 @@ class FilePayload
     /** @var Campaign */
     protected $campaign;
 
+    /** @var EventModel */
+    protected $eventModel;
+
     /**
      * FilePayload constructor.
      *
@@ -115,19 +119,22 @@ class FilePayload
      * @param CoreParametersHelper $coreParametersHelper
      * @param EntityManager        $em
      * @param FormModel            $formModel
+     * @param EventModel           $eventModel
      */
     public function __construct(
         contactClientModel $contactClientModel,
         tokenHelper $tokenHelper,
         CoreParametersHelper $coreParametersHelper,
         EntityManager $em,
-        FormModel $formModel
+        FormModel $formModel,
+        EventModel $eventModel
     ) {
         $this->contactClientModel   = $contactClientModel;
         $this->tokenHelper          = $tokenHelper;
         $this->coreParametersHelper = $coreParametersHelper;
         $this->em                   = $em;
         $this->formModel            = $formModel;
+        $this->eventModel           = $eventModel;
     }
 
     /**
@@ -145,7 +152,15 @@ class FilePayload
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'tokenHelper', 'coreParametersHelper', 'em', 'formModel']
+    public function reset(
+        $exclusions = [
+            'contactClientModel',
+            'tokenHelper',
+            'coreParametersHelper',
+            'em',
+            'formModel',
+            'eventModel',
+        ]
     ) {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
@@ -297,7 +312,7 @@ class FilePayload
     }
 
     /**
-     * Step through all operations defined.
+     * Add a contact to a queue for a file, generating the file entry if needed.
      *
      * @return $this
      * @throws ContactClientException
@@ -306,7 +321,7 @@ class FilePayload
     {
         // @todo - Discern next appropriate file time based on the schedule and file rate.
 
-        $this->getFileBeingBuilt();
+        $this->getFileToBuild();
         $this->updateFileSettings();
         $this->saveFile();
         $this->addContactToQueue();
@@ -320,7 +335,7 @@ class FilePayload
      * @return File|null|object
      * @throws ContactClientException
      */
-    private function getFileBeingBuilt()
+    public function getFileToBuild($create = true)
     {
         if (!$this->file && $this->contactClient) {
             // Discern the next file entity to use.
@@ -330,7 +345,7 @@ class FilePayload
                 ['contactClient' => $this->contactClient, 'status' => File::STATUS_QUEUEING],
                 ['dateAdded' => 'desc']
             );
-            if (!$file) {
+            if (!$file && $create) {
                 // There isn't currently a file being built, let's create one.
                 $file = new File();
                 $file->setContactClient($this->contactClient);
@@ -346,7 +361,7 @@ class FilePayload
 
         if (!$this->file) {
             throw new ContactClientException(
-                'Could not discern the next file to append.',
+                'There is not a file being built.',
                 0,
                 null,
                 Stat::TYPE_ERROR,
@@ -354,7 +369,7 @@ class FilePayload
             );
         }
 
-        return $this->file;
+        return $this;
     }
 
     /**
@@ -367,24 +382,44 @@ class FilePayload
 
     /**
      * Update fields that are setting-based.
+     *
+     * @return $this
      */
-    private function updateFileSettings()
+    public function updateFileSettings()
     {
-        if (!$this->file) {
-            return;
+        if ($this->file) {
+            if (!empty($this->settings['name'])) {
+                $this->file->setName($this->settings['name']);
+            }
+            if (!empty($this->settings['type'])) {
+                if (!empty($this->settings['type']['key'])) {
+                    $this->file->setType($this->settings['type']['key']);
+                }
+                if (!empty($this->settings['type']['delimiter'])) {
+                    $this->file->setDelimiter($this->settings['type']['delimiter']);
+                }
+                if (!empty($this->settings['type']['enclosure'])) {
+                    $this->file->setEnclosure($this->settings['type']['enclosure']);
+                }
+                if (!empty($this->settings['type']['escape'])) {
+                    $this->file->setEscape($this->settings['type']['escape']);
+                }
+                if (!empty($this->settings['type']['terminate'])) {
+                    $this->file->setTerminate($this->settings['type']['terminate']);
+                }
+                if (!empty($this->settings['type']['null'])) {
+                    $this->file->setNull($this->settings['type']['null']);
+                }
+            }
+            if (!empty($this->settings['compression'])) {
+                $this->file->setCompression($this->settings['compression']);
+            }
+            if (!empty($this->settings['headers'])) {
+                $this->file->setHeaders($this->settings['headers']);
+            }
         }
-        if (!empty($this->settings['name'])) {
-            $this->file->setName($this->settings['name']);
-        }
-        if (!empty($this->settings['type']['key'])) {
-            $this->file->setType($this->settings['type']['key']);
-        }
-        if (!empty($this->settings['compression'])) {
-            $this->file->setCompression($this->settings['compression']);
-        }
-        if (!empty($this->settings['headers'])) {
-            $this->file->setHeaders($this->settings['headers']);
-        }
+
+        return $this;
     }
 
     /**
@@ -509,13 +544,88 @@ class FilePayload
     }
 
     /**
+     * Build out the original temp file.
+     */
+    public function buildFile()
+    {
+
+        if (!$this->contactClient || !$this->file) {
+            return $this;
+        }
+        // @todo - Get batches of queue entries.
+
+        $filter['contactClient'] = $this->contactClient;
+        $filter['file']          = $this->file;
+
+        $queues = $this->getQueueRepository()->getEntities(
+            [
+                'filter'        => $filter,
+                'iterator_mode' => true,
+            ],
+            ['id' => 'ASC']
+        );
+
+        $queuesProcessed = [];
+        while (($queue = $queues->next()) !== false) {
+            $queue = reset($queue);
+
+            $contact     = $queue->getContact();
+            $eventId     = $queue->getCampaignEvent();
+            $this->event = [];
+            if ($eventId) {
+                $event = $this->eventModel->getEntity((int) $eventId);
+                if ($event) {
+                    $this->event = $event->getProperties();
+                    // @todo - Parse overrides from the event.
+                }
+            }
+            // @todo - drop the queue event once we're done?
+
+            $queuesProcessed[] = $queue->getId();
+
+            $this->em->detach($contact);
+            $this->em->detach($queue);
+            unset($queue, $contact);
+        }
+        unset($queues);
+
+        // @todo - Drop the IDs in $queuesProcessed from the queue table with a single delete.
+
+        return $this;
+    }
+
+    /**
      * By cron/cli send appropriate files for this time.
      */
-    public function sendFiles()
+    public function sendFile()
     {
-        // @todo - Discern which files should be sent at this time.
 
+        // @todo - Upload the file to S3 (if configured).
 
+        // @todo - Update the file record.
+
+        // @todo - Discern which file opperations are needed at this time.
+        if (isset($this->payload->operations)) {
+            foreach ($this->payload->operations as $type => $operation) {
+                if ($operation) {
+                    switch ($type) {
+                        case 'email':
+                            // @todo - File payload processing for email.
+                            break;
+
+                        case 'ftp':
+                            // @todo - File payload processing for email.
+                            break;
+
+                        case 'sftp':
+                            // @todo - File payload processing for email.
+                            break;
+                    }
+                }
+            }
+        }
+
+        return $this;
     }
 
     /**
