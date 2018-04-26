@@ -192,6 +192,8 @@ class ContactClientSubscriber extends CommonSubscriber
             $event->setQueryTotal($total);
             //$event->addToCounter($eventTypeKey, 1);
 
+            $log = $row['logs'][0] === '{' ? json_encode(json_decode($row['logs']), JSON_PRETTY_PRINT) : $row['logs'];
+
             if (!$event->isEngagementCount()) {
 //                if (!$this->pageModel) {
 //                    $this->pageModel = new PageModel();
@@ -212,7 +214,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         'timestamp'       => $row['date_added'],
                         'extra'           => [
                             // 'page' => $this->pageModel->getEntity($row['page_id']),
-                            'logs'                => $row['logs'],
+                            'logs'                => $log,
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],
                         'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents\Timeline:index.html.php',
