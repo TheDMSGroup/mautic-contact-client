@@ -678,7 +678,7 @@ class ClientIntegration extends AbstractIntegration
                     break;
 
                 case 'file':
-                    $message = 'Contact queued for the next file send.';
+                    $message = 'Contact queued for the next file payload.';
                     break;
             }
         } else {

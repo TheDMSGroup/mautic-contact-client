@@ -311,12 +311,6 @@ class FilePayload
         $this->saveFile();
         $this->addContactToQueue();
 
-        if ($this->valid) {
-            $this->setLogs('Contact was added to the queue for the next appropriate file payload.', 'message');
-        } else {
-            $this->setLogs('Contact NOT queued.', 'message');
-        }
-
         return $this;
     }
 
