@@ -97,6 +97,9 @@ class ApiPayload
     /** @var array */
     protected $event;
 
+    /** @var Campaign */
+    protected $campaign;
+
     /**
      * ApiPayload constructor.
      *
@@ -152,6 +155,27 @@ class ApiPayload
     public function setContact(Contact $contact)
     {
         $this->contact = $contact;
+
+        return $this;
+    }
+
+    /**
+     * @return Campaign
+     */
+    public function getCampaign()
+    {
+        return $this->campaign;
+    }
+
+    /**
+     * @param Campaign|null $campaign
+     *
+     * @return $this
+     */
+    public function setCampaign(Campaign $campaign = null)
+    {
+        $this->setLogs($campaign->getId(), 'campaign');
+        $this->campaign = $campaign;
 
         return $this;
     }
@@ -573,7 +597,7 @@ class ApiPayload
      */
     public function setEvent($event = [])
     {
-        if (isset($event['id'])) {
+        if (!empty($event['id'])) {
             $this->setLogs($event['id'], 'campaignEvent');
         }
         $overrides = [];

@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Doctrine\ORM\EntityManager;
 use FOS\RestBundle\Util\Codes;
+use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -102,6 +103,9 @@ class FilePayload
 
     /** @var array */
     protected $event;
+
+    /** @var Campaign */
+    protected $campaign;
 
     /**
      * FilePayload constructor.
@@ -436,6 +440,12 @@ class FilePayload
                 $queue->setContactClient($this->contactClient);
                 $queue->setContact($this->contact);
                 $queue->setFile($this->file);
+                if (!empty($this->event['id'])) {
+                    $queue->setCampaignEvent($this->event['id']);
+                }
+                if ($this->campaign) {
+                    $queue->setCampaign($this->campaign);
+                }
             }
             if ($queue) {
                 $this->getQueueRepository()->saveEntity($queue);
@@ -467,6 +477,27 @@ class FilePayload
     }
 
     /**
+     * @return Campaign
+     */
+    public function getCampaign()
+    {
+        return $this->campaign;
+    }
+
+    /**
+     * @param Campaign|null $campaign
+     *
+     * @return $this
+     */
+    public function setCampaign(Campaign $campaign = null)
+    {
+        $this->setLogs($campaign->getId(), 'campaign');
+        $this->campaign = $campaign;
+
+        return $this;
+    }
+
+    /**
      * @param array $event
      *
      * @return $this
@@ -474,7 +505,7 @@ class FilePayload
      */
     public function setEvent($event = [])
     {
-        if (isset($event['id'])) {
+        if (!empty($event['id'])) {
             $this->setLogs($event['id'], 'campaignEvent');
         }
         $this->event = $event;
