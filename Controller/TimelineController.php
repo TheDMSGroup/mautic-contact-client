@@ -394,17 +394,17 @@ class TimelineController extends CommonController
     {
         $json = json_decode($data['logs'], true);
         unset($data['logs']);
-        $rows                      = [];
-        $data['request_format']    = '';
-        $data['request_method']    = '';
-        $data['request_headers']   = '';
-        $data['request_body']      = '';
-        $data['request_duration']  = '';
+        $rows                               = [];
+        $data['request_format']             = '';
+        $data['request_method']             = '';
+        $data['request_headers']            = '';
+        $data['request_body']               = '';
+        $data['request_duration']           = '';
         $data['response_status']            = '';
-        $data['response_headers']  = '';
-        $data['response_body_raw'] = '';
-        $data['response_format']   = '';
-        $data['valid']             = '';
+        $data['response_headers']           = '';
+        $data['response_body_raw']          = '';
+        $data['response_format']            = '';
+        $data['valid']                      = '';
         if (isset($json['operations'])) {
             foreach ($json['operations'] as $id => $operation) {
                 if (is_numeric($id)) {
@@ -432,8 +432,8 @@ class TimelineController extends CommonController
                         $operation['response']['headers']
                     ) : '';
                     $row['response_body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
-                    $row['response_format']  = isset($operation['response']['format']) ? $operation['response']['format'] : '';
-                    $row['valid']            = isset($operation['valid']) ? $operation['valid'] : '';
+                    $row['response_format']           = isset($operation['response']['format']) ? $operation['response']['format'] : '';
+                    $row['valid']                     = isset($operation['valid']) ? $operation['valid'] : '';
 
                     $rows[$id] = $row;
                 }
@@ -454,17 +454,17 @@ class TimelineController extends CommonController
     {
         $yaml = Yaml::parse($data['logs']);
         unset($data['logs']);
-        $rows                      = [];
-        $data['request_format']    = '';
-        $data['request_method']    = '';
-        $data['request_headers']   = '';
-        $data['request_body']      = '';
-        $data['request_duration']  = '';
+        $rows                               = [];
+        $data['request_format']             = '';
+        $data['request_method']             = '';
+        $data['request_headers']            = '';
+        $data['request_body']               = '';
+        $data['request_duration']           = '';
         $data['response_status']            = '';
-        $data['response_headers']  = '';
-        $data['response_body_raw'] = '';
-        $data['response_format']   = '';
-        $data['valid']             = '';
+        $data['response_headers']           = '';
+        $data['response_body_raw']          = '';
+        $data['response_format']            = '';
+        $data['valid']                      = '';
         if (isset($yaml['operations'])) {
             foreach ($yaml['operations'] as $id => $operation) {
                 if (is_numeric($id)) {
@@ -492,8 +492,8 @@ class TimelineController extends CommonController
                         $operation['response']['headers']
                     ) : '';
                     $row['response_body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
-                    $row['response_format']  = isset($operation['response']['format']) ? $operation['response']['format'] : '';
-                    $row['valid']            = isset($operation['valid']) ? $operation['valid'] : '';
+                    $row['response_format']           = isset($operation['response']['format']) ? $operation['response']['format'] : '';
+                    $row['valid']                     = isset($operation['valid']) ? $operation['valid'] : '';
 
                     $rows[$id] = $row;
                 }

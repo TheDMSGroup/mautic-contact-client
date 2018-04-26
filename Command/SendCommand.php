@@ -127,14 +127,12 @@ class SendCommand extends ModeratedCommand
             if ($integrationObject->getValid()) {
                 $output->writeln('<info>Contact sent and accepted.</info>');
                 if (isset($options['verbose']) && $options['verbose']) {
-                    //$output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
-                    $output->writeln('<info>'.$integrationObject->getLogsJSON().'</info>');
+                    $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             } else {
                 $output->writeln('<error>The Contact was not sent or accepted. See logs for details.</error>');
                 if (isset($options['verbose']) && $options['verbose']) {
-                    //$output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
-                    $output->writeln('<info>'.$integrationObject->getLogsJSON().'</info>');
+                    $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             }
         } elseif ('file' == $clientType) {

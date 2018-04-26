@@ -83,78 +83,12 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
     mauticLang['showMore'] = '<?php echo $view['translator']->trans('mautic.core.more.show'); ?>';
     mauticLang['hideMore'] = '<?php echo $view['translator']->trans('mautic.core.more.hide'); ?>';
 </script>
+<!-- Spinner -->
+<div id="client-timeline-overlay">
+    <div style="position: relative; left: 45%; index: 1024;display:inline-block; opacity: .5;"><i class="fa fa-spinner fa-spin fa-4x"></i>
+    </div>
+</div>
 
 <div id="timeline-table">
     <?php $view['slots']->output('_content'); ?>
 </div>
-<script>
-    mQuery(function () {
-        var filterForm = mQuery('#timeline-filters');
-        var dateFrom = document.createElement('input');
-        dateFrom.type = 'hidden';
-        dateFrom.name = 'dateFrom';
-        dateFrom.value = mQuery('#chartfilter_date_from').val();
-
-        var dateTo = document.createElement('input');
-        dateTo.type = 'hidden';
-        dateTo.name = 'dateTo';
-        dateTo.value = mQuery('#chartfilter_date_to').val();
-
-        filterForm.append(dateFrom);
-        filterForm.append(dateTo);
-
-        filterForm.submit(function (event) {
-            event.preventDefault(); // Prevent the form from submitting via the browser
-            var form = $(this);
-            mQuery.ajax({
-                type: form.attr('method'),
-                url: mauticAjaxUrl,
-                data: {
-                    action: 'plugin:mauticContactClient:ajaxTimeline',
-                    filters: form.serializeArray(),
-                },
-            }).done(function (data) {
-                mQuery('div#timeline-table').html(data);
-                if (mQuery('#contactclient-timeline').length) {
-                    Mautic.contactclientTimelineOnLoad();
-                }
-            }).fail(function (data) {
-                // Optionally alert the user of an error here...
-                alert('Ooops! Something went wrong');
-            });
-        });
-    });
-
-    Mautic.exportContactClientTimeline= function (contactClient_id) {
-        var dateFrom = mQuery('#chartfilter_date_from').val();
-        var dateTo = mQuery('#chartfilter_date_to').val()
-
-        console.log(dateFrom, dateTo, contactClient_id);
-
-        var redeemFrame = document.createElement("iframe");
-        var src = '/s/contactclient/timeline/export/' + contactClient_id;
-        redeemFrame.setAttribute("src",src);
-        redeemFrame.setAttribute("style","display: none");
-        document.body.appendChild(redeemFrame);
-
-
-
-
-        // mQuery.ajax({
-        //     type: 'GET',
-        //     url: mauticAjaxUrl,
-        //     data: {
-        //         action: 'plugin:mauticContactClient:ajaxExportTimeline',
-        //         filters: [dateFrom,
-        //                   dateTo,
-        //                   contactClient_id
-        //         ],
-        //     },
-        // }).done(function (data) {
-        //     console.log('ExportComplete');
-        // }).fail(function (data) {
-        //     // Optionally alert the user of an error here...
-        //     alert('Ooops! Something went wrong', data);
-        // });
-    }
-</script>
