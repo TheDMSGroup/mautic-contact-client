@@ -19,11 +19,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * CLI Command : Sends a contact to a client.
+ * CLI Command : Sends a contact to a client/queue.
  *
- * php app/console mautic:contactclient:send [--client=%clientId% [--contact=%contactId%] [--test]]
+ * php app/console mautic:contactclient:sendcontact [--client=%clientId% [--contact=%contactId%] [--test]]
  */
-class SendCommand extends ModeratedCommand
+class SendContactCommand extends ModeratedCommand
 {
     /**
      * {@inheritdoc}
@@ -32,8 +32,8 @@ class SendCommand extends ModeratedCommand
      */
     protected function configure()
     {
-        $this->setName('mautic:contactclient:send')
-            ->setDescription('Sends a contact to a client.')
+        $this->setName('mautic:contactclient:sendcontact')
+            ->setDescription('Sends a contact to a client/queue.')
             ->addOption(
                 'client',
                 'c',

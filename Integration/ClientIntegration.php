@@ -21,7 +21,6 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
-use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
@@ -113,44 +112,29 @@ class ClientIntegration extends AbstractIntegration
      * Push a contact to a preconfigured Contact Client.
      *
      * @param Contact $contact
-     * @param array   $config
+     * @param array   $event
      *
      * @return bool
      *
      * @throws Exception
      */
-    public function pushLead($contact, $config = [])
+    public function pushLead($contact, $event = [])
     {
         $this->reset();
-        $this->event = $config;
-        $config      = $this->mergeConfigToFeatureSettings($config);
-        if (empty($config['contactclient'])) {
+        $this->event = $this->mergeEventToFeatureSettings($event);
+        if (empty($this->event['contactclient'])) {
             return false;
         }
 
         /** @var Contact $contactModel */
         $clientModel = $this->getContactClientModel();
 
-        $client = $clientModel->getEntity($config['contactclient']);
+        $client = $clientModel->getEntity($this->event['contactclient']);
         if (!$client || false === $client->getIsPublished()) {
             return false;
         }
 
-        // Get field overrides.
-        $overrides = [];
-        if (!empty($config['contactclient_overrides'])) {
-            // Flatten overrides to key-value pairs.
-            $jsonHelper = new JSONHelper();
-            $array      = $jsonHelper->decodeArray($config['contactclient_overrides'], 'Overrides');
-            if ($array) {
-                foreach ($array as $field) {
-                    if (!empty($field->key) && !empty($field->value)) {
-                        $overrides[$field->key] = $field->value;
-                    }
-                }
-            }
-        }
-        $this->sendContact($client, $contact, false, $overrides);
+        $this->sendContact($client, $contact, false);
 
         // Returning false will typically cause a retry.
         // If an error occurred and we do not wish to retry we should return true.
@@ -180,23 +164,26 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Merges a config from integration_list with feature settings.
      *
-     * @param array $config
+     * @param array $event
      *
      * @return array|mixed
      */
-    public function mergeConfigToFeatureSettings($config = [])
+    public function mergeEventToFeatureSettings($event = [])
     {
-        $featureSettings = $this->settings->getFeatureSettings();
+        $merged = $this->settings->getFeatureSettings();
 
-        if (isset($config['config'])
-            && (empty($config['integration'])
-                || (!empty($config['integration'])
-                    && $config['integration'] == $this->getName()))
+        if (isset($event['config'])
+            && (empty($event['integration'])
+                || (
+                    !empty($event['integration'])
+                    && $event['integration'] == $this->getName()
+                )
+            )
         ) {
-            $featureSettings = array_merge($featureSettings, $config['config']);
+            $merged = array_merge($merged, $event['config']);
         }
 
-        return $featureSettings;
+        return $merged;
     }
 
     /**
@@ -241,15 +228,13 @@ class ClientIntegration extends AbstractIntegration
      * @param ContactClient $client
      * @param Contact       $contact
      * @param bool          $test
-     * @param array         $overrides
      *
      * @return $this
      */
     public function sendContact(
         ContactClient $client,
         Contact $contact,
-        $test = false,
-        $overrides = []
+        $test = false
     ) {
         // @todo - add translation layer for strings in this method.
         // $translator = $this->getContainer()->get('translator');
@@ -300,7 +285,7 @@ class ClientIntegration extends AbstractIntegration
                 ->setContactClient($this->contactClient)
                 ->setContact($this->contact)
                 ->setTest($test)
-                ->setOverrides($overrides)
+                ->setEvent($this->event)
                 ->run();
 
             $this->valid = $payloadModel->getValid();

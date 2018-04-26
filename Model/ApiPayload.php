@@ -94,6 +94,9 @@ class ApiPayload
     /** @var contactClientModel */
     protected $contactClientModel;
 
+    /** @var array */
+    protected $event;
+
     /**
      * ApiPayload constructor.
      *
@@ -560,6 +563,38 @@ class ApiPayload
         }
 
         return null;
+    }
+
+    /**
+     * @param array $event
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    public function setEvent($event = [])
+    {
+        if (isset($event['id'])) {
+            $this->setLogs($event['id'], 'campaignEvent');
+        }
+        $overrides = [];
+        if (!empty($event['contactclient_overrides'])) {
+            // Flatten overrides to key-value pairs.
+            $jsonHelper = new JSONHelper();
+            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
+            if ($array) {
+                foreach ($array as $field) {
+                    if (!empty($field->key) && !empty($field->value)) {
+                        $overrides[$field->key] = $field->value;
+                    }
+                }
+            }
+            if ($overrides) {
+                $this->setOverrides($overrides);
+            }
+        }
+        $this->event = $event;
+
+        return $this;
     }
 
     /**

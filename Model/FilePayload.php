@@ -100,6 +100,9 @@ class FilePayload
     /** @var Queue */
     protected $queue;
 
+    /** @var array */
+    protected $event;
+
     /**
      * FilePayload constructor.
      *
@@ -299,7 +302,7 @@ class FilePayload
     {
         // @todo - Discern next appropriate file time based on the schedule and file rate.
 
-        $this->getFile();
+        $this->getFileBeingBuilt();
         $this->updateFileSettings();
         $this->saveFile();
         $this->addContactToQueue();
@@ -314,10 +317,12 @@ class FilePayload
     }
 
     /**
+     * @param bool $create
+     *
      * @return File|null|object
      * @throws ContactClientException
      */
-    private function getFile()
+    private function getFileBeingBuilt()
     {
         if (!$this->file && $this->contactClient) {
             // Discern the next file entity to use.
@@ -462,11 +467,29 @@ class FilePayload
     }
 
     /**
+     * @param array $event
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    public function setEvent($event = [])
+    {
+        if (isset($event['id'])) {
+            $this->setLogs($event['id'], 'campaignEvent');
+        }
+        $this->event = $event;
+
+        return $this;
+    }
+
+    /**
      * By cron/cli send appropriate files for this time.
      */
     public function sendFiles()
     {
-        //
+        // @todo - Discern which files should be sent at this time.
+
+
     }
 
     /**
