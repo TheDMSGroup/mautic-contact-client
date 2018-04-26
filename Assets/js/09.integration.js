@@ -34,13 +34,18 @@ Mautic.contactclientIntegration = function () {
                         if (typeof vala.key !== 'undefined') {
                             mQuery.each(arrb, function (b, valb) {
                                 if (typeof valb.key !== 'undefined' && vala.key === valb.key) {
-                                    vala = valb;
+                                    if (!valb.enabled) {
+                                        vala = valb;
+                                    }
+                                    vala.enabled = valb.enabled;
                                 }
                             });
                             obj[vala.key] = {
                                 key: vala.key,
                                 value: vala.value,
-                                description: vala.description
+                                description: vala.description,
+                                enabled: vala.enabled
+
                             };
                         }
                     });
