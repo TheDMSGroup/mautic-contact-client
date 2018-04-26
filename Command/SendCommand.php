@@ -129,7 +129,7 @@ class SendCommand extends ModeratedCommand
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             } else {
-                $output->writeln('<error>The Contact was accepted. See logs for details.</error>');
+                $output->writeln('<error>Contact rejected.</error>');
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
