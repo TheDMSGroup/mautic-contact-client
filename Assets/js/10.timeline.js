@@ -94,4 +94,57 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
     if (response && typeof response.timelineCount !== 'undefined') {
         mQuery('#TimelineCount').html(response.timelineCount);
     }
+
+    mQuery('#client-timeline-overlay').hide();
 };
+
+mQuery(function () {
+    var filterForm = mQuery('#timeline-filters');
+    var dateFrom = document.createElement('input');
+    dateFrom.type = 'hidden';
+    dateFrom.name = 'dateFrom';
+    dateFrom.value = mQuery('#chartfilter_date_from').val();
+
+    var dateTo = document.createElement('input');
+    dateTo.type = 'hidden';
+    dateTo.name = 'dateTo';
+    dateTo.value = mQuery('#chartfilter_date_to').val();
+
+    filterForm.append(dateFrom);
+    filterForm.append(dateTo);
+
+    filterForm.submit(function (event) {
+        mQuery('#client-timeline-overlay').show(); // spinner
+        event.preventDefault(); // Prevent the form from submitting via the browser
+        var form = $(this);
+        mQuery.ajax({
+            type: form.attr('method'),
+            url: mauticAjaxUrl,
+            data: {
+                action: 'plugin:mauticContactClient:ajaxTimeline',
+                filters: form.serializeArray(),
+            },
+        }).done(function (data) {
+            mQuery('div#timeline-table').html(data);
+            if (mQuery('#contactclient-timeline').length) {
+                Mautic.contactclientTimelineOnLoad();
+            }
+        }).fail(function (data) {
+            // Optionally alert the user of an error here...
+            alert('Ooops! Something went wrong');
+        });
+    });
+});
+
+Mautic.exportContactClientTimeline= function (contactClient_id) {
+    var dateFrom = mQuery('#chartfilter_date_from').val();
+    var dateTo = mQuery('#chartfilter_date_to').val()
+
+    console.log(dateFrom, dateTo, contactClient_id);
+
+    var redeemFrame = document.createElement("iframe");
+    var src = '/s/contactclient/timeline/export/' + contactClient_id;
+    redeemFrame.setAttribute("src",src);
+    redeemFrame.setAttribute("style","display: none");
+    document.body.appendChild(redeemFrame);
+}
