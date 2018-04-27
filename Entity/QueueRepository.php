@@ -18,7 +18,6 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class QueueRepository extends CommonRepository
 {
-
     /**
      * @return string
      */

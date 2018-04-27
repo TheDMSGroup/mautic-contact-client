@@ -18,7 +18,6 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class FileRepository extends CommonRepository
 {
-
     /**
      * @return string
      */

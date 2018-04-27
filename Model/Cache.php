@@ -80,52 +80,6 @@ class Cache extends AbstractCommonModel
     }
 
     /**
-     * Support non-rolling durations when P is not prefixing.
-     *
-     * @param      $duration
-     * @param null $timezone
-     *
-     * @return string
-     *
-     * @throws \Exception
-     */
-    private function oldestDateAdded($duration, $timezone = null)
-    {
-        if (0 === strpos($duration, 'P')) {
-            // Standard rolling interval.
-            $oldest = new \DateTime();
-        } else {
-            // Non-rolling interval, go to previous interval segment.
-            // Will only work for simple (singular) intervals.
-            if (!$timezone) {
-                $timezone = date_default_timezone_get();
-            }
-            $timezone = new \DateTimeZone($timezone);
-            switch (strtoupper(substr($duration, -1))) {
-                case 'Y':
-                    $oldest = new \DateTime('next year jan 1 midnight', $timezone);
-                    break;
-                case 'M':
-                    $oldest = new \DateTime('first day of next month midnight', $timezone);
-                    break;
-                case 'W':
-                    $oldest = new \DateTime('sunday next week midnight', $timezone);
-                    break;
-                case 'D':
-                    $oldest = new \DateTime('tomorrow midnight', $timezone);
-                    break;
-                default:
-                    $oldest = new \DateTime();
-            }
-            // Add P so that we can now use standard interval
-            $duration = 'P'.$duration;
-        }
-        $oldest->sub(new \DateInterval($duration));
-
-        return $oldest->format('Y-m-d H:i:s');
-    }
-
-    /**
      * Given the Contact and Contact Client, discern which exclusivity entries need to be cached.
      *
      * @throws \Exception
@@ -290,6 +244,24 @@ class Cache extends AbstractCommonModel
     }
 
     /**
+     * Get the global timezone setting.
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    private function getTimezone()
+    {
+        if (!$this->timezone) {
+            $this->timezone = $this->getContainer()->get('mautic.helper.core_parameters')->getParameter(
+                'default_timezone'
+            );
+        }
+
+        return $this->timezone;
+    }
+
+    /**
      * Given a contact, evaluate exclusivity rules of all cache entries against it.
      *
      * @throws ContactClientException
@@ -353,24 +325,6 @@ class Cache extends AbstractCommonModel
         $duplicate  = $jsonHelper->decodeObject($this->contactClient->getDuplicate(), 'Duplicate');
 
         return $this->mergeRules($duplicate);
-    }
-
-    /**
-     * Get the global timezone setting.
-     *
-     * @return mixed
-     *
-     * @throws \Exception
-     */
-    private function getTimezone()
-    {
-        if (!$this->timezone) {
-            $this->timezone = $this->getContainer()->get('mautic.helper.core_parameters')->getParameter(
-                'default_timezone'
-            );
-        }
-
-        return $this->timezone;
     }
 
     /**
@@ -452,5 +406,51 @@ class Cache extends AbstractCommonModel
         $this->contactClient = $contactClient;
 
         return $this;
+    }
+
+    /**
+     * Support non-rolling durations when P is not prefixing.
+     *
+     * @param      $duration
+     * @param null $timezone
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    private function oldestDateAdded($duration, $timezone = null)
+    {
+        if (0 === strpos($duration, 'P')) {
+            // Standard rolling interval.
+            $oldest = new \DateTime();
+        } else {
+            // Non-rolling interval, go to previous interval segment.
+            // Will only work for simple (singular) intervals.
+            if (!$timezone) {
+                $timezone = date_default_timezone_get();
+            }
+            $timezone = new \DateTimeZone($timezone);
+            switch (strtoupper(substr($duration, -1))) {
+                case 'Y':
+                    $oldest = new \DateTime('next year jan 1 midnight', $timezone);
+                    break;
+                case 'M':
+                    $oldest = new \DateTime('first day of next month midnight', $timezone);
+                    break;
+                case 'W':
+                    $oldest = new \DateTime('sunday next week midnight', $timezone);
+                    break;
+                case 'D':
+                    $oldest = new \DateTime('tomorrow midnight', $timezone);
+                    break;
+                default:
+                    $oldest = new \DateTime();
+            }
+            // Add P so that we can now use standard interval
+            $duration = 'P'.$duration;
+        }
+        $oldest->sub(new \DateInterval($duration));
+
+        return $oldest->format('Y-m-d H:i:s');
     }
 }

@@ -104,29 +104,30 @@ class SendFileCommand extends ModeratedCommand
             ]
         );
 
-        while (($client = $clients->next()) !== false) {
+        while (false !== ($client = $clients->next())) {
             $client = reset($client);
             // The client must still be published, and must still be set to send files.
             if (
                 true === $client->getIsPublished()
                 && 'file' == $client->getType()
             ) {
-
-                $output->writeln(
-                    '<info>'.$translator->trans(
-                        'mautic.contactclient.file.building',
-                        ['%client%' => $client->getId()]
-                    ).'</info>'
-                );
                 try {
                     $payloadModel->reset()
                         ->setContactClient($client)
                         ->setTest($options['test'])
-                        ->determineFileToBuild(false)
-                        ->updateFileSettings()
-                        ->buildFile()
-                        ->sendFile();
+                        ->determineFileToBuild(false);
 
+                    if ($payloadModel->getFile()) {
+                        $output->writeln(
+                            '<info>'.$translator->trans(
+                                'mautic.contactclient.file.building',
+                                ['%client%' => $client->getId()]
+                            ).'</info>'
+                        );
+                        $payloadModel->updateFileSettings()
+                            ->buildFile()
+                            ->sendFile();
+                    }
                 } catch (\Exception $e) {
                     // @todo - error handling.
                     $output->writeln(

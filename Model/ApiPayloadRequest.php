@@ -237,6 +237,8 @@ class ApiPayloadRequest
     /**
      * Tokenize/parse fields from the API Payload for transit.
      *
+     * @todo - This method also exists in the other payload type with a minor difference
+     *
      * @param $fields
      *
      * @return array
@@ -275,7 +277,7 @@ class ApiPayloadRequest
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required request field is missing or empty: '.$field->key,
+                        'A required API request field is missing or empty: '.$field->key,
                         0,
                         null,
                         Stat::TYPE_FIELDS,

@@ -44,7 +44,7 @@ class Schedule
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        $this->now = new \DateTime();
+        $this->now       = new \DateTime();
     }
 
     /**
@@ -61,6 +61,7 @@ class Schedule
 
     /**
      * @return $this
+     *
      * @throws ContactClientException
      */
     public function evaluateHours()
@@ -160,6 +161,7 @@ class Schedule
 
     /**
      * @return $this
+     *
      * @throws ContactClientException
      */
     public function evaluateExclusions()

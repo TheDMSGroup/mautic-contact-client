@@ -82,7 +82,7 @@ class ContactClient extends FormEntity
     private $publishDown;
 
     /**
-     * @var int
+     * @var float
      */
     private $attribution_default;
 
@@ -465,7 +465,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @return mixed
+     * @return float
      */
     public function getAttributionDefault()
     {

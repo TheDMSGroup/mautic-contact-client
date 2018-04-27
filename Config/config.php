@@ -33,7 +33,7 @@ return [
                     'objectId' => '\d+',
                 ],
             ],
-            'mautic_contactclient_timeline_export'           => [
+            'mautic_contactclient_timeline_export' => [
                 'path'       => '/contactclient/timeline/export/{contactClientId}',
                 'controller' => 'MauticContactClientBundle:Timeline:exportTimeline',
             ],
@@ -107,7 +107,6 @@ return [
                     'mautic.contactclient.model.contactclient',
                     'mautic.contactclient.service.transport',
                     'mautic.contactclient.helper.token',
-                    'mautic.helper.core_parameters',
                 ],
             ],
             'mautic.contactclient.model.filepayload'   => [
@@ -115,10 +114,10 @@ return [
                 'arguments' => [
                     'mautic.contactclient.model.contactclient',
                     'mautic.contactclient.helper.token',
-                    'mautic.helper.core_parameters',
                     'doctrine.orm.entity_manager',
                     'mautic.core.model.form',
-                    'mautic.campaign.model.event'
+                    'mautic.campaign.model.event',
+                    'mautic.lead.model.lead',
                 ],
             ],
             'mautic.contactclient.model.cache'         => [
@@ -140,8 +139,7 @@ return [
             'mautic.contactclient.helper.token'      => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Helper\TokenHelper',
                 'arguments' => [
-                    'mautic.contactclient.model.contactclient',
-                    'router',
+                    'mautic.helper.core_parameters',
                 ],
             ],
             'mautic.contactclient.helper.utmsource'  => [

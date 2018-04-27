@@ -44,19 +44,19 @@ class File extends FormEntity
     const STATUS_SENT = 'sent';
 
     /** @var string */
-    private $delimiter;
+    private $csvDelimiter;
 
     /** @var string */
-    private $enclosure;
+    private $csvEnclosure;
 
     /** @var string */
-    private $escape;
+    private $csvEscape;
 
     /** @var string */
-    private $terminate;
+    private $csvTerminate;
 
     /** @var string */
-    private $null;
+    private $csvNull;
 
     /** @var int $id */
     private $id;
@@ -170,32 +170,32 @@ class File extends FormEntity
             ->nullable()
             ->build();
 
-        $builder->createField('delimiter', 'string')
-            ->columnName('delimiter')
+        $builder->createField('csvDelimiter', 'string')
+            ->columnName('csv_delimiter')
             ->length(4)
             ->nullable()
             ->build();
 
-        $builder->createField('enclosure', 'string')
-            ->columnName('enclosure')
+        $builder->createField('csvEnclosure', 'string')
+            ->columnName('csv_enclosure')
             ->length(4)
             ->nullable()
             ->build();
 
-        $builder->createField('escape', 'string')
-            ->columnName('escape')
+        $builder->createField('csvEscape', 'string')
+            ->columnName('csv_escape')
             ->length(4)
             ->nullable()
             ->build();
 
-        $builder->createField('terminate', 'string')
-            ->columnName('terminate')
+        $builder->createField('csvTerminate', 'string')
+            ->columnName('csv_terminate')
             ->length(4)
             ->nullable()
             ->build();
 
-        $builder->createField('null', 'string')
-            ->columnName('null')
+        $builder->createField('csvNull', 'string')
+            ->columnName('csv_null')
             ->length(4)
             ->nullable()
             ->build();
@@ -531,19 +531,19 @@ class File extends FormEntity
     /**
      * @return string
      */
-    public function getDelimiter()
+    public function getCsvDelimiter()
     {
-        return $this->delimiter;
+        return $this->csvDelimiter;
     }
 
     /**
-     * @param $tmp
+     * @param $csvDelimiter
      *
      * @return $this
      */
-    public function setDelimiter($delimiter)
+    public function setCsvDelimiter($csvDelimiter)
     {
-        $this->delimiter = $delimiter;
+        $this->csvDelimiter = $csvDelimiter;
 
         return $this;
     }
@@ -551,19 +551,19 @@ class File extends FormEntity
     /**
      * @return string
      */
-    public function getEnclosure()
+    public function getCsvEnclosure()
     {
-        return $this->enclosure;
+        return $this->csvEnclosure;
     }
 
     /**
-     * @param $tmp
+     * @param $csvEnclosure
      *
      * @return $this
      */
-    public function setEnclosure($enclosure)
+    public function setCsvEnclosure($csvEnclosure)
     {
-        $this->enclosure = $enclosure;
+        $this->csvEnclosure = $csvEnclosure;
 
         return $this;
     }
@@ -571,19 +571,19 @@ class File extends FormEntity
     /**
      * @return string
      */
-    public function getEscape()
+    public function getCsvEscape()
     {
-        return $this->escape;
+        return $this->csvEscape;
     }
 
     /**
-     * @param $escape
+     * @param $csvEscape
      *
      * @return $this
      */
-    public function setEscape($escape)
+    public function setCsvEscape($csvEscape)
     {
-        $this->escape = $escape;
+        $this->csvEscape = $csvEscape;
 
         return $this;
     }
@@ -591,19 +591,19 @@ class File extends FormEntity
     /**
      * @return string
      */
-    public function getTerminate()
+    public function getCsvTerminate()
     {
-        return $this->terminate;
+        return $this->csvTerminate;
     }
 
     /**
-     * @param $terminate
+     * @param $csvTerminate
      *
      * @return $this
      */
-    public function setTerminate($terminate)
+    public function setCsvTerminate($csvTerminate)
     {
-        $this->terminate = $terminate;
+        $this->csvTerminate = $csvTerminate;
 
         return $this;
     }
@@ -611,19 +611,19 @@ class File extends FormEntity
     /**
      * @return string
      */
-    public function getNull()
+    public function getCsvNull()
     {
-        return $this->null;
+        return $this->csvNull;
     }
 
     /**
-     * @param $null
+     * @param $csvNull
      *
      * @return $this
      */
-    public function setNull($null)
+    public function setCsvNull($csvNull)
     {
-        $this->terminate = $null;
+        $this->csvNull = $csvNull;
 
         return $this;
     }

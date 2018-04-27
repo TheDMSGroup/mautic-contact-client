@@ -11,7 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
@@ -88,9 +88,6 @@ class ApiPayload
     /** @var string */
     protected $externalId = null;
 
-    /** @var CoreParametersHelper */
-    protected $coreParametersHelper;
-
     /** @var contactClientModel */
     protected $contactClientModel;
 
@@ -103,21 +100,18 @@ class ApiPayload
     /**
      * ApiPayload constructor.
      *
-     * @param contactClientModel   $contactClientModel
-     * @param Transport            $transport
-     * @param TokenHelper          $tokenHelper
-     * @param CoreParametersHelper $coreParametersHelper
+     * @param contactClientModel $contactClientModel
+     * @param Transport          $transport
+     * @param TokenHelper        $tokenHelper
      */
     public function __construct(
         contactClientModel $contactClientModel,
         Transport $transport,
-        tokenHelper $tokenHelper,
-        CoreParametersHelper $coreParametersHelper
+        tokenHelper $tokenHelper
     ) {
-        $this->contactClientModel   = $contactClientModel;
-        $this->transport            = $transport;
-        $this->tokenHelper          = $tokenHelper;
-        $this->coreParametersHelper = $coreParametersHelper;
+        $this->contactClientModel = $contactClientModel;
+        $this->transport          = $transport;
+        $this->tokenHelper        = $tokenHelper;
     }
 
     /**
@@ -127,7 +121,7 @@ class ApiPayload
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper', 'coreParametersHelper'])
+    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
@@ -209,6 +203,7 @@ class ApiPayload
      * @param string|null $payload
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     private function setPayload(string $payload = null)
@@ -287,6 +282,7 @@ class ApiPayload
      * Step through all operations defined.
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     public function run()
@@ -303,7 +299,7 @@ class ApiPayload
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $transport */
         $transport     = $this->getTransport();
-        $tokenHelper   = $this->getTokenHelper();
+        $tokenHelper   = $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
         $updatePayload = (bool) $this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
@@ -360,34 +356,6 @@ class ApiPayload
         $this->transport->setSettings($this->settings);
 
         return $this->transport;
-    }
-
-    /**
-     * Retrieve the transport service for API interaction.
-     * This tokenHelper will be reused throughout the API operations so that they can be context aware.
-     */
-    private function getTokenHelper()
-    {
-        // Set the timezones for date/time conversion.
-        $tza = $this->coreParametersHelper->getParameter(
-            'default_timezone'
-        );
-        $tza = !empty($tza) ? $tza : date_default_timezone_get();
-        $tzb = $this->contactClient->getScheduleTimezone();
-        $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
-        $this->tokenHelper->setTimezones($tza, $tzb);
-
-        // Add the Contact as context for field replacement.
-        if ($this->contact) {
-            $this->tokenHelper->addContextContact($this->contact);
-        }
-
-        // Include the payload as additional context.
-        if ($this->payload) {
-            $this->tokenHelper->addContext(['payload' => $this->payload]);
-        }
-
-        return $this->tokenHelper;
     }
 
     /**
@@ -593,6 +561,7 @@ class ApiPayload
      * @param array $event
      *
      * @return $this
+     *
      * @throws \Exception
      */
     public function setEvent($event = [])
@@ -668,5 +637,22 @@ class ApiPayload
     public function getExternalId()
     {
         return $this->externalId;
+    }
+
+    /**
+     * This tokenHelper will be reused throughout the File operations so that they can be context aware.
+     *
+     * @return TokenHelper
+     */
+    private function getTokenHelper()
+    {
+        $this->tokenHelper->setContactClient($this->contactClient);
+        $this->tokenHelper->setContext([]);
+        $this->tokenHelper->addContextContact($this->contact);
+        if ($this->payload) {
+            $this->tokenHelper->addContext(['payload' => $this->payload]);
+        }
+
+        return $this->tokenHelper;
     }
 }

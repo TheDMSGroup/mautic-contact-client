@@ -165,7 +165,7 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Merges a config from integration_list with feature settings.
      *
-     * @param array $event To merge configuration.
+     * @param array $event to merge configuration
      *
      * @return array|mixed
      */
@@ -301,7 +301,7 @@ class ClientIntegration extends AbstractIntegration
                 $this->getCacheModel()->evaluateExclusive();
             }
 
-            /** @var ApiPayload|FilePayload $model */
+            /* @var ApiPayload|FilePayload $model */
             $this->payloadModel = $this->getPayloadModel();
             $this->payloadModel->reset()
                 ->setContactClient($this->contactClient)
@@ -423,7 +423,7 @@ class ClientIntegration extends AbstractIntegration
     private function getApiPayloadModel()
     {
         if (!$this->apiPayloadModel) {
-            /** @var ApiPayload apiPayloadModel */
+            /* @var ApiPayload apiPayloadModel */
             $this->apiPayloadModel = $this->getContainer()->get('mautic.contactclient.model.apipayload');
         }
 
@@ -436,7 +436,7 @@ class ClientIntegration extends AbstractIntegration
     private function getFilePayloadModel()
     {
         if (!$this->filePayloadModel) {
-            /** @var FilePayload filePayloadModel */
+            /* @var FilePayload filePayloadModel */
             $this->filePayloadModel = $this->getContainer()->get('mautic.contactclient.model.filepayload');
         }
 
@@ -812,16 +812,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Depracated, use getLogsJSON() instead.
-     *
-     * @return string
-     */
-    public function getLogsYAML()
-    {
-        return Yaml::dump($this->getLogs(), 10, 2);
-    }
-
-    /**
      * @return string
      */
     public function getLogsJSON()
@@ -984,6 +974,16 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
         }
+    }
+
+    /**
+     * Depracated, use getLogsJSON() instead.
+     *
+     * @return string
+     */
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
     }
 
     /**

@@ -15,9 +15,9 @@ use Doctrine\ORM\EntityManager;
 use FOS\RestBundle\Util\Codes;
 use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CampaignBundle\Model\EventModel;
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\File;
 use MauticPlugin\MauticContactClientBundle\Entity\Queue;
@@ -31,7 +31,6 @@ use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
  */
 class FilePayload
 {
-
     /**
      * Simple settings for this integration instance from the payload.
      *
@@ -52,7 +51,7 @@ class FilePayload
     protected $csvSettings = [
         'delimiter' => ',',
         'enclosure' => '"',
-        'escape'    => "\\",
+        'escape'    => '\\',
         'terminate' => "\n",
         'null'      => null,
     ];
@@ -63,7 +62,7 @@ class FilePayload
     /** @var Contact */
     protected $contact;
 
-    /** @var array */
+    /** @var object */
     protected $payload;
 
     /** @var array */
@@ -83,9 +82,6 @@ class FilePayload
 
     /** @var array */
     protected $aggregateActualResponses = [];
-
-    /** @var CoreParametersHelper */
-    protected $coreParametersHelper;
 
     /** @var contactClientModel */
     protected $contactClientModel;
@@ -111,30 +107,32 @@ class FilePayload
     /** @var EventModel */
     protected $eventModel;
 
+    /** @var Contact */
+    protected $contactModel;
+
     /**
      * FilePayload constructor.
      *
-     * @param contactClientModel   $contactClientModel
-     * @param TokenHelper          $tokenHelper
-     * @param CoreParametersHelper $coreParametersHelper
-     * @param EntityManager        $em
-     * @param FormModel            $formModel
-     * @param EventModel           $eventModel
+     * @param contactClientModel $contactClientModel
+     * @param TokenHelper        $tokenHelper
+     * @param EntityManager      $em
+     * @param FormModel          $formModel
+     * @param EventModel         $eventModel
      */
     public function __construct(
         contactClientModel $contactClientModel,
         tokenHelper $tokenHelper,
-        CoreParametersHelper $coreParametersHelper,
         EntityManager $em,
         FormModel $formModel,
-        EventModel $eventModel
+        EventModel $eventModel,
+        ContactModel $contactModel
     ) {
-        $this->contactClientModel   = $contactClientModel;
-        $this->tokenHelper          = $tokenHelper;
-        $this->coreParametersHelper = $coreParametersHelper;
-        $this->em                   = $em;
-        $this->formModel            = $formModel;
-        $this->eventModel           = $eventModel;
+        $this->contactClientModel = $contactClientModel;
+        $this->tokenHelper        = $tokenHelper;
+        $this->em                 = $em;
+        $this->formModel          = $formModel;
+        $this->eventModel         = $eventModel;
+        $this->contactModel       = $contactModel;
     }
 
     /**
@@ -156,7 +154,6 @@ class FilePayload
         $exclusions = [
             'contactClientModel',
             'tokenHelper',
-            'coreParametersHelper',
             'em',
             'formModel',
             'eventModel',
@@ -221,6 +218,7 @@ class FilePayload
      * @param string|null $payload
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     private function setPayload(string $payload = null)
@@ -303,12 +301,13 @@ class FilePayload
      * Add a contact to a queue for a file, generating the file entry if needed.
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     public function run()
     {
         // @todo - Discern next appropriate file time based on the schedule and file rate.
-
+        $this->getFieldValues();
         $this->determineFileToBuild();
         $this->updateFileSettings();
         $this->saveFile();
@@ -318,9 +317,84 @@ class FilePayload
     }
 
     /**
+     * Gets the token rendered field values (evaluating required fields in the process).
+     *
+     * @throws ContactClientException
+     */
+    private function getFieldValues()
+    {
+        $requestFields = [];
+        if (!empty($this->payload->body) && !is_string($this->payload->body)) {
+            $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
+            $requestFields = $this->fieldValues($this->payload->body);
+        }
+
+        return $requestFields;
+    }
+
+    /**
+     * Tokenize/parse fields from the file Payload for transit.
+     *
+     * @todo - This method also exists in the other payload type with a minor difference
+     *
+     * @param $fields
+     *
+     * @return array
+     *
+     * @throws ContactClientException
+     */
+    private function fieldValues($fields)
+    {
+        $result = [];
+        foreach ($fields as $field) {
+            if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
+                // Skip this field as it is for test mode only.
+                continue;
+            }
+            $key = isset($field->key) ? trim($field->key) : null;
+            if (empty($key)) {
+                // Skip if we have an empty key.
+                continue;
+            }
+            // Loop through value sources till a non-empty tokenized result is found.
+            $valueSources = ['value', 'default_value'];
+            if ($this->test) {
+                array_unshift($valueSources, 'test_value');
+            }
+            $value = null;
+            foreach ($valueSources as $valueSource) {
+                if (!empty($field->{$valueSource})) {
+                    $value = $this->tokenHelper->render($field->{$valueSource});
+                    if (!empty($value)) {
+                        break;
+                    }
+                }
+            }
+            if (empty($value) && 0 !== $value) {
+                // The field value is empty.
+                if (true === (isset($field->required) ? $field->required : false)) {
+                    // The field is required. Abort.
+                    throw new ContactClientException(
+                        'A required file request field is missing or empty: '.$field->key,
+                        0,
+                        null,
+                        Stat::TYPE_FIELDS,
+                        false,
+                        $field->key
+                    );
+                }
+            }
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
      * @param bool $create
      *
      * @return File|null|object
+     *
      * @throws ContactClientException
      */
     public function determineFileToBuild($create = true)
@@ -384,26 +458,26 @@ class FilePayload
                     $this->file->setType($this->settings['type']['key']);
                 }
                 if (!empty($this->settings['type']['delimiter'])) {
-                    $this->file->setDelimiter($this->settings['type']['delimiter']);
+                    $this->file->setCsvDelimiter($this->settings['type']['delimiter']);
                 }
                 if (!empty($this->settings['type']['enclosure'])) {
-                    $this->file->setEnclosure($this->settings['type']['enclosure']);
+                    $this->file->setCsvEnclosure($this->settings['type']['enclosure']);
                 }
                 if (!empty($this->settings['type']['escape'])) {
-                    $this->file->setEscape($this->settings['type']['escape']);
+                    $this->file->setCsvEscape($this->settings['type']['escape']);
                 }
                 if (!empty($this->settings['type']['terminate'])) {
-                    $this->file->setTerminate($this->settings['type']['terminate']);
+                    $this->file->setCsvTerminate($this->settings['type']['terminate']);
                 }
                 if (!empty($this->settings['type']['null'])) {
-                    $this->file->setNull($this->settings['type']['null']);
+                    $this->file->setCsvNull($this->settings['type']['null']);
                 }
             }
             if (!empty($this->settings['compression'])) {
                 $this->file->setCompression($this->settings['compression']);
             }
             if (!empty($this->settings['headers'])) {
-                $this->file->setHeaders($this->settings['headers']);
+                $this->file->setHeaders((bool) $this->settings['headers']);
             }
         }
 
@@ -425,6 +499,7 @@ class FilePayload
 
     /**
      * @return Queue|null|object
+     *
      * @throws ContactClientException
      */
     private function addContactToQueue()
@@ -458,6 +533,8 @@ class FilePayload
                 $queue->setContactClient($this->contactClient);
                 $queue->setContact($this->contact);
                 $queue->setFile($this->file);
+                // @todo - Add attribution to the queue entity so that it can be reversed on requirement change.
+                // $queue->setAttribution();
                 if (!empty($this->event['id'])) {
                     $queue->setCampaignEvent($this->event['id']);
                 }
@@ -536,27 +613,14 @@ class FilePayload
     }
 
     /**
-     * @param array $event
+     * Build out the original temp file.
      *
      * @return $this
-     * @throws \Exception
-     */
-    public function setEvent($event = [])
-    {
-        if (!empty($event['id'])) {
-            $this->setLogs($event['id'], 'campaignEventId');
-        }
-        $this->event = $event;
-
-        return $this;
-    }
-
-    /**
-     * Build out the original temp file.
+     *
+     * @throws ContactClientException
      */
     public function buildFile()
     {
-
         if (!$this->contactClient || !$this->file) {
             return $this;
         }
@@ -574,30 +638,120 @@ class FilePayload
         );
 
         $queuesProcessed = [];
-        while (($queue = $queues->next()) !== false) {
+        while (false !== ($queue = $queues->next())) {
             $queue = reset($queue);
 
-            $contact     = $queue->getContact();
-            $eventId     = $queue->getCampaignEvent();
-            $this->event = [];
-            if ($eventId) {
-                $event = $this->eventModel->getEntity((int) $eventId);
-                if ($event) {
-                    $this->event = $event->getProperties();
-                    // @todo - Parse overrides from the event.
+            try {
+                // Get the full Contact entity.
+                $contactId     = $queue->getContact();
+                $this->contact = $this->contactModel->getEntity($contactId);
+                if (!$this->contact) {
+                    throw new ContactClientException(
+                        'This contact appears to have been deleted: '.$contactId,
+                        0,
+                        null,
+                        Codes::HTTP_GONE
+                    );
                 }
+
+                // Apply the event for configuration/overrides.
+                $eventId = $queue->getCampaignEvent();
+                if ($eventId) {
+                    $event = $this->eventModel->getEntity((int) $eventId);
+                    if ($event) {
+                        $event = $event->getProperties();
+                        // This will apply overrides.
+                        $this->setEvent($event);
+                    }
+                }
+
+                // Get tokenized field values (will include overrides).
+                $fieldValues = $this->getFieldValues();
+
+                // @todo - If not open, open the temp file for output based on the file type in question.
+
+                // @todo - Append the open file stream with a new line based on the file type in question.
+            } catch (\Exception $e) {
+                // @todo - Reverse attribution for this contact.
             }
-            // @todo - drop the queue event once we're done?
+
+            // @todo - drop the queue event once we're done with it?
 
             $queuesProcessed[] = $queue->getId();
 
-            $this->em->detach($contact);
+            $this->em->detach($this->contact);
             $this->em->detach($queue);
             unset($queue, $contact);
         }
         unset($queues);
 
+        // @todo - Close any open file.
+
         // @todo - Drop the IDs in $queuesProcessed from the queue table with a single delete.
+
+        return $this;
+    }
+
+    /**
+     * @param array $event
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function setEvent($event = [])
+    {
+        if (!empty($event['id'])) {
+            $this->setLogs($event['id'], 'campaignEventId');
+        }
+        $overrides = [];
+        if (!empty($event['contactclient_overrides'])) {
+            // Flatten overrides to key-value pairs.
+            $jsonHelper = new JSONHelper();
+            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
+            if ($array) {
+                foreach ($array as $field) {
+                    if (!empty($field->key) && !empty($field->value)) {
+                        $overrides[$field->key] = $field->value;
+                    }
+                }
+            }
+            if ($overrides) {
+                $this->setOverrides($overrides);
+            }
+        }
+        $this->event = $event;
+
+        return $this;
+    }
+
+    /**
+     * Override the default field values, if allowed.
+     *
+     * @param $overrides
+     *
+     * @return $this
+     */
+    public function setOverrides($overrides)
+    {
+        $fieldsOverridden = [];
+        if (isset($this->payload->body)) {
+            foreach ($this->payload->body as &$field) {
+                if (
+                    isset($field->overridable)
+                    && true === $field->overridable
+                    && isset($field->key)
+                    && isset($overrides[$field->key])
+                    && null !== $overrides[$field->key]
+                ) {
+                    $field->value                  = $overrides[$field->key];
+                    $fieldsOverridden[$field->key] = $overrides[$field->key];
+                }
+            }
+        }
+        if ($fieldsOverridden) {
+            $this->setLogs($fieldsOverridden, 'fieldsOverridden');
+        }
 
         return $this;
     }
@@ -607,7 +761,6 @@ class FilePayload
      */
     public function sendFile()
     {
-
         // @todo - Upload the file to S3 (if configured).
 
         // @todo - Update the file record.
@@ -702,76 +855,10 @@ class FilePayload
     }
 
     /**
-     * Override the default field values, if allowed.
-     *
-     * @param $overrides
-     *
-     * @return $this
-     */
-    public function setOverrides($overrides)
-    {
-        $fieldsOverridden = [];
-        if (isset($this->payload->operations)) {
-            foreach ($this->payload->operations as $id => &$operation) {
-                if (isset($operation->request)) {
-                    foreach (['headers', 'body'] as $type) {
-                        if (isset($operation->request->{$type})) {
-                            foreach ($operation->request->{$type} as &$field) {
-                                if (
-                                    isset($field->overridable)
-                                    && true === $field->overridable
-                                    && isset($field->key)
-                                    && isset($overrides[$field->key])
-                                    && null !== $overrides[$field->key]
-                                ) {
-                                    $field->value                  = $overrides[$field->key];
-                                    $fieldsOverridden[$field->key] = $overrides[$field->key];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if ($fieldsOverridden) {
-            $this->setLogs($fieldsOverridden, 'fieldsOverridden');
-        }
-
-        return $this;
-    }
-
-    /**
      * @todo - Provide a proof of the file on the receiving side of the most recent operation.
      */
     public function getExternalId()
     {
         return null;
-    }
-
-    /**
-     * This tokenHelper will be reused throughout the File operations so that they can be context aware.
-     */
-    private function getTokenHelper()
-    {
-        // Set the timezones for date/time conversion.
-        $tza = $this->coreParametersHelper->getParameter(
-            'default_timezone'
-        );
-        $tza = !empty($tza) ? $tza : date_default_timezone_get();
-        $tzb = $this->contactClient->getScheduleTimezone();
-        $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
-        $this->tokenHelper->setTimezones($tza, $tzb);
-
-        // Add the Contact as context for field replacement.
-        if ($this->contact) {
-            $this->tokenHelper->addContextContact($this->contact);
-        }
-
-        // Include the payload as additional context.
-        if ($this->payload) {
-            $this->tokenHelper->addContext(['payload' => $this->payload]);
-        }
-
-        return $this->tokenHelper;
     }
 }

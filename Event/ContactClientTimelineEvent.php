@@ -494,6 +494,20 @@ class ContactClientTimelineEvent extends Event
     }
 
     /**
+     * Fetch start/limit for queries.
+     *
+     * @return array
+     */
+    public function getEventLimit()
+    {
+        return [
+            'contactClientId' => ($this->contactClient instanceof ContactClient) ? $this->contactClient->getId() : null,
+            'limit'           => $this->limit,
+            'start'           => (1 >= $this->page) ? 0 : ($this->page - 1) * $this->limit,
+        ];
+    }
+
+    /**
      * @return int
      */
     public function getQueryTotal()
@@ -506,20 +520,6 @@ class ContactClientTimelineEvent extends Event
         $this->queryTotal = $queryTotal;
 
         return $this;
-    }
-
-    /**
-     * Fetch start/limit for queries.
-     *
-     * @return array
-     */
-    public function getEventLimit()
-    {
-        return [
-            'contactClientId' => ($this->contactClient instanceof ContactClient) ? $this->contactClient->getId() : null,
-            'limit'           => $this->limit,
-            'start'           => (1 >= $this->page) ? 0 : ($this->page - 1) * $this->limit,
-        ];
     }
 
     /**

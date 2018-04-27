@@ -31,14 +31,17 @@ class Queue
     /** @var File $file */
     private $file;
 
-    /** @var Contact $contact */
+    /** @var int $contact */
     private $contact;
 
-    /** @var integer $campaign */
+    /** @var int $campaign */
     private $campaign;
 
-    /** @var integer $campaignEvent */
+    /** @var int $campaignEvent */
     private $campaignEvent;
+
+    /** @var float */
+    private $attribution;
 
     /**
      * @param ORM\ClassMetadata $metadata
@@ -64,9 +67,35 @@ class Queue
 
         $builder->addNamedField('campaignEvent', 'integer', 'campaign_event_id', true);
 
-        $builder->addContact(true, null);
+        $builder->addNamedField('contact', 'integer', 'contact_id', true);
+
+        $builder->createField('attribution', 'decimal')
+            ->precision(19)
+            ->scale(4)
+            ->nullable()
+            ->build();
 
         $builder->addUniqueConstraint(['file_id', 'contact_id'], 'contactclient_queue');
+    }
+
+    /**
+     * @return float
+     */
+    public function getAttribution()
+    {
+        return floatval($this->attribution);
+    }
+
+    /**
+     * @param $attribution
+     *
+     * @return $this
+     */
+    public function setAttribution($attribution)
+    {
+        $this->attribution = $attribution;
+
+        return $this;
     }
 
     /**
@@ -113,7 +142,6 @@ class Queue
         $this->campaign = $campaign;
 
         return $this;
-
     }
 
     /**
@@ -177,8 +205,12 @@ class Queue
      *
      * @return $this
      */
-    public function setContact(Contact $contact)
+    public function setContact($contact)
     {
+        if ($contact instanceof CampaignEvent) {
+            $contact = $contact->getId();
+        }
+
         $this->contact = $contact;
 
         return $this;
