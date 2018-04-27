@@ -33,6 +33,10 @@ return [
                     'objectId' => '\d+',
                 ],
             ],
+            'mautic_contactclient_timeline_export'           => [
+                'path'       => '/contactclient/timeline/export/{contactClientId}',
+                'controller' => 'MauticContactClientBundle:Timeline:exportTimeline',
+            ],
         ],
     ],
 

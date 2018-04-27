@@ -721,7 +721,8 @@ class ClientIntegration extends AbstractIntegration
             $this->contactClient,
             $this->statType,
             $this->contact,
-            $this->getLogsYAML(),
+            //$this->getLogsYAML(),
+            $this->getLogsJSON(),
             $message,
             $integration_entity_id
         );
@@ -811,11 +812,21 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Depracated, use getLogsJSON() instead.
+     *
      * @return string
      */
     public function getLogsYAML()
     {
         return Yaml::dump($this->getLogs(), 10, 2);
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogsJSON()
+    {
+        return json_encode($this->getLogs(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
     }
 
     /**

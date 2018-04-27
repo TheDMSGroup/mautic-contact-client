@@ -138,6 +138,53 @@ class EventRepository extends CommonRepository
     }
 
     /**
+     * @param       $contactClientId
+     * @param int   $contactId
+     * @param array $options
+     *
+     * @return array
+     */
+    public function getEventsForTimelineExport($contactClientId, array $options = [], $count)
+    {
+        $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c');
+        if ($count) {
+            $query->select('COUNT(c.id) as count');
+        } else {
+            $query->select('c.type, c.message, c.logs, c.date_added, c.contact_id');
+        }
+
+        $query->where(
+            $query->expr()->eq('c.contactclient_id', ':contactClientId')
+        )
+            ->setParameter('contactClientId', $contactClientId);
+
+        if (!empty($options['fromDate']) && !empty($options['toDate'])) {
+            $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
+                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+        } elseif (!empty($options['fromDate'])) {
+            $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
+                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
+        } elseif (!empty($options['toDate'])) {
+            $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+        }
+        $query->orderBy('c.date_added', 'DESC');
+
+        if (!empty($options['limit'])) {
+            $query->setMaxResults($options['limit']);
+            if (!empty($options['start'])) {
+                $query->setFirstResult($options['start']);
+            }
+        }
+
+        $results = $query->execute()->fetchAll();
+
+        return $results;
+    }
+
+    /**
      * Get a list of entities.
      *
      * @param array $args
