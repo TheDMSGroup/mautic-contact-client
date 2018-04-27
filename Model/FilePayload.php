@@ -300,18 +300,6 @@ class FilePayload
     }
 
     /**
-     * @param $file
-     *
-     * @return $this
-     */
-    public function setFile($file)
-    {
-        $this->file = $file;
-
-        return $this;
-    }
-
-    /**
      * Add a contact to a queue for a file, generating the file entry if needed.
      *
      * @return $this
@@ -321,7 +309,7 @@ class FilePayload
     {
         // @todo - Discern next appropriate file time based on the schedule and file rate.
 
-        $this->getFileToBuild();
+        $this->determineFileToBuild();
         $this->updateFileSettings();
         $this->saveFile();
         $this->addContactToQueue();
@@ -335,7 +323,7 @@ class FilePayload
      * @return File|null|object
      * @throws ContactClientException
      */
-    public function getFileToBuild($create = true)
+    public function determineFileToBuild($create = true)
     {
         if (!$this->file && $this->contactClient) {
             // Discern the next file entity to use.
@@ -504,6 +492,26 @@ class FilePayload
     public function getQueueRepository()
     {
         return $this->em->getRepository('MauticContactClientBundle:Queue');
+    }
+
+    /**
+     * @return File
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param $file
+     *
+     * @return $this
+     */
+    public function setFile($file)
+    {
+        $this->file = $file;
+
+        return $this;
     }
 
     /**

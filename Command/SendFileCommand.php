@@ -112,7 +112,6 @@ class SendFileCommand extends ModeratedCommand
                 && 'file' == $client->getType()
             ) {
 
-                // @todo - Update the translation here. Note, translation supports tokens, we'll need to refactor budgets to match.
                 $output->writeln(
                     '<info>'.$translator->trans(
                         'mautic.contactclient.file.building',
@@ -123,7 +122,7 @@ class SendFileCommand extends ModeratedCommand
                     $payloadModel->reset()
                         ->setContactClient($client)
                         ->setTest($options['test'])
-                        ->getFileToBuild(false)
+                        ->determineFileToBuild(false)
                         ->updateFileSettings()
                         ->buildFile()
                         ->sendFile();
@@ -131,10 +130,10 @@ class SendFileCommand extends ModeratedCommand
                 } catch (\Exception $e) {
                     // @todo - error handling.
                     $output->writeln(
-                        '<warn>'.$translator->trans(
+                        '<warning>'.$translator->trans(
                             'mautic.contactclient.file.error',
                             ['%client%' => $client->getId(), '%message%' => $e->getMessage()]
-                        ).'</warn>'
+                        ).'</warning>'
                     );
 
                     $tmp = 1;
