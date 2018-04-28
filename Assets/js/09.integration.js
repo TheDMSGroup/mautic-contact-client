@@ -34,13 +34,24 @@ Mautic.contactclientIntegration = function () {
                         if (typeof vala.key !== 'undefined') {
                             mQuery.each(arrb, function (b, valb) {
                                 if (typeof valb.key !== 'undefined' && vala.key === valb.key) {
-                                    vala = valb;
+                                    // If this override has never been rendered (legacy data).
+                                    if (typeof valb.enabled === 'undefined') {
+                                        valb.enabled = true;
+                                    }
+                                    // If this override is unchecked
+                                    if (!valb.enabled) {
+                                        vala = valb;
+                                    }
+                                    // Regardless, persist the checkbox
+                                    vala.enabled = valb.enabled;
                                 }
                             });
                             obj[vala.key] = {
                                 key: vala.key,
                                 value: vala.value,
-                                description: vala.description
+                                description: vala.description,
+                                enabled: vala.enabled
+
                             };
                         }
                     });

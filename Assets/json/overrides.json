@@ -45,6 +45,15 @@
           "minLength": 0,
           "maxLength": 255
         },
+        "enabled": {
+          "title": "Override",
+          "propertyOrder": 15,
+          "type": "boolean",
+          "format": "checkbox",
+          "options": {
+            "infoText": "Disable to use original values."
+          }
+        },
         "description": {
           "propertyOrder": 30,
           "type": "string",

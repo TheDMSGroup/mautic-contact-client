@@ -158,7 +158,7 @@ class ClientIntegration extends AbstractIntegration
             $array      = $jsonHelper->decodeArray($config['contactclient_overrides'], 'Overrides');
             if ($array) {
                 foreach ($array as $field) {
-                    if (!empty($field->key) && !empty($field->value)) {
+                    if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
                         $overrides[$field->key] = $field->value;
                     }
                 }
