@@ -25,4 +25,22 @@ class QueueRepository extends CommonRepository
     {
         return 'q';
     }
+
+    /**
+     * @param array $ids
+     */
+    public function deleteEntitiesById(array $ids)
+    {
+        if (!count($ids)) {
+            return;
+        }
+
+        $q = $this->_em->getConnection()->createQueryBuilder();
+        $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
+        $q->where(
+            $q->expr()->in('id', $ids)
+        );
+        $q->execute();
+    }
+
 }

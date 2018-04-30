@@ -58,6 +58,9 @@ class File extends FormEntity
     /** @var string */
     private $csvNull;
 
+    /** @var bool */
+    private $csvBom;
+
     /** @var int $id */
     private $id;
 
@@ -92,7 +95,7 @@ class File extends FormEntity
     private $location;
 
     /** @var int */
-    private $contacts;
+    private $count;
 
     /** @var string */
     private $logs;
@@ -138,7 +141,7 @@ class File extends FormEntity
                     'crc32',
                     'tmp',
                     'location',
-                    'contacts',
+                    'count',
                     'status',
                     'logs',
                 ]
@@ -200,6 +203,10 @@ class File extends FormEntity
             ->nullable()
             ->build();
 
+        $builder->createField('csvBom', 'boolean')
+            ->columnName('csv_bom')
+            ->build();
+
         $builder->createField('headers', 'boolean')
             ->columnName('headers')
             ->build();
@@ -232,8 +239,8 @@ class File extends FormEntity
 
         $builder->addNullableField('location');
 
-        $builder->createField('contacts', 'integer')
-            ->columnName('contacts')
+        $builder->createField('count', 'integer')
+            ->columnName('count')
             ->nullable()
             ->build();
 
@@ -317,20 +324,20 @@ class File extends FormEntity
     /**
      * @return int
      */
-    public function getContacts()
+    public function getCount()
     {
-        return $this->contacts;
+        return $this->count;
     }
 
     /**
-     * @param $contacts
+     * @param $count
      *
      * @return $this
      */
-    public function setContacts($contacts)
+    public function setCount($count)
     {
-        $this->isChanged('contacts', $contacts);
-        $this->contacts = $contacts;
+        $this->isChanged('count', $count);
+        $this->count = $count;
 
         return $this;
     }
@@ -479,6 +486,27 @@ class File extends FormEntity
     }
 
     /**
+     * @return bool
+     */
+    public function getCsvBom()
+    {
+        return $this->csvBom;
+    }
+
+    /**
+     * @param $csvBom
+     *
+     * @return $this
+     */
+    public function setCsvBom($csvBom)
+    {
+        $this->isChanged('csvBom', $csvBom);
+        $this->csvBom = $csvBom;
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getType()
@@ -543,6 +571,7 @@ class File extends FormEntity
      */
     public function setCsvDelimiter($csvDelimiter)
     {
+        $this->isChanged('csvDelimiter', $csvDelimiter);
         $this->csvDelimiter = $csvDelimiter;
 
         return $this;
@@ -563,6 +592,7 @@ class File extends FormEntity
      */
     public function setCsvEnclosure($csvEnclosure)
     {
+        $this->isChanged('csvEnclosure', $csvEnclosure);
         $this->csvEnclosure = $csvEnclosure;
 
         return $this;
@@ -583,6 +613,7 @@ class File extends FormEntity
      */
     public function setCsvEscape($csvEscape)
     {
+        $this->isChanged('csvEscape', $csvEscape);
         $this->csvEscape = $csvEscape;
 
         return $this;
@@ -603,6 +634,7 @@ class File extends FormEntity
      */
     public function setCsvTerminate($csvTerminate)
     {
+        $this->isChanged('csvTerminate', $csvTerminate);
         $this->csvTerminate = $csvTerminate;
 
         return $this;
@@ -623,6 +655,7 @@ class File extends FormEntity
      */
     public function setCsvNull($csvNull)
     {
+        $this->isChanged('csvBom', $csvNull);
         $this->csvNull = $csvNull;
 
         return $this;

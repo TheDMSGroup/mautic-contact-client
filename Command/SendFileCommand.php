@@ -115,7 +115,7 @@ class SendFileCommand extends ModeratedCommand
                     $payloadModel->reset()
                         ->setContactClient($client)
                         ->setTest($options['test'])
-                        ->determineFileToBuild(false);
+                        ->getFileEntity(false);
 
                     if ($payloadModel->getFile()) {
                         $output->writeln(
@@ -124,20 +124,18 @@ class SendFileCommand extends ModeratedCommand
                                 ['%client%' => $client->getId()]
                             ).'</info>'
                         );
-                        $payloadModel->updateFileSettings()
+                        $payloadModel->updateFileEntity()
                             ->buildFile()
                             ->sendFile();
                     }
                 } catch (\Exception $e) {
                     // @todo - error handling.
                     $output->writeln(
-                        '<warning>'.$translator->trans(
+                        '<error>'.$translator->trans(
                             'mautic.contactclient.file.error',
                             ['%client%' => $client->getId(), '%message%' => $e->getMessage()]
-                        ).'</warning>'
+                        ).'</error>'
                     );
-
-                    $tmp = 1;
                 }
             }
             $em->detach($client);

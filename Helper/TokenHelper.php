@@ -71,6 +71,9 @@ class TokenHelper
     {
         $this->context     = [];
         $this->renderCache = [];
+        if ($this->engine->hasHelper('date')) {
+            $this->engine->removeHelper('date');
+        }
         $this->setContactClient($contactClient);
         $this->addContextContact($contact);
         $this->addContextPayload($payload);
@@ -302,6 +305,14 @@ class TokenHelper
     }
 
     /**
+     * @return DateFormatHelper
+     */
+    public function getDateFormatHelper()
+    {
+        return $this->dateFormatHelper;
+    }
+
+    /**
      * Recursively replaces tokens using an array for context.
      *
      * @param array $array
@@ -327,7 +338,7 @@ class TokenHelper
      * Replace Tokens in a simple string using an array for context.
      *
      * @param      $string
-     * @param bool $force  skip checking for a token
+     * @param bool $force skip checking for a token
      *
      * @return string
      */
@@ -337,9 +348,7 @@ class TokenHelper
             return $this->renderCache[$string];
         }
         if ($force || false !== strpos($string, self::TOKEN_KEY)) {
-            if (!$this->engine->hasHelper('date')) {
-                $this->setTimezones();
-            }
+            $this->setTimezones();
             $string = $this->engine->render($string, $this->context);
         }
         if (!empty($string)) {

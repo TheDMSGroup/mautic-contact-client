@@ -20,9 +20,9 @@
           "type": "string",
           "title": "File name",
           "options": {
-            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}} and {{test}}. Extension will be added automatically based on the type desired and compression."
+            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}} and {{test}}. Extension will be added automatically based on the type desired and compression."
           },
-          "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}"
+          "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}.{{extension}}"
         },
         "compression": {
           "title": "Compression",

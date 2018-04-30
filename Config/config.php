@@ -118,6 +118,8 @@ return [
                     'mautic.core.model.form',
                     'mautic.campaign.model.event',
                     'mautic.lead.model.lead',
+                    'mautic.helper.paths',
+                    'symfony.filesystem',
                 ],
             ],
             'mautic.contactclient.model.cache'         => [
