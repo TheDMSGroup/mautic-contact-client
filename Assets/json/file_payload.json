@@ -29,22 +29,26 @@
           "type": "string",
           "default": "zip",
           "options": {
-            "infoText": "It is strongly advised that a form of compression is chosen."
+            "infoText": "It is strongly advised that a form of compression is chosen, especially for email transfers."
           },
           "enumSource": [
             {
               "source": [
                 {
                   "value": "zip",
-                  "title": "ZIP (default)"
+                  "title": "zip (default)"
                 },
                 {
-                  "value": "gzip",
-                  "title": "GZIP"
+                  "value": "tar.gz",
+                  "title": "tar.gz (better)"
                 },
                 {
-                  "value": "none",
-                  "title": "None (not advised)"
+                  "value": "tar.bz2",
+                  "title": "tar.bz2 (best)"
+                },
+                {
+                  "value": "",
+                  "title": "none (not advised)"
                 }
               ],
               "title": "{{item.title}}",

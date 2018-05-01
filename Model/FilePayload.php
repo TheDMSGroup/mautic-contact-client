@@ -114,14 +114,8 @@ class FilePayload
     /** @var CsvWriter|XlsWriter */
     protected $fileWriter;
 
-    /** @var string */
-    protected $fileTmp;
-
     /** @var integer */
     protected $count;
-
-    /** @var string */
-    protected $fileName;
 
     /** @var PathsHelper */
     protected $pathsHelper;
@@ -521,12 +515,6 @@ class FilePayload
                 $this->file->setCount($this->count);
             }
             $this->setLogs($this->count, 'count');
-
-            // Update after a temp file has been generated.
-            if ($this->fileTmp) {
-                $this->file->setTmp($this->fileTmp);
-                $this->setLogs($this->fileTmp, 'tmpFile');
-            }
         }
 
         return $this;
@@ -604,6 +592,24 @@ class FilePayload
     public function getQueueRepository()
     {
         return $this->em->getRepository('MauticContactClientBundle:Queue');
+    }
+
+    /**
+     * @return $this
+     */
+    public function fileEntityAddLogs()
+    {
+        if ($this->logs) {
+            // Add our new logs to the entity.
+            $logs           = $this->file->getLogs();
+            $logs           = $logs ? json_decode($logs, true) : [];
+            $iso1601        = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
+            $logs[$iso1601] = $this->logs;
+            $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
+
+        }
+
+        return $this;
     }
 
     /**
@@ -718,7 +724,7 @@ class FilePayload
             } catch (\Exception $e) {
                 // @todo - Reverse attribution for this contact.
                 // @todo - Log a stat of some kind as well.
-                $this->setLogs($e->getMessage(), 'error');
+                $this->setLogs($e->getMessage(), 'warning');
             }
 
             if ($this->contact) {
@@ -732,8 +738,10 @@ class FilePayload
         // Close any open file, update the entity
         if ($this->file) {
             $this->fileClose();
-            $this->fileCopy();
+            $this->fileCompress();
+            $this->fileMove();
             $this->fileEntityUpdate();
+            $this->fileEntityAddLogs();
             $this->fileEntitySave();
             $this->getQueueRepository()->deleteEntitiesById($queueEntriesProcessed);
         }
@@ -881,18 +889,21 @@ class FilePayload
     /**
      * Generates a temporary path for file generation.
      *
-     * @return string
+     * @param string $compression
+     *
+     * @return null|string
      */
-    private function fileGenerateTmp()
+    private function fileGenerateTmp($compression = null)
     {
         $fileTmp = null;
         while (true) {
-            $fileTmpName = uniqid($this->getFileName(), true);
-            $tmpDir      = $this->pathsHelper->getSystemPath('report_temp_dir', true);
-            $fileTmp     = $tmpDir.'/'.$fileTmpName;
+            $fileTmpName = uniqid($this->getFileName($compression), true);
+            $fileTmp     = sys_get_temp_dir().'/'.$fileTmpName;
             if (!file_exists($fileTmp)) {
-                $this->file->setTmp($fileTmp);
-                $this->setLogs($fileTmp, 'fileTmp');
+                if (!$compression) {
+                    $this->file->setTmp($fileTmp);
+                    $this->setLogs($fileTmp, 'fileTmp');
+                }
                 break;
             }
         }
@@ -905,34 +916,29 @@ class FilePayload
      *
      * Note: We should only setName() again when the file creation is completed.
      *
+     * @param string $compression
+     *
      * @return string
      */
-    private function getFileName()
+    private function getFileName($compression = null)
     {
-        if (!$this->fileName) {
-            $this->tokenHelper->newSession($this->contactClient, null, $this->payload);
-            $type        = $this->file->getType();
-            $compression = $this->file->getCompression();
-            $extension   = $type.($compression ? '.'.$compression : '');
-            $this->tokenHelper->addContext(
-                [
-                    'count'       => $this->count,
-                    'test'        => $this->test ? '.test' : '',
-                    'date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'Y-m-d', false),
-                    'time'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'H-i-s', false),
-                    'type'        => $type,
-                    'compression' => $compression,
-                    'extension'   => $extension,
-                ]
-            );
-            // Update the name of the output file to represent latest token data.
-            $fileName = trim($this->tokenHelper->render($this->file->getName()));
-            if ($fileName) {
-                $this->fileName = $fileName;
-            }
-        }
+        $this->tokenHelper->newSession($this->contactClient, null, $this->payload);
+        $type      = $this->file->getType();
+        $extension = $type.($compression ? '.'.$compression : '');
+        $this->tokenHelper->addContext(
+            [
+                'count'       => $this->count,
+                'test'        => $this->test ? '.test' : '',
+                'date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'Y-m-d', false),
+                'time'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'H-i-s', false),
+                'type'        => $type,
+                'compression' => $compression,
+                'extension'   => $extension,
+            ]
+        );
 
-        return $this->fileName;
+        // Update the name of the output file to represent latest token data.
+        return trim($this->tokenHelper->render($this->file->getName()));
     }
 
     /**
@@ -948,39 +954,99 @@ class FilePayload
     }
 
     /**
-     * Copies the file to a final local destination.
+     * Perform compression on the temp file.
+     *
+     * @return $this
+     * @throws ContactClientException
+     */
+    private function fileCompress()
+    {
+        if ($this->file && $this->file->getTmp()) {
+            $compression = $this->file->getCompression();
+            if ($compression) {
+                // Discern new tmp file name (with compression applied).
+                $target   = $this->fileGenerateTmp($compression);
+                $fileName = $this->getFileName();
+                try {
+                    switch ($compression) {
+                        case 'tar.gz':
+                            $phar = new \PharData($target);
+                            $phar->addFile($this->file->getTmp(), $fileName);
+                            $phar->compress(\Phar::GZ, $compression);
+                            $target = $phar->getRealPath();
+                            break;
+
+                        case 'tar.bz2':
+                            $phar = new \PharData($target);
+                            $phar->addFile($this->file->getTmp(), $fileName);
+                            $phar->compress(\Phar::BZ2, $compression);
+                            $target = $phar->getRealPath();
+                            break;
+
+                        default:
+                        case 'zip':
+                            $zip = new \ZipArchive();
+                            if ($zip->open($target, \ZipArchive::CREATE) !== true) {
+                                throw new \Exception('Zip could not open.');
+                            }
+                            $zip->addFile($this->file->getTmp(), $fileName);
+                            $zip->close();
+                            break;
+
+                    }
+                    $this->file->setTmp($target);
+                    $this->setLogs($target, 'fileCompressed');
+                } catch (\Exception $e) {
+                    throw new ContactClientException(
+                        'Could not create compressed file '.$target,
+                        Codes::HTTP_INTERNAL_SERVER_ERROR,
+                        $e,
+                        Stat::TYPE_ERROR,
+                        false
+                    );
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Moves the file out of temp, and locks the hashes.
      *
      * @param bool $overwrite
      *
      * @return $this
      * @throws ContactClientException
      */
-    private function fileCopy($overwrite = false)
+    private function fileMove($overwrite = false)
     {
         if (!$this->file->getLocation() || $overwrite) {
 
+            $origin = $this->file->getTmp();
+
             // This will typically be /media/files
-            $uploadDir  = realpath($this->coreParametersHelper->getParameter('upload_dir'));
-            $targetFile = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName();
+            $uploadDir = realpath($this->coreParametersHelper->getParameter('upload_dir'));
+            $target    = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName();
 
-            if ($this->file->getTmp() && (!file_exists($targetFile) || $overwrite)) {
-                $this->filesystem->copy($this->file->getTmp(), $targetFile, $overwrite);
-                if (file_exists($targetFile)) {
-                    $this->file->setLocation($targetFile);
-                    $this->setLogs($targetFile, 'fileLocation');
+            if ($origin && (!file_exists($target) || $overwrite)) {
+                $this->filesystem->rename($origin, $target, $overwrite);
+                if (file_exists($target)) {
 
-                    $crc32 = hash_file('crc32', $targetFile);
+                    $this->file->setLocation($target);
+                    $this->setLogs($target, 'fileLocation');
+
+                    $crc32 = hash_file('crc32', $target);
                     $this->file->setCrc32($crc32);
                     $this->setLogs($crc32, 'crc32');
 
-                    $md5 = hash_file('md5', $targetFile);
+                    $md5 = hash_file('md5', $target);
                     $this->file->setMd5($md5);
                     $this->setLogs($md5, 'md5');
 
-                    $sha1 = hash_file('sha1', $targetFile);
+                    $sha1 = hash_file('sha1', $target);
                     $this->file->setSha1($sha1);
                     $this->setLogs($sha1, 'sha1');
-
                 } else {
                     throw new ContactClientException(
                         'Could not copy file to local location.',
