@@ -121,6 +121,7 @@ return [
                     'mautic.helper.paths',
                     'mautic.helper.core_parameters',
                     'symfony.filesystem',
+                    'mautic.helper.mailer',
                 ],
             ],
             'mautic.contactclient.model.cache'         => [

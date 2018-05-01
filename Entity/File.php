@@ -29,6 +29,13 @@ class File extends FormEntity
     const STATUS_ERROR = 'error';
 
     /**
+     * Indicates that we are processing contacts to create a file at this time.
+     *
+     * Contacts sent:   No
+     */
+    const STATUS_BUILDING = 'building';
+
+    /**
      * Indicates that we are building a list of contacts to send at the next appropriate time.
      * This is the default status.
      *

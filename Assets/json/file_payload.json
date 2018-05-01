@@ -77,15 +77,6 @@
             "infoText": "The maximum number of files to be prepared per day. Default: 1"
           }
         },
-        "required": {
-          "title": "Require contacts",
-          "type": "boolean",
-          "format": "checkbox",
-          "options": {
-            "infoText": "A file will only be sent even if there are no contacts to send. A blank file will not be sent if this is checked."
-          },
-          "default": false
-        },
         "type": {
           "title": "File type",
           "oneOf": [
@@ -321,6 +312,21 @@
                   "options": {
                     "infoText": "Comma-delimited list of email addresses to send a test file to.",
                     "placeholder": "someone@someplace.com, someoneelse@anotherplace.com"
+                  }
+                },
+                "from": {
+                  "title": "From Address",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optional, leave blank to use the default system address.",
+                    "placeholder": "someone@someplace.com"
+                  }
+                },
+                "subject": {
+                  "title": "Subject",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optional, leave blank to use the file name."
                   }
                 },
                 "successMessage": {

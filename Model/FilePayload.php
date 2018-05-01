@@ -20,8 +20,12 @@ use Mautic\CampaignBundle\Model\EventModel;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\PathsHelper;
 use Mautic\CoreBundle\Model\FormModel;
+use Mautic\EmailBundle\Entity\Email;
+use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Model\LeadModel as ContactModel;
+use Mautic\PluginBundle\Entity\Integration;
+use Mautic\PluginBundle\Entity\IntegrationRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\File;
 use MauticPlugin\MauticContactClientBundle\Entity\Queue;
@@ -127,17 +131,24 @@ class FilePayload
     /** @var Filesystem */
     protected $filesystem;
 
+    /** @var array */
+    protected $integrationSettings;
+
+    /** @var MailHelper */
+    protected $mailHelper;
+
     /**
      * FilePayload constructor.
      *
-     * @param contactClientModel $contactClientModel
-     * @param TokenHelper        $tokenHelper
-     * @param EntityManager      $em
-     * @param FormModel          $formModel
-     * @param EventModel         $eventModel
-     * @param ContactModel       $contactModel
-     * @param PathsHelper        $pathsHelper
-     * @param Filesystem         $filesystem
+     * @param contactClientModel   $contactClientModel
+     * @param TokenHelper          $tokenHelper
+     * @param EntityManager        $em
+     * @param FormModel            $formModel
+     * @param EventModel           $eventModel
+     * @param ContactModel         $contactModel
+     * @param PathsHelper          $pathsHelper
+     * @param CoreParametersHelper $coreParametersHelper
+     * @param Filesystem           $filesystem
      */
     public function __construct(
         contactClientModel $contactClientModel,
@@ -148,7 +159,8 @@ class FilePayload
         ContactModel $contactModel,
         PathsHelper $pathsHelper,
         CoreParametersHelper $coreParametersHelper,
-        Filesystem $filesystem
+        Filesystem $filesystem,
+        MailHelper $mailHelper
     ) {
         $this->contactClientModel   = $contactClientModel;
         $this->tokenHelper          = $tokenHelper;
@@ -159,6 +171,7 @@ class FilePayload
         $this->pathsHelper          = $pathsHelper;
         $this->coreParametersHelper = $coreParametersHelper;
         $this->filesystem           = $filesystem;
+        $this->mailHelper           = $mailHelper;
     }
 
     /**
@@ -187,6 +200,7 @@ class FilePayload
             'pathsHelper',
             'coreParametersHelper',
             'filesystem',
+            'mailHelper',
         ]
     ) {
         foreach (array_diff_key(
@@ -596,10 +610,6 @@ class FilePayload
         return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
-    public function saveFileToLocation()
-    {
-    }
-
     /**
      * @return File
      */
@@ -723,6 +733,7 @@ class FilePayload
             $this->fileMove();
             $this->fileEntityRefreshSettings();
             $this->fileEntityAddLogs();
+            $this->file->setStatus(File::STATUS_READY);
             $this->fileEntitySave();
             $this->getQueueRepository()->deleteEntitiesById($queueEntriesProcessed);
         } else {
@@ -803,8 +814,15 @@ class FilePayload
      */
     private function fileAddRow($fieldValues = [])
     {
-        $this->getFileWriter()->write($fieldValues);
-        ++$this->count;
+        if ($fieldValues) {
+            $this->getFileWriter()->write($fieldValues);
+            if (0 === $this->count) {
+                // Indicate to other processes that this file is being compiled.
+                $this->file->setStatus(File::STATUS_BUILDING);
+                $this->fileEntitySave();
+            }
+            ++$this->count;
+        }
 
         return $this;
     }
@@ -925,6 +943,19 @@ class FilePayload
     }
 
     /**
+     * Save any file changes using the form model.
+     */
+    public function fileEntitySave()
+    {
+        if (!$this->file) {
+            return;
+        }
+        if ($this->file->isNew() || $this->file->getChanges()) {
+            $this->formModel->saveEntity($this->file, true);
+        }
+    }
+
+    /**
      * @return $this
      */
     private function fileClose()
@@ -1005,17 +1036,19 @@ class FilePayload
      *
      * @throws ContactClientException
      */
-    private function fileMove($overwrite = false)
+    private function fileMove($overwrite = true)
     {
         if (!$this->file->getLocation() || $overwrite) {
             $origin = $this->file->getTmp();
 
             // This will typically be /media/files
             $uploadDir = realpath($this->coreParametersHelper->getParameter('upload_dir'));
-            $target    = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName();
+            $target    = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName(
+                    $this->file->getCompression()
+                );
 
             if ($origin && (!file_exists($target) || $overwrite)) {
-                $this->filesystem->rename($origin, $target, $overwrite);
+                $this->filesystem->copy($origin, $target, $overwrite);
                 if (file_exists($target)) {
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
@@ -1031,6 +1064,7 @@ class FilePayload
                     $sha1 = hash_file('sha1', $target);
                     $this->file->setSha1($sha1);
                     $this->setLogs($sha1, 'sha1');
+                    $this->filesystem->remove($origin);
                 } else {
                     throw new ContactClientException(
                         'Could not copy file to local location.',
@@ -1064,19 +1098,6 @@ class FilePayload
     }
 
     /**
-     * Save any file changes using the form model.
-     */
-    public function fileEntitySave()
-    {
-        if (!$this->file) {
-            return;
-        }
-        if ($this->file->isNew() || $this->file->getChanges()) {
-            $this->formModel->saveEntity($this->file, true);
-        }
-    }
-
-    /**
      * By cron/cli send appropriate files for this time.
      */
     public function fileSend()
@@ -1091,7 +1112,51 @@ class FilePayload
                 if ($operation) {
                     switch ($type) {
                         case 'email':
-                            // @todo - File payload processing for email.
+                            if ($this->test) {
+                                $to = !empty($operation->test) ? $operation->test : !empty($operation->to) ? $operation->to : '';
+                            } else {
+                                $to = !empty($operation->to) ? $operation->to : '';
+                            }
+                            if (!$to) {
+                                continue;
+                            }
+                            $from  = !empty($operation->from) ? $operation->from : $this->getIntegrationSetting(
+                                'email_from'
+                            );
+                            $email = new Email();
+                            $email->setSessionId('new_'.hash('sha1', uniqid(mt_rand())));
+                            $email->setReplyToAddress($from);
+                            $email->setFromAddress($from);
+                            $subject = !empty($operation->subject) ? $operation->subject : $this->file->getName();
+                            $email->setSubject($subject);
+                            if ($this->file->getCount()) {
+                                $body = !empty($operation->successMessage) ? $operation->successMessage : $this->getIntegrationSetting(
+                                    'success_message'
+                                );
+                            } else {
+                                $body = !empty($operation->emptyMessage) ? $operation->emptyMessage : $this->getIntegrationSetting(
+                                    'empty_message'
+                                );
+                            }
+                            $body .= PHP_EOL.PHP_EOL.!empty($operation->footer) ? $operation->footer : $this->getIntegrationSetting(
+                                'footer'
+                            );
+                            $email->setContent($body);
+                            $email->setCustomHtml(htmlentities($body));
+
+                            $mailer = $this->mailHelper->getMailer();
+                            $mailer->setLead(null, true);
+                            $mailer->setTokens([]);
+                            $mailer->setTo($to);
+                            $mailer->setFrom($from);
+                            $mailer->setEmail($email);
+                            $mailer->attachFile($this->file->getLocation(), $this->file->getName());
+                            $mailer->send(false, false);
+
+                            // $mailer->setBody($email);
+                            // $mailer->setEmail($to, false, $emailSettings[$emailId]['slots'], $assetAttachments, (!$saveStat));
+                            // $mailer->setCc($cc);
+                            // $mailer->setBcc($bcc);
                             break;
 
                         case 'ftp':
@@ -1107,6 +1172,29 @@ class FilePayload
         }
 
         return $this;
+    }
+
+    /**
+     * @param $key
+     *
+     * @return mixed
+     */
+    public function getIntegrationSetting($key)
+    {
+        if (null === $this->integrationSettings) {
+            $this->integrationSettings = [];
+            /** @var IntegrationRepository $integrationRepo */
+            $integrationRepo = $this->em->getRepository('MauticPluginBundle:Integration');
+            $integrations    = $integrationRepo->getIntegrations();
+            if (!empty($integrations['Client'])) {
+                /** @var Integration $integration */
+                $integration               = $integrations['Client'];
+                $this->integrationSettings = $integration->getFeatureSettings();
+            }
+        }
+        if (isset($this->integrationSettings[$key])) {
+            return $this->integrationSettings[$key];
+        }
     }
 
     /**

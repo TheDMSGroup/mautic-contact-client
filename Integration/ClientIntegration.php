@@ -83,6 +83,9 @@ class ClientIntegration extends AbstractIntegration
     /** @var bool */
     protected $retry;
 
+    /** @var array */
+    protected $integrationSettings;
+
     /**
      * @return string
      */
@@ -973,6 +976,68 @@ class ClientIntegration extends AbstractIntegration
                     ]
                 );
             }
+        }
+
+        if ('features' == $formArea) {
+            $builder->add(
+                'email_from',
+                'text',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.from'),
+                    'data'  => !isset($data['email_from']) ? '' : $data['email_from'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.from.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'success_message',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.success_message'),
+                    'data'  => !isset($data['success_message']) ? '' : $data['success_message'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.success_message.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'empty_message',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.empty_message'),
+                    'data'  => !isset($data['empty_message']) ? '' : $data['empty_message'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'empty_message',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.empty_message'),
+                    'data'  => !isset($data['empty_message']) ? '' : $data['empty_message'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'footer',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.footer'),
+                    'data'  => !isset($data['footer']) ? '' : $data['footer'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.footer.tooltip'),
+                    ],
+                ]
+            );
         }
     }
 
