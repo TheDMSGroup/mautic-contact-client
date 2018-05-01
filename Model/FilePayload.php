@@ -444,6 +444,7 @@ class FilePayload
                 $file = new File();
                 $file->setContactClient($this->contactClient);
                 $file->setIsPublished(true);
+                $this->em->persist($file);
             }
 
             if ($file) {

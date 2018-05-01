@@ -212,6 +212,7 @@ class File extends FormEntity
 
         $builder->createField('csvBom', 'boolean')
             ->columnName('csv_bom')
+            ->nullable()
             ->build();
 
         $builder->createField('headers', 'boolean')

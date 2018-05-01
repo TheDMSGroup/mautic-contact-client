@@ -181,11 +181,11 @@ class Queue
     }
 
     /**
-     * @param mixed $file
+     * @param File $file
      *
      * @return $this
      */
-    public function setFile($file)
+    public function setFile(File $file)
     {
         $this->file = $file;
 
