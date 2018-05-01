@@ -193,7 +193,7 @@ class Queue
     }
 
     /**
-     * @return Contact
+     * @return int
      */
     public function getContact()
     {
@@ -207,7 +207,7 @@ class Queue
      */
     public function setContact($contact)
     {
-        if ($contact instanceof CampaignEvent) {
+        if ($contact instanceof Contact) {
             $contact = $contact->getId();
         }
 

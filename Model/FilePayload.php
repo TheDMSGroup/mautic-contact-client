@@ -514,8 +514,8 @@ class FilePayload
             }
             if ($this->count) {
                 $this->file->setCount($this->count);
+                $this->setLogs($this->count, 'count');
             }
-            $this->setLogs($this->count, 'count');
         }
 
         return $this;
@@ -565,12 +565,12 @@ class FilePayload
                 if ($this->campaign) {
                     $queue->setCampaign($this->campaign);
                 }
-            }
-            if ($queue) {
-                $this->getQueueRepository()->saveEntity($queue);
-                $this->queue = $queue;
-                $this->valid = true;
-                $this->setLogs($this->queue->getId(), 'queueId');
+                if ($queue) {
+                    $this->getQueueRepository()->saveEntity($queue);
+                    $this->queue = $queue;
+                    $this->valid = true;
+                    $this->setLogs($this->queue->getId(), 'queueId');
+                }
             }
         }
 
