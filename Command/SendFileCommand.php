@@ -115,7 +115,7 @@ class SendFileCommand extends ModeratedCommand
                     $payloadModel->reset()
                         ->setContactClient($client)
                         ->setTest($options['test'])
-                        ->getFileEntity(false);
+                        ->fileEntitySelect(false);
 
                     if ($payloadModel->getFile()) {
                         $output->writeln(
@@ -124,9 +124,9 @@ class SendFileCommand extends ModeratedCommand
                                 ['%client%' => $client->getId()]
                             ).'</info>'
                         );
-                        $payloadModel->updateFileEntity()
-                            ->buildFile()
-                            ->sendFile();
+                        $payloadModel->fileEntityUpdate()
+                            ->fileBuild()
+                            ->fileSend();
                     }
                 } catch (\Exception $e) {
                     // @todo - error handling.

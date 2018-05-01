@@ -37,6 +37,13 @@ class File extends FormEntity
     const STATUS_QUEUEING = 'queueing';
 
     /**
+     * Indicates that the file has been built and is ready to be sent, either manually or automatically.
+     *
+     * Contacts sent:   No
+     */
+    const STATUS_READY = 'ready';
+
+    /**
      * Indicates that the file has been successfully sent to the client.
      *
      * Contacts sent:   Yes
