@@ -131,7 +131,6 @@ class SendFileCommand extends ModeratedCommand
                         if (isset($options['verbose']) && $options['verbose']) {
                             $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
                         }
-
                     }
                 } catch (\Exception $e) {
                     // @todo - error handling.

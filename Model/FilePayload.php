@@ -115,7 +115,7 @@ class FilePayload
     /** @var CsvWriter|XlsWriter */
     protected $fileWriter;
 
-    /** @var integer */
+    /** @var int */
     protected $count;
 
     /** @var PathsHelper */
@@ -124,7 +124,7 @@ class FilePayload
     /** @var CoreParametersHelper */
     protected $coreParametersHelper;
 
-    /** @var filesystem */
+    /** @var Filesystem */
     protected $filesystem;
 
     /**
@@ -596,12 +596,8 @@ class FilePayload
         return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
-    /**
-     *
-     */
     public function saveFileToLocation()
     {
-
     }
 
     /**
@@ -808,7 +804,7 @@ class FilePayload
     private function fileAddRow($fieldValues = [])
     {
         $this->getFileWriter()->write($fieldValues);
-        $this->count++;
+        ++$this->count;
 
         return $this;
     }
@@ -833,7 +829,7 @@ class FilePayload
                         // Future-proofing support for custom terminators.
                         // https://github.com/sonata-project/exporter/pull/220
                         case 6:
-                            /** @var \Exporter\Writer\CsvWriter fileWriter */
+                            /* @var \Exporter\Writer\CsvWriter fileWriter */
                             $this->fileWriter = new CsvWriter(
                                 $this->fileGenerateTmp(),
                                 $this->settings['type']['delimiter'],
@@ -846,7 +842,7 @@ class FilePayload
 
                         // All previous versions.
                         default:
-                            /** @var \Exporter\Writer\CsvWriter fileWriter */
+                            /* @var \Exporter\Writer\CsvWriter fileWriter */
                             $this->fileWriter = new CsvWriter(
                                 $this->fileGenerateTmp(),
                                 $this->settings['type']['delimiter'],
@@ -859,7 +855,7 @@ class FilePayload
                     break;
 
                 case 'Excel2007':
-                    /** @var \Exporter\Writer\XlsWriter fileWriter */
+                    /* @var \Exporter\Writer\XlsWriter fileWriter */
                     $this->fileWriter = new XlsWriter(
                         $this->fileGenerateTmp(),
                         $this->settings['headers']
@@ -944,6 +940,7 @@ class FilePayload
      * Perform compression on the temp file.
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     private function fileCompress()
@@ -973,13 +970,12 @@ class FilePayload
                         default:
                         case 'zip':
                             $zip = new \ZipArchive();
-                            if ($zip->open($target, \ZipArchive::CREATE) !== true) {
+                            if (true !== $zip->open($target, \ZipArchive::CREATE)) {
                                 throw new \Exception('Zip could not open.');
                             }
                             $zip->addFile($this->file->getTmp(), $fileName);
                             $zip->close();
                             break;
-
                     }
                     $this->file->setTmp($target);
                     $this->setLogs($target, 'fileCompressed');
@@ -1006,12 +1002,12 @@ class FilePayload
      * @param bool $overwrite
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     private function fileMove($overwrite = false)
     {
         if (!$this->file->getLocation() || $overwrite) {
-
             $origin = $this->file->getTmp();
 
             // This will typically be /media/files
@@ -1021,7 +1017,6 @@ class FilePayload
             if ($origin && (!file_exists($target) || $overwrite)) {
                 $this->filesystem->rename($origin, $target, $overwrite);
                 if (file_exists($target)) {
-
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
 
@@ -1063,7 +1058,6 @@ class FilePayload
             $iso1601        = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
             $logs[$iso1601] = $this->logs;
             $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
-
         }
 
         return $this;

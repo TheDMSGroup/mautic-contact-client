@@ -42,5 +42,4 @@ class QueueRepository extends CommonRepository
         );
         $q->execute();
     }
-
 }
