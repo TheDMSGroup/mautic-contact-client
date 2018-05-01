@@ -124,9 +124,14 @@ class SendFileCommand extends ModeratedCommand
                                 ['%client%' => $client->getId()]
                             ).'</info>'
                         );
-                        $payloadModel->fileEntityUpdate()
+                        $payloadModel->fileEntityRefreshSettings()
                             ->fileBuild()
                             ->fileSend();
+
+                        if (isset($options['verbose']) && $options['verbose']) {
+                            $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
+                        }
+
                     }
                 } catch (\Exception $e) {
                     // @todo - error handling.

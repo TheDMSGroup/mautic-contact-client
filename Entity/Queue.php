@@ -75,7 +75,7 @@ class Queue
             ->nullable()
             ->build();
 
-        $builder->addUniqueConstraint(['file_id', 'contact_id'], 'contactclient_queue');
+        $builder->addUniqueConstraint(['contactclient_id', 'file_id', 'contact_id'], 'contactclient_queue');
     }
 
     /**

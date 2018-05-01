@@ -30,6 +30,7 @@ use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class FilePayload.
@@ -341,7 +342,7 @@ class FilePayload
         // @todo - Discern next appropriate file time based on the schedule and file rate.
         $this->getFieldValues();
         $this->fileEntitySelect();
-        $this->fileEntityUpdate();
+        $this->fileEntityRefreshSettings();
         $this->addContactToQueue();
 
         return $this;
@@ -474,11 +475,11 @@ class FilePayload
     }
 
     /**
-     * Update fields on the file entity.
+     * Update fields on the file entity based on latest data.
      *
      * @return $this
      */
-    public function fileEntityUpdate()
+    public function fileEntityRefreshSettings()
     {
         if ($this->file) {
             // Update settings from the Contact Client entity.
@@ -538,7 +539,7 @@ class FilePayload
                 [
                     'contactClient' => $this->contactClient,
                     'file'          => $this->file,
-                    'contact'       => $this->contact,
+                    'contact'       => (int) $this->contact->getId(),
                 ]
             );
             if ($queue) {
@@ -595,24 +596,6 @@ class FilePayload
     }
 
     /**
-     * @return $this
-     */
-    public function fileEntityAddLogs()
-    {
-        if ($this->logs) {
-            // Add our new logs to the entity.
-            $logs           = $this->file->getLogs();
-            $logs           = $logs ? json_decode($logs, true) : [];
-            $iso1601        = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
-            $logs[$iso1601] = $this->logs;
-            $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
-
-        }
-
-        return $this;
-    }
-
-    /**
      *
      */
     public function saveFileToLocation()
@@ -655,8 +638,10 @@ class FilePayload
      */
     public function setCampaign(Campaign $campaign = null)
     {
-        $this->setLogs($campaign->getId(), 'campaignId');
-        $this->campaign = $campaign;
+        if ($campaign) {
+            $this->setLogs($campaign->getId(), 'campaignId');
+            $this->campaign = $campaign;
+        }
 
         return $this;
     }
@@ -724,7 +709,7 @@ class FilePayload
             } catch (\Exception $e) {
                 // @todo - Reverse attribution for this contact.
                 // @todo - Log a stat of some kind as well.
-                $this->setLogs($e->getMessage(), 'warning');
+                $this->setLogs($e->getMessage(), 'notice');
             }
 
             if ($this->contact) {
@@ -735,15 +720,16 @@ class FilePayload
         }
         unset($queueEntries);
 
-        // Close any open file, update the entity
-        if ($this->file) {
-            $this->fileClose();
+        $this->fileClose();
+        if ($this->count) {
             $this->fileCompress();
             $this->fileMove();
-            $this->fileEntityUpdate();
+            $this->fileEntityRefreshSettings();
             $this->fileEntityAddLogs();
             $this->fileEntitySave();
             $this->getQueueRepository()->deleteEntitiesById($queueEntriesProcessed);
+        } else {
+            $this->setLogs('No applicable contacts were found, so no file was generated.', 'notice');
         }
 
         return $this;
@@ -1005,6 +991,8 @@ class FilePayload
                         false
                     );
                 }
+            } else {
+                $this->setLogs(false, 'fileCompressed');
             }
         }
 
@@ -1063,6 +1051,24 @@ class FilePayload
     }
 
     /**
+     * @return $this
+     */
+    public function fileEntityAddLogs()
+    {
+        if ($this->logs) {
+            // Add our new logs to the entity.
+            $logs           = $this->file->getLogs();
+            $logs           = $logs ? json_decode($logs, true) : [];
+            $iso1601        = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
+            $logs[$iso1601] = $this->logs;
+            $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
+
+        }
+
+        return $this;
+    }
+
+    /**
      * Save any file changes using the form model.
      */
     public function fileEntitySave()
@@ -1109,38 +1115,6 @@ class FilePayload
     }
 
     /**
-     * @return array
-     */
-    public function getLogs()
-    {
-        return $this->logs;
-    }
-
-    /**
-     * @param      $value
-     * @param null $type
-     */
-    public function setLogs($value, $type = null)
-    {
-        if ($type) {
-            if (isset($this->logs[$type])) {
-                if (is_array($this->logs[$type])) {
-                    $this->logs[$type][] = $value;
-                } else {
-                    $this->logs[$type] = [
-                        $this->logs[$type],
-                        $value,
-                    ];
-                }
-            } else {
-                $this->logs[$type] = $value;
-            }
-        } else {
-            $this->logs[] = $value;
-        }
-    }
-
-    /**
      * Retrieve from the payload all outgoing fields that are set to overridable.
      *
      * @return array
@@ -1179,5 +1153,47 @@ class FilePayload
     public function getExternalId()
     {
         return null;
+    }
+
+    /**
+     * Deprecated, use getLogsJSON() instead, unless logging to CLI.
+     *
+     * @return string
+     */
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
+    }
+
+    /**
+     * @return array
+     */
+    public function getLogs()
+    {
+        return $this->logs;
+    }
+
+    /**
+     * @param      $value
+     * @param null $type
+     */
+    public function setLogs($value, $type = null)
+    {
+        if ($type) {
+            if (isset($this->logs[$type])) {
+                if (is_array($this->logs[$type])) {
+                    $this->logs[$type][] = $value;
+                } else {
+                    $this->logs[$type] = [
+                        $this->logs[$type],
+                        $value,
+                    ];
+                }
+            } else {
+                $this->logs[$type] = $value;
+            }
+        } else {
+            $this->logs[] = $value;
+        }
     }
 }

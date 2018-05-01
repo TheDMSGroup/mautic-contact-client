@@ -977,7 +977,7 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Depracated, use getLogsJSON() instead.
+     * Deprecated, use getLogsJSON() instead, unless logging to CLI.
      *
      * @return string
      */
