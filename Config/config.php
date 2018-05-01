@@ -119,6 +119,7 @@ return [
                     'mautic.campaign.model.event',
                     'mautic.lead.model.lead',
                     'mautic.helper.paths',
+                    'mautic.helper.core_parameters',
                     'symfony.filesystem',
                 ],
             ],

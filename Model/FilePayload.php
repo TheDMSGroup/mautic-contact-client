@@ -17,6 +17,7 @@ use Exporter\Writer\XlsWriter;
 use FOS\RestBundle\Util\Codes;
 use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CampaignBundle\Model\EventModel;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\PathsHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -52,7 +53,7 @@ class FilePayload
             'enclosure' => '"',
             'escape'    => '\\',
             'terminate' => "\n",
-            'null'      => null,
+            'null'      => '',
         ],
     ];
 
@@ -125,6 +126,9 @@ class FilePayload
     /** @var PathsHelper */
     protected $pathsHelper;
 
+    /** @var CoreParametersHelper */
+    protected $coreParametersHelper;
+
     /** @var filesystem */
     protected $filesystem;
 
@@ -137,6 +141,8 @@ class FilePayload
      * @param FormModel          $formModel
      * @param EventModel         $eventModel
      * @param ContactModel       $contactModel
+     * @param PathsHelper        $pathsHelper
+     * @param Filesystem         $filesystem
      */
     public function __construct(
         contactClientModel $contactClientModel,
@@ -146,16 +152,18 @@ class FilePayload
         EventModel $eventModel,
         ContactModel $contactModel,
         PathsHelper $pathsHelper,
+        CoreParametersHelper $coreParametersHelper,
         Filesystem $filesystem
     ) {
-        $this->contactClientModel = $contactClientModel;
-        $this->tokenHelper        = $tokenHelper;
-        $this->em                 = $em;
-        $this->formModel          = $formModel;
-        $this->eventModel         = $eventModel;
-        $this->contactModel       = $contactModel;
-        $this->pathsHelper        = $pathsHelper;
-        $this->filesystem         = $filesystem;
+        $this->contactClientModel   = $contactClientModel;
+        $this->tokenHelper          = $tokenHelper;
+        $this->em                   = $em;
+        $this->formModel            = $formModel;
+        $this->eventModel           = $eventModel;
+        $this->contactModel         = $contactModel;
+        $this->pathsHelper          = $pathsHelper;
+        $this->coreParametersHelper = $coreParametersHelper;
+        $this->filesystem           = $filesystem;
     }
 
     /**
@@ -181,6 +189,9 @@ class FilePayload
             'formModel',
             'eventModel',
             'contactModel',
+            'pathsHelper',
+            'coreParametersHelper',
+            'filesystem',
         ]
     ) {
         foreach (array_diff_key(
@@ -469,113 +480,6 @@ class FilePayload
     }
 
     /**
-     * Copies the file to a final local destination.
-     *
-     * @param bool $overwrite
-     *
-     * @return $this
-     * @throws ContactClientException
-     */
-    private function fileCopy($overwrite = false)
-    {
-        if (!$this->file->getLocation() || $overwrite) {
-
-            // @todo - make this location configurable by parameters.
-            $targetFile = $this->pathsHelper->getSystemPath(
-                    'upload_dir',
-                    true
-                ).'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName();
-
-            if (!file_exists($targetFile) || $overwrite) {
-                $this->filesystem->copy($this->file->getTmp(), $targetFile, $overwrite);
-                if (file_exists($targetFile)) {
-                    $this->file->setLocation($targetFile);
-                    $this->setLogs($targetFile, 'fileLocation');
-
-                    $crc32 = hash_file('crc32', $targetFile);
-                    $this->file->setCrc32($crc32);
-                    $this->setLogs($crc32, 'crc32');
-
-                    $md5 = hash_file('md5', $targetFile);
-                    $this->file->setMd5($md5);
-                    $this->setLogs($md5, 'md5');
-
-                    $sha1 = hash_file('sha1', $targetFile);
-                    $this->file->setSha1($sha1);
-                    $this->setLogs($sha1, 'sha1');
-
-                } else {
-                    throw new ContactClientException(
-                        'Could not copy file to local location.',
-                        Codes::HTTP_INTERNAL_SERVER_ERROR,
-                        null,
-                        Stat::TYPE_ERROR,
-                        false
-                    );
-                }
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Discern the desired output file name for a new file.
-     *
-     * Note: We should only setName() again when the file creation is completed.
-     *
-     * @return string
-     */
-    private function getFileName()
-    {
-        if (!$this->fileName) {
-            $this->tokenHelper->newSession($this->contactClient, null, $this->payload);
-            $type        = $this->file->getType();
-            $compression = $this->file->getCompression();
-            $extension   = $type.($compression ? '.'.$compression : '');
-            $this->tokenHelper->addContext(
-                [
-                    'count'       => $this->count,
-                    'test'        => $this->test ? '.test' : '',
-                    'date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'Y-m-d', false),
-                    'time'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'H-i-s', false),
-                    'type'        => $type,
-                    'compression' => $compression,
-                    'extension'   => $extension,
-                ]
-            );
-            // Update the name of the output file to represent latest token data.
-            $fileName = trim($this->tokenHelper->render($this->file->getName()));
-            if ($fileName) {
-                $this->fileName = $fileName;
-            }
-        }
-
-        return $this->fileName;
-    }
-
-    /**
-     * Generates a temporary path for file generation.
-     *
-     * @return string
-     */
-    private function fileGenerateTmp()
-    {
-        $fileTmp = null;
-        while (true) {
-            $fileTmpName = uniqid($this->getFileName(), true);
-            $tmpDir      = $this->pathsHelper->getSystemPath('report_temp_dir', true);
-            $fileTmp = $tmpDir.'/'.$fileTmpName;
-            if (!file_exists($fileTmp)) {
-                $this->file->setTmp($fileTmp);
-                $this->setLogs($fileTmp, 'fileTmp');
-                break;
-            }
-        }
-        return $fileTmp;
-    }
-
-    /**
      * Update fields on the file entity.
      *
      * @return $this
@@ -838,16 +742,6 @@ class FilePayload
     }
 
     /**
-     * @return $this
-     */
-    private function fileClose(){
-        if ($this->fileWriter) {
-            $this->fileWriter->close();
-        }
-        return $this;
-    }
-
-    /**
      * @param array $event
      *
      * @return $this
@@ -920,6 +814,7 @@ class FilePayload
     {
         $this->getFileWriter()->write($fieldValues);
         $this->count++;
+
         return $this;
     }
 
@@ -981,6 +876,124 @@ class FilePayload
         }
 
         return $this->fileWriter;
+    }
+
+    /**
+     * Generates a temporary path for file generation.
+     *
+     * @return string
+     */
+    private function fileGenerateTmp()
+    {
+        $fileTmp = null;
+        while (true) {
+            $fileTmpName = uniqid($this->getFileName(), true);
+            $tmpDir      = $this->pathsHelper->getSystemPath('report_temp_dir', true);
+            $fileTmp     = $tmpDir.'/'.$fileTmpName;
+            if (!file_exists($fileTmp)) {
+                $this->file->setTmp($fileTmp);
+                $this->setLogs($fileTmp, 'fileTmp');
+                break;
+            }
+        }
+
+        return $fileTmp;
+    }
+
+    /**
+     * Discern the desired output file name for a new file.
+     *
+     * Note: We should only setName() again when the file creation is completed.
+     *
+     * @return string
+     */
+    private function getFileName()
+    {
+        if (!$this->fileName) {
+            $this->tokenHelper->newSession($this->contactClient, null, $this->payload);
+            $type        = $this->file->getType();
+            $compression = $this->file->getCompression();
+            $extension   = $type.($compression ? '.'.$compression : '');
+            $this->tokenHelper->addContext(
+                [
+                    'count'       => $this->count,
+                    'test'        => $this->test ? '.test' : '',
+                    'date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'Y-m-d', false),
+                    'time'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'H-i-s', false),
+                    'type'        => $type,
+                    'compression' => $compression,
+                    'extension'   => $extension,
+                ]
+            );
+            // Update the name of the output file to represent latest token data.
+            $fileName = trim($this->tokenHelper->render($this->file->getName()));
+            if ($fileName) {
+                $this->fileName = $fileName;
+            }
+        }
+
+        return $this->fileName;
+    }
+
+    /**
+     * @return $this
+     */
+    private function fileClose()
+    {
+        if ($this->fileWriter) {
+            $this->fileWriter->close();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Copies the file to a final local destination.
+     *
+     * @param bool $overwrite
+     *
+     * @return $this
+     * @throws ContactClientException
+     */
+    private function fileCopy($overwrite = false)
+    {
+        if (!$this->file->getLocation() || $overwrite) {
+
+            // This will typically be /media/files
+            $uploadDir  = realpath($this->coreParametersHelper->getParameter('upload_dir'));
+            $targetFile = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName();
+
+            if ($this->file->getTmp() && (!file_exists($targetFile) || $overwrite)) {
+                $this->filesystem->copy($this->file->getTmp(), $targetFile, $overwrite);
+                if (file_exists($targetFile)) {
+                    $this->file->setLocation($targetFile);
+                    $this->setLogs($targetFile, 'fileLocation');
+
+                    $crc32 = hash_file('crc32', $targetFile);
+                    $this->file->setCrc32($crc32);
+                    $this->setLogs($crc32, 'crc32');
+
+                    $md5 = hash_file('md5', $targetFile);
+                    $this->file->setMd5($md5);
+                    $this->setLogs($md5, 'md5');
+
+                    $sha1 = hash_file('sha1', $targetFile);
+                    $this->file->setSha1($sha1);
+                    $this->setLogs($sha1, 'sha1');
+
+                } else {
+                    throw new ContactClientException(
+                        'Could not copy file to local location.',
+                        Codes::HTTP_INTERNAL_SERVER_ERROR,
+                        null,
+                        Stat::TYPE_ERROR,
+                        false
+                    );
+                }
+            }
+        }
+
+        return $this;
     }
 
     /**
