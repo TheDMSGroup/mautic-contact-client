@@ -33,7 +33,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
-use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Filesystem as Files;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -128,7 +128,7 @@ class FilePayload
     /** @var CoreParametersHelper */
     protected $coreParametersHelper;
 
-    /** @var Filesystem */
+    /** @var Files */
     protected $filesystem;
 
     /** @var array */
@@ -148,7 +148,7 @@ class FilePayload
      * @param ContactModel         $contactModel
      * @param PathsHelper          $pathsHelper
      * @param CoreParametersHelper $coreParametersHelper
-     * @param Filesystem           $filesystem
+     * @param Files                $files
      */
     public function __construct(
         contactClientModel $contactClientModel,
@@ -159,7 +159,7 @@ class FilePayload
         ContactModel $contactModel,
         PathsHelper $pathsHelper,
         CoreParametersHelper $coreParametersHelper,
-        Filesystem $filesystem,
+        Files $files,
         MailHelper $mailHelper
     ) {
         $this->contactClientModel   = $contactClientModel;
@@ -170,7 +170,7 @@ class FilePayload
         $this->contactModel         = $contactModel;
         $this->pathsHelper          = $pathsHelper;
         $this->coreParametersHelper = $coreParametersHelper;
-        $this->filesystem           = $filesystem;
+        $this->files                = $files;
         $this->mailHelper           = $mailHelper;
     }
 
@@ -199,7 +199,7 @@ class FilePayload
             'contactModel',
             'pathsHelper',
             'coreParametersHelper',
-            'filesystem',
+            'files',
             'mailHelper',
         ]
     ) {
@@ -1048,7 +1048,7 @@ class FilePayload
                 );
 
             if ($origin && (!file_exists($target) || $overwrite)) {
-                $this->filesystem->copy($origin, $target, $overwrite);
+                $this->files->copy($origin, $target, $overwrite);
                 if (file_exists($target)) {
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
@@ -1064,7 +1064,7 @@ class FilePayload
                     $sha1 = hash_file('sha1', $target);
                     $this->file->setSha1($sha1);
                     $this->setLogs($sha1, 'sha1');
-                    $this->filesystem->remove($origin);
+                    $this->files->remove($origin);
                 } else {
                     throw new ContactClientException(
                         'Could not copy file to local location.',
@@ -1160,7 +1160,7 @@ class FilePayload
                             break;
 
                         case 'ftp':
-                            // @todo - File payload processing for email.
+                            // @todo - File payload processing for ftp.
                             break;
 
                         case 'sftp':
