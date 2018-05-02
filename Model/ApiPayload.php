@@ -168,7 +168,9 @@ class ApiPayload
      */
     public function setCampaign(Campaign $campaign = null)
     {
-        $this->setLogs($campaign->getId(), 'campaign');
+        if ($campaign instanceof Campaign) {
+            $this->setLogs($campaign->getId(), 'campaign');
+        }
         $this->campaign = $campaign;
 
         return $this;
@@ -639,20 +641,4 @@ class ApiPayload
         return $this->externalId;
     }
 
-    /**
-     * This tokenHelper will be reused throughout the File operations so that they can be context aware.
-     *
-     * @return TokenHelper
-     */
-    private function getTokenHelper()
-    {
-        $this->tokenHelper->setContactClient($this->contactClient);
-        $this->tokenHelper->setContext([]);
-        $this->tokenHelper->addContextContact($this->contact);
-        if ($this->payload) {
-            $this->tokenHelper->addContext(['payload' => $this->payload]);
-        }
-
-        return $this->tokenHelper;
-    }
 }

@@ -11,10 +11,15 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManager;
 use Exporter\Writer\CsvWriter;
 use Exporter\Writer\XlsWriter;
 use FOS\RestBundle\Util\Codes;
+use League\Flysystem\Adapter\Ftp as FtpAdapter;
+use League\Flysystem\AwsS3v2\AwsS3Adapter;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Sftp\SftpAdapter;
 use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CampaignBundle\Model\EventModel;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
@@ -498,7 +503,8 @@ class FilePayload
     {
         if ($this->file) {
             // Update settings from the Contact Client entity.
-            if (!empty($this->settings['name'])) {
+            if (!empty($this->settings['name']) && !$this->file->getLocation()) {
+                // Preliminary name containing tokens.
                 $this->file->setName($this->settings['name']);
             }
             if (!empty($this->settings['type'])) {
@@ -915,8 +921,6 @@ class FilePayload
     /**
      * Discern the desired output file name for a new file.
      *
-     * Note: We should only setName() again when the file creation is completed.
-     *
      * @param string $compression
      *
      * @return string
@@ -939,7 +943,7 @@ class FilePayload
         );
 
         // Update the name of the output file to represent latest token data.
-        return trim($this->tokenHelper->render($this->file->getName()));
+        return trim($this->tokenHelper->render($this->settings['name']));
     }
 
     /**
@@ -1043,13 +1047,17 @@ class FilePayload
 
             // This will typically be /media/files
             $uploadDir = realpath($this->coreParametersHelper->getParameter('upload_dir'));
-            $target    = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$this->getFileName(
-                    $this->file->getCompression()
-                );
-
+            $fileName  = $this->getFileName(
+                $this->file->getCompression()
+            );
+            $target    = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$fileName;
             if ($origin && (!file_exists($target) || $overwrite)) {
                 $this->files->copy($origin, $target, $overwrite);
                 if (file_exists($target)) {
+                    // Final file name as it will be seen by the client.
+                    $this->file->setName($fileName);
+                    $this->setLogs($fileName, 'fileName');
+
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
 
@@ -1118,6 +1126,7 @@ class FilePayload
                                 $to = !empty($operation->to) ? $operation->to : '';
                             }
                             if (!$to) {
+                                $this->setLogs('Email to address is invalid. No email will be sent.', 'error');
                                 continue;
                             }
                             $from  = !empty($operation->from) ? $operation->from : $this->getIntegrationSetting(
@@ -1153,6 +1162,11 @@ class FilePayload
                             $mailer->attachFile($this->file->getLocation(), $this->file->getName());
                             $mailer->send(false, false);
 
+                            $this->setLogs($to, 'emailTo');
+                            $this->setLogs($from, 'emailFrom');
+                            $this->setLogs($subject, 'emailSubject');
+                            $this->setLogs($body, 'emailbody');
+
                             // $mailer->setBody($email);
                             // $mailer->setEmail($to, false, $emailSettings[$emailId]['slots'], $assetAttachments, (!$saveStat));
                             // $mailer->setCc($cc);
@@ -1160,11 +1174,95 @@ class FilePayload
                             break;
 
                         case 'ftp':
-                            // @todo - File payload processing for ftp.
+                            $config         = [];
+                            $config['host'] = isset($operation->host) ? trim($operation->host) : null;
+                            if (!$config['host']) {
+                                $this->setLogs('FTP Host is needed.', 'error');
+                                continue;
+                            } else {
+                                $this->setLogs($config['host'], 'ftpHost');
+                            }
+                            $config['username'] = isset($operation->user) ? trim($operation->user) : null;
+                            if (!$config['username']) {
+                                $this->setLogs('FTP User is needed.', 'error');
+                                continue;
+                            } else {
+                                $this->setLogs($config['username'], 'ftpUser');
+                            }
+                            $config['password'] = isset($operation->pass) ? trim($operation->pass) : null;
+                            if (!$config['password']) {
+                                unset($config['password']);
+                                $this->setLogs('FTP Password is blank. Assuming anonymous access.', 'warning');
+                            } else {
+                                $this->setLogs(str_repeat('*', strlen($config['password'])), 'ftpPassword');
+                            }
+
+                            $config['port'] = isset($operation->port) ? (int) $operation->port : 21;
+                            $this->setLogs($config['port'], 'ftpPort');
+
+                            $config['root'] = isset($operation->root) ? trim($operation->root) : null;
+                            if (!$config['root']) {
+                                unset($config['root']);
+                            } else {
+                                $this->setLogs($config['root'], 'ftpRoot');
+                            }
+
+                            $config['passive'] = isset($operation->passive) ? (bool) $operation->passive : true;
+                            $this->setLogs($config['passive'], 'ftpPassive');
+
+                            $config['timeout'] = isset($operation->timeout) ? (int) $operation->timeout : 90;
+                            $this->setLogs($config['timeout'], 'ftpTimeout');
+
+                            $config['ssl'] = isset($operation->ssl) ? (bool) $operation->ssl : false;
+                            $this->setLogs($config['ssl'], 'ftpSSL');
+
+                            $adapter    = new FtpAdapter($config);
+                            $filesystem = new Filesystem($adapter);
+
+                            if ($stream = fopen($this->file->getLocation(), 'r+')) {
+                                $this->setLogs($this->file->getLocation(), 'ftpUploading');
+                                $written = $filesystem->writeStream($this->file->getName(), $stream);
+                                if (is_resource($stream)) {
+                                    fclose($stream);
+                                }
+                                // $written = $written ? $filesystem->has($this->file->getName()) : false;
+                                $this->setLogs($written, 'ftpConfirmed');
+                                if (!$written) {
+                                    $this->setLogs('Could not confirm file upload', 'error');
+                                }
+                            } else {
+                                $this->setLogs('Unable to open file for upload.', 'error');
+                            }
                             break;
 
                         case 'sftp':
-                            // @todo - File payload processing for email.
+                            $config = [];
+                            // [
+                            //     'host' => 'example.com',
+                            //     'port' => 21,
+                            //     'username' => 'username',
+                            //     'password' => 'password',
+                            //     'privateKey' => 'path/to/or/contents/of/privatekey',
+                            //     'root' => '/path/to/root',
+                            //     'timeout' => 10,
+                            // ]
+                            $adapter    = new SftpAdapter($config);
+                            $filesystem = new Filesystem($adapter);
+                            break;
+
+                        case 's3':
+                            $client     = S3Client::factory(
+                                [
+                                    'credentials' => [
+                                        'key'    => 'your-key',
+                                        'secret' => 'your-secret',
+                                    ],
+                                    'region'      => 'your-region',
+                                    'version'     => 'latest|version',
+                                ]
+                            );
+                            $adapter    = new AwsS3Adapter($client, 'your-bucket-name', 'optional/path/prefix');
+                            $filesystem = new Filesystem($adapter);
                             break;
                     }
                 }

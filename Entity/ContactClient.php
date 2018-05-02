@@ -57,7 +57,7 @@ class ContactClient extends FormEntity
     private $name;
 
     /**
-     * @var
+     * @var string
      */
     private $category;
 
@@ -131,7 +131,7 @@ class ContactClient extends FormEntity
      */
     public function __construct()
     {
-        if (!$this->type) {
+        if (null === $this->type) {
             $this->type = 'api';
         }
         if (!$this->api_payload) {
