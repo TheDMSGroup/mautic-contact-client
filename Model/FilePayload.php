@@ -1120,149 +1120,30 @@ class FilePayload
                 if ($operation) {
                     switch ($type) {
                         case 'email':
-                            if ($this->test) {
-                                $to = !empty($operation->test) ? $operation->test : !empty($operation->to) ? $operation->to : '';
-                            } else {
-                                $to = !empty($operation->to) ? $operation->to : '';
-                            }
-                            if (!$to) {
-                                $this->setLogs('Email to address is invalid. No email will be sent.', 'error');
-                                continue;
-                            }
-                            $from  = !empty($operation->from) ? $operation->from : $this->getIntegrationSetting(
-                                'email_from'
-                            );
-                            $email = new Email();
-                            $email->setSessionId('new_'.hash('sha1', uniqid(mt_rand())));
-                            $email->setReplyToAddress($from);
-                            $email->setFromAddress($from);
-                            $subject = !empty($operation->subject) ? $operation->subject : $this->file->getName();
-                            $email->setSubject($subject);
-                            if ($this->file->getCount()) {
-                                $body = !empty($operation->successMessage) ? $operation->successMessage : $this->getIntegrationSetting(
-                                    'success_message'
-                                );
-                            } else {
-                                $body = !empty($operation->emptyMessage) ? $operation->emptyMessage : $this->getIntegrationSetting(
-                                    'empty_message'
-                                );
-                            }
-                            $body .= PHP_EOL.PHP_EOL.!empty($operation->footer) ? $operation->footer : $this->getIntegrationSetting(
-                                'footer'
-                            );
-                            $email->setContent($body);
-                            $email->setCustomHtml(htmlentities($body));
-
-                            $mailer = $this->mailHelper->getMailer();
-                            $mailer->setLead(null, true);
-                            $mailer->setTokens([]);
-                            $mailer->setTo($to);
-                            $mailer->setFrom($from);
-                            $mailer->setEmail($email);
-                            $mailer->attachFile($this->file->getLocation(), $this->file->getName());
-                            $mailer->send(false, false);
-
-                            $this->setLogs($to, 'emailTo');
-                            $this->setLogs($from, 'emailFrom');
-                            $this->setLogs($subject, 'emailSubject');
-                            $this->setLogs($body, 'emailbody');
-
-                            // $mailer->setBody($email);
-                            // $mailer->setEmail($to, false, $emailSettings[$emailId]['slots'], $assetAttachments, (!$saveStat));
-                            // $mailer->setCc($cc);
-                            // $mailer->setBcc($bcc);
+                            $this->operationEmail($operation);
                             break;
 
                         case 'ftp':
-                            $config         = [];
-                            $config['host'] = isset($operation->host) ? trim($operation->host) : null;
-                            if (!$config['host']) {
-                                $this->setLogs('FTP Host is needed.', 'error');
-                                continue;
-                            } else {
-                                $this->setLogs($config['host'], 'ftpHost');
-                            }
-                            $config['username'] = isset($operation->user) ? trim($operation->user) : null;
-                            if (!$config['username']) {
-                                $this->setLogs('FTP User is needed.', 'error');
-                                continue;
-                            } else {
-                                $this->setLogs($config['username'], 'ftpUser');
-                            }
-                            $config['password'] = isset($operation->pass) ? trim($operation->pass) : null;
-                            if (!$config['password']) {
-                                unset($config['password']);
-                                $this->setLogs('FTP Password is blank. Assuming anonymous access.', 'warning');
-                            } else {
-                                $this->setLogs(str_repeat('*', strlen($config['password'])), 'ftpPassword');
-                            }
-
-                            $config['port'] = isset($operation->port) ? (int) $operation->port : 21;
-                            $this->setLogs($config['port'], 'ftpPort');
-
-                            $config['root'] = isset($operation->root) ? trim($operation->root) : null;
-                            if (!$config['root']) {
-                                unset($config['root']);
-                            } else {
-                                $this->setLogs($config['root'], 'ftpRoot');
-                            }
-
-                            $config['passive'] = isset($operation->passive) ? (bool) $operation->passive : true;
-                            $this->setLogs($config['passive'], 'ftpPassive');
-
-                            $config['timeout'] = isset($operation->timeout) ? (int) $operation->timeout : 90;
-                            $this->setLogs($config['timeout'], 'ftpTimeout');
-
-                            $config['ssl'] = isset($operation->ssl) ? (bool) $operation->ssl : false;
-                            $this->setLogs($config['ssl'], 'ftpSSL');
-
-                            $adapter    = new FtpAdapter($config);
-                            $filesystem = new Filesystem($adapter);
-
-                            if ($stream = fopen($this->file->getLocation(), 'r+')) {
-                                $this->setLogs($this->file->getLocation(), 'ftpUploading');
-                                $written = $filesystem->writeStream($this->file->getName(), $stream);
-                                if (is_resource($stream)) {
-                                    fclose($stream);
-                                }
-                                // $written = $written ? $filesystem->has($this->file->getName()) : false;
-                                $this->setLogs($written, 'ftpConfirmed');
-                                if (!$written) {
-                                    $this->setLogs('Could not confirm file upload', 'error');
-                                }
-                            } else {
-                                $this->setLogs('Unable to open file for upload.', 'error');
-                            }
+                            $this->operationFtp($operation);
                             break;
 
                         case 'sftp':
-                            $config = [];
-                            // [
-                            //     'host' => 'example.com',
-                            //     'port' => 21,
-                            //     'username' => 'username',
-                            //     'password' => 'password',
-                            //     'privateKey' => 'path/to/or/contents/of/privatekey',
-                            //     'root' => '/path/to/root',
-                            //     'timeout' => 10,
-                            // ]
-                            $adapter    = new SftpAdapter($config);
-                            $filesystem = new Filesystem($adapter);
+                            $this->operationSftp($operation);
                             break;
 
                         case 's3':
-                            $client     = S3Client::factory(
-                                [
-                                    'credentials' => [
-                                        'key'    => 'your-key',
-                                        'secret' => 'your-secret',
-                                    ],
-                                    'region'      => 'your-region',
-                                    'version'     => 'latest|version',
-                                ]
-                            );
-                            $adapter    = new AwsS3Adapter($client, 'your-bucket-name', 'optional/path/prefix');
-                            $filesystem = new Filesystem($adapter);
+                            // $client     = S3Client::factory(
+                            //     [
+                            //         'credentials' => [
+                            //             'key'    => 'your-key',
+                            //             'secret' => 'your-secret',
+                            //         ],
+                            //         'region'      => 'your-region',
+                            //         'version'     => 'latest|version',
+                            //     ]
+                            // );
+                            // $adapter    = new AwsS3Adapter($client, 'your-bucket-name', 'optional/path/prefix');
+                            // $filesystem = new Filesystem($adapter);
                             break;
                     }
                 }
@@ -1270,6 +1151,70 @@ class FilePayload
         }
 
         return $this;
+    }
+
+    /**
+     * Send an email containing the file to the current client by Email.
+     *
+     * @param $operation
+     *
+     * @return bool
+     */
+    private function operationEmail($operation)
+    {
+        if ($this->test) {
+            $to = !empty($operation->test) ? $operation->test : !empty($operation->to) ? $operation->to : '';
+        } else {
+            $to = !empty($operation->to) ? $operation->to : '';
+        }
+        if (!$to) {
+            $this->setLogs('Email to address is invalid. No email will be sent.', 'error');
+
+            return false;
+        }
+        $from  = !empty($operation->from) ? $operation->from : $this->getIntegrationSetting(
+            'email_from'
+        );
+        $email = new Email();
+        $email->setSessionId('new_'.hash('sha1', uniqid(mt_rand())));
+        $email->setReplyToAddress($from);
+        $email->setFromAddress($from);
+        $subject = !empty($operation->subject) ? $operation->subject : $this->file->getName();
+        $email->setSubject($subject);
+        if ($this->file->getCount()) {
+            $body = !empty($operation->successMessage) ? $operation->successMessage : $this->getIntegrationSetting(
+                'success_message'
+            );
+        } else {
+            $body = !empty($operation->emptyMessage) ? $operation->emptyMessage : $this->getIntegrationSetting(
+                'empty_message'
+            );
+        }
+        $body .= PHP_EOL.PHP_EOL.!empty($operation->footer) ? $operation->footer : $this->getIntegrationSetting(
+            'footer'
+        );
+        $email->setContent($body);
+        $email->setCustomHtml(htmlentities($body));
+
+        $mailer = $this->mailHelper->getMailer();
+        $mailer->setLead(null, true);
+        $mailer->setTokens([]);
+        $mailer->setTo($to);
+        $mailer->setFrom($from);
+        $mailer->setEmail($email);
+        $mailer->attachFile($this->file->getLocation(), $this->file->getName());
+
+        $this->setLogs($to, 'emailTo');
+        $this->setLogs($from, 'emailFrom');
+        $this->setLogs($subject, 'emailSubject');
+        $this->setLogs($body, 'emailbody');
+
+        // $mailer->setBody($email);
+        // $mailer->setEmail($to, false, $emailSettings[$emailId]['slots'], $assetAttachments, (!$saveStat));
+        // $mailer->setCc($cc);
+        // $mailer->setBcc($bcc);
+
+        return $mailer->send(false, false);;
     }
 
     /**
@@ -1293,6 +1238,140 @@ class FilePayload
         if (isset($this->integrationSettings[$key])) {
             return $this->integrationSettings[$key];
         }
+    }
+
+    /**
+     * Upload the current client file by FTP.
+     *
+     * @param $operation
+     *
+     * @return bool
+     */
+    private function operationFtp($operation)
+    {
+        $config = $this->operationFtpConfig($operation);
+
+        $adapter    = new FtpAdapter($config);
+        $filesystem = new Filesystem($adapter);
+
+        $written = false;
+        if ($stream = fopen($this->file->getLocation(), 'r+')) {
+            $this->setLogs($this->file->getLocation(), 'ftpUploading');
+            $written = $filesystem->writeStream($this->file->getName(), $stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+            // $written = $written ? $filesystem->has($this->file->getName()) : false;
+            $this->setLogs($written, 'ftpConfirmed');
+            if (!$written) {
+                $this->setLogs('Could not confirm file upload via FTP', 'error');
+            }
+        } else {
+            $this->setLogs('Unable to open file for upload via FTP.', 'error');
+        }
+
+        return $written;
+    }
+
+    /**
+     * Given the operation array, construct configuration array for a FTP/SFTP adaptor.
+     *
+     * @param $operation
+     *
+     * @return array|bool
+     */
+    private function operationFtpConfig($operation)
+    {
+        $config         = [];
+        $config['host'] = isset($operation->host) ? trim($operation->host) : null;
+        if (!$config['host']) {
+            $this->setLogs('FTP Host is needed.', 'error');
+
+            return false;
+        } else {
+            $this->setLogs($config['host'], 'host');
+        }
+        $config['username'] = isset($operation->user) ? trim($operation->user) : null;
+        if (!$config['username']) {
+            $this->setLogs('FTP User is needed.', 'error');
+
+            return false;
+        } else {
+            $this->setLogs($config['username'], 'user');
+        }
+        $config['password'] = isset($operation->pass) ? trim($operation->pass) : null;
+        if (!$config['password']) {
+            unset($config['password']);
+            $this->setLogs('FTP Password is blank. Assuming anonymous access.', 'warning');
+        } else {
+            $this->setLogs(str_repeat('*', strlen($config['password'])), 'password');
+        }
+
+        $config['privateKey'] = isset($operation->privateKey) ? trim($operation->privateKey) : null;
+        if (!$config['privateKey']) {
+            unset($config['privateKey']);
+        } else {
+            $this->setLogs(md5($config['privateKey']), 'privateKey');
+        }
+
+        $config['port'] = isset($operation->port) ? (int) $operation->port : null;
+        if (!$config['port']) {
+            unset($config['port']);
+        } else {
+            $this->setLogs($config['port'], 'port');
+        }
+
+        $config['root'] = isset($operation->root) ? trim($operation->root) : null;
+        if (!$config['root']) {
+            unset($config['root']);
+        } else {
+            $this->setLogs($config['root'], 'root');
+        }
+
+        $config['passive'] = isset($operation->passive) ? (bool) $operation->passive : true;
+        $this->setLogs($config['passive'], 'passive');
+
+        $config['timeout'] = isset($operation->timeout) ? (int) $operation->timeout : 90;
+        $this->setLogs($config['timeout'], 'timeout');
+
+        $config['ssl'] = isset($operation->ssl) ? (bool) $operation->ssl : false;
+        $this->setLogs($config['ssl'], 'ssl');
+
+        return $config;
+    }
+
+    /**
+     * Upload the current client file by sFTP.
+     *
+     * @param $operation
+     *
+     * @return bool
+     */
+    private function operationSftp($operation)
+    {
+        $config = $this->operationFtpConfig($operation);
+
+        $adapter    = new SftpAdapter($config);
+        $filesystem = new Filesystem($adapter);
+
+        $written = false;
+        if ($stream = fopen($this->file->getLocation(), 'r+')) {
+            $this->setLogs($this->file->getLocation(), 'sftpUploading');
+            $written = $filesystem->writeStream($this->file->getName(), $stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+            // $written = $written ? $filesystem->has($this->file->getName()) : false;
+            $this->setLogs($written, 'sftpConfirmed');
+            if (!$written) {
+                $this->setLogs('Could not confirm file upload via SFTP', 'error');
+            }
+        } else {
+            $this->setLogs('Unable to open file for upload via SFTP.', 'error');
+        }
+
+        return $written;
+
     }
 
     /**

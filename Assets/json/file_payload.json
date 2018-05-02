@@ -435,6 +435,91 @@
             }
           ]
         }
+        "sftp": {
+          "title": "sFTP",
+          "default": false,
+          "oneOf": [
+            {
+              "title": "Disabled",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false,
+              "options": {
+                "hidden": true,
+                "disabled": true
+              }
+            },
+            {
+              "title": "Enabled",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "host": {
+                  "title": "Host",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "ftp://ftp.someserver.com"
+                  }
+                },
+                "user": {
+                  "title": "Username",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "pass": {
+                  "title": "Password",
+                  "type": "string"
+                },
+                "privateKey": {
+                  "title": "Private Key",
+                  "type": "string",
+                  "format": "textarea",
+                  "options": {
+                    "infoText": "Insert the private key (if necessary) to communicate via SSH.",
+                    "codeMirror": true
+                  }
+                },
+                "port": {
+                  "title": "Port",
+                  "type": "integer",
+                  "default": 22,
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "timeout": {
+                  "title": "Timeout",
+                  "type": "integer",
+                  "default": 90,
+                  "minimum": 1,
+                  "maximum": 300
+                },
+                "root": {
+                  "title": "Root Folder",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files into."
+                  }
+                },
+                "testFolder": {
+                  "title": "Test Folder",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files to during tests."
+                  }
+                }
+              }
+            }
+          ]
+        }
       }
     }
   },
