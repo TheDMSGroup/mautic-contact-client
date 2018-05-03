@@ -44,6 +44,9 @@ class Cache extends AbstractCommonModel
     /** @var string */
     protected $timezone;
 
+    /** @var \DateTime */
+    protected $dateSend;
+
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
      *
@@ -65,7 +68,7 @@ class Cache extends AbstractCommonModel
                 }
                 // Each entry may have different exclusion expiration.
                 $expireDate = $this->getRepository()->oldestDateAdded($rule['duration'], $this->getTimezone());
-                $entity->setExclusiveExpireDate($expireDate);
+                $entity->setExclusiveExpireDate(new \DateTime($expireDate));
                 $entity->setExclusivePattern($rule['matching']);
                 $entity->setExclusiveScope($rule['scope']);
                 $entities[] = $entity;
@@ -177,6 +180,9 @@ class Cache extends AbstractCommonModel
         if (!empty($utmSource)) {
             $entity->setUtmSource($utmSource);
         }
+        if ($this->dateSend) {
+            $entity->setDateAdded($this->dateSend);
+        }
 
         return $entity;
     }
@@ -271,7 +277,8 @@ class Cache extends AbstractCommonModel
     {
         $exclusive = $this->getRepository()->findExclusive(
             $this->contact,
-            $this->contactClient
+            $this->contactClient,
+            $this->dateSend
         );
         if ($exclusive) {
             throw new ContactClientException(
@@ -299,7 +306,8 @@ class Cache extends AbstractCommonModel
             $this->contactClient,
             $this->getDuplicateRules(),
             $this->getUtmSource(),
-            $this->getTimezone()
+            $this->getTimezone(),
+            $this->dateSend
         );
         if ($duplicate) {
             throw new ContactClientException(
@@ -338,7 +346,8 @@ class Cache extends AbstractCommonModel
         $limits = $this->getRepository()->findLimit(
             $this->contactClient,
             $this->getLimitRules(),
-            $this->getTimezone()
+            $this->getTimezone(),
+            $this->dateSend
         );
         if ($limits) {
             throw new ContactClientException(
@@ -387,6 +396,22 @@ class Cache extends AbstractCommonModel
     }
 
     /**
+     * @param $dateSend
+     *
+     * @return $this
+     */
+    public function setDateSend($dateSend = null)
+    {
+        if (!$dateSend) {
+            $this->dateSend = new \DateTime();
+        } else {
+            $this->dateSend = $dateSend;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return ContactClient
      */
     public function getContactClient()
@@ -406,51 +431,5 @@ class Cache extends AbstractCommonModel
         $this->contactClient = $contactClient;
 
         return $this;
-    }
-
-    /**
-     * Support non-rolling durations when P is not prefixing.
-     *
-     * @param      $duration
-     * @param null $timezone
-     *
-     * @return string
-     *
-     * @throws \Exception
-     */
-    private function oldestDateAdded($duration, $timezone = null)
-    {
-        if (0 === strpos($duration, 'P')) {
-            // Standard rolling interval.
-            $oldest = new \DateTime();
-        } else {
-            // Non-rolling interval, go to previous interval segment.
-            // Will only work for simple (singular) intervals.
-            if (!$timezone) {
-                $timezone = date_default_timezone_get();
-            }
-            $timezone = new \DateTimeZone($timezone);
-            switch (strtoupper(substr($duration, -1))) {
-                case 'Y':
-                    $oldest = new \DateTime('next year jan 1 midnight', $timezone);
-                    break;
-                case 'M':
-                    $oldest = new \DateTime('first day of next month midnight', $timezone);
-                    break;
-                case 'W':
-                    $oldest = new \DateTime('sunday next week midnight', $timezone);
-                    break;
-                case 'D':
-                    $oldest = new \DateTime('tomorrow midnight', $timezone);
-                    break;
-                default:
-                    $oldest = new \DateTime();
-            }
-            // Add P so that we can now use standard interval
-            $duration = 'P'.$duration;
-        }
-        $oldest->sub(new \DateInterval($duration));
-
-        return $oldest->format('Y-m-d H:i:s');
     }
 }

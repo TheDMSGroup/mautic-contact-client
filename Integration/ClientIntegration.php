@@ -86,6 +86,9 @@ class ClientIntegration extends AbstractIntegration
     /** @var array */
     protected $integrationSettings;
 
+    /** @var \DateTime */
+    protected $dateSend;
+
     /**
      * @return string
      */
@@ -266,54 +269,53 @@ class ClientIntegration extends AbstractIntegration
 
         try {
             if (!$client && !$this->test) {
-                throw new \InvalidArgumentException($translator->trans('mautic.contactclient.sendcontact.error.client.load'));
+                throw new \InvalidArgumentException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.client.load')
+                );
             }
             $this->contactClient = $client;
 
             if (!$contact && !$this->test) {
-                throw new \InvalidArgumentException($translator->trans('mautic.contactclient.sendcontact.error.contact.load'));
+                throw new \InvalidArgumentException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.contact.load')
+                );
             }
             $this->contact = $contact;
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
-            if (!$this->test) {
-                $this->evaluateSchedule();
-            }
+            $this->evaluateSchedule();
 
-            // @todo - Filtering - Check filter rules to ensure this contact is applicable.
+            // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
 
             // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
-                // @todo - file - evaluate for the next queue slot and suggest future slot if over limit?
                 $this->getCacheModel()->evaluateLimits();
             }
 
             // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
             if (!$this->test) {
-                // @todo - file - evaluate for the next queue slot and suggest future slot if over limit?
                 $this->getCacheModel()->evaluateDuplicate();
             }
 
             // Exclusivity - Check exclusivity rules on the cache to ensure this contact hasn't been sent to a disallowed competitor.
             if (!$this->test) {
-                // @todo - file - evaluate for the next queue slot and suggest future slot if over limit?
                 $this->getCacheModel()->evaluateExclusive();
             }
 
             /* @var ApiPayload|FilePayload $model */
-            $this->payloadModel = $this->getPayloadModel();
-            $this->payloadModel->reset()
+            $this->getPayloadModel()
+                ->reset()
                 ->setContactClient($this->contactClient)
                 ->setContact($this->contact)
                 ->setTest($test)
                 ->setCampaign($this->getCampaign())
                 ->setEvent($this->event);
 
-            $this->payloadModel->run();
+            $this->getPayloadModel()->run();
 
-            $this->valid = $this->payloadModel->getValid();
+            $this->valid = $this->getPayloadModel()->getValid();
 
             // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
@@ -340,24 +342,32 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param string|null $clientType
+     * Evaluates the schedule given the client type. Returns the time that the send will be allowed to take place.
+     *
+     * @return $this
      *
      * @throws ContactClientException
      */
-    private function evaluateSchedule(string $clientType = null)
+    private function evaluateSchedule()
     {
-        $clientType = $clientType ? $clientType : $this->contactClient->getType();
         /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
         $schedule = $this->getScheduleModel();
-        if ('api' == $clientType) {
-            // Standard now will be fine.
-        } elseif ('file' == $clientType) {
-            // Do not evaluate on ingestion at this time. We'll evalutate for the future.
-        } else {
-            throw new \InvalidArgumentException('Client type is invalid.');
+        if ('file' == $this->contactClient->getType()) {
+            list($start, $end) = $schedule->nextOpening();
+            if ($start) {
+                // Assuming we'll send at the next opening time slot for the client, or now, whichever is sooner.
+                $this->dateSend = $start;
+            }
+        } elseif (!$this->test) {
+            $schedule->evaluateDay();
+            $schedule->evaluateTime();
+            $schedule->evaluateExclusions();
         }
-        $schedule->evaluateHours();
-        $schedule->evaluateExclusions();
+        if (!$this->dateSend) {
+            $this->dateSend = new \StartDate();
+        }
+
+        return $this;
     }
 
     /**
@@ -370,8 +380,11 @@ class ClientIntegration extends AbstractIntegration
         if (!$this->scheduleModel) {
             /* @var \MauticPlugin\MauticContactClientBundle\Model\Schedule scheduleModel */
             $this->scheduleModel = $this->getContainer()->get('mautic.contactclient.model.schedule');
-            $this->scheduleModel->setContactClient($this->contactClient);
+        } else {
+            $this->scheduleModel->reset();
         }
+        $this->scheduleModel->setContactClient($this->contactClient);
+        $this->scheduleModel->setTimezone();
 
         return $this->scheduleModel;
     }
@@ -390,32 +403,34 @@ class ClientIntegration extends AbstractIntegration
             $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
             $this->cacheModel->setContact($this->contact);
             $this->cacheModel->setContactClient($this->contactClient);
+            $this->cacheModel->setDateSend($this->dateSend);
         }
 
         return $this->cacheModel;
     }
 
     /**
+     * Get the current Payload model, or the model of a particular client.
+     *
      * @param ContactClient|null $contactClient
      *
      * @return ApiPayload|FilePayload|null|object
      */
     private function getPayloadModel(ContactClient $contactClient = null)
     {
-        $model = null;
-        if (!$contactClient) {
-            $contactClient = $this->contactClient;
-        }
-        $clientType = $contactClient->getType();
-        if ('api' == $clientType) {
-            $model = $this->getApiPayloadModel();
-        } elseif ('file' == $clientType) {
-            $model = $this->getFilePayloadModel();
-        } else {
-            throw new \InvalidArgumentException('Client type is invalid.');
+        if (!$this->payloadModel || $contactClient) {
+            $contactClient = $contactClient ? $contactClient : $this->contactClient;
+            $clientType    = $contactClient->getType();
+            if ('api' == $clientType) {
+                $this->payloadModel = $this->getApiPayloadModel();
+            } elseif ('file' == $clientType) {
+                $this->payloadModel = $this->getFilePayloadModel();
+            } else {
+                throw new \InvalidArgumentException('Client type is invalid.');
+            }
         }
 
-        return $model;
+        return $this->payloadModel;
     }
 
     /**

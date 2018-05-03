@@ -205,7 +205,7 @@ class FilePayload
             'contactModel',
             'pathsHelper',
             'coreParametersHelper',
-            'files',
+            'filesystemLocal',
             'mailHelper',
         ]
     ) {
@@ -352,6 +352,7 @@ class FilePayload
 
     /**
      * Add a contact to a queue for a file, generating the file entry if needed.
+     * Additional field validations will take place again upon file building.
      *
      * @return $this
      *
@@ -359,7 +360,6 @@ class FilePayload
      */
     public function run()
     {
-        // @todo - Discern next appropriate file time based on the schedule and file rate.
         $this->getFieldValues();
         $this->fileEntitySelect();
         $this->fileEntityRefreshSettings();
@@ -1069,6 +1069,8 @@ class FilePayload
                     $this->file->setName($fileName);
                     $this->setLogs($fileName, 'fileName');
 
+                    $this->file->setDateAdded(new \DateTime());
+
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
 
@@ -1124,6 +1126,7 @@ class FilePayload
      */
     public function fileSend()
     {
+        $results = $result = false;
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
                 if (is_array($operation)) {
@@ -1131,25 +1134,33 @@ class FilePayload
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
                     switch ($type) {
                         case 'email':
-                            $this->operationEmail($operation);
+                            $result = $this->operationEmail($operation);
                             break;
 
                         case 'ftp':
-                            $this->operationFtp($operation);
+                            $result = $this->operationFtp($operation);
                             break;
 
                         case 'sftp':
-                            $this->operationSftp($operation);
+                            $result = $this->operationSftp($operation);
                             break;
 
                         case 's3':
-                            $this->operationS3($operation);
+                            $result = $this->operationS3($operation);
                             break;
                     }
+                }
+                if ($result) {
+                    // Show a status of sent even if only one send succeeded.
+                    $results = true;
                 }
             }
         }
         $this->fileEntityAddLogs();
+        if ($results) {
+            $this->file->setStatus(File::STATUS_SENT);
+        }
+        $this->fileEntitySave();
 
         return $this;
     }
