@@ -482,8 +482,7 @@
                   "type": "string",
                   "format": "textarea",
                   "options": {
-                    "infoText": "Insert the private key (if necessary) to communicate via SSH.",
-                    "codeMirror": true
+                    "infoText": "Insert the private key (if necessary) to communicate via SSH."
                   }
                 },
                 "port": {
@@ -556,8 +555,7 @@
                   "type": "string",
                   "format": "textarea",
                   "options": {
-                    "notBlank": true,
-                    "codeMirror": true
+                    "notBlank": true
                   }
                 },
                 "region": {

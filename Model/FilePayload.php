@@ -1119,7 +1119,7 @@ class FilePayload
         // @todo - Discern which file opperations are needed at this time.
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
-                if ($operation) {
+                if (is_array($operation)) {
                     $now = new \DateTime();
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'OperationTime');
                     switch ($type) {
@@ -1254,10 +1254,11 @@ class FilePayload
             if (is_resource($stream)) {
                 fclose($stream);
             }
-            // $written = $written ? $filesystem->has($this->file->getName()) : false;
             $this->setLogs($written, 'ftpConfirmed');
             if (!$written) {
                 $this->setLogs('Could not confirm file upload via FTP', 'error');
+            } else {
+                $this->setLogs($filesystem->has($this->file->getName()), 'ftpConfirmed2');
             }
         } else {
             $this->setLogs('Unable to open file for upload via FTP.', 'error');
@@ -1359,10 +1360,11 @@ class FilePayload
             if (is_resource($stream)) {
                 fclose($stream);
             }
-            // $written = $written ? $filesystem->has($this->file->getName()) : false;
             $this->setLogs($written, 'sftpConfirmed');
             if (!$written) {
                 $this->setLogs('Could not confirm file upload via SFTP', 'error');
+            } else {
+                $this->setLogs($filesystem->has($this->file->getName()), 'sftpConfirmed2');
             }
         } else {
             $this->setLogs('Unable to open file for upload via SFTP.', 'error');
