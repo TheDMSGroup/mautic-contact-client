@@ -1,14 +1,14 @@
-/* API Payload - Buttons and nav */
-#contactclient_api_payload_codemirror {
+/* File Payload - Buttons and nav */
+#contactclient_file_payload_codemirror {
     margin-top: 42px;
 }
 
-.api_payload .CodeMirror,
-#contactclient_api_payload_codemirror .CodeMirror {
+.file_payload .CodeMirror,
+#contactclient_file_payload_codemirror .CodeMirror {
     border: 0;
 }
 
-#api_payload_buttons {
+#file_payload_buttons {
     margin-bottom: -19px;
     position: relative;
     z-index: 1005;
@@ -23,12 +23,12 @@
     transition: right .1s ease-in-out;
 }
 
-#api_payload_buttons .btn-group {
+#file_payload_buttons .btn-group {
     -webkit-box-shadow: 0 0 10px 10px rgba(255, 255, 255, .5);
     box-shadow: 0 0 10px 10px rgba(255, 255, 255, .5);
 }
 
-#api_payload_buttons.affix {
+#file_payload_buttons.affix {
     position: fixed;
     -webkit-transition: right .1s ease-in-out;
     -moz-transition: right .1s ease-in-out;
@@ -40,12 +40,12 @@
     margin-right: 15px;
 }
 
-#api_payload_buttons.affix .btn-group {
+#file_payload_buttons .btn-group {
     -webkit-box-shadow: 0 0 10px 10px rgba(255, 255, 255, 1);
     box-shadow: 0 0 10px 10px rgba(255, 255, 255, 1);
 }
 
-#api_payload_test_result .modal-body {
+#file_payload_test_result .modal-body {
     height: 90%;
     overflow-y: auto;
     max-height: calc(100vh - 120px) !important;

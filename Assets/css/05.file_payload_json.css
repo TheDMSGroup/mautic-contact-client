@@ -1,0 +1,66 @@
+/* ContactClient File Payload - JSON Editor customizations */
+
+.file_payload .contactclient_jsoneditor .well {
+    background: none;
+    border: 0;
+}
+
+.file_payload .contactclient_jsoneditor > div > .well {
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.file_payload .contactclient_jsoneditor .well {
+    background: rgba(145, 145, 145, .1);
+    border: 1px solid rgba(45, 45, 45, .1);
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.file_payload .contactclient_jsoneditor {
+    margin-top: 10px;
+}
+
+.file_payload .contactclient_jsoneditor .slider-horizontal {
+    max-width: 95%;
+    margin-top: .5em;
+}
+
+.file_payload .contactclient_jsoneditor td[data-schematype="boolean"] {
+    width: 72px;
+    text-align: center;
+}
+
+.file_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td,
+.file_payload .contactclient_jsoneditor .table-bordered > thead > tr > th {
+    border: 0;
+}
+
+.file_payload .contactclient_jsoneditor .table-bordered > tbody > tr {
+    border: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.file_payload .contactclient_jsoneditor .table-bordered > tbody > tr:last-child {
+    border-bottom: 0;
+}
+
+/* push delete buttons to the right */
+.file_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td:last-child {
+    text-align: right;
+}
+
+label.file-payload {
+    display: none;
+}
+
+/* This style does not use expandable headers */
+.file_payload .contactclient_jsoneditor div > h3 > span {
+    cursor: default;
+}
