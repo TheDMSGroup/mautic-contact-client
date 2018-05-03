@@ -1136,18 +1136,7 @@ class FilePayload
                             break;
 
                         case 's3':
-                            // $client     = S3Client::factory(
-                            //     [
-                            //         'credentials' => [
-                            //             'key'    => 'your-key',
-                            //             'secret' => 'your-secret',
-                            //         ],
-                            //         'region'      => 'your-region',
-                            //         'version'     => 'latest|version',
-                            //     ]
-                            // );
-                            // $adapter    = new AwsS3Adapter($client, 'your-bucket-name', 'optional/path/prefix');
-                            // $filesystem = new Filesystem($adapter);
+                            $this->operationS3($operation);
                             break;
                     }
                 }
@@ -1289,7 +1278,7 @@ class FilePayload
         $config         = [];
         $config['host'] = isset($operation->host) ? trim($operation->host) : null;
         if (!$config['host']) {
-            $this->setLogs('FTP Host is needed.', 'error');
+            $this->setLogs('Host is required.', 'error');
 
             return false;
         } else {
@@ -1297,7 +1286,7 @@ class FilePayload
         }
         $config['username'] = isset($operation->user) ? trim($operation->user) : null;
         if (!$config['username']) {
-            $this->setLogs('FTP User is needed.', 'error');
+            $this->setLogs('User is required.', 'error');
 
             return false;
         } else {
@@ -1306,7 +1295,7 @@ class FilePayload
         $config['password'] = isset($operation->pass) ? trim($operation->pass) : null;
         if (!$config['password']) {
             unset($config['password']);
-            $this->setLogs('FTP Password is blank. Assuming anonymous access.', 'warning');
+            $this->setLogs('Password is blank. Assuming anonymous access.', 'warning');
         } else {
             $this->setLogs(str_repeat('*', strlen($config['password'])), 'password');
         }
@@ -1315,7 +1304,7 @@ class FilePayload
         if (!$config['privateKey']) {
             unset($config['privateKey']);
         } else {
-            $this->setLogs(md5($config['privateKey']), 'privateKey');
+            $this->setLogs(true, 'privateKey');
         }
 
         $config['port'] = isset($operation->port) ? (int) $operation->port : null;
@@ -1325,7 +1314,12 @@ class FilePayload
             $this->setLogs($config['port'], 'port');
         }
 
-        $config['root'] = isset($operation->root) ? trim($operation->root) : null;
+        if ($this->test && isset($operation->rootTest)) {
+            $config['root'] = isset($operation->rootTest) ? trim($operation->rootTest) : null;
+        }
+        if (empty($config['root'])) {
+            $config['root'] = isset($operation->root) ? trim($operation->root) : null;
+        }
         if (!$config['root']) {
             unset($config['root']);
         } else {
@@ -1375,7 +1369,83 @@ class FilePayload
         }
 
         return $written;
+    }
 
+    /**
+     * @param $operation
+     *
+     * @return bool
+     */
+    private function operationS3($operation)
+    {
+        $config        = [];
+        $config['key'] = isset($operation->key) ? trim($operation->key) : null;
+        if (!$config['key']) {
+            $this->setLogs('Key is required.', 'error');
+
+            return false;
+        } else {
+            $this->setLogs($config['key'], 'key');
+        }
+
+        $config['secret'] = isset($operation->secret) ? trim($operation->secret) : null;
+        if (!$config['secret']) {
+            $this->setLogs('Secret is required.', 'error');
+
+            return false;
+        } else {
+            $this->setLogs(true, 'secret');
+        }
+
+        $config['region'] = isset($operation->region) ? trim($operation->region) : null;
+        if (!$config['region']) {
+            $this->setLogs('Region is required.', 'error');
+
+            return false;
+        } else {
+            $this->setLogs($config['region'], 'region');
+        }
+
+        $bucketName = isset($operation->bucket) ? trim($operation->bucket) : null;
+        if (!$bucketName) {
+            $this->setLogs('Bucket name is required.', 'error');
+
+            return false;
+        } else {
+            $this->setLogs($bucketName, 'bucket');
+        }
+
+        if ($this->test && isset($operation->rootTest)) {
+            $root = isset($operation->rootTest) ? trim($operation->rootTest) : null;
+        }
+        if (empty($root)) {
+            $root = isset($operation->root) ? trim($operation->root) : null;
+        }
+        if ($root) {
+            $this->setLogs($root, 'root');
+        }
+
+        $client     = S3Client::factory($config);
+        $adapter    = new AwsS3Adapter($client, $bucketName, $root);
+        $filesystem = new Filesystem($adapter);
+
+        $written = false;
+        if ($stream = fopen($this->file->getLocation(), 'r+')) {
+            $this->setLogs($this->file->getLocation(), 's3Uploading');
+            $written = $filesystem->writeStream($this->file->getName(), $stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+            // $written = $written ? $filesystem->has($this->file->getName()) : false;
+            $this->setLogs($written, 's3Confirmed');
+            if (!$written) {
+                $this->setLogs('Could not confirm file upload via S3', 'error');
+            }
+        } else {
+            $this->setLogs('Unable to open file for upload via S3.', 'error');
+        }
+
+        return $written;
     }
 
     /**
