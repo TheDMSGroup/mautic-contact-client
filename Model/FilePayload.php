@@ -378,6 +378,16 @@ class FilePayload
         if (!empty($this->payload->body) && !is_string($this->payload->body)) {
             $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
             $requestFields = $this->fieldValues($this->payload->body);
+            if ($this->file) {
+                $nullCsv       = $this->file->getCsvNull();
+                if (!empty($nullCsv)) {
+                    foreach ($requestFields as $field => &$value) {
+                        if (empty($value) && $value !== false) {
+                            $value = $nullCsv;
+                        }
+                    }
+                }
+            }
         }
 
         return $requestFields;
