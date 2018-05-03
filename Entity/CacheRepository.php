@@ -154,7 +154,6 @@ class CacheRepository extends CommonRepository
         return $oldest->format('Y-m-d H:i:s');
     }
 
-
     /**
      * @param array $filters
      * @param bool  $returnCount

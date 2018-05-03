@@ -236,7 +236,7 @@ class ApiPayloadRequest
 
     /**
      * Tokenize/parse fields from the API Payload for transit.
-     * This method also exists in the other payload type with a minor difference
+     * This method also exists in the other payload type with a minor difference.
      *
      * @param $fields
      *

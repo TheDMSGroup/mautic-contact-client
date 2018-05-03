@@ -72,13 +72,13 @@ class SendContactCommand extends ModeratedCommand
         }
 
         if (!$options['client'] || !is_numeric($options['client'])) {
-            $output->writeln('<error>'. $translator->trans('mautic.contactclient.sendcontact.error.client').'</error>');
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client').'</error>');
 
             return 0;
         }
 
         if (!$options['contact'] || !is_numeric($options['contact'])) {
-            $output->writeln('<error>'. $translator->trans('mautic.contactclient.sendcontact.error.contact').'</error>');
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact').'</error>');
 
             return 0;
         }
@@ -92,7 +92,7 @@ class SendContactCommand extends ModeratedCommand
         }
 
         if (false === $client->getIsPublished() && !$options['force']) {
-            $output->writeln('<error>'. $translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>');
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>');
 
             return 0;
         }

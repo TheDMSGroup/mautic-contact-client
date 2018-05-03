@@ -640,5 +640,4 @@ class ApiPayload
     {
         return $this->externalId;
     }
-
 }

@@ -38,7 +38,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
-use Symfony\Component\Filesystem\Filesystem as Files;
+use Symfony\Component\Filesystem\Filesystem as FileSystemLocal;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -133,8 +133,8 @@ class FilePayload
     /** @var CoreParametersHelper */
     protected $coreParametersHelper;
 
-    /** @var Files */
-    protected $filesystem;
+    /** @var FileSystemLocal */
+    protected $filesystemLocal;
 
     /** @var array */
     protected $integrationSettings;
@@ -153,7 +153,8 @@ class FilePayload
      * @param ContactModel         $contactModel
      * @param PathsHelper          $pathsHelper
      * @param CoreParametersHelper $coreParametersHelper
-     * @param Files                $files
+     * @param FileSystemLocal      $filesystemLocal
+     * @param MailHelper           $mailHelper           \
      */
     public function __construct(
         contactClientModel $contactClientModel,
@@ -164,7 +165,7 @@ class FilePayload
         ContactModel $contactModel,
         PathsHelper $pathsHelper,
         CoreParametersHelper $coreParametersHelper,
-        Files $files,
+        FileSystemLocal $filesystemLocal,
         MailHelper $mailHelper
     ) {
         $this->contactClientModel   = $contactClientModel;
@@ -175,7 +176,7 @@ class FilePayload
         $this->contactModel         = $contactModel;
         $this->pathsHelper          = $pathsHelper;
         $this->coreParametersHelper = $coreParametersHelper;
-        $this->files                = $files;
+        $this->filesystemLocal      = $filesystemLocal;
         $this->mailHelper           = $mailHelper;
     }
 
@@ -382,7 +383,7 @@ class FilePayload
                 $nullCsv = $this->file->getCsvNull();
                 if (!empty($nullCsv)) {
                     foreach ($requestFields as $field => &$value) {
-                        if (empty($value) && $value !== false) {
+                        if (empty($value) && false !== $value) {
                             $value = $nullCsv;
                         }
                     }
@@ -1062,7 +1063,7 @@ class FilePayload
             );
             $target    = $uploadDir.'/client_payloads/'.$this->contactClient->getId().'/'.$fileName;
             if ($origin && (!file_exists($target) || $overwrite)) {
-                $this->files->copy($origin, $target, $overwrite);
+                $this->filesystemLocal->copy($origin, $target, $overwrite);
                 if (file_exists($target)) {
                     // Final file name as it will be seen by the client.
                     $this->file->setName($fileName);
@@ -1082,7 +1083,7 @@ class FilePayload
                     $sha1 = hash_file('sha1', $target);
                     $this->file->setSha1($sha1);
                     $this->setLogs($sha1, 'sha1');
-                    $this->files->remove($origin);
+                    $this->filesystemLocal->remove($origin);
 
                     $this->setLogs(filesize($target), 'fileSize');
                 } else {
@@ -1214,7 +1215,7 @@ class FilePayload
         // $mailer->setCc($cc);
         // $mailer->setBcc($bcc);
 
-        return $mailer->send(false, false);;
+        return $mailer->send(false, false);
     }
 
     /**
