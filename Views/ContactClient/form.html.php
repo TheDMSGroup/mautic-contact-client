@@ -55,7 +55,7 @@ echo $view['form']->start($form);
                             ); ?>
                         </a>
                     </li>
-                    <li>
+                    <li class="hide">
                         <a href="#filter" role="tab" data-toggle="tab" class="contactclient-tab">
                             <i class="fa fa-filter fa-lg pull-left"></i><?php echo $view['translator']->trans(
                                 'mautic.contactclient.form.group.filter'
