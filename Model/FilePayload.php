@@ -1073,6 +1073,8 @@ class FilePayload
                     $this->file->setSha1($sha1);
                     $this->setLogs($sha1, 'sha1');
                     $this->files->remove($origin);
+
+                    $this->setLogs(filesize($target), 'fileSize');
                 } else {
                     throw new ContactClientException(
                         'Could not copy file to local location.',
@@ -1118,6 +1120,8 @@ class FilePayload
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
                 if ($operation) {
+                    $now = new \DateTime();
+                    $this->setLogs($now->format(\DateTime::ISO8601), $type.'OperationTime');
                     switch ($type) {
                         case 'email':
                             $this->operationEmail($operation);

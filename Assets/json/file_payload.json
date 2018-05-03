@@ -424,7 +424,7 @@
                     "infoText": "Optionally specify a folder to upload files into."
                   }
                 },
-                "testFolder": {
+                "testRoot": {
                   "title": "Test Folder",
                   "type": "string",
                   "options": {
@@ -434,7 +434,7 @@
               }
             }
           ]
-        }
+        },
         "sftp": {
           "title": "sFTP",
           "default": false,
@@ -509,7 +509,83 @@
                     "infoText": "Optionally specify a folder to upload files into."
                   }
                 },
-                "testFolder": {
+                "testRoot": {
+                  "title": "Test Folder",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files to during tests."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "s3": {
+          "title": "Amazon S3",
+          "default": false,
+          "oneOf": [
+            {
+              "title": "Disabled",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false,
+              "options": {
+                "hidden": true,
+                "disabled": true
+              }
+            },
+            {
+              "title": "Enabled",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "key": {
+                  "title": "Key",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "AKIADYJVDMQ4AT5AU27A"
+                  }
+                },
+                "secret": {
+                  "title": "Secret",
+                  "type": "string",
+                  "format": "textarea",
+                  "options": {
+                    "notBlank": true,
+                    "codeMirror": true
+                  }
+                },
+                "region": {
+                  "title": "Region",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "us-east-1"
+                  }
+                },
+                "bucket": {
+                  "title": "Bucket",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "root": {
+                  "title": "Root Folder",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files into."
+                  }
+                },
+                "testRoot": {
                   "title": "Test Folder",
                   "type": "string",
                   "options": {
