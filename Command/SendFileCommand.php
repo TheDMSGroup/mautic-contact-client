@@ -72,9 +72,6 @@ class SendFileCommand extends ModeratedCommand
         $em           = $container->get('doctrine')->getManager();
         $translator   = $container->get('translator');
 
-        // @todo - add translation layer for strings in this method.
-        // $translator = $container->get('translator');
-
         if (!$this->checkRunStatus($input, $output, $options['client'].$options['file'])) {
             return 0;
         }
@@ -133,7 +130,7 @@ class SendFileCommand extends ModeratedCommand
                         }
                     }
                 } catch (\Exception $e) {
-                    // @todo - error handling.
+                    // @todo - Improve error handling by using the File entity side.
                     $output->writeln(
                         '<error>'.$translator->trans(
                             'mautic.contactclient.file.error',

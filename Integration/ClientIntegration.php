@@ -261,19 +261,17 @@ class ClientIntegration extends AbstractIntegration
         Contact $contact,
         $test = false
     ) {
-        // @todo - add translation layer for strings in this method.
-        // $translator = $this->getContainer()->get('translator');
-
+        $translator = $this->getContainer()->get('translator');
         $this->test = $test;
 
         try {
             if (!$client && !$this->test) {
-                throw new \InvalidArgumentException('Contact Client appears to not exist.');
+                throw new \InvalidArgumentException($translator->trans('mautic.contactclient.sendcontact.error.client.load'));
             }
             $this->contactClient = $client;
 
             if (!$contact && !$this->test) {
-                throw new \InvalidArgumentException('Contact appears to not exist.');
+                throw new \InvalidArgumentException($translator->trans('mautic.contactclient.sendcontact.error.contact.load'));
             }
             $this->contact = $contact;
 

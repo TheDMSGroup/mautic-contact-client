@@ -379,7 +379,7 @@ class FilePayload
             $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
             $requestFields = $this->fieldValues($this->payload->body);
             if ($this->file) {
-                $nullCsv       = $this->file->getCsvNull();
+                $nullCsv = $this->file->getCsvNull();
                 if (!empty($nullCsv)) {
                     foreach ($requestFields as $field => &$value) {
                         if (empty($value) && $value !== false) {
@@ -1112,6 +1112,7 @@ class FilePayload
             $iso1601        = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
             $logs[$iso1601] = $this->logs;
             $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
+            $this->logs = [];
         }
 
         return $this;
@@ -1122,16 +1123,11 @@ class FilePayload
      */
     public function fileSend()
     {
-        // @todo - Upload the file to S3 (if configured).
-
-        // @todo - Update the file record.
-
-        // @todo - Discern which file opperations are needed at this time.
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
                 if (is_array($operation)) {
                     $now = new \DateTime();
-                    $this->setLogs($now->format(\DateTime::ISO8601), $type.'OperationTime');
+                    $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
                     switch ($type) {
                         case 'email':
                             $this->operationEmail($operation);
@@ -1152,6 +1148,7 @@ class FilePayload
                 }
             }
         }
+        $this->fileEntityAddLogs();
 
         return $this;
     }
@@ -1494,10 +1491,16 @@ class FilePayload
     }
 
     /**
-     * @todo - Provide a proof of the file on the receiving side of the most recent operation.
+     * Since there is no external ID when sending files, we'll include the file name and CRC check at creation.
+     *
+     * @return null|string
      */
     public function getExternalId()
     {
+        if ($this->file && $this->file->getCrc32()) {
+            return $this->file->getName().' ('.$this->file->getCrc32().')';
+        }
+
         return null;
     }
 

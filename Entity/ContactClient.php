@@ -667,7 +667,6 @@ class ContactClient extends FormEntity
      */
     public function getPermissionUser()
     {
-        // @todo add Contact Client ownership? => $this->>getOwner() else getCreatedBy()
         return $this->getCreatedBy();
     }
 }

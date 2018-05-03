@@ -39,17 +39,6 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
                     </button>
                 </div>
 
-                <?php /* @todo - export action. Doesn't yet have a router/controller config.
-                 * <div class="col-sm-2">
-                 * <a class="btn btn-default btn-block" href="<?php echo
-                 * $view['router']->generate('mautic_contactclient_timeline_export_action', ['contactClientId' =>
-                 * $contactClient->getId()]); ?>" data-toggle="download">
-                 * <span>
-                 * <i class="fa fa-download"></i> <span class="hidden-xs hidden-sm"><?php echo
-                 * $view['translator']->trans('mautic.core.export'); ?></span>
-                 * </span>
-                 * </a>
-                 * </div>*/ ?>
                 <div class="input-group-btn" style="width:auto;font-size:1em;padding-left:4px;"
                 ">
                     <input id="include-logs" type="checkbox"

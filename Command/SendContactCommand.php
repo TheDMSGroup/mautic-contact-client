@@ -63,23 +63,22 @@ class SendContactCommand extends ModeratedCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $options   = $input->getOptions();
-        $container = $this->getContainer();
-        // @todo - add translation layer for strings in this method.
-        // $translator = $container->get('translator');
+        $options    = $input->getOptions();
+        $container  = $this->getContainer();
+        $translator = $container->get('translator');
 
         if (!$this->checkRunStatus($input, $output, $options['client'].$options['contact'])) {
             return 0;
         }
 
         if (!$options['client'] || !is_numeric($options['client'])) {
-            $output->writeln('<error>Client is required.</error>');
+            $output->writeln('<error>'. $translator->trans('mautic.contactclient.sendcontact.error.client').'</error>');
 
             return 0;
         }
 
         if (!$options['contact'] || !is_numeric($options['contact'])) {
-            $output->writeln('<error>Contact is required.</error>');
+            $output->writeln('<error>'. $translator->trans('mautic.contactclient.sendcontact.error.contact').'</error>');
 
             return 0;
         }
@@ -87,13 +86,13 @@ class SendContactCommand extends ModeratedCommand
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
         $client      = $clientModel->getEntity($options['client']);
         if (!$client) {
-            $output->writeln('<error>Could not load Client.</error>');
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.load').'</error>');
 
             return 0;
         }
 
         if (false === $client->getIsPublished() && !$options['force']) {
-            $output->writeln('<error>This client is not published. Publish it or use --force</error>');
+            $output->writeln('<error>'. $translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>');
 
             return 0;
         }
@@ -103,7 +102,7 @@ class SendContactCommand extends ModeratedCommand
         /** @var \Mautic\LeadBundle\Entity\Lead $contact */
         $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {
-            $output->writeln('<error>Could not load Contact.</error>');
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load').'</error>');
 
             return 0;
         }
@@ -118,24 +117,24 @@ class SendContactCommand extends ModeratedCommand
                 !$integrationObject
                 || (false === $integrationObject->getIntegrationSettings()->getIsPublished() && !$options['force'])
             ) {
-                $output->writeln('<error>The Contact Clients plugin is not published.</error>');
+                $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.plugin.publish').'</error>');
 
                 return 0;
             }
             $integrationObject->sendContact($client, $contact, $options['test']);
             if ($integrationObject->getValid()) {
-                $output->writeln('<info>Contact accepted.</info>');
+                $output->writeln('<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted').'</info>');
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             } else {
-                $output->writeln('<error>Contact rejected.</error>');
+                $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.contact.rejected').'</error>');
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             }
         } else {
-            $output->writeln('<error>Client type is not recognized.</error>');
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.client.type').'</error>');
 
             return 0;
         }

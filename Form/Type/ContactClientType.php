@@ -47,7 +47,6 @@ class ContactClientType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         // CleanFormSubscriber causes JSON payloads containing XML to be purged :(
-        // @todo - We may have to run clean on individual fields instead.
         // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url']));
         $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
 
