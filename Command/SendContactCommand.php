@@ -11,8 +11,10 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Command;
 
+use Mautic\ApiBundle\Model\ClientModel;
 use Mautic\CoreBundle\Command\ModeratedCommand;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -74,27 +76,29 @@ class SendContactCommand extends ModeratedCommand
         if (!$options['client'] || !is_numeric($options['client'])) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client').'</error>');
 
-            return 0;
+            return 1;
         }
 
         if (!$options['contact'] || !is_numeric($options['contact'])) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact').'</error>');
 
-            return 0;
+            return 1;
         }
 
+        /** @var ClientModel $clientModel */
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
+        /** @var ContactClient $client */
         $client      = $clientModel->getEntity($options['client']);
         if (!$client) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.load').'</error>');
 
-            return 0;
+            return 1;
         }
 
         if (false === $client->getIsPublished() && !$options['force']) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>');
 
-            return 0;
+            return 1;
         }
 
         /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
@@ -104,7 +108,7 @@ class SendContactCommand extends ModeratedCommand
         if (!$contact) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load').'</error>');
 
-            return 0;
+            return 1;
         }
 
         if (in_array($client->getType(), ['api', 'file'])) {
@@ -119,7 +123,7 @@ class SendContactCommand extends ModeratedCommand
             ) {
                 $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.plugin.publish').'</error>');
 
-                return 0;
+                return 1;
             }
             $integrationObject->sendContact($client, $contact, $options['test']);
             if ($integrationObject->getValid()) {
@@ -136,7 +140,7 @@ class SendContactCommand extends ModeratedCommand
         } else {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.client.type').'</error>');
 
-            return 0;
+            return 1;
         }
 
         $this->completeRun();

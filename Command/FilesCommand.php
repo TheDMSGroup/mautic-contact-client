@@ -21,9 +21,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * CLI Command : Sends queued file to a client.
  *
- * php app/console mautic:contactclient:sendfile [--client=%clientId% [--test]]
+ * php app/console mautic:contactclient:sendfile [--client=%clientId%] [--test] [--mode=build|send|both]
  */
-class SendFileCommand extends ModeratedCommand
+class FilesCommand extends ModeratedCommand
 {
     /**
      * {@inheritdoc}
@@ -32,7 +32,7 @@ class SendFileCommand extends ModeratedCommand
      */
     protected function configure()
     {
-        $this->setName('mautic:contactclient:sendfile')
+        $this->setName('mautic:contactclient:files')
             ->setDescription('Sends a contact to a client/queue.')
             ->addOption(
                 'client',
@@ -42,17 +42,16 @@ class SendFileCommand extends ModeratedCommand
                 null
             )
             ->addOption(
-                'file',
-                'l',
-                InputOption::VALUE_OPTIONAL,
-                'The id of a file to send. Otherwise a pending file will be used.',
-                null
-            )
-            ->addOption(
                 'test',
                 'i',
                 InputOption::VALUE_NONE,
                 'Run client requests in test mode.'
+            )
+            ->addOption(
+                'mode',
+                'm',
+                InputOption::VALUE_OPTIONAL,
+                'build, send, or both (default).'
             );
 
         parent::configure();
@@ -72,8 +71,15 @@ class SendFileCommand extends ModeratedCommand
         $em           = $container->get('doctrine')->getManager();
         $translator   = $container->get('translator');
 
-        if (!$this->checkRunStatus($input, $output, $options['client'].$options['file'])) {
+        if (!$this->checkRunStatus($input, $output, $options['client'].$options['mode'])) {
             return 0;
+        }
+
+        $mode = isset($options['mode']) ? strtolower(trim($options['mode'])) : 'both';
+        if (!in_array($mode, ['both', 'build', 'send'])) {
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.files.error.mode').'</error>');
+
+            return 1;
         }
 
         $filter = [];
@@ -114,24 +120,27 @@ class SendFileCommand extends ModeratedCommand
                 try {
                     $payloadModel->reset()
                         ->setContactClient($client)
-                        ->setTest($options['test'])
-                        ->run(2);
+                        ->setTest($options['test']);
 
-                    $output->writeln(
-                        '<info>'.$translator->trans(
-                            'mautic.contactclient.file.building',
-                            ['%clientId%' => $clientId, '%clientName%' => $clientName]
-                        ).'</info>'
-                    );
-                    $payloadModel->run(3);
+                    if (in_array($mode, ['build', 'both'])) {
+                        $output->writeln(
+                            '<info>'.$translator->trans(
+                                'mautic.contactclient.files.building',
+                                ['%clientId%' => $clientId, '%clientName%' => $clientName]
+                            ).'</info>'
+                        );
+                        $payloadModel->run('build');
+                    }
 
-                    $output->writeln(
-                        '<info>'.$translator->trans(
-                            'mautic.contactclient.file.sending',
-                            ['%clientId%' => $clientId, '%clientName%' => $clientName]
-                        ).'</info>'
-                    );
-                    $payloadModel->run(4);
+                    if (in_array($mode, ['send', 'both'])) {
+                        $output->writeln(
+                            '<info>'.$translator->trans(
+                                'mautic.contactclient.files.sending',
+                                ['%clientId%' => $clientId, '%clientName%' => $clientName]
+                            ).'</info>'
+                        );
+                        $payloadModel->run('send');
+                    }
 
                     if (isset($options['verbose']) && $options['verbose']) {
                         $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
@@ -139,7 +148,7 @@ class SendFileCommand extends ModeratedCommand
                 } catch (\Exception $e) {
                     $output->writeln(
                         $translator->trans(
-                            'mautic.contactclient.file.error',
+                            'mautic.contactclient.files.error',
                             ['%clientId%' => $clientId, '%clientName%' => $clientName, '%message%' => $e->getMessage()]
                         )
                     );

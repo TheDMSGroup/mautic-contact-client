@@ -89,10 +89,12 @@ class Schedule
      * Given the hours of operation, timezone and excluded dates of the client...
      * Find the next appropriate time to send them contacts.
      *
-     * @param int  $fileRate Maximum number of files to build per day.
-     * @param int  $seekDays Maximum number of days forward to seek for an opening.
+     * @param int $fileRate maximum number of files to build per day
+     * @param int $seekDays maximum number of days forward to seek for an opening
      *
      * @return \DateTime|null
+     *
+     * @throws \Exception
      */
     public function nextOpening($fileRate, $seekDays)
     {
@@ -320,11 +322,12 @@ class Schedule
      * @param int $fileRate
      *
      * @return bool|string
+     *
      * @throws ContactClientException
      */
     private function evaluateFileRate($fileRate = 1)
     {
-        $repo  = $this->getFileRepository();
+        $repo      = $this->getFileRepository();
         $fileCount = $repo->getCountByDate($this->now, $this->contactClient->getId());
         if ($fileCount >= $fileRate) {
             throw new ContactClientException(
@@ -344,6 +347,7 @@ class Schedule
     public function getFileRepository()
     {
         $em = $this->container->get('doctrine.orm.default_entity_manager');
+
         return $em->getRepository('MauticContactClientBundle:File');
     }
 

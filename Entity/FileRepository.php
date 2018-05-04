@@ -21,7 +21,7 @@ class FileRepository extends CommonRepository
     /**
      * Gets the number of files (ready/sent by default) on a given date.
      *
-     * @param \DateTime|null $date The date of the client, including client timezone.
+     * @param \DateTime|null $date            the date of the client, including client timezone
      * @param                $contactClientId
      * @param array          $statuses
      *
@@ -33,12 +33,12 @@ class FileRepository extends CommonRepository
         $statuses = [File::STATUS_READY, File::STATUS_SENT]
     ) {
         $start = $end = $date;
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q     = $this->getEntityManager()->getConnection()->createQueryBuilder();
         $q->select('count(*)')
             ->from(MAUTIC_TABLE_PREFIX.$this->getTableName());
 
-        $start->setTime(0,0,0);
-        $start->setTime(0,0,0)->modify('+1 days');
+        $start->setTime(0, 0, 0);
+        $start->setTime(0, 0, 0)->modify('+1 days');
         // Convert range to the system timezone. Assume database is the same.
         // $tz = new \DateTimeZone(date_default_timezone_get());
         // $start->setTimezone($tz);

@@ -344,6 +344,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function evaluateSchedule()
     {
+        /* @var \DateTime $dateSend */
         $this->dateSend = $this->getPayloadModel()->evaluateSchedule();
 
         return $this;

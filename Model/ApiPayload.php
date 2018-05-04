@@ -286,12 +286,12 @@ class ApiPayload
         return $this;
     }
 
-
     /**
      * Returns the expected send time for limit evaluation.
      * Throws an exception if an open slot is not available.
      *
      * @return \DateTime
+     *
      * @throws ContactClientException
      */
     public function evaluateSchedule()

@@ -374,41 +374,37 @@ class FilePayload
     /**
      * These steps can occur in different sessions.
      *
-     * @param int $step
+     * @param string $step
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
-    public function run($step = 1)
+    public function run($step = 'add')
     {
         switch ($step) {
             // Step 1: Validate and add a contact to a queue for the next file for the client.
-            case 1:
+            case 'add':
                 $this->getFieldValues();
                 $this->fileEntitySelect(true);
                 $this->fileEntityRefreshSettings();
                 $this->addContactToQueue();
                 break;
 
-            // Step 2: Discern if now is a good time to build a file.
-            case 2:
+            // Step 3: Build the file (if a good time), performing a second validation on each contact.
+            case 'build':
                 $this->fileEntitySelect();
                 $this->evaluateSchedule(true);
-                break;
-
-            // Step 3: Build the file, performing a second validation on each contact.
-            case 3:
-                $this->fileEntitySelect();
                 $this->fileEntityRefreshSettings();
                 $this->fileBuild();
                 break;
 
             // Step 4: Perform file send operations, if any are configured.
-            case 4:
+            case 'send':
                 $this->fileEntitySelect(false, File::STATUS_READY);
+                $this->evaluateSchedule(true);
                 $this->fileSend();
                 break;
-
         }
 
         return $this;
@@ -503,9 +499,10 @@ class FilePayload
      * @param null $status
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
-    public function fileEntitySelect($create = false, $status = null)
+    private function fileEntitySelect($create = false, $status = null)
     {
         if (!$this->file && $this->contactClient) {
             // Discern the next file entity to use.
@@ -547,7 +544,7 @@ class FilePayload
     /**
      * @return \MauticPlugin\MauticContactClientBundle\Entity\FileRepository
      */
-    public function getFileRepository()
+    private function getFileRepository()
     {
         return $this->em->getRepository('MauticContactClientBundle:File');
     }
@@ -557,7 +554,7 @@ class FilePayload
      *
      * @return $this
      */
-    public function fileEntityRefreshSettings()
+    private function fileEntityRefreshSettings()
     {
         if ($this->file) {
             // Update settings from the Contact Client entity.
@@ -636,6 +633,7 @@ class FilePayload
                 $queue->setContactClient($this->contactClient);
                 $queue->setContact($this->contact);
                 $queue->setFile($this->file);
+
                 // @todo - Add attribution to the queue entity so that it can be reversed on requirement change.
                 // $queue->setAttribution();
                 if (!empty($this->event['id'])) {
@@ -669,10 +667,13 @@ class FilePayload
     /**
      * @return \MauticPlugin\MauticContactClientBundle\Entity\QueueRepository
      */
-    public function getQueueRepository()
+    private function getQueueRepository()
     {
         return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
+
+    /** @var \DateTime */
+    protected $scheduleStart;
 
     /**
      * Assuming we have a file entity ready to go
@@ -681,47 +682,51 @@ class FilePayload
      * @param bool $prepFile
      *
      * @return \DateTime|null
+     *
      * @throws ContactClientException
      */
     public function evaluateSchedule($prepFile = false)
     {
-        $rate     = max(1, (int) $this->settings['rate']);
-        $seekDays = 30;
-        $this->scheduleModel
-            ->reset()
-            ->setContactClient($this->contactClient)
-            ->setTimezone();
+        if (!$this->scheduleStart) {
+            $rate     = max(1, (int) $this->settings['rate']);
+            $seekDays = 30;
+            $this->scheduleModel
+                ->reset()
+                ->setContactClient($this->contactClient)
+                ->setTimezone();
 
-        $start = $this->scheduleModel->nextOpening($rate, $seekDays);
+            $start = $this->scheduleModel->nextOpening($rate, $seekDays);
 
-        if (!$start) {
-            throw new ContactClientException(
-                'Could not find an open time slot to send in the next '.$seekDays.' days',
-                0,
-                null,
-                Stat::TYPE_SCHEDULE,
-                false
-            );
-        }
-
-        // More stringent schedule check to discern if now is a good time to prepare a file for send.
-        if ($prepFile) {
-            $now       = new \DateTime();
-            $prepStart = $prepEnd = $start;
-            $prepStart->modify('-'.self::FILE_PREP_BEFORE_TIME);
-            $prepEnd->modify('+'.self::FILE_PREP_AFTER_TIME);
-            if ($now < $prepStart || $now > $prepEnd) {
+            if (!$start) {
                 throw new ContactClientException(
-                    'It is not yet time to prepare a file for this client.',
+                    'Could not find an open time slot to send in the next '.$seekDays.' days',
                     0,
                     null,
                     Stat::TYPE_SCHEDULE,
                     false
                 );
             }
+
+            // More stringent schedule check to discern if now is a good time to prepare a file for build/send.
+            if ($prepFile) {
+                $now       = new \DateTime();
+                $prepStart = $prepEnd = $start;
+                $prepStart->modify('-'.self::FILE_PREP_BEFORE_TIME);
+                $prepEnd->modify('+'.self::FILE_PREP_AFTER_TIME);
+                if ($now < $prepStart || $now > $prepEnd) {
+                    throw new ContactClientException(
+                        'It is not yet time to prepare a file for this client.',
+                        0,
+                        null,
+                        Stat::TYPE_SCHEDULE,
+                        false
+                    );
+                }
+            }
+            $this->scheduleStart = $start;
         }
 
-        return $start;
+        return $this->scheduleStart;
     }
 
     /**
@@ -731,7 +736,7 @@ class FilePayload
      *
      * @throws ContactClientException
      */
-    public function fileBuild()
+    private function fileBuild()
     {
         if (!$this->contactClient || !$this->file) {
             return $this;
@@ -1014,7 +1019,7 @@ class FilePayload
     /**
      * Save any file changes using the form model.
      */
-    public function fileEntitySave()
+    private function fileEntitySave()
     {
         if (!$this->file) {
             return;
@@ -1167,7 +1172,7 @@ class FilePayload
     /**
      * @return $this
      */
-    public function fileEntityAddLogs()
+    private function fileEntityAddLogs()
     {
         if ($this->logs) {
             // Add our new logs to the entity.
@@ -1185,7 +1190,7 @@ class FilePayload
     /**
      * By cron/cli send appropriate files for this time.
      */
-    public function fileSend()
+    private function fileSend()
     {
         $results = $result = false;
         if (isset($this->payload->operations)) {
@@ -1295,7 +1300,7 @@ class FilePayload
      *
      * @return mixed
      */
-    public function getIntegrationSetting($key)
+    private function getIntegrationSetting($key)
     {
         if (null === $this->integrationSettings) {
             $this->integrationSettings = [];
