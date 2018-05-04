@@ -20,7 +20,7 @@
           "type": "string",
           "title": "File name",
           "options": {
-            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}} and {{test}}. Extension will be added automatically based on the type desired and compression."
+            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}}, {{test}} and {{extension}}."
           },
           "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}.{{extension}}"
         },
@@ -740,7 +740,7 @@
           "options": {
             "infoText": "Set to true to prevent sending contacts to this client if this field is empty."
           },
-          "default": true
+          "default": false
         },
         "overridable": {
           "propertyOrder": 60,
