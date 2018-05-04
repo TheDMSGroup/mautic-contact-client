@@ -47,6 +47,13 @@ use Symfony\Component\Yaml\Yaml;
 class FilePayload
 {
     /**
+     * The relative time to begin constructing files prior to an open time slot.
+     *
+     * @var string
+     */
+    const FILE_PREP_TIME = '10 minutes';
+
+    /**
      * Simple settings for this integration instance from the payload.
      *
      * @var array
@@ -142,6 +149,9 @@ class FilePayload
     /** @var MailHelper */
     protected $mailHelper;
 
+    /** @var Schedule */
+    protected $scheduleModel;
+
     /**
      * FilePayload constructor.
      *
@@ -154,7 +164,8 @@ class FilePayload
      * @param PathsHelper          $pathsHelper
      * @param CoreParametersHelper $coreParametersHelper
      * @param FileSystemLocal      $filesystemLocal
-     * @param MailHelper           $mailHelper           \
+     * @param MailHelper           $mailHelper
+     * @param Schedule             $scheduleModel
      */
     public function __construct(
         contactClientModel $contactClientModel,
@@ -166,7 +177,8 @@ class FilePayload
         PathsHelper $pathsHelper,
         CoreParametersHelper $coreParametersHelper,
         FileSystemLocal $filesystemLocal,
-        MailHelper $mailHelper
+        MailHelper $mailHelper,
+        Schedule $scheduleModel
     ) {
         $this->contactClientModel   = $contactClientModel;
         $this->tokenHelper          = $tokenHelper;
@@ -178,6 +190,7 @@ class FilePayload
         $this->coreParametersHelper = $coreParametersHelper;
         $this->filesystemLocal      = $filesystemLocal;
         $this->mailHelper           = $mailHelper;
+        $this->scheduleModel        = $scheduleModel;
     }
 
     /**
@@ -207,6 +220,7 @@ class FilePayload
             'coreParametersHelper',
             'filesystemLocal',
             'mailHelper',
+            'scheduleModel'
         ]
     ) {
         foreach (array_diff_key(
@@ -351,19 +365,44 @@ class FilePayload
     }
 
     /**
-     * Add a contact to a queue for a file, generating the file entry if needed.
-     * Additional field validations will take place again upon file building.
+     * These steps can occur in different sessions.
+     *
+     * @param int $step
      *
      * @return $this
-     *
      * @throws ContactClientException
      */
-    public function run()
+    public function run($step = 1)
     {
-        $this->getFieldValues();
-        $this->fileEntitySelect();
-        $this->fileEntityRefreshSettings();
-        $this->addContactToQueue();
+        switch ($step) {
+            // Step 1: Validate and add a contact to a queue for the next file for the client.
+            case 1:
+                $this->getFieldValues();
+                $this->fileEntitySelect(true);
+                $this->fileEntityRefreshSettings();
+                $this->addContactToQueue();
+                break;
+
+            // Step 2: Discern if now is a good time to build a file.
+            case 2:
+                $this->fileEntitySelect();
+                $this->evaluateSchedule();
+                break;
+
+            // Step 3: Build the file, performing a second validation on each contact.
+            case 3:
+                $this->fileEntitySelect();
+                $this->fileEntityRefreshSettings();
+                $this->fileBuild();
+                break;
+
+            // Step 4: Perform file send operations, if any are configured.
+            case 4:
+                $this->fileEntitySelect(false, File::STATUS_READY);
+                $this->fileSend();
+                break;
+
+        }
 
         return $this;
     }
@@ -454,19 +493,20 @@ class FilePayload
 
     /**
      * @param bool $create
+     * @param null $status
      *
-     * @return File|null|object
-     *
+     * @return $this
      * @throws ContactClientException
      */
-    public function fileEntitySelect($create = true)
+    public function fileEntitySelect($create = false, $status = null)
     {
         if (!$this->file && $this->contactClient) {
             // Discern the next file entity to use.
-
-            // Get the newest unsent file entity from the repository.
+            if (!$status) {
+                $status = File::STATUS_QUEUEING;
+            }
             $file = $this->getFileRepository()->findOneBy(
-                ['contactClient' => $this->contactClient, 'status' => File::STATUS_QUEUEING],
+                ['contactClient' => $this->contactClient, 'status' => $status],
                 ['dateAdded' => 'desc']
             );
             if (!$file && $create) {
@@ -484,9 +524,9 @@ class FilePayload
             }
         }
 
-        if (!$this->file && $create) {
+        if (!$this->file) {
             throw new ContactClientException(
-                'There is not a file being built for this client.',
+                'Nothing queued up for this client yet.',
                 0,
                 null,
                 Stat::TYPE_INVALID,
@@ -671,6 +711,35 @@ class FilePayload
     }
 
     /**
+     * Assuming we have a file entity ready to go,
+     * evaluate if *now* is a good time to start building the file.
+     *
+     * @return $this
+     * @throws ContactClientException
+     */
+    public function evaluateSchedule(){
+        $this->scheduleModel->reset();
+        $this->scheduleModel->setContactClient($this->contactClient);
+        $this->scheduleModel->setTimezone();
+        list($start, $end) = $this->scheduleModel->nextOpening();
+        $prepTime = $start->modify('-' .self::FILE_PREP_TIME);
+        $now = new \DateTime();
+        if (
+            $now < $prepTime
+            || $now > $end
+        ) {
+            throw new ContactClientException(
+                'We are not close enough to an open time slot to send a file to this client.',
+                Codes::HTTP_PRECONDITION_FAILED,
+                null,
+                Stat::TYPE_SCHEDULE,
+                false
+            );
+        }
+        return $this;
+    }
+
+    /**
      * Build out the original temp file.
      *
      * @return $this
@@ -708,9 +777,9 @@ class FilePayload
                 if (!$this->contact) {
                     throw new ContactClientException(
                         'This contact appears to have been deleted: '.$contactId,
-                        0,
+                        Codes::HTTP_GONE,
                         null,
-                        Codes::HTTP_GONE
+                        Stat::TYPE_REJECT
                     );
                 }
 
@@ -1017,7 +1086,13 @@ class FilePayload
                         case 'zip':
                             $zip = new \ZipArchive();
                             if (true !== $zip->open($target, \ZipArchive::CREATE)) {
-                                throw new \Exception('Zip could not open.');
+                                throw new ContactClientException(
+                                    'Cound not open zip '.$target,
+                                    Codes::HTTP_INTERNAL_SERVER_ERROR,
+                                    null,
+                                    Stat::TYPE_ERROR,
+                                    false
+                                );
                             }
                             $zip->addFile($this->file->getTmp(), $fileName);
                             $zip->close();
@@ -1085,12 +1160,13 @@ class FilePayload
                     $sha1 = hash_file('sha1', $target);
                     $this->file->setSha1($sha1);
                     $this->setLogs($sha1, 'sha1');
-                    $this->filesystemLocal->remove($origin);
 
                     $this->setLogs(filesize($target), 'fileSize');
+
+                    $this->filesystemLocal->remove($origin);
                 } else {
                     throw new ContactClientException(
-                        'Could not copy file to local location.',
+                        'Could not move file to local location.',
                         Codes::HTTP_INTERNAL_SERVER_ERROR,
                         null,
                         Stat::TYPE_ERROR,

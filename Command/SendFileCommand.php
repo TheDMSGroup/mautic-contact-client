@@ -108,34 +108,40 @@ class SendFileCommand extends ModeratedCommand
                 true === $client->getIsPublished()
                 && 'file' == $client->getType()
             ) {
+                $clientId   = $client->getId();
+                $clientName = $client->getName();
+
                 try {
                     $payloadModel->reset()
                         ->setContactClient($client)
                         ->setTest($options['test'])
-                        ->fileEntitySelect(false);
+                        ->run(2);
 
-                    if ($payloadModel->getFile()) {
-                        $output->writeln(
-                            '<info>'.$translator->trans(
-                                'mautic.contactclient.file.building',
-                                ['%client%' => $client->getId()]
-                            ).'</info>'
-                        );
-                        $payloadModel->fileEntityRefreshSettings()
-                            ->fileBuild()
-                            ->fileSend();
+                    $output->writeln(
+                        '<info>'.$translator->trans(
+                            'mautic.contactclient.file.building',
+                            ['%clientId%' => $clientId, '%clientName%' => $clientName]
+                        ).'</info>'
+                    );
+                    $payloadModel->run(3);
 
-                        if (isset($options['verbose']) && $options['verbose']) {
-                            $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
-                        }
+                    $output->writeln(
+                        '<info>'.$translator->trans(
+                            'mautic.contactclient.file.sending',
+                            ['%clientId%' => $clientId, '%clientName%' => $clientName]
+                        ).'</info>'
+                    );
+                    $payloadModel->run(4);
+
+                    if (isset($options['verbose']) && $options['verbose']) {
+                        $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
                     }
                 } catch (\Exception $e) {
-                    // @todo - Improve error handling by using the File entity side.
                     $output->writeln(
-                        '<error>'.$translator->trans(
+                        $translator->trans(
                             'mautic.contactclient.file.error',
-                            ['%client%' => $client->getId(), '%message%' => $e->getMessage()]
-                        ).'</error>'
+                            ['%clientId%' => $clientId, '%clientName%' => $clientName, '%message%' => $e->getMessage()]
+                        )
                     );
                 }
             }

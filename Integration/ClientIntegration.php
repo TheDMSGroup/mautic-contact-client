@@ -26,6 +26,7 @@ use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
+use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
@@ -371,9 +372,7 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return \MauticPlugin\MauticContactClientBundle\Model\Schedule|object
-     *
-     * @throws Exception
+     * @return Schedule
      */
     private function getScheduleModel()
     {
