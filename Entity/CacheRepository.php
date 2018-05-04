@@ -269,7 +269,7 @@ class CacheRepository extends CommonRepository
         Contact $contact,
         ContactClient $contactClient,
         $rules = [],
-        string $utmSource = '',
+        string $utmSource = null,
         string $timezone = null,
         \DateTime $dateSend = null
     ) {
