@@ -89,44 +89,71 @@ class Schedule
      * Given the hours of operation, timezone and excluded dates of the client...
      * Find the next appropriate time to send them contacts.
      *
-     * @param int $fileRate
+     * @param int  $fileRate Maximum number of files to build per day.
+     * @param int  $seekDays Maximum number of days forward to seek for an opening.
      *
-     * @return array
+     * @return \DateTime|null
      */
-    public function nextOpening($fileRate = 0)
+    public function nextOpening($fileRate, $seekDays)
     {
-        $start = $end = null;
         // Seek up to a year in the future for an opening date.
         if (!isset($this->nextOpeningDay)) {
             $this->nextOpeningDay = 0;
         }
-        for ($day = $this->nextOpeningDay; $day < 365; ++$day) {
-            $this->now = new \DateTime('+'.$day.' day');
+        for ($day = $this->nextOpeningDay; $day < $seekDays; ++$day) {
+            // Use noon to evaluate days to not worry about timezones.
+            $this->now = new \DateTime('noon +'.$day.' day');
             try {
+                $start = $end = $this->now;
                 $hours = $this->evaluateDay();
                 $this->evaluateExclusions();
                 if (0 == $day) {
                     // Is *now* a good time?
                     $this->evaluateTime();
                 }
+
+                // Check if there is time left in the day.
                 $timeTill = !empty($hours->timeTill) ? $hours->timeTill : '23:59';
-                $end      = new \DateTime('+'.$day.' day '.$timeTill, $this->timezone);
-                if (0 == $day && new \DateTime() > $end) {
+                $end->setTimezone($this->timezone);
+                $end->modify($timeTill.':59');
+                // Give breathing room.
+                $end->modify('+1 minute');
+                if (0 == $day && new \DateTime() >= $end) {
                     // No time left today, try tomorrow.
                     continue;
                 }
+
+                $timeFrom = !empty($hours->timeFrom) ? $hours->timeFrom : '00:00';
+                $start->setTimezone($this->timezone);
+                $start->modify($timeFrom);
+
+                // Check if there is an open slot today given the range (file limit).
                 if ($fileRate) {
-                    $this->evaluateFileRate($fileRate);
+                    // Ensure we have not exceeded the amount for this day.
+                    $fileCount = $this->evaluateFileRate($fileRate);
+
+                    // Spread the rate over the day, by setting the start time to the next segment of time.
+                    if ($fileRate > 1 && $fileCount > 1) {
+                        $daySeconds   = $end->format('U') - $start->format('U');
+                        $rangeSeconds = $daySeconds / ($fileRate - 1);
+                        $addSeconds   = $rangeSeconds * ($fileCount - 1);
+                        $start->modify('+'.$addSeconds.' seconds');
+                    }
                 }
-                $timeFrom             = !empty($hours->timeFrom) ? $hours->timeFrom : '00:00';
-                $start                = new \DateTime('+'.$day.' day '.$timeFrom, $this->timezone);
                 $this->nextOpeningDay = $day + 1;
+
+                return $start;
                 break;
             } catch (\Exception $e) {
+                if ($e instanceof ContactClientException) {
+                    // Expected.
+                } else {
+                    throw $e;
+                }
             }
         }
 
-        return [$start, $end];
+        return null;
     }
 
     /**
@@ -292,19 +319,23 @@ class Schedule
      *
      * @param int $fileRate
      *
+     * @return bool|string
      * @throws ContactClientException
      */
-    private function evaluateFileRate($fileRate = 0)
+    private function evaluateFileRate($fileRate = 1)
     {
-        $count = $this->getFileRepository()->getCountByDate($this->now, $this->contactClient->getId());
-        if ($count > $fileRate) {
+        $repo  = $this->getFileRepository();
+        $fileCount = $repo->getCountByDate($this->now, $this->contactClient->getId());
+        if ($fileCount >= $fileRate) {
             throw new ContactClientException(
-                'This contact client has exceeded the number of files they can receive for this date.',
+                'This client has reached the maximum number of files they can receive per day.',
                 0,
                 null,
                 Stat::TYPE_SCHEDULE
             );
         }
+
+        return $fileCount;
     }
 
     /**
@@ -312,7 +343,8 @@ class Schedule
      */
     public function getFileRepository()
     {
-        return $this->container->get('entity_manager')->getRepository('MauticContactClientBundle:File');
+        $em = $this->container->get('doctrine.orm.default_entity_manager');
+        return $em->getRepository('MauticContactClientBundle:File');
     }
 
     /**

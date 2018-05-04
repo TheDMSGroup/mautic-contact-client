@@ -97,21 +97,27 @@ class ApiPayload
     /** @var Campaign */
     protected $campaign;
 
+    /** @var Schedule */
+    protected $scheduleModel;
+
     /**
      * ApiPayload constructor.
      *
      * @param contactClientModel $contactClientModel
      * @param Transport          $transport
      * @param TokenHelper        $tokenHelper
+     * @param Schedule           $scheduleModel
      */
     public function __construct(
         contactClientModel $contactClientModel,
         Transport $transport,
-        tokenHelper $tokenHelper
+        tokenHelper $tokenHelper,
+        Schedule $scheduleModel
     ) {
         $this->contactClientModel = $contactClientModel;
         $this->transport          = $transport;
         $this->tokenHelper        = $tokenHelper;
+        $this->scheduleModel      = $scheduleModel;
     }
 
     /**
@@ -278,6 +284,26 @@ class ApiPayload
         $this->test = $test;
 
         return $this;
+    }
+
+
+    /**
+     * Returns the expected send time for limit evaluation.
+     * Throws an exception if an open slot is not available.
+     *
+     * @return \DateTime
+     * @throws ContactClientException
+     */
+    public function evaluateSchedule()
+    {
+        $this->scheduleModel->reset()
+            ->setContactClient($this->contactClient)
+            ->setTimezone()
+            ->evaluateDay()
+            ->evaluateTime()
+            ->evaluateExclusions();
+
+        return new \DateTime();
     }
 
     /**

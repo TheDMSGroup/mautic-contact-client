@@ -107,6 +107,7 @@ return [
                     'mautic.contactclient.model.contactclient',
                     'mautic.contactclient.service.transport',
                     'mautic.contactclient.helper.token',
+                    'mautic.contactclient.model.schedule',
                 ],
             ],
             'mautic.contactclient.model.filepayload'   => [

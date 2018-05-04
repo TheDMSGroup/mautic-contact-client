@@ -21,35 +21,36 @@ class FileRepository extends CommonRepository
     /**
      * Gets the number of files (ready/sent by default) on a given date.
      *
-     * @param \DateTime|null $date
+     * @param \DateTime|null $date The date of the client, including client timezone.
      * @param                $contactClientId
      * @param array          $statuses
      *
      * @return bool|string
-     *
-     * @throws \Exception
      */
     public function getCountByDate(
         \DateTime $date = null,
         $contactClientId,
         $statuses = [File::STATUS_READY, File::STATUS_SENT]
     ) {
+        $start = $end = $date;
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
-
         $q->select('count(*)')
-            ->from(MAUTIC_TABLE_PREFIX.$this->getTableName(), $this->getTableAlias());
+            ->from(MAUTIC_TABLE_PREFIX.$this->getTableName());
+
+        $start->setTime(0,0,0);
+        $start->setTime(0,0,0)->modify('+1 days');
+        // Convert range to the system timezone. Assume database is the same.
+        // $tz = new \DateTimeZone(date_default_timezone_get());
+        // $start->setTimezone($tz);
+        // $end->setTimezone($tz);
 
         $q->where(
-            $q->expr()->gte('contact_client_id', ':contact_client_id'),
-            $q->expr()->gte('date_added', ':oldest'),
-            $q->expr()->lt('date_added', ':newest'),
-            $q->expr()->in('status', $statuses)
+            $q->expr()->eq('contactclient_id', (int) $contactClientId),
+            $q->expr()->gte('date_added', (int) $start->format('U')),
+            $q->expr()->lt('date_added', (int) $end->format('U')),
+            $q->expr()->in('status', ':statuses')
         );
-        $oldest = $date->setTime(0, 0, 0, 0);
-        $newest = $date->add(new \DateInterval('P1D'));
-        $q->setParameter('contact_client_id', $contactClientId);
-        $q->setParameter('oldest', $oldest);
-        $q->setParameter('newest', $newest);
+        $q->setParameter('statuses', $statuses);
 
         return $q->execute()->fetchColumn();
     }

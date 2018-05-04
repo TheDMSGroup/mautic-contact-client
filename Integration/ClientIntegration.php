@@ -26,7 +26,6 @@ use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
-use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
@@ -306,17 +305,13 @@ class ClientIntegration extends AbstractIntegration
             }
 
             /* @var ApiPayload|FilePayload $model */
-            $this->getPayloadModel()
-                ->reset()
-                ->setContactClient($this->contactClient)
-                ->setContact($this->contact)
-                ->setTest($test)
+            $this->getPayloadModel($this->contactClient)
                 ->setCampaign($this->getCampaign())
                 ->setEvent($this->event);
 
-            $this->getPayloadModel()->run();
+            $this->payloadModel->run();
 
-            $this->valid = $this->getPayloadModel()->getValid();
+            $this->valid = $this->payloadModel->getValid();
 
             // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
@@ -343,69 +338,15 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Evaluates the schedule given the client type. Returns the time that the send will be allowed to take place.
+     * Evaluates the schedule given the client type.
      *
      * @return $this
-     *
-     * @throws ContactClientException
      */
     private function evaluateSchedule()
     {
-        /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
-        $schedule = $this->getScheduleModel();
-        if ('file' == $this->contactClient->getType()) {
-            list($start, $end) = $schedule->nextOpening();
-            if ($start) {
-                // Assuming we'll send at the next opening time slot for the client, or now, whichever is sooner.
-                $this->dateSend = $start;
-            } else {
-                $this->dateSend = new \DateTime();
-            }
-        } elseif (!$this->test) {
-            $this->dateSend = new \DateTime();
-            $schedule->evaluateDay();
-            $schedule->evaluateTime();
-            $schedule->evaluateExclusions();
-        }
+        $this->dateSend = $this->getPayloadModel()->evaluateSchedule();
 
         return $this;
-    }
-
-    /**
-     * @return Schedule
-     */
-    private function getScheduleModel()
-    {
-        if (!$this->scheduleModel) {
-            /* @var \MauticPlugin\MauticContactClientBundle\Model\Schedule scheduleModel */
-            $this->scheduleModel = $this->getContainer()->get('mautic.contactclient.model.schedule');
-        } else {
-            $this->scheduleModel->reset();
-        }
-        $this->scheduleModel->setContactClient($this->contactClient);
-        $this->scheduleModel->setTimezone();
-
-        return $this->scheduleModel;
-    }
-
-    /**
-     * Get the Cache model for duplicate/exclusive/limit checking.
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Model\Cache
-     *
-     * @throws Exception
-     */
-    private function getCacheModel()
-    {
-        if (!$this->cacheModel) {
-            /* @var \MauticPlugin\MauticContactClientBundle\Model\Cache $cacheModel */
-            $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
-            $this->cacheModel->setContact($this->contact);
-            $this->cacheModel->setContactClient($this->contactClient);
-            $this->cacheModel->setDateSend($this->dateSend);
-        }
-
-        return $this->cacheModel;
     }
 
     /**
@@ -421,12 +362,19 @@ class ClientIntegration extends AbstractIntegration
             $contactClient = $contactClient ? $contactClient : $this->contactClient;
             $clientType    = $contactClient->getType();
             if ('api' == $clientType) {
-                $this->payloadModel = $this->getApiPayloadModel();
+                $model = $this->getApiPayloadModel();
             } elseif ('file' == $clientType) {
-                $this->payloadModel = $this->getFilePayloadModel();
+                $model = $this->getFilePayloadModel();
             } else {
                 throw new \InvalidArgumentException('Client type is invalid.');
             }
+            $model->reset();
+            $model->setTest($this->test);
+            $model->setContactClient($contactClient);
+            if ($this->contact) {
+                $model->setContact($this->contact);
+            }
+            $this->payloadModel = $model;
         }
 
         return $this->payloadModel;
@@ -456,6 +404,26 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $this->filePayloadModel;
+    }
+
+    /**
+     * Get the Cache model for duplicate/exclusive/limit checking.
+     *
+     * @return \MauticPlugin\MauticContactClientBundle\Model\Cache
+     *
+     * @throws Exception
+     */
+    private function getCacheModel()
+    {
+        if (!$this->cacheModel) {
+            /* @var \MauticPlugin\MauticContactClientBundle\Model\Cache $cacheModel */
+            $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
+            $this->cacheModel->setContact($this->contact);
+            $this->cacheModel->setContactClient($this->contactClient);
+            $this->cacheModel->setDateSend($this->dateSend);
+        }
+
+        return $this->cacheModel;
     }
 
     /**
@@ -899,8 +867,6 @@ class ClientIntegration extends AbstractIntegration
                         // Get overridable fields from the payload of the type needed.
                         try {
                             $overrides[$id] = $this->getPayloadModel($contactClientEntity)
-                                ->reset()
-                                ->setContactClient($contactClientEntity)
                                 ->getOverrides();
                         } catch (\Exception $e) {
                             if ($this->logger) {

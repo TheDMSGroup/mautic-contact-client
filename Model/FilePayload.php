@@ -47,11 +47,18 @@ use Symfony\Component\Yaml\Yaml;
 class FilePayload
 {
     /**
-     * The relative time to begin constructing files prior to an open time slot.
+     * The time allowed for file preparation after the scheduled time, before it will be blocked.
      *
      * @var string
      */
-    const FILE_PREP_TIME = '10 minutes';
+    const FILE_PREP_AFTER_TIME = '6 hours';
+
+    /**
+     * The time allowed for file preparation, so that a cron task can begin a little early.
+     *
+     * @var string
+     */
+    const FILE_PREP_BEFORE_TIME = '10 minutes';
 
     /**
      * Simple settings for this integration instance from the payload.
@@ -220,7 +227,7 @@ class FilePayload
             'coreParametersHelper',
             'filesystemLocal',
             'mailHelper',
-            'scheduleModel'
+            'scheduleModel',
         ]
     ) {
         foreach (array_diff_key(
@@ -386,7 +393,7 @@ class FilePayload
             // Step 2: Discern if now is a good time to build a file.
             case 2:
                 $this->fileEntitySelect();
-                $this->evaluateSchedule();
+                $this->evaluateSchedule(true);
                 break;
 
             // Step 3: Build the file, performing a second validation on each contact.
@@ -668,75 +675,53 @@ class FilePayload
     }
 
     /**
-     * @return File
-     */
-    public function getFile()
-    {
-        return $this->file;
-    }
-
-    /**
-     * @param $file
+     * Assuming we have a file entity ready to go
+     * Throws an exception if an open slot is not available.
      *
-     * @return $this
-     */
-    public function setFile($file)
-    {
-        $this->file = $file;
-
-        return $this;
-    }
-
-    /**
-     * @return Campaign
-     */
-    public function getCampaign()
-    {
-        return $this->campaign;
-    }
-
-    /**
-     * @param Campaign|null $campaign
+     * @param bool $prepFile
      *
-     * @return $this
-     */
-    public function setCampaign(Campaign $campaign = null)
-    {
-        if ($campaign) {
-            $this->setLogs($campaign->getId(), 'campaignId');
-            $this->campaign = $campaign;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Assuming we have a file entity ready to go,
-     * evaluate if *now* is a good time to start building the file.
-     *
-     * @return $this
+     * @return \DateTime|null
      * @throws ContactClientException
      */
-    public function evaluateSchedule(){
-        $this->scheduleModel->reset();
-        $this->scheduleModel->setContactClient($this->contactClient);
-        $this->scheduleModel->setTimezone();
-        list($start, $end) = $this->scheduleModel->nextOpening();
-        $prepTime = $start->modify('-' .self::FILE_PREP_TIME);
-        $now = new \DateTime();
-        if (
-            $now < $prepTime
-            || $now > $end
-        ) {
+    public function evaluateSchedule($prepFile = false)
+    {
+        $rate     = max(1, (int) $this->settings['rate']);
+        $seekDays = 30;
+        $this->scheduleModel
+            ->reset()
+            ->setContactClient($this->contactClient)
+            ->setTimezone();
+
+        $start = $this->scheduleModel->nextOpening($rate, $seekDays);
+
+        if (!$start) {
             throw new ContactClientException(
-                'We are not close enough to an open time slot to send a file to this client.',
-                Codes::HTTP_PRECONDITION_FAILED,
+                'Could not find an open time slot to send in the next '.$seekDays.' days',
+                0,
                 null,
                 Stat::TYPE_SCHEDULE,
                 false
             );
         }
-        return $this;
+
+        // More stringent schedule check to discern if now is a good time to prepare a file for send.
+        if ($prepFile) {
+            $now       = new \DateTime();
+            $prepStart = $prepEnd = $start;
+            $prepStart->modify('-'.self::FILE_PREP_BEFORE_TIME);
+            $prepEnd->modify('+'.self::FILE_PREP_AFTER_TIME);
+            if ($now < $prepStart || $now > $prepEnd) {
+                throw new ContactClientException(
+                    'It is not yet time to prepare a file for this client.',
+                    0,
+                    null,
+                    Stat::TYPE_SCHEDULE,
+                    false
+                );
+            }
+        }
+
+        return $start;
     }
 
     /**
@@ -1543,6 +1528,49 @@ class FilePayload
         }
 
         return $written;
+    }
+
+    /**
+     * @return File
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param $file
+     *
+     * @return $this
+     */
+    public function setFile($file)
+    {
+        $this->file = $file;
+
+        return $this;
+    }
+
+    /**
+     * @return Campaign
+     */
+    public function getCampaign()
+    {
+        return $this->campaign;
+    }
+
+    /**
+     * @param Campaign|null $campaign
+     *
+     * @return $this
+     */
+    public function setCampaign(Campaign $campaign = null)
+    {
+        if ($campaign) {
+            $this->setLogs($campaign->getId(), 'campaignId');
+            $this->campaign = $campaign;
+        }
+
+        return $this;
     }
 
     /**
