@@ -357,14 +357,14 @@ class ClientIntegration extends AbstractIntegration
             if ($start) {
                 // Assuming we'll send at the next opening time slot for the client, or now, whichever is sooner.
                 $this->dateSend = $start;
+            } else {
+                $this->dateSend = new \DateTime();
             }
         } elseif (!$this->test) {
+            $this->dateSend = new \DateTime();
             $schedule->evaluateDay();
             $schedule->evaluateTime();
             $schedule->evaluateExclusions();
-        }
-        if (!$this->dateSend) {
-            $this->dateSend = new \StartDate();
         }
 
         return $this;
