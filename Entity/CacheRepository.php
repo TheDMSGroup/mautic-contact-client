@@ -194,28 +194,17 @@ class CacheRepository extends CommonRepository
                     foreach ($properties as $property => $value) {
                         if (is_array($value)) {
                             $expr->add(
-                                $query->expr()->in($alias.'.'.$property, ':'.$property.$k)
+                                $query->expr()->in($alias.'.'.$property, $value)
                             );
                         } else {
                             $expr->add(
                                 $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
                             );
+                            $query->setParameter($property.$k, $value);
                         }
-                        $query->setParameter($property.$k, $value);
                     }
                 }
-                if (isset($set['contactclient_id']) && isset($set['date_added'])) {
-                    $query->add(
-                        'where',
-                        $query->expr()->andX(
-                            $query->expr()->eq($alias.'.contactclient_id', ':contactClientId'.$k),
-                            $query->expr()->gte($alias.'.date_added', ':dateAdded'.$k),
-                            (isset($expr) ? $expr : null)
-                        )
-                    );
-                    $query->setParameter('contactClientId'.$k, $set['contactclient_id']);
-                    $query->setParameter('dateAdded'.$k, $set['date_added']);
-                } elseif (isset($set['exclusive_expire_date'])) {
+                if (isset($set['exclusive_expire_date'])) {
                     // Expiration/Exclusions will require an extra outer AND expression.
                     if (!isset($exprOuter)) {
                         $exprOuter  = $query->expr()->orX();
@@ -226,24 +215,35 @@ class CacheRepository extends CommonRepository
                             $query->expr()->orX($expr)
                         );
                     }
-                }
-
-                // Expiration can always be applied globally.
-                if (isset($exprOuter) && isset($expireDate)) {
+                } elseif (isset($set['contactclient_id']) && isset($set['date_added'])) {
                     $query->add(
                         'where',
                         $query->expr()->andX(
-                            $query->expr()->gte($alias.'.exclusive_expire_date', ':exclusiveExpireDate'),
-                            $exprOuter
+                            $query->expr()->eq($alias.'.contactclient_id', ':contactClientId'.$k),
+                            $query->expr()->gte($alias.'.date_added', ':dateAdded'.$k),
+                            (isset($expr) ? $expr : null)
                         )
                     );
-                    $query->setParameter('exclusiveExpireDate', $expireDate);
+                    $query->setParameter('contactClientId'.$k, $set['contactclient_id']);
+                    $query->setParameter('dateAdded'.$k, $set['date_added']);
                 }
 
-                $result = $query->execute()->fetch();
-                if ($returnCount) {
-                    $result = intval(reset($result));
-                }
+            }
+            // Expiration can always be applied globally.
+            if (isset($exprOuter) && isset($expireDate)) {
+                $query->add(
+                    'where',
+                    $query->expr()->andX(
+                        $query->expr()->gte($alias.'.exclusive_expire_date', ':exclusiveExpireDate'),
+                        $exprOuter
+                    )
+                );
+                $query->setParameter('exclusiveExpireDate', $expireDate);
+            }
+
+            $result = $query->execute()->fetch();
+            if ($returnCount) {
+                $result = intval(reset($result));
             }
         }
 
@@ -580,7 +580,7 @@ class CacheRepository extends CommonRepository
     ) {
         if ($filters) {
             $expiration = $dateSend ? $dateSend : new \DateTime();
-            $expiration = $expiration->format('Y-m-d H:i:s');
+            $expiration = (int) $expiration->format('U');
             foreach ($filters as &$filter) {
                 $filter['exclusive_expire_date'] = $expiration;
             }
