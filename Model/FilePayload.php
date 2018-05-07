@@ -1600,6 +1600,7 @@ class FilePayload
             }
         }
         ksort($result);
+
         return array_values($result);
     }
 

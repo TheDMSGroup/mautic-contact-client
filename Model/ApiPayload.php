@@ -556,6 +556,7 @@ class ApiPayload
             }
         }
         ksort($result);
+
         return array_values($result);
     }
 
