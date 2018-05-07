@@ -215,11 +215,28 @@ class ApiPayloadRequest
                 $transport->put($uri, $options);
                 break;
         }
+        $transportRecords = $transport->getRecords();
+        if ($transportRecords) {
+            $debug = [];
+            foreach ($transportRecords as $transportRecord) {
+                if (
+                    isset($transportRecord['channel'])
+                    && 'guzzle.to.curl' == $transportRecord['channel']
+                    && isset($transportRecord['message'])
+                ) {
+                    $debug[] = $transportRecord['message'];
+                }
+            }
+            if ($debug) {
+                $this->setLogs($debug, 'debug');
+            }
+        }
         $this->setLogs(microtime(true) - $startTime, 'duration');
     }
 
     /**
      * Tokenize/parse fields from the API Payload for transit.
+     * This method also exists in the other payload type with a minor difference.
      *
      * @param $fields
      *
@@ -259,7 +276,7 @@ class ApiPayloadRequest
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required request field is missing or empty: '.$field->key,
+                        'A required API request field is missing or empty: '.$field->key,
                         0,
                         null,
                         Stat::TYPE_FIELDS,

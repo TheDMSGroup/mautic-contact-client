@@ -8,27 +8,32 @@ Mautic.contactclientApiPayloadPre = function () {
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
         }
-        window.JSONEditor.tokenCache[tokenSource] = {};
-        mQuery.ajax({
-            url: mauticAjaxUrl,
-            type: 'POST',
-            data: {
-                action: tokenSource
-            },
-            cache: true,
-            dataType: 'json',
-            success: function (response) {
-                if (typeof response.tokens !== 'undefined') {
-                    window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+        if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
+            window.JSONEditor.tokenCache[tokenSource] = {};
+            mQuery.ajax({
+                url: mauticAjaxUrl,
+                type: 'POST',
+                data: {
+                    action: tokenSource
+                },
+                cache: true,
+                dataType: 'json',
+                success: function (response) {
+                    if (typeof response.tokens !== 'undefined') {
+                        window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                    }
+                },
+                error: function (request, textStatus, errorThrown) {
+                    Mautic.processAjaxError(request, textStatus, errorThrown);
+                },
+                complete: function () {
+                    Mautic.contactclientApiPayload();
                 }
-            },
-            error: function (request, textStatus, errorThrown) {
-                Mautic.processAjaxError(request, textStatus, errorThrown);
-            },
-            complete: function () {
-                Mautic.contactclientApiPayload();
-            }
-        });
+            });
+        }
+        else {
+            Mautic.contactclientApiPayload();
+        }
         $apiPayload.addClass('payload-checked');
 
         // Ensure our affix nav functions even on ajax create.
@@ -181,11 +186,6 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                 }
                             }
-                        }
-
-                        // Apply tokenization if available.
-                        if (typeof Mautic.contactclientTokens === 'function') {
-                            Mautic.contactclientTokens();
                         }
 
                         // Apply CodeMirror typecasting.
@@ -763,7 +763,8 @@ Mautic.contactclientApiPayload = function () {
                             if (raw.length && $apiPayload.val() !== raw) {
                                 if (typeof setJSONEditorValue !== 'undefined') {
                                     setJSONEditorValue(raw);
-                                } else {
+                                }
+                                else {
                                     $apiPayload.val(raw);
                                 }
                             }

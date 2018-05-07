@@ -32,6 +32,12 @@ class DateFormatHelper
         'rss'        => 'D, d M Y H:i:s O',
         'w3c'        => 'Y-m-d\TH:i:sP',
         'short'      => 'd/m/Y',
+        'Y/m/d'      => 'Y/m/d',
+        'Y-m-d'      => 'Y-m-d',
+        'Ymd'        => 'Ymd',
+        'H:i:s'      => 'H:i:s',
+        'His'        => 'His',
+        'H-i-s'      => 'H-i-s',
     ];
 
     /** @var string All allowed single-character date/time formats. */
@@ -54,8 +60,6 @@ class DateFormatHelper
 
     /** @var string */
     private $defaultFormat;
-
-    // @todo - Create a magic method that handles all standard formats, returning closures for each.
 
     /**
      * DateFormatHelper constructor.
@@ -99,6 +103,9 @@ class DateFormatHelper
                 return $format;
             }
         } else {
+            if (isset($this->formats[$format])) {
+                return $this->formats[$format];
+            }
             $format = strtolower($format);
             if (isset($this->formats[$format])) {
                 return $this->formats[$format];
@@ -230,14 +237,17 @@ class DateFormatHelper
     /**
      * @param        $date
      * @param string $format
+     * @param bool   $validate
      *
-     * @return string
+     * @return null|string
      */
-    public function format($date, $format = 'iso8601')
+    public function format($date, $format = 'iso8601', $validate = true)
     {
         $result = null;
         try {
-            $format = $this->validateFormat($format);
+            if ($validate) {
+                $format = $this->validateFormat($format);
+            }
             $result = $this->parse($date)->format($format);
         } catch (\Exception $e) {
         }

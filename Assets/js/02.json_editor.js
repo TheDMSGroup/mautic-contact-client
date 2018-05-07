@@ -89,6 +89,7 @@ JSONEditor.defaults.options.disable_array_delete_last_row = true;
 JSONEditor.defaults.options.remove_empty_properties = false;
 JSONEditor.defaults.options.required_by_default = true;
 JSONEditor.defaults.options.expand_height = true;
+JSONEditor.defaults.options.keep_oneof_values = false;
 
 /**
  * Convert a standard text field to a tagEditor field using predefined tokens.
@@ -301,7 +302,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                             if (
                                                                 allowedTagArr[i].length >= len
                                                                 && allowedTagArr[i].substr(0, len) === word
-                                                                // && allowedTagArr[i] !== word
+                                                            // &&
+                                                            // allowedTagArr[i]
+                                                            // !== word
                                                             ) {
                                                                 matches.push('{{' + allowedTagArr[i] + '}}');
                                                             }
@@ -389,6 +392,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
         }).addClass('date-checked');
     }
+
     // Activate the jQuery Chosen plugin for all select fields with more than
     // 8 elements. Use "format": "select" to activate.
     if (schema.format === 'select') {
@@ -424,6 +428,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             }
         }).addClass('chosen-checked');
     }
+
     // Improve the range slider with bootstrap sliders.
     if (schema.format === 'range') {
         // Get the element based on schema path.
@@ -457,6 +462,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             });
         }).addClass('slider-checked');
     }
+
     // Add support for a token text field.
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
 
@@ -501,7 +507,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         }
                         if (!mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
                             JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
-                        } else {
+                        }
+                        else {
                             console.log('No tokens found for ' + tokenSource);
                         }
                     },
@@ -526,6 +533,27 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
             }
 
         }).addClass('tokens-checked');
+    }
+
+    // Set html5 "required' fields by the option "notBlank"
+    if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.notBlank !== 'undefined' && schema.options.notBlank === true) {
+        // mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not([required])').each(function () {
+        //     mQuery(this).prop('required', true);
+        // });
+        if (value.replace(/^\s+|\s+$/gm, '') === '') {
+            errors.push({
+                path: path,
+                property: 'format',
+                message: 'This field cannot be left blank'
+            });
+        }
+    }
+
+    // Add placeholders
+    if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.placeholder !== 'undefined') {
+        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not([placeholder])').each(function () {
+            mQuery(this).prop('placeholder', schema.options.placeholder);
+        });
     }
 
     return errors;

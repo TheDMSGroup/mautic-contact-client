@@ -196,95 +196,6 @@ class TimelineController extends CommonController
     }
 
     /**
-     * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\StreamedResponse
-     *
-     * @todo - Needs refactoring to function.
-     */
-    public function batchExportAction(Request $request, $contactClientId)
-    {
-        if (empty($contactClientId)) {
-            return $this->accessDenied();
-        }
-
-        $contactClient = $this->checkContactClientAccess($contactClientId, 'view');
-        if ($contactClient instanceof Response) {
-            return $contactClient;
-        }
-
-        $this->setListFilters();
-
-        $session = $this->get('session');
-        if ('POST' == $request->getMethod() && $request->request->has('search')) {
-            $filters = [
-                'search'        => InputHelper::clean($request->request->get('search')),
-                'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
-                'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
-            ];
-            $session->set('mautic.contactClient.'.$contactClientId.'.timeline.filters', $filters);
-        } else {
-            $filters = null;
-        }
-
-        $order = [
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderby'),
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderbydir'),
-        ];
-
-        $dataType = $this->request->get('filetype', 'csv');
-
-        $resultsCallback = function ($event) {
-            $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
-            if (is_array($eventLabel)) {
-                $eventLabel = $eventLabel['label'];
-            }
-
-            return [
-                'eventName'      => $eventLabel,
-                'eventType'      => isset($event['eventType']) ? $event['eventType'] : '',
-                'eventTimestamp' => $this->get('mautic.helper.template.date')->toText(
-                    $event['timestamp'],
-                    'local',
-                    'Y-m-d H:i:s',
-                    true
-                ),
-            ];
-        };
-
-        $results    = $this->getEngagements($contactClient, $filters, $order, 1, 200);
-        $count      = $results['total'];
-        $items      = $results['events'];
-        $iterations = ceil($count / 200);
-        $loop       = 1;
-
-        // Max of 50 iterations for 10K result export
-        if ($iterations > 50) {
-            $iterations = 50;
-        }
-
-        $toExport = [];
-
-        while ($loop <= $iterations) {
-            if (is_callable($resultsCallback)) {
-                foreach ($items as $item) {
-                    $toExport[] = $resultsCallback($item);
-                }
-            } else {
-                foreach ($items as $item) {
-                    $toExport[] = (array) $item;
-                }
-            }
-
-            $items = $this->getEngagements($contactClient, $filters, $order, $loop + 1, 200);
-
-            $this->getDoctrine()->getManager()->clear();
-
-            ++$loop;
-        }
-
-        return $this->exportResultsAs($toExport, $dataType, 'contact_timeline');
-    }
-
-    /**
      * @param Request $request
      * @param         $contactClientId
      *
@@ -394,17 +305,17 @@ class TimelineController extends CommonController
     {
         $json = json_decode($data['logs'], true);
         unset($data['logs']);
-        $rows                               = [];
-        $data['request_format']             = '';
-        $data['request_method']             = '';
-        $data['request_headers']            = '';
-        $data['request_body']               = '';
-        $data['request_duration']           = '';
-        $data['response_status']            = '';
-        $data['response_headers']           = '';
-        $data['response_body_raw']          = '';
-        $data['response_format']            = '';
-        $data['valid']                      = '';
+        $rows                      = [];
+        $data['request_format']    = '';
+        $data['request_method']    = '';
+        $data['request_headers']   = '';
+        $data['request_body']      = '';
+        $data['request_duration']  = '';
+        $data['response_status']   = '';
+        $data['response_headers']  = '';
+        $data['response_body_raw'] = '';
+        $data['response_format']   = '';
+        $data['valid']             = '';
         if (isset($json['operations'])) {
             foreach ($json['operations'] as $id => $operation) {
                 if (is_numeric($id)) {
@@ -425,15 +336,15 @@ class TimelineController extends CommonController
                         }
                         $row['request_body'] = $string;
                     }
-                    $row['request_duration'] = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
-                    $row['response_status']  = isset($operation['response']['status']) ? $operation['response']['status'] : '';
-                    $row['response_headers'] = isset($operation['response']['headers']) ? implode(
+                    $row['request_duration']  = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
+                    $row['response_status']   = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['response_headers']  = isset($operation['response']['headers']) ? implode(
                         '; ',
                         $operation['response']['headers']
                     ) : '';
-                    $row['response_body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
-                    $row['response_format']           = isset($operation['response']['format']) ? $operation['response']['format'] : '';
-                    $row['valid']                     = isset($operation['valid']) ? $operation['valid'] : '';
+                    $row['response_body_raw'] = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['response_format']   = isset($operation['response']['format']) ? $operation['response']['format'] : '';
+                    $row['valid']             = isset($operation['valid']) ? $operation['valid'] : '';
 
                     $rows[$id] = $row;
                 }
@@ -454,17 +365,17 @@ class TimelineController extends CommonController
     {
         $yaml = Yaml::parse($data['logs']);
         unset($data['logs']);
-        $rows                               = [];
-        $data['request_format']             = '';
-        $data['request_method']             = '';
-        $data['request_headers']            = '';
-        $data['request_body']               = '';
-        $data['request_duration']           = '';
-        $data['response_status']            = '';
-        $data['response_headers']           = '';
-        $data['response_body_raw']          = '';
-        $data['response_format']            = '';
-        $data['valid']                      = '';
+        $rows                      = [];
+        $data['request_format']    = '';
+        $data['request_method']    = '';
+        $data['request_headers']   = '';
+        $data['request_body']      = '';
+        $data['request_duration']  = '';
+        $data['response_status']   = '';
+        $data['response_headers']  = '';
+        $data['response_body_raw'] = '';
+        $data['response_format']   = '';
+        $data['valid']             = '';
         if (isset($yaml['operations'])) {
             foreach ($yaml['operations'] as $id => $operation) {
                 if (is_numeric($id)) {
@@ -485,15 +396,15 @@ class TimelineController extends CommonController
                         }
                         $row['request_body'] = $string;
                     }
-                    $row['request_duration'] = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
-                    $row['response_status']  = isset($operation['response']['status']) ? $operation['response']['status'] : '';
-                    $row['response_headers'] = isset($operation['response']['headers']) ? implode(
+                    $row['request_duration']  = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
+                    $row['response_status']   = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['response_headers']  = isset($operation['response']['headers']) ? implode(
                         '; ',
                         $operation['response']['headers']
                     ) : '';
-                    $row['response_body_raw']         = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
-                    $row['response_format']           = isset($operation['response']['format']) ? $operation['response']['format'] : '';
-                    $row['valid']                     = isset($operation['valid']) ? $operation['valid'] : '';
+                    $row['response_body_raw'] = isset($operation['response']['bodyRaw']) ? $operation['response']['bodyRaw'] : '';
+                    $row['response_format']   = isset($operation['response']['format']) ? $operation['response']['format'] : '';
+                    $row['valid']             = isset($operation['valid']) ? $operation['valid'] : '';
 
                     $rows[$id] = $row;
                 }

@@ -55,7 +55,7 @@ echo $view['form']->start($form);
                             ); ?>
                         </a>
                     </li>
-                    <li>
+                    <li class="hide">
                         <a href="#filter" role="tab" data-toggle="tab" class="contactclient-tab">
                             <i class="fa fa-filter fa-lg pull-left"></i><?php echo $view['translator']->trans(
                                 'mautic.contactclient.form.group.filter'
@@ -170,7 +170,7 @@ echo $view['form']->start($form);
                                 <div class="col-md-12">
                                     <div id="api_payload_buttons" class="toolbar-form-buttons pull-right hide"
                                          data-spy="affix" data-offset-top="173">
-                                        <div class="btn-group mr-20">
+                                        <div class="btn-group">
                                             <button type="button" class="btn btn-default" id="api_payload_test"
                                                     data-toggle="button" aria-pressed="false" autocomplete="off">
                                                 <i class="fa fa-check-circle text-success"></i>
@@ -179,6 +179,7 @@ echo $view['form']->start($form);
                                                 ); ?>
                                             </button>
                                         </div>
+                                        <span class="mr-20"></span>
                                         <div class="btn-group hidden-xs view_modes">
                                             <button type="button" class="btn btn-default btn-nospin active btn-success"
                                                     id="api_payload_simple" data-toggle="button" aria-pressed="false"
@@ -248,7 +249,83 @@ echo $view['form']->start($form);
                             </div>
                             <div class="row file_payload hide">
                                 <div class="col-md-12">
+                                    <div id="file_payload_buttons" class="toolbar-form-buttons pull-right hide"
+                                         data-spy="affix" data-offset-top="173">
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-default" id="file_payload_test"
+                                                    data-toggle="button" aria-pressed="false" autocomplete="off">
+                                                <i class="fa fa-check-circle text-success"></i>
+                                                <?php echo $view['translator']->trans(
+                                                    'mautic.contactclient.form.test'
+                                                ); ?>
+                                            </button>
+                                        </div>
+                                        <span class="mr-20"></span>
+                                        <div class="btn-group hidden-xs view_modes">
+                                            <button type="button" class="btn btn-default btn-nospin active btn-success"
+                                                    id="file_payload_simple" data-toggle="button" aria-pressed="false"
+                                                    autocomplete="off">
+                                                <i class="fa fa-low-vision"></i>
+                                                <?php echo $view['translator']->trans(
+                                                    'mautic.contactclient.form.simple'
+                                                ); ?>
+                                            </button>
+                                            <button type="button" class="btn btn-default btn-nospin hide"
+                                                    id="file_payload_advanced" data-toggle="button" aria-pressed="false"
+                                                    autocomplete="off">
+                                                <i class="fa fa-eye"></i>
+                                                <?php echo $view['translator']->trans(
+                                                    'mautic.contactclient.form.advanced'
+                                                ); ?>
+                                            </button>
+                                            <button type="button" class="btn btn-default btn-nospin"
+                                                    id="file_payload_code" data-toggle="button" aria-pressed="false"
+                                                    autocomplete="off">
+                                                <i class="fa fa-code"></i>
+                                                <?php echo $view['translator']->trans(
+                                                    'mautic.contactclient.form.code'
+                                                ); ?>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <?php echo $view['form']->row($form['file_payload']); ?>
+                                    <div id="file_payload_test_result" class="hide modal fade bg-white" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <h4 class="modal-title" id="testResultsModalTitle">
+                                                <?php echo $view['translator']->trans(
+                                                    'mautic.contactclient.form.test_results'
+                                                ); ?>
+                                            </h4>
+                                        </div>
+                                        <div class="modal-body modal-md" role="document">
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1 mt-20 mb-10">
+                                                    <h3 id="file_payload_test_result_message" class="hide"></h3>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1 mt-10 mb-10">
+                                                    <div id="file_payload_test_result_error" class="hide pl-20 text-danger"></div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-10 col-md-offset-1 mt-10 mb-10">
+                                                    <label>
+                                                        <?php echo $view['translator']->trans(
+                                                            'mautic.contactclient.form.test_results.logs'
+                                                        ); ?>
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-10 col-md-offset-1">
+                                                    <div id="file_payload_test_result_yaml"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer hide">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

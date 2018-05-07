@@ -61,7 +61,13 @@ class ContactClientRepository extends CommonRepository
      */
     protected function addCatchAllWhereClause($q, $filter)
     {
-        return $this->addStandardCatchAllWhereClause($q, $filter, ['f.name', 'f.website', 'f.description']);
+        $alias = $this->getTableAlias();
+
+        return $this->addStandardCatchAllWhereClause(
+            $q,
+            $filter,
+            [$alias.'.name', $alias.'.website', $alias.'.description']
+        );
     }
 
     /**
@@ -98,8 +104,9 @@ class ContactClientRepository extends CommonRepository
      */
     public function getContactClientList($currentId)
     {
-        $q = $this->createQueryBuilder('f');
-        $q->select('partial f.{id, name, description}')->orderBy('f.name');
+        $alias = $this->getTableAlias();
+        $q     = $this->createQueryBuilder($alias);
+        $q->select('partial '.$alias.'.{id, name, description}')->orderBy($alias.'.name');
 
         return $q->getQuery()->getArrayResult();
     }

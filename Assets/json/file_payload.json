@@ -1,0 +1,779 @@
+{
+  "title": "File Payload",
+  "$schema": "file_payload.json",
+  "type": "object",
+  "format": "grid",
+  "options": {
+    "disable_collapse": true
+  },
+  "properties": {
+    "settings": {
+      "title": "Settings",
+      "type": "object",
+      "format": "grid",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "File name",
+          "options": {
+            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}}, {{test}} and {{extension}}."
+          },
+          "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}.{{extension}}"
+        },
+        "compression": {
+          "title": "Compression",
+          "type": "string",
+          "default": "zip",
+          "options": {
+            "infoText": "It is strongly advised that a form of compression is chosen, especially for email transfers."
+          },
+          "enumSource": [
+            {
+              "source": [
+                {
+                  "value": "zip",
+                  "title": "zip (default)"
+                },
+                {
+                  "value": "tar.gz",
+                  "title": "tar.gz (better)"
+                },
+                {
+                  "value": "tar.bz2",
+                  "title": "tar.bz2 (best)"
+                },
+                {
+                  "value": "",
+                  "title": "none (not advised)"
+                }
+              ],
+              "title": "{{item.title}}",
+              "value": "{{item.value}}"
+            }
+          ]
+        },
+        "headers": {
+          "title": "Headers",
+          "type": "boolean",
+          "format": "checkbox",
+          "default": true,
+          "options": {
+            "infoText": "A row of headers will be sent based on the field keys provided."
+          }
+        },
+        "rate": {
+          "title": "Rate",
+          "type": "integer",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 24,
+          "options": {
+            "infoText": "The maximum number of files to be prepared per day. Default: 1"
+          }
+        },
+        "type": {
+          "title": "File type",
+          "oneOf": [
+            {
+              "title": "Standard CSV (default)",
+              "type": "object",
+              "options": {
+                "collapsed": true,
+                "disable_collapse": true
+              },
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "default": "csv",
+                  "options": {
+                    "hidden": true
+                  }
+                }
+              }
+            },
+            {
+              "title": "Custom CSV",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "default": "csvCustom",
+                  "options": {
+                    "hidden": true
+                  }
+                },
+                "delimiter": {
+                  "type": "string",
+                  "title": "CSV Delimiter",
+                  "default": ",",
+                  "enumSource": [
+                    {
+                      "source": [
+                        {
+                          "value": ",",
+                          "title": "Commas (default)"
+                        },
+                        {
+                          "value": "\\t",
+                          "title": "Tabs"
+                        },
+                        {
+                          "value": ";",
+                          "title": "Semicolons"
+                        },
+                        {
+                          "value": " ",
+                          "title": "Spaces"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
+                    }
+                  ]
+                },
+                "enclosure": {
+                  "type": "string",
+                  "title": "CSV Enclosure character",
+                  "default": "\"",
+                  "enumSource": [
+                    {
+                      "source": [
+                        {
+                          "value": "\"",
+                          "title": "Double-quotes (default)"
+                        },
+                        {
+                          "value": "'",
+                          "title": "Single-quotes"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
+                    }
+                  ]
+                },
+                "escape": {
+                  "type": "string",
+                  "title": "CSV escape character",
+                  "default": "\\",
+                  "enumSource": [
+                    {
+                      "source": [
+                        {
+                          "value": "\\",
+                          "title": "Backslash (default)"
+                        },
+                        {
+                          "value": "\"",
+                          "title": "Double-quotes"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
+                    }
+                  ]
+                },
+                "terminate": {
+                  "type": "string",
+                  "title": "CSV line termination",
+                  "default": "\\n",
+                  "enumSource": [
+                    {
+                      "source": [
+                        {
+                          "value": "\\n",
+                          "title": "NewLine (default)"
+                        },
+                        {
+                          "value": "\\r\\n",
+                          "title": "Return and NewLine (Windows)"
+                        },
+                        {
+                          "value": "\\r",
+                          "title": "Return"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
+                    }
+                  ]
+                },
+                "null": {
+                  "type": "string",
+                  "title": "CSV empty value treatment",
+                  "default": "",
+                  "enumSource": [
+                    {
+                      "source": [
+                        {
+                          "value": "",
+                          "title": "Empty (default)"
+                        },
+                        {
+                          "value": "NULL",
+                          "title": "NULL"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "title": "Excel 2007",
+              "type": "object",
+              "options": {
+                "collapsed": true,
+                "disable_collapse": true
+              },
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "default": "Excel2007",
+                  "options": {
+                    "hidden": true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "body": {
+      "title": "Fields",
+      "type": "array",
+      "format": "table",
+      "uniqueItems": true,
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true,
+        "disable_array_reorder": true
+      },
+      "items": {
+        "title": "Field",
+        "$ref": "#/definitions/requestField"
+      }
+    },
+    "operations": {
+      "title": "Delivery Methods",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": true
+      },
+      "properties": {
+        "email": {
+          "title": "Email",
+          "default": false,
+          "oneOf": [
+            {
+              "title": "Disabled",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false,
+              "options": {
+                "disabled": true
+              }
+            },
+            {
+              "title": "Enabled",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "to": {
+                  "title": "To Address/s",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Comma-delimited list of email addresses to send the file to.",
+                    "notBlank": true,
+                    "placeholder": "someone@someplace.com, someoneelse@anotherplace.com"
+                  }
+                },
+                "test": {
+                  "title": "To Address/s (test only)",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Comma-delimited list of email addresses to send a test file to.",
+                    "placeholder": "someone@someplace.com, someoneelse@anotherplace.com"
+                  }
+                },
+                "from": {
+                  "title": "From Address",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optional, leave blank to use the default system address.",
+                    "placeholder": "someone@someplace.com"
+                  }
+                },
+                "subject": {
+                  "title": "Subject",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optional, leave blank to use the file name."
+                  }
+                },
+                "successMessage": {
+                  "title": "Success Message",
+                  "type": "string",
+                  "format": "textarea",
+                  "options": {
+                    "infoText": "Optional custom message to send when the file creation is successful."
+                  }
+                },
+                "emptyMessage": {
+                  "title": "Empty Message",
+                  "type": "string",
+                  "format": "textarea",
+                  "options": {
+                    "infoText": "Optional custom message to send when the file creation process comes up with no contacts to send."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "ftp": {
+          "title": "FTP",
+          "default": false,
+          "oneOf": [
+            {
+              "title": "Disabled",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false,
+              "options": {
+                "hidden": true,
+                "disabled": true
+              }
+            },
+            {
+              "title": "Enabled",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "host": {
+                  "title": "Host",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "ftp://ftp.someserver.com"
+                  }
+                },
+                "user": {
+                  "title": "Username",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "pass": {
+                  "title": "Password",
+                  "type": "string"
+                },
+                "port": {
+                  "title": "Port",
+                  "type": "integer",
+                  "default": 21,
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "passive": {
+                  "title": "Passive",
+                  "type": "boolean",
+                  "format": "checkbox",
+                  "default": true
+                },
+                "ssl": {
+                  "title": "SSL",
+                  "type": "boolean",
+                  "format": "checkbox",
+                  "default": false
+                },
+                "timeout": {
+                  "title": "Timeout",
+                  "type": "integer",
+                  "default": 90,
+                  "minimum": 1,
+                  "maximum": 300
+                },
+                "root": {
+                  "title": "Root Folder",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files into."
+                  }
+                },
+                "testRoot": {
+                  "title": "Test Folder",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files to during tests."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "sftp": {
+          "title": "sFTP",
+          "default": false,
+          "oneOf": [
+            {
+              "title": "Disabled",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false,
+              "options": {
+                "hidden": true,
+                "disabled": true
+              }
+            },
+            {
+              "title": "Enabled",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "host": {
+                  "title": "Host",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "ftp://ftp.someserver.com"
+                  }
+                },
+                "user": {
+                  "title": "Username",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "pass": {
+                  "title": "Password",
+                  "type": "string"
+                },
+                "privateKey": {
+                  "title": "Private Key",
+                  "type": "string",
+                  "format": "textarea",
+                  "options": {
+                    "infoText": "Insert the private key (if necessary) to communicate via SSH."
+                  }
+                },
+                "port": {
+                  "title": "Port",
+                  "type": "integer",
+                  "default": 22,
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "timeout": {
+                  "title": "Timeout",
+                  "type": "integer",
+                  "default": 90,
+                  "minimum": 1,
+                  "maximum": 300
+                },
+                "root": {
+                  "title": "Root Folder",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files into."
+                  }
+                },
+                "testRoot": {
+                  "title": "Test Folder",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files to during tests."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "s3": {
+          "title": "Amazon S3",
+          "default": false,
+          "oneOf": [
+            {
+              "title": "Disabled",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false,
+              "options": {
+                "hidden": true,
+                "disabled": true
+              }
+            },
+            {
+              "title": "Enabled",
+              "type": "object",
+              "format": "grid",
+              "options": {
+                "collapsed": false,
+                "disable_collapse": true
+              },
+              "properties": {
+                "key": {
+                  "title": "Access Key ID",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "AKIAIOSFODNN7EXAMPLE"
+                  }
+                },
+                "secret": {
+                  "title": "Secret Access Key",
+                  "type": "string",
+                  "options": {
+                    "notBlank": true,
+                    "placeholder": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                  }
+                },
+                "region": {
+                  "title": "Region",
+                  "type": "string",
+                  "default": "us-east-2",
+                  "format": "select",
+                  "enumSource": [
+                    {
+                      "source": [
+                        {
+                          "value": "us-east-2",
+                          "title": "US East (Ohio)"
+                        },
+                        {
+                          "value": "us-east-1",
+                          "title": "US East (N. Virginia)"
+                        },
+                        {
+                          "value": "us-west-1",
+                          "title": "US West (N. California)"
+                        },
+                        {
+                          "value": "us-west-2",
+                          "title": "US West (Oregon)"
+                        },
+                        {
+                          "value": "ca-central-1",
+                          "title": "Canada (Central)"
+                        },
+                        {
+                          "value": "ap-south-1",
+                          "title": "Asia Pacific (Mumbai)"
+                        },
+                        {
+                          "value": "ap-northeast-2",
+                          "title": "Asia Pacific (Seoul)"
+                        },
+                        {
+                          "value": "ap-northeast-3",
+                          "title": "Asia Pacific (Osaka-Local) ***"
+                        },
+                        {
+                          "value": "ap-southeast-1",
+                          "title": "Asia Pacific (Singapore)"
+                        },
+                        {
+                          "value": "ap-southeast-2",
+                          "title": "Asia Pacific (Sydney)"
+                        },
+                        {
+                          "value": "ap-northeast-1",
+                          "title": "Asia Pacific (Tokyo)"
+                        },
+                        {
+                          "value": "cn-north-1",
+                          "title": "China (Beijing)"
+                        },
+                        {
+                          "value": "cn-northwest-1",
+                          "title": "China (Ningxia)"
+                        },
+                        {
+                          "value": "eu-central-1",
+                          "title": "EU (Frankfurt)"
+                        },
+                        {
+                          "value": "eu-west-1",
+                          "title": "EU (Ireland)"
+                        },
+                        {
+                          "value": "eu-west-2",
+                          "title": "EU (London)"
+                        },
+                        {
+                          "value": "eu-west-3",
+                          "title": "EU (Paris)"
+                        },
+                        {
+                          "value": "sa-east-1.",
+                          "title": "South America (São Paulo)"
+                        }
+                      ],
+                      "title": "{{item.title}}",
+                      "value": "{{item.value}}"
+                    }
+                  ]
+                },
+                "bucket": {
+                  "title": "Bucket",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "notBlank": true
+                  }
+                },
+                "root": {
+                  "title": "Root Folder",
+                  "type": "string",
+                  "default": "",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files into."
+                  }
+                },
+                "testRoot": {
+                  "title": "Test Folder",
+                  "type": "string",
+                  "options": {
+                    "infoText": "Optionally specify a folder to upload files to during tests."
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "definitions": {
+    "requestField": {
+      "title": "Field",
+      "headerTemplate": "{{ self.key }}",
+      "type": "object",
+      "options": {
+        "collapsed": false,
+        "disable_collapse": false
+      },
+      "properties": {
+        "key": {
+          "propertyOrder": 10,
+          "type": "string",
+          "title": "Key",
+          "options": {
+            "infoText": "The name of the field being sent."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "value": {
+          "propertyOrder": 20,
+          "type": "string",
+          "title": "Value",
+          "options": {
+            "#comment": "These token properties are not standard, and only exist in this plugin.",
+            "tokenSource": "plugin:mauticContactClient:getTokens",
+            "tokenPlaceholder": "Type a field name...",
+            "infoText": "The value of the field being sent."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "default_value": {
+          "propertyOrder": 30,
+          "type": "string",
+          "title": "Default Value",
+          "options": {
+            "hidden": true,
+            "infoText": "An optional value that will be used if the value field renders as blank."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "test_value": {
+          "propertyOrder": 40,
+          "type": "string",
+          "title": "Test Value",
+          "options": {
+            "infoText": "An optional value to override other values during test requests."
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        },
+        "required": {
+          "propertyOrder": 50,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Required",
+          "options": {
+            "infoText": "Set to true to prevent sending contacts to this client if this field is empty."
+          },
+          "default": false
+        },
+        "overridable": {
+          "propertyOrder": 60,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Overridable",
+          "options": {
+            "infoText": "Allow this field to be overridden within a campaign workflow."
+          },
+          "default": false
+        },
+        "test_only": {
+          "propertyOrder": 70,
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "Test Only",
+          "options": {
+            "infoText": "Set to true to only send this field when running a test."
+          },
+          "default": false
+        },
+        "description": {
+          "propertyOrder": 80,
+          "type": "string",
+          "title": "Description",
+          "options": {
+            "infoText": ""
+          },
+          "default": "",
+          "minLength": 0,
+          "maxLength": 255
+        }
+      }
+    }
+  }
+}

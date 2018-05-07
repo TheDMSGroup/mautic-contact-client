@@ -44,13 +44,6 @@ class Stat
     const TYPE_ERROR = 'error';
 
     /**
-     * Indicates that our client configuration is invalid. Likely it hasn't been fully configured.
-     *
-     * Contact sent:    No
-     */
-    const TYPE_INVALID = 'invalid';
-
-    /**
      * Indicates that a contact matching this one was recently accepted by a client with "exclusivity rules".
      * That other client locked a contact matching this one for a period of time, from clients that match this one.
      *
@@ -71,6 +64,13 @@ class Stat
      * Contact sent:    No
      */
     const TYPE_FILTER = 'filtered';
+
+    /**
+     * Indicates that our client configuration is invalid. Likely it hasn't been fully configured.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_INVALID = 'invalid';
 
     /**
      * Indicates that a budget/cap matching this contact/scenario was reached.

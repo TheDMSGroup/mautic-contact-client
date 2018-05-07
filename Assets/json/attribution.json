@@ -19,10 +19,7 @@
           "title": "Static",
           "type": "boolean",
           "format": "checkbox",
-          "default": true,
-          "options": {
-            "disabled": true
-          }
+          "default": true
         },
         {
           "title": "Dynamic (Determined by API Payload)",

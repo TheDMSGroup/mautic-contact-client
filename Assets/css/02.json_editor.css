@@ -73,20 +73,7 @@
 
 /* Prevent faulty glyphicon load */
 .contactclient_jsoneditor .glyphicon {
-    font-family: "Courier New", monospace;
-}
-
-/* Positioning tooltips in tables */
-.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right {
-    position: absolute !important;
-    top: 50px;
-    margin: 0 0 0 -16px;
-    height: 0;
-}
-
-.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
-    opacity: 0;
-    width: 60px;
+    font-family: "Courier New", monospace !important;
 }
 
 /* Styling tooltips */
@@ -97,10 +84,23 @@
     top: 0px;
 }
 
+/* Positioning tooltips in tables */
+.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right {
+    position: absolute !important;
+    top: 34px !important;
+    margin: 0 0 0 -16px;
+    height: 0;
+}
+
+.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
+    opacity: 0;
+    width: 60px;
+}
+
 .contactclient_jsoneditor .glyphicon-info-sign:before {
     content: "\f059";
     display: inline-block;
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 12px/1 FontAwesome;
     font-size: inherit;
     text-rendering: auto;
     -webkit-font-smoothing: antialiased;
@@ -216,51 +216,4 @@
     top: 50px;
     margin: 0 0 0 -16px;
     height: 0;
-}
-
-.contactclient_jsoneditor td > div > .glyphicon-info-sign.pull-right:before {
-    opacity: 0;
-    width: 60px;
-}
-
-/* Styling tooltips */
-.contactclient_jsoneditor .glyphicon-info-sign.pull-right {
-    float: none !important;
-    margin-left: 5px;
-}
-
-.contactclient_jsoneditor .glyphicon-info-sign:before {
-    content: "\f059";
-    display: inline-block;
-    font: normal normal normal 14px/1 FontAwesome;
-    font-size: inherit;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-}
-
-.contactclient_jsoneditor .glyphicon-info-sign span {
-    font-family: "Open Sans", Helvetica, Arial, sans-serif !important;
-    z-index: 1000;
-    transform: translateX(0.5rem) translateY(-0.5rem) !important;
-}
-
-/* Table styles */
-.contactclient_jsoneditor table.table-bordered {
-    min-width: 100%;
-    border: 0;
-}
-
-.contactclient_jsoneditor table.table-bordered,
-.contactclient_jsoneditor table.table-bordered > thead > tr > th,
-.contactclient_jsoneditor table.table-bordered > tbody > tr > th,
-.contactclient_jsoneditor table.table-bordered > tbody > tr > td,
-.contactclient_jsoneditor table.table-bordered > tfoot > tr > td,
-.contactclient_jsoneditor table.table-bordered > tfoot > tr > th {
-    border-left: 0;
-    border-right: 0;
-    padding: 4px 4px;
-}
-
-.contactclient_jsoneditor table .form-group {
-    margin-bottom: 0;
 }

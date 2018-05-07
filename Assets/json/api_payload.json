@@ -60,7 +60,7 @@
                 "options": {
                   "infoText": "The complete web address we will be communicating with.",
                   "grid_columns": 6,
-                  "required": "true",
+                  "notBlank": true,
                   "placeholder": "https://..."
                 },
                 "default": ""
@@ -345,7 +345,6 @@
       "type": "string",
       "title": "Format",
       "default": "form",
-      "class": "test",
       "enumSource": [
         {
           "source": [
@@ -383,7 +382,6 @@
       "type": "string",
       "title": "Format",
       "default": "auto",
-      "class": "test",
       "enumSource": [
         {
           "source": [

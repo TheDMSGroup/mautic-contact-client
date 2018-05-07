@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
+use Mautic\CampaignBundle\Model\CampaignModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Mautic\PluginBundle\Exception\ApiErrorException;
@@ -21,10 +22,10 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
-use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
@@ -49,12 +50,11 @@ class ClientIntegration extends AbstractIntegration
     /** @var bool $test */
     protected $test = false;
 
-    /** @var ApiPayload $payload */
-    protected $payload;
+    /** @var ApiPayload|FilePayload $payloadModel */
+    protected $payloadModel;
 
     /** @var bool $valid */
-    // @todo - Change the default to false/null like Sources, and cleanup associated methods.
-    protected $valid = true;
+    protected $valid = false;
 
     /** @var Container $container */
     protected $container;
@@ -64,6 +64,12 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var ContactClientModel */
     protected $contactClientModel;
+
+    /** @var FilePayload */
+    protected $filePayloadModel;
+
+    /** @var ApiPayload */
+    protected $apiPayloadModel;
 
     /** @var \MauticPlugin\MauticContactClientBundle\Model\Cache */
     protected $cacheModel;
@@ -76,6 +82,12 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var bool */
     protected $retry;
+
+    /** @var array */
+    protected $integrationSettings;
+
+    /** @var \DateTime */
+    protected $dateSend;
 
     /**
      * @return string
@@ -104,6 +116,39 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Push a contact to a preconfigured Contact Client.
+     *
+     * @param Contact $contact
+     * @param array   $event
+     *
+     * @return bool
+     *
+     * @throws Exception
+     */
+    public function pushLead($contact, $event = [])
+    {
+        $this->reset();
+        $this->getEvent($event);
+
+        if (empty($this->event['config']['contactclient'])) {
+            return false;
+        }
+
+        /** @var Contact $contactModel */
+        $clientModel = $this->getContactClientModel();
+        $client      = $clientModel->getEntity($this->event['config']['contactclient']);
+        if (!$client || false === $client->getIsPublished()) {
+            return false;
+        }
+
+        $this->sendContact($client, $contact, false);
+
+        // Returning false will typically cause a retry.
+        // If an error occurred and we do not wish to retry we should return true.
+        return $this->valid ? $this->valid : !$this->retry;
+    }
+
+    /**
      * Reset local class variables.
      *
      * @param array $exclusions optional array of local variables to keep current values
@@ -124,73 +169,49 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Push a contact to a preconfigured Contact Client.
-     *
-     * @param Contact $contact
-     * @param array   $config
-     *
-     * @return bool
-     *
-     * @throws Exception
-     */
-    public function pushLead($contact, $config = [])
-    {
-        $this->reset();
-        $this->event = $config;
-        $config      = $this->mergeConfigToFeatureSettings($config);
-        if (empty($config['contactclient'])) {
-            return false;
-        }
-
-        /** @var Contact $contactModel */
-        $clientModel = $this->getContactClientModel();
-
-        $client = $clientModel->getEntity($config['contactclient']);
-        if (!$client || false === $client->getIsPublished()) {
-            return false;
-        }
-
-        // Get field overrides.
-        $overrides = [];
-        if (!empty($config['contactclient_overrides'])) {
-            // Flatten overrides to key-value pairs.
-            $jsonHelper = new JSONHelper();
-            $array      = $jsonHelper->decodeArray($config['contactclient_overrides'], 'Overrides');
-            if ($array) {
-                foreach ($array as $field) {
-                    if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
-                        $overrides[$field->key] = $field->value;
-                    }
-                }
-            }
-        }
-        $this->sendContact($client, $contact, false, $overrides);
-
-        // Returning false will typically cause a retry.
-        // If an error occurred and we do not wish to retry we should return true.
-        return $this->valid ? $this->valid : !$this->retry;
-    }
-
-    /**
      * Merges a config from integration_list with feature settings.
      *
-     * @param array $config
+     * @param array $event to merge configuration
      *
      * @return array|mixed
      */
-    public function mergeConfigToFeatureSettings($config = [])
+    public function getEvent($event = [])
     {
-        $featureSettings = $this->settings->getFeatureSettings();
-
-        if (isset($config['config'])
-            && (empty($config['integration'])
-                || (!empty($config['integration'])
-                    && $config['integration'] == $this->getName()))
-        ) {
-            $featureSettings = array_merge($featureSettings, $config['config']);
+        if (!$this->event) {
+            $this->event = $event;
+            if (isset($event['config'])
+                && (empty($event['integration'])
+                    || (
+                        !empty($event['integration'])
+                        && $event['integration'] == $this->getName()
+                    )
+                )
+            ) {
+                $this->event['config'] = array_merge($this->settings->getFeatureSettings(), $event['config']);
+            }
+            // If the campaign event ID is missing, backfill it.
+            if (empty($this->event['id'])) {
+                try {
+                    $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
+                    if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
+                        /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
+                        foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
+                            $properties = $leadEventLog->getEvent()->getProperties();
+                            if (
+                                $properties['_token'] === $this->event['_token']
+                                && $properties['campaignId'] === $this->event['campaignId']
+                            ) {
+                                $this->event['id'] = $leadEventLog->getEvent()->getId();
+                                break;
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                }
+            }
         }
 
-        return $featureSettings;
+        return $this->event;
     }
 
     /**
@@ -235,43 +256,38 @@ class ClientIntegration extends AbstractIntegration
      * @param ContactClient $client
      * @param Contact       $contact
      * @param bool          $test
-     * @param array         $overrides
      *
      * @return $this
      */
     public function sendContact(
         ContactClient $client,
         Contact $contact,
-        $test = false,
-        $overrides = []
+        $test = false
     ) {
-        // @todo - add translation layer for strings in this method.
-        // $translator = $this->getContainer()->get('translator');
-
+        $translator = $this->getContainer()->get('translator');
         $this->test = $test;
 
         try {
             if (!$client && !$this->test) {
-                throw new \InvalidArgumentException('Contact Client appears to not exist.');
+                throw new \InvalidArgumentException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.client.load')
+                );
             }
             $this->contactClient = $client;
 
             if (!$contact && !$this->test) {
-                throw new \InvalidArgumentException('Contact appears to not exist.');
+                throw new \InvalidArgumentException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.contact.load')
+                );
             }
             $this->contact = $contact;
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
             // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
-            if (!$this->test) {
-                /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule $schedule */
-                $schedule = $this->getScheduleModel();
-                $schedule->evaluateHours($this->contactClient);
-                $schedule->evaluateExclusions($this->contactClient);
-            }
+            $this->evaluateSchedule();
 
-            // @todo - Filtering - Check filter rules to ensure this contact is applicable.
+            // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
 
             // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
@@ -288,17 +304,16 @@ class ClientIntegration extends AbstractIntegration
                 $this->getCacheModel()->evaluateExclusive();
             }
 
-            // Configure the payload.
-            $this->getApiPayloadModel()
-                ->reset()
-                ->setContactClient($this->contactClient)
-                ->setTest($test)
-                ->setContact($this->contact)
-                ->setOverrides($overrides);
+            /* @var ApiPayload|FilePayload $model */
+            $this->getPayloadModel($this->contactClient)
+                ->setCampaign($this->getCampaign())
+                ->setEvent($this->event);
 
-            // Run the payload and all operations.
-            $this->valid = $this->payload->run();
+            $this->payloadModel->run();
 
+            $this->valid = $this->payloadModel->getValid();
+
+            // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
                 $this->statType = Stat::TYPE_CONVERTED;
             }
@@ -306,8 +321,8 @@ class ClientIntegration extends AbstractIntegration
             $this->handleException($e);
         }
 
-        if ($this->payload) {
-            $operationLogs = $this->payload->getLogs();
+        if ($this->payloadModel) {
+            $operationLogs = $this->payloadModel->getLogs();
             if ($operationLogs) {
                 $this->setLogs($operationLogs, 'operations');
             }
@@ -323,19 +338,73 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return \MauticPlugin\MauticContactClientBundle\Model\Schedule|object
+     * Evaluates the schedule given the client type.
      *
-     * @throws Exception
+     * @return $this
      */
-    private function getScheduleModel()
+    private function evaluateSchedule()
     {
-        if (!$this->scheduleModel) {
-            /* @var \MauticPlugin\MauticContactClientBundle\Model\Schedule scheduleModel */
-            $this->scheduleModel = $this->getContainer()->get('mautic.contactclient.model.schedule');
-            $this->scheduleModel->setContactClient($this->contactClient);
+        /* @var \DateTime $dateSend */
+        $this->dateSend = $this->getPayloadModel()->evaluateSchedule();
+
+        return $this;
+    }
+
+    /**
+     * Get the current Payload model, or the model of a particular client.
+     *
+     * @param ContactClient|null $contactClient
+     *
+     * @return ApiPayload|FilePayload|null|object
+     */
+    private function getPayloadModel(ContactClient $contactClient = null)
+    {
+        if (!$this->payloadModel || $contactClient) {
+            $contactClient = $contactClient ? $contactClient : $this->contactClient;
+            $clientType    = $contactClient->getType();
+            if ('api' == $clientType) {
+                $model = $this->getApiPayloadModel();
+            } elseif ('file' == $clientType) {
+                $model = $this->getFilePayloadModel();
+            } else {
+                throw new \InvalidArgumentException('Client type is invalid.');
+            }
+            $model->reset();
+            $model->setTest($this->test);
+            $model->setContactClient($contactClient);
+            if ($this->contact) {
+                $model->setContact($this->contact);
+            }
+            $this->payloadModel = $model;
         }
 
-        return $this->scheduleModel;
+        return $this->payloadModel;
+    }
+
+    /**
+     * @return ApiPayload|object
+     */
+    private function getApiPayloadModel()
+    {
+        if (!$this->apiPayloadModel) {
+            /* @var ApiPayload apiPayloadModel */
+            $this->apiPayloadModel = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+        }
+
+        return $this->apiPayloadModel;
+    }
+
+    /**
+     * @return FilePayload|object
+     */
+    private function getFilePayloadModel()
+    {
+        if (!$this->filePayloadModel) {
+            /* @var FilePayload filePayloadModel */
+            $this->filePayloadModel = $this->getContainer()->get('mautic.contactclient.model.filepayload');
+        }
+
+        return $this->filePayloadModel;
     }
 
     /**
@@ -352,19 +421,49 @@ class ClientIntegration extends AbstractIntegration
             $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
             $this->cacheModel->setContact($this->contact);
             $this->cacheModel->setContactClient($this->contactClient);
+            $this->cacheModel->setDateSend($this->dateSend);
         }
 
         return $this->cacheModel;
     }
 
     /**
-     * @return ApiPayload
+     * Attempt to discern if we are being triggered by/within a campaign.
+     *
+     * @return \Mautic\CampaignBundle\Entity\Campaign
      */
-    private function getApiPayloadModel()
+    private function getCampaign()
     {
-        $this->payload = $this->getContainer()->get('mautic.contactclient.model.apipayload');
+        if (!$this->campaign && $this->event) {
+            // Sometimes we have a campaignId as an integer ID.
+            if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
+                /** @var CampaignModel $campaignModel */
+                $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
+                $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
+            }
+            // Sometimes we have a campaignId as a hash.
+            if (!$this->campaign) {
+                try {
+                    $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
+                    if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
+                        /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
+                        foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
+                            $properties = $leadEventLog->getEvent()->getProperties();
+                            if (
+                                $properties['_token'] === $this->event['_token']
+                                && $properties['campaignId'] === $this->event['campaignId']
+                            ) {
+                                $this->campaign = $leadEventLog->getCampaign();
+                                break;
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+        }
 
-        return $this->payload;
+        return $this->campaign;
     }
 
     /**
@@ -418,7 +517,7 @@ class ClientIntegration extends AbstractIntegration
     private function updateContact()
     {
         // Do not update contacts for test runs.
-        if ($this->test || !$this->payload) {
+        if ($this->test || !$this->payloadModel) {
             return;
         }
 
@@ -427,21 +526,26 @@ class ClientIntegration extends AbstractIntegration
             return;
         }
 
+        // Only API has a map to update contacts based on the response.
+        if ('api' !== $this->contactClient->getType()) {
+            return;
+        }
+
         try {
             $this->dispatchContextCreate();
 
             // Update any fields based on the response map.
             /** @var bool $updatedFields */
-            $updatedFields = $this->payload->applyResponseMap();
+            $updatedFields = $this->payloadModel->applyResponseMap();
             if ($updatedFields) {
-                $this->contact = $this->payload->getContact();
+                $this->contact = $this->payloadModel->getContact();
             }
 
             // @todo - Remove need for logs to carry over attribution to other tables/entities.
             // Update attribution based on attribution settings.
             /** @var Attribution $attribution */
             $attribution = new Attribution($this->contactClient, $this->contact);
-            $attribution->setPayload($this->payload);
+            $attribution->setPayloadModel($this->payloadModel);
             /** @var bool $updatedAttribution */
             $updatedAttribution = $attribution->applyAttribution();
             if ($updatedAttribution) {
@@ -478,7 +582,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function dispatchContextCreate()
     {
-        if ($this->test || !$this->payload) {
+        if ($this->test || !$this->payloadModel) {
             return;
         }
 
@@ -493,42 +597,11 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Attempt to discern if we are being triggered by/within a campaign.
-     *
-     * @return \Mautic\CampaignBundle\Entity\Campaign
-     */
-    private function getCampaign()
-    {
-        if (!$this->campaign && $this->event) {
-            try {
-                $config      = $this->event;
-                $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
-                if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
-                    /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
-                    foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
-                        $properties = $leadEventLog->getEvent()->getProperties();
-                        if (
-                            $properties['_token'] === $config['_token']
-                            && $properties['campaignId'] === $config['campaignId']
-                        ) {
-                            $this->campaign = $leadEventLog->getCampaign();
-                            break;
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-            }
-        }
-
-        return $this->campaign;
-    }
-
-    /**
      * For situations where there is no entity saved, but we still need to log a conversion.
      */
     private function dispatchContextCapture()
     {
-        if ($this->test || !$this->valid || !$this->payload || Stat::TYPE_CONVERTED !== $this->statType) {
+        if ($this->test || !$this->valid || !$this->payloadModel || Stat::TYPE_CONVERTED !== $this->statType) {
             return;
         }
 
@@ -573,7 +646,7 @@ class ClientIntegration extends AbstractIntegration
         if ($this->test) {
             return;
         }
-        $integration_entity_id = !empty($this->payload) ? $this->payload->getExternalId() : null;
+        $integration_entity_id = !empty($this->payloadModel) ? $this->payloadModel->getExternalId() : null;
 
         /** @var contactClientModel $clientModel */
         $clientModel = $this->getContactClientModel();
@@ -583,7 +656,15 @@ class ClientIntegration extends AbstractIntegration
         $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
         if ($this->valid) {
             $statLevel = 'INFO';
-            $message   = 'Contact was sent successfully.';
+            switch ($this->contactClient->getType()) {
+                case 'api':
+                    $message = 'Contact was sent successfully.';
+                    break;
+
+                case 'file':
+                    $message = 'Contact queued for the next file payload.';
+                    break;
+            }
         } else {
             $statLevel = 'ERROR';
             $message   = $errors ? implode(PHP_EOL, $errors) : 'An unexpected issue occurred.';
@@ -715,16 +796,6 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Depracated, use getLogsJSON() instead.
-     *
-     * @return string
-     */
-    public function getLogsYAML()
-    {
-        return Yaml::dump($this->getLogs(), 10, 2);
-    }
-
-    /**
      * @return string
      */
     public function getLogsJSON()
@@ -788,26 +859,21 @@ class ClientIntegration extends AbstractIntegration
                 $contactClientRepo     = $clientModel->getRepository();
                 $contactClientEntities = $contactClientRepo->getEntities();
                 $clients               = ['' => ''];
-                $overridableFields     = [];
+                $overrides             = [];
                 foreach ($contactClientEntities as $contactClientEntity) {
                     if ($contactClientEntity->getIsPublished()) {
                         $id           = $contactClientEntity->getId();
                         $clients[$id] = $contactClientEntity->getName();
 
                         // Get overridable fields from the payload of the type needed.
-                        if ('api' == $contactClientEntity->getType()) {
-                            try {
-                                $payload = $this->getApiPayloadModel();
-                                $payload->setContactClient($contactClientEntity);
-                                $overridableFields[$id] = $payload->getOverridableFields();
-                            } catch (\Exception $e) {
-                                if ($this->logger) {
-                                    $this->logger->error($e->getMessage());
-                                }
-                                $clients[$id] .= ' ('.$e->getMessage().')';
+                        try {
+                            $overrides[$id] = $this->getPayloadModel($contactClientEntity)
+                                ->getOverrides();
+                        } catch (\Exception $e) {
+                            if ($this->logger) {
+                                $this->logger->error($e->getMessage());
                             }
-                        } else {
-                            // @todo - File based payload.
+                            $clients[$id] .= ' ('.$e->getMessage().')';
                         }
                     }
                 }
@@ -840,13 +906,13 @@ class ClientIntegration extends AbstractIntegration
                                 ['message' => 'mautic.core.value.required']
                             ),
                         ],
-                        'choice_attr' => function ($val, $key, $index) use ($overridableFields) {
+                        'choice_attr' => function ($val, $key, $index) use ($overrides) {
                             $results = [];
                             // adds a class like attending_yes, attending_no, etc
-                            if ($val && isset($overridableFields[$val])) {
+                            if ($val && isset($overrides[$val])) {
                                 $results['class'] = 'contact-client-'.$val;
                                 // Change format to match json schema.
-                                $results['data-overridable-fields'] = json_encode($overridableFields[$val]);
+                                $results['data-overridable-fields'] = json_encode($overrides[$val]);
                             }
 
                             return $results;
@@ -890,6 +956,78 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
         }
+
+        if ('features' == $formArea) {
+            $builder->add(
+                'email_from',
+                'text',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.from'),
+                    'data'  => !isset($data['email_from']) ? '' : $data['email_from'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.from.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'success_message',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.success_message'),
+                    'data'  => !isset($data['success_message']) ? '' : $data['success_message'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.success_message.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'empty_message',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.empty_message'),
+                    'data'  => !isset($data['empty_message']) ? '' : $data['empty_message'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'empty_message',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.empty_message'),
+                    'data'  => !isset($data['empty_message']) ? '' : $data['empty_message'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
+                    ],
+                ]
+            );
+
+            $builder->add(
+                'footer',
+                'textarea',
+                [
+                    'label' => $this->translator->trans('mautic.contactclient.email.footer'),
+                    'data'  => !isset($data['footer']) ? '' : $data['footer'],
+                    'attr'  => [
+                        'tooltip' => $this->translator->trans('mautic.contactclient.email.footer.tooltip'),
+                    ],
+                ]
+            );
+        }
+    }
+
+    /**
+     * Deprecated, use getLogsJSON() instead, unless logging to CLI.
+     *
+     * @return string
+     */
+    public function getLogsYAML()
+    {
+        return Yaml::dump($this->getLogs(), 10, 2);
     }
 
     /**

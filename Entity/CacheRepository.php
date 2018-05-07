@@ -42,9 +42,10 @@ class CacheRepository extends CommonRepository
     /**
      * Given a matching pattern and a contact, find any exceeded limits (aka caps/budgets).
      *
-     * @param ContactClient $contactClient
-     * @param array         $rules
-     * @param string        $timezone
+     * @param ContactClient  $contactClient
+     * @param array          $rules
+     * @param null           $timezone
+     * @param \DateTime|null $dateSend
      *
      * @return array|null
      *
@@ -53,7 +54,8 @@ class CacheRepository extends CommonRepository
     public function findLimit(
         ContactClient $contactClient,
         $rules = [],
-        $timezone = null
+        $timezone = null,
+        \DateTime $dateSend = null
     ) {
         $filters = [];
         $result  = null;
@@ -83,7 +85,7 @@ class CacheRepository extends CommonRepository
             // Match duration (always, including global scope)
             $filters[] = [
                 'orx'              => $orx,
-                'date_added'       => $this->oldestDateAdded($duration, $timezone),
+                'date_added'       => $this->oldestDateAdded($duration, $timezone, $dateSend),
                 'contactclient_id' => $contactClient->getId(),
             ];
 
@@ -105,19 +107,18 @@ class CacheRepository extends CommonRepository
     /**
      * Support non-rolling durations when P is not prefixing.
      *
-     * @param      $duration
-     * @param null $timezone
+     * @param                $duration
+     * @param string|null    $timezone
+     * @param \DateTime|null $dateSend
      *
      * @return string
      *
      * @throws \Exception
      */
-    public function oldestDateAdded($duration, $timezone = null)
+    public function oldestDateAdded($duration, string $timezone = null, \DateTime $dateSend = null)
     {
-        if (0 === strpos($duration, 'P')) {
-            // Standard rolling interval.
-            $oldest = new \DateTime();
-        } else {
+        $oldest = $dateSend ? $dateSend : new \DateTime();
+        if (0 !== strpos($duration, 'P')) {
             // Non-rolling interval, go to previous interval segment.
             // Will only work for simple (singular) intervals.
             if (!$timezone) {
@@ -126,19 +127,17 @@ class CacheRepository extends CommonRepository
             $timezone = new \DateTimeZone($timezone);
             switch (strtoupper(substr($duration, -1))) {
                 case 'Y':
-                    $oldest = new \DateTime('next year jan 1 midnight', $timezone);
+                    $oldest = $oldest->modify('next year jan 1 midnight', $timezone);
                     break;
                 case 'M':
-                    $oldest = new \DateTime('first day of next month midnight', $timezone);
+                    $oldest = $oldest->modify('first day of next month midnight', $timezone);
                     break;
                 case 'W':
-                    $oldest = new \DateTime('sunday next week midnight', $timezone);
+                    $oldest = $oldest->modify('sunday next week midnight', $timezone);
                     break;
                 case 'D':
-                    $oldest = new \DateTime('tomorrow midnight', $timezone);
+                    $oldest = $oldest->modify('tomorrow midnight', $timezone);
                     break;
-                default:
-                    $oldest = new \DateTime();
             }
             // Add P so that we can now use standard interval
             $duration = 'P'.$duration;
@@ -173,7 +172,7 @@ class CacheRepository extends CommonRepository
                 $query->select('*');
                 $query->setMaxResults(1);
             }
-            $query->from(MAUTIC_TABLE_PREFIX.'contactclient_cache', $alias);
+            $query->from(MAUTIC_TABLE_PREFIX.$this->getTableName(), $alias);
 
             foreach ($filters as $k => $set) {
                 // Expect orx, anx, or neither.
@@ -195,14 +194,14 @@ class CacheRepository extends CommonRepository
                     foreach ($properties as $property => $value) {
                         if (is_array($value)) {
                             $expr->add(
-                                $query->expr()->in($alias.'.'.$property, $value)
+                                $query->expr()->in($alias.'.'.$property, ':'.$property.$k)
                             );
                         } else {
                             $expr->add(
                                 $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
                             );
-                            $query->setParameter($property.$k, $value);
                         }
+                        $query->setParameter($property.$k, $value);
                     }
                 }
                 if (isset($set['contactclient_id']) && isset($set['date_added'])) {
@@ -255,11 +254,12 @@ class CacheRepository extends CommonRepository
      * Given a matching pattern and a contact, discern if there is a match in the cache.
      * Used for exclusivity and duplicate checking.
      *
-     * @param Contact       $contact
-     * @param ContactClient $contactClient
-     * @param array         $rules
-     * @param string        $utmSource
-     * @param string        $timezone
+     * @param Contact        $contact
+     * @param ContactClient  $contactClient
+     * @param array          $rules
+     * @param string         $utmSource
+     * @param string|null    $timezone
+     * @param \DateTime|null $dateSend
      *
      * @return mixed|null
      *
@@ -269,8 +269,9 @@ class CacheRepository extends CommonRepository
         Contact $contact,
         ContactClient $contactClient,
         $rules = [],
-        $utmSource = '',
-        $timezone = null
+        string $utmSource = null,
+        string $timezone = null,
+        \DateTime $dateSend = null
     ) {
         // Generate our filters based on the rules provided.
         $filters = [];
@@ -368,7 +369,7 @@ class CacheRepository extends CommonRepository
                 // Match duration (always), once all other aspects of the query are ready.
                 $filters[] = [
                     'orx'              => $orx,
-                    'date_added'       => $this->oldestDateAdded($duration, $timezone),
+                    'date_added'       => $this->oldestDateAdded($duration, $timezone, $dateSend),
                     'contactclient_id' => $contactClient->getId(),
                 ];
             }
@@ -381,12 +382,9 @@ class CacheRepository extends CommonRepository
      * @param $phone
      *
      * @return string
-     *
-     * @todo - dedupe this method.
      */
-    private function phoneValidate(
-        $phone
-    ) {
+    private function phoneValidate($phone)
+    {
         $result = null;
         $phone  = trim($phone);
         if (!empty($phone)) {
@@ -411,15 +409,17 @@ class CacheRepository extends CommonRepository
      * Only the first 4 matching rules are allowed for exclusivity (by default).
      * Only the first two scopes are allowed for exclusivity.
      *
-     * @param Contact                                                      $contact
-     * @param \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $contactClient
-     * @param int                                                          $matching
+     * @param Contact        $contact
+     * @param ContactClient  $contactClient
+     * @param int            $matching
+     * @param \DateTime|null $dateSend
      *
      * @return mixed|null
      */
     public function findExclusive(
         Contact $contact,
         ContactClient $contactClient,
+        \DateTime $dateSend = null,
         $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE
     ) {
         // Generate our filters based on all rules possibly in play.
@@ -540,7 +540,7 @@ class CacheRepository extends CommonRepository
             }
         }
 
-        $this->addExpiration($filters);
+        $this->addExpiration($filters, $dateSend);
 
         return $this->applyFilters($filters);
     }
@@ -571,17 +571,37 @@ class CacheRepository extends CommonRepository
     /**
      * Add Exclusion Expiration date.
      *
-     * @param array $filters
+     * @param array          $filters
+     * @param \DateTime|null $dateSend
      */
     private function addExpiration(
-        &$filters = []
+        &$filters = [],
+        \DateTime $dateSend = null
     ) {
         if ($filters) {
-            $expiration = new \DateTime();
+            $expiration = $dateSend ? $dateSend : new \DateTime();
             $expiration = $expiration->format('Y-m-d H:i:s');
             foreach ($filters as &$filter) {
                 $filter['exclusive_expire_date'] = $expiration;
             }
         }
+    }
+
+    /**
+     * Delete all Cache entities that are no longer needed for duplication/exclusivity/limit checks.
+     *
+     * @return mixed
+     */
+    public function deleteExpired()
+    {
+        // 32 days old, since the maximum limiter is 1m/30d.
+        $oldest = date('Y-m-d H:i:s', time() - (32 * 24 * 60 * 60));
+        $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
+        $q->where(
+            $q->expr()->lt('date_added', ':oldest')
+        );
+        $q->setParameter('oldest', $oldest);
+        $q->execute();
     }
 }

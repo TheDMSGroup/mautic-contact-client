@@ -11,7 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mustache_Engine as Engine;
 
 /**
@@ -34,216 +36,102 @@ class TokenHelper
     /** @var array */
     private $renderCache = [];
 
+    /** @var CoreParametersHelper */
+    private $coreParametersHelper;
+
+    /** @var ContactClient */
+    private $contactClient;
+
     /**
      * TokenHelper constructor.
      *
+     * @param CoreParametersHelper $coreParametersHelper
+     *
      * @throws \Exception
      */
-    public function __construct()
+    public function __construct(CoreParametersHelper $coreParametersHelper)
     {
         try {
             $this->engine = new Engine();
         } catch (\Exception $e) {
             throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
         }
+
+        $this->coreParametersHelper = $coreParametersHelper;
     }
 
     /**
-     * Recursively replaces tokens using an array for context.
+     * @param ContactClient|null $contactClient
+     * @param Contact|null       $contact
+     * @param array              $payload
      *
-     * @param array $array
-     *
-     * @return array
+     * @return $this
      */
-    public function renderArray($array = [])
+    public function newSession(ContactClient $contactClient = null, Contact $contact = null, $payload = [])
     {
-        $result = [];
-        foreach ($array as $key => $value) {
-            if (is_string($value)) {
-                $value = $this->render($value, true);
-            } elseif (is_array($value) || is_object($value)) {
-                $value = $this->renderArray($value);
-            }
-            $result[$key] = $value;
+        $this->context     = [];
+        $this->renderCache = [];
+        if ($this->engine->hasHelper('date')) {
+            $this->engine->removeHelper('date');
         }
+        $this->setContactClient($contactClient);
+        $this->addContextContact($contact);
+        $this->addContextPayload($payload);
 
-        return $result;
+        return $this;
     }
 
     /**
-     * Replace Tokens in a simple string using an array for context.
+     * @param ContactClient $contactClient
      *
-     * @param      $string
-     * @param bool $force  skip checking for a token
-     *
-     * @return string
+     * @return $this
      */
-    public function render($string, $force = false)
+    public function setContactClient(ContactClient $contactClient = null)
     {
-        if (isset($this->renderCache[$string])) {
-            return $this->renderCache[$string];
-        }
-        if ($force || false !== strpos($string, self::TOKEN_KEY)) {
-            if (!$this->engine->hasHelper('date')) {
-                $this->setTimezones();
+        if ($contactClient !== $this->contactClient) {
+            $this->contactClient = $contactClient;
+
+            // Set the timezones for date/time conversion.
+            $tza = $this->coreParametersHelper->getParameter(
+                'default_timezone'
+            );
+            $tza = !empty($tza) ? $tza : date_default_timezone_get();
+            if ($this->contactClient) {
+                $tzb = $this->contactClient->getScheduleTimezone();
             }
-            $string = $this->engine->render($string, $this->context);
-        }
-        if (!empty($string)) {
-            $this->renderCache[$string] = $string;
+            $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
+            $this->setTimezones($tza, $tzb);
         }
 
-        return $string;
+        return $this;
     }
 
     /**
      * @param string $timzoneSource
      * @param string $timzoneDestination
+     *
+     * @return $this
      */
     public function setTimezones($timzoneSource = 'UTC', $timzoneDestination = 'UTC')
     {
         $this->dateFormatHelper = new DateFormatHelper($timzoneSource, $timzoneDestination);
         $this->engine->addHelper('date', $this->dateFormatHelper);
-    }
 
-    /**
-     * @param array $context
-     */
-    public function addContext($context = [])
-    {
-        $this->nestContext($context);
-        $this->context = array_merge($this->context, $context);
-    }
-
-    /**
-     * Nest keys containing dots as Mustache contextual arrays.
-     * ex. ['utm.source' => 'value'] becomes ['utm' => ['source' => 'value']].
-     *
-     * @param $context
-     *
-     * @return mixed
-     */
-    private function nestContext(&$context)
-    {
-        foreach ($context as $key => $value) {
-            $dot = strpos($key, '.');
-            if ($dot && $dot !== strlen($key) - 1) {
-                $currentContext = &$context;
-                foreach (explode('.', $key) as $k) {
-                    if (!isset($currentContext[$k])) {
-                        $currentContext[$k] = [];
-                    }
-                    $currentContext = &$currentContext[$k];
-                }
-                $currentContext = $value;
-                unset($context[$key]);
-            }
-        }
-
-        return $context;
-    }
-
-    /**
-     * @param bool $labeled
-     *
-     * @return array
-     */
-    public function getContext($labeled = false)
-    {
-        if ($labeled) {
-            // When retrieving labels, nested contacts are not needed.
-            unset($this->context['contacts']);
-            $labels     = $this->labels($this->context);
-            $flatLabels = [];
-            $this->flattenArray($labels, $flatLabels);
-
-            return $flatLabels;
-        } else {
-            return $this->context;
-        }
-    }
-
-    /**
-     * @param array $context
-     */
-    public function setContext($context = [])
-    {
-        $this->context = $context;
-    }
-
-    /**
-     * Given a token array, set the values to the labels of the fields if possible, or generate them.
-     *
-     * @param array  $array
-     * @param string $keys
-     * @param bool   $sort
-     *
-     * @return array
-     */
-    private function labels($array = [], $keys = '', $sort = true)
-    {
-        foreach ($array as $key => &$value) {
-            if (is_array($value)) {
-                if (0 === count($value)) {
-                    // Currently such groups are undocumented, so labels are not needed.
-                    unset($array[$key]);
-                    continue;
-                } else {
-                    $value = $this->labels($value, $keys.' '.$key);
-                }
-            } else {
-                if (is_bool($value) || null === $value || 0 === $value) {
-                    // Discern the "label" given the key and previous keys conjoined.
-                    $totalKey = str_replace('_', ' ', $keys.' '.trim($key));
-                    preg_match_all('/(?:|[A-Z])[a-z]*/', $totalKey, $words);
-                    foreach ($words[0] as &$word) {
-                        if (strlen($word) > 1) {
-                            // Change the case of the first letter without dropping the case of the rest of the word.
-                            $word = strtoupper(substr($word, 0, 1)).substr($word, 1);
-                        }
-                    }
-                    // Combine down to one string without extra whitespace.
-                    $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
-                    // One exception is UTM variables.
-                    $value = str_replace('Utm ', 'UTM ', $value);
-                }
-            }
-        }
-
-        if ($sort) {
-            ksort($array, SORT_NATURAL);
-        }
-
-        return $array;
-    }
-
-    /**
-     * @param        $original
-     * @param array  $new
-     * @param string $delimiter
-     * @param string $keys
-     */
-    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
-    {
-        foreach ($original as $key => $value) {
-            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
-            if (is_array($value)) {
-                $this->flattenArray($value, $new, $delimiter, $k);
-            } else {
-                $new[$k] = $value;
-            }
-        }
+        return $this;
     }
 
     /**
      * Given a Contact, flatten the field values a bit into a more user friendly list of token possibilities.
      *
-     * @param Contact $contact
+     * @param Contact|null $contact
      *
-     * @return mixed
+     * @return $this
      */
-    public function addContextContact(Contact $contact)
+    public function addContextContact(Contact $contact = null)
     {
+        if (!$contact) {
+            return $this;
+        }
         $context = [];
 
         // Append contact ID.
@@ -355,5 +243,214 @@ class TokenHelper
         // Support multiple contacts for future batch processing.
         $this->context['contacts']                 = $contacts;
         $this->context['contacts'][$context['id']] = $context;
+
+        return $this;
+    }
+
+    /**
+     * @param array $payload
+     *
+     * @return $this
+     */
+    public function addContextPayload($payload = [])
+    {
+        if (!$payload) {
+            return $this;
+        }
+        $this->addContext(['payload' => $payload]);
+    }
+
+    /**
+     * @param array $context
+     *
+     * @return $this
+     */
+    public function addContext($context = [])
+    {
+        if (!$context) {
+            return $this;
+        }
+        $this->nestContext($context);
+        $this->context = array_merge($this->context, $context);
+
+        return $this;
+    }
+
+    /**
+     * Nest keys containing dots as Mustache contextual arrays.
+     * ex. ['utm.source' => 'value'] becomes ['utm' => ['source' => 'value']].
+     *
+     * @param $context
+     *
+     * @return mixed
+     */
+    private function nestContext(&$context)
+    {
+        foreach ($context as $key => $value) {
+            $dot = strpos($key, '.');
+            if ($dot && $dot !== strlen($key) - 1) {
+                $currentContext = &$context;
+                foreach (explode('.', $key) as $k) {
+                    if (!isset($currentContext[$k])) {
+                        $currentContext[$k] = [];
+                    }
+                    $currentContext = &$currentContext[$k];
+                }
+                $currentContext = $value;
+                unset($context[$key]);
+            }
+        }
+
+        return $context;
+    }
+
+    /**
+     * @return DateFormatHelper
+     */
+    public function getDateFormatHelper()
+    {
+        return $this->dateFormatHelper;
+    }
+
+    /**
+     * Recursively replaces tokens using an array for context.
+     *
+     * @param array $array
+     *
+     * @return array
+     */
+    public function renderArray($array = [])
+    {
+        $result = [];
+        foreach ($array as $key => $value) {
+            if (is_string($value)) {
+                $value = $this->render($value, true);
+            } elseif (is_array($value) || is_object($value)) {
+                $value = $this->renderArray($value);
+            }
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Replace Tokens in a simple string using an array for context.
+     *
+     * @param      $string
+     * @param bool $force  skip checking for a token
+     *
+     * @return string
+     */
+    public function render($string, $force = false)
+    {
+        if (isset($this->renderCache[$string])) {
+            return $this->renderCache[$string];
+        }
+        if ($force || false !== strpos($string, self::TOKEN_KEY)) {
+            $this->setTimezones();
+            $string = $this->engine->render($string, $this->context);
+        }
+        if (!empty($string)) {
+            $this->renderCache[$string] = $string;
+        }
+
+        return $string;
+    }
+
+    /**
+     * @param bool $labeled
+     *
+     * @return array
+     */
+    public function getContext($labeled = false)
+    {
+        if ($labeled) {
+            // When retrieving labels, nested contacts are not needed.
+            unset($this->context['contacts']);
+            $labels     = $this->labels($this->context);
+            $flatLabels = [];
+            $this->flattenArray($labels, $flatLabels);
+
+            return $flatLabels;
+        } else {
+            return $this->context;
+        }
+    }
+
+    /**
+     * @param array $context
+     *
+     * @return $this
+     */
+    public function setContext($context = [])
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
+    /**
+     * Given a token array, set the values to the labels of the fields if possible, or generate them.
+     *
+     * @param array  $array
+     * @param string $keys
+     * @param bool   $sort
+     *
+     * @return array
+     */
+    private function labels($array = [], $keys = '', $sort = true)
+    {
+        foreach ($array as $key => &$value) {
+            if (is_array($value)) {
+                if (0 === count($value)) {
+                    // Currently such groups are undocumented, so labels are not needed.
+                    unset($array[$key]);
+                    continue;
+                } else {
+                    $value = $this->labels($value, $keys.' '.$key);
+                }
+            } else {
+                if (is_bool($value) || null === $value || 0 === $value) {
+                    // Discern the "label" given the key and previous keys conjoined.
+                    $totalKey = str_replace('_', ' ', $keys.' '.trim($key));
+                    preg_match_all('/(?:|[A-Z])[a-z]*/', $totalKey, $words);
+                    foreach ($words[0] as &$word) {
+                        if (strlen($word) > 1) {
+                            // Change the case of the first letter without dropping the case of the rest of the word.
+                            $word = strtoupper(substr($word, 0, 1)).substr($word, 1);
+                        }
+                    }
+                    // Combine down to one string without extra whitespace.
+                    $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
+                    // One exception is UTM variables.
+                    $value = str_replace('Utm ', 'UTM ', $value);
+                }
+            }
+        }
+
+        if ($sort) {
+            ksort($array, SORT_NATURAL);
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param        $original
+     * @param array  $new
+     * @param string $delimiter
+     * @param string $keys
+     */
+    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
+    {
+        foreach ($original as $key => $value) {
+            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
+            if (is_array($value)) {
+                $this->flattenArray($value, $new, $delimiter, $k);
+            } else {
+                $new[$k] = $value;
+            }
+        }
     }
 }

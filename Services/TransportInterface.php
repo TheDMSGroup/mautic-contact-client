@@ -29,4 +29,6 @@ interface TransportInterface
     public function delete($uri, array $options);
 
     public function request(array $options);
+
+    public function getRecords();
 }

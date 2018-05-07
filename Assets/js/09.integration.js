@@ -2,79 +2,40 @@
 Mautic.contactclientIntegration = function () {
     var $client = mQuery('#campaignevent_properties_config_contactclient:not(.contactclient-checked):first'),
         $overrides = mQuery('#campaignevent_properties_config_contactclient_overrides:not(.contactclient-checked):first');
+
     if ($client.length && $overrides.length) {
+        var $button = mQuery('#campaignevent_properties_config_contactclient_overrides_button:first'),
+            $label = mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first');
+
         if (typeof Mautic.contactclientIntegrationStylesLoaded === 'undefined') {
             Mautic.contactclientIntegrationStylesLoaded = true;
             mQuery('head').append('<link rel="stylesheet" href="' + mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.css' + '" data-source="mautic" />');
         }
 
-        // Get the JSON from the client selector, if not already present.
-        $client.off('change').on('change', function () {
-            var clientId = parseInt(mQuery(this).val()),
-                $select = clientId ? mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first') : [],
-                json = $select.length ? $select.attr('data-overridable-fields') : null;
-
-            if (json) {
-                mQuery('#campaignevent_properties_config_contactclient_overrides_button').removeClass('hide');
-                mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
-            }
-            else {
-                mQuery('#campaignevent_properties_config_contactclient_overrides_button').addClass('hide');
-                mQuery('label[for=campaignevent_properties_config_contactclient_overrides]:first, .contactclient_jsoneditor').addClass('hide');
-            }
-
-            if ($overrides.val().length > 0) {
-                // Merge new overrides with whatever was configured before if
-                // possible.
-                try {
-                    var arra = mQuery.parseJSON(json),
-                        arrb = mQuery.parseJSON($overrides.val()),
-                        obj = {};
-                    mQuery.each(arra, function (a, vala) {
-                        if (typeof vala.key !== 'undefined') {
-                            mQuery.each(arrb, function (b, valb) {
-                                if (typeof valb.key !== 'undefined' && vala.key === valb.key) {
-                                    // If this override has never been rendered (legacy data).
-                                    if (typeof valb.enabled === 'undefined') {
-                                        valb.enabled = true;
-                                    }
-                                    // If this override is unchecked
-                                    if (!valb.enabled) {
-                                        vala = valb;
-                                    }
-                                    // Regardless, persist the checkbox
-                                    vala.enabled = valb.enabled;
-                                }
-                            });
-                            obj[vala.key] = {
-                                key: vala.key,
-                                value: vala.value,
-                                description: vala.description,
-                                enabled: vala.enabled
-
-                            };
-                        }
-                    });
-                    json = JSON.stringify(obj, null, 2);
+        // Upgrade the textarea to json schema.
+        var overridesJSONEditor,
+            schema,
+            overridesJSONEditorStart = function (callback) {
+                if (!overridesJSONEditor || mQuery('.contactclient_jsoneditor').length < 1) {
+                    if (!schema) {
+                        mQuery.ajax({
+                            dataType: 'json',
+                            cache: true,
+                            url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/overrides.json',
+                            success: function (data) {
+                                schema = data;
+                                return overridesJSONEditorFinish(schema, callback);
+                            }
+                        });
+                    }
+                    else {
+                        return overridesJSONEditorFinish(schema, callback);
+                    }
+                } else {
+                    return callback(overridesJSONEditor);
                 }
-                catch (e) {
-                    console.warn('Could not merge overrides', e);
-                }
-            }
-            $overrides.val(json);
-        }).trigger('change');
-
-        var overridesJSONEditor;
-
-        // Grab the JSON Schema to begin rendering the form with
-        // JSONEditor.
-        mQuery.ajax({
-            dataType: 'json',
-            cache: true,
-            url: mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/json/overrides.json',
-            success: function (data) {
-                var schema = data;
-
+            },
+            overridesJSONEditorFinish = function (schema, callback) {
                 // Create our widget container for the JSON Editor.
                 var $overridesJSONEditor = mQuery('<div>', {
                     class: 'contactclient_jsoneditor'
@@ -89,22 +50,21 @@ Mautic.contactclientIntegration = function () {
                     disable_collapse: true
                 });
 
-                $overrides.change(function () {
-                    // Load the initial value if applicable.
-                    var raw = mQuery(this).val(),
-                        obj;
-                    if (raw.length) {
-                        try {
-                            obj = mQuery.parseJSON(raw);
-                            if (typeof obj === 'object') {
-                                overridesJSONEditor.setValue(obj);
-                            }
-                        }
-                        catch (e) {
-                            console.warn(e);
+                // Initial value set only. Other values will be set
+                // after config merge by $overrides change.
+                var raw = $overrides.val(),
+                    obj;
+                if (raw.length) {
+                    try {
+                        obj = mQuery.parseJSON(raw);
+                        if (typeof obj === 'object') {
+                            overridesJSONEditor.setValue(obj);
                         }
                     }
-                }).trigger('change');
+                    catch (e) {
+                        console.warn(e);
+                    }
+                }
 
                 // Persist the value to the JSON Editor.
                 overridesJSONEditor.on('change', function () {
@@ -116,23 +76,85 @@ Mautic.contactclientIntegration = function () {
                             $overrides.val(raw);
                         }
                     }
+                    $overridesJSONEditor.find('div > table > tbody > tr').each(function () {
+                        if (mQuery(this).find('input[name$="[enabled]"]:first:checked').length) {
+                            mQuery(this).removeClass('disabled');
+                        }
+                        else {
+                            mQuery(this).addClass('disabled');
+                        }
+                    });
                 });
-                // Hide the button, show the label.
-                mQuery('#campaignevent_properties_config_contactclient_overrides_button').addClass('hide');
-                mQuery('label[for=campaignevent_properties_config_contactclient_overrides]').removeClass('hide');
-            }
-        });
-        $client.addClass('contactclient-checked');
-        $overrides.addClass('contactclient-checked');
 
-        // Expand the modal view.
-        var $modal = mQuery('#CampaignEventModal:first');
-        if ($modal.length) {
-            var $dialog = $modal.find('.modal-dialog:first');
-            $dialog.addClass('expanded');
-            $modal.on('hidden.bs.modal', function () {
-                $dialog.removeClass('expanded');
-            });
-        }
+                $label.removeClass('hide');
+
+                // Expand the modal view.
+                var $modal = mQuery('#CampaignEventModal:first');
+                if ($modal.length) {
+                    var $dialog = $modal.find('.modal-dialog:first');
+                    $dialog.addClass('expanded');
+                    $modal.on('hidden.bs.modal', function () {
+                        $dialog.removeClass('expanded');
+                    });
+                }
+
+                return callback(overridesJSONEditor);
+            };
+
+        // Get the JSON from the client selector, if not already present.
+        $client.off('change').on('change', function () {
+            var clientId = parseInt(mQuery(this).val()),
+                $select = clientId ? mQuery('#campaignevent_properties_config_contactclient > option[value=' + clientId + ']:first') : [],
+                defaultJson = $select.length ? $select.attr('data-overridable-fields') : '{}',
+                currentJson = $overrides.val() ? $overrides.val() : '{}',
+                newJson = defaultJson;
+
+            $label.addClass('hide');
+            $button.addClass('hide');
+            // Merge defaults with whatever was configured before.
+            try {
+                var defaults = mQuery.parseJSON(defaultJson),
+                    currents = mQuery.parseJSON(currentJson),
+                    unique = {},
+                    result = [];
+                mQuery.each(defaults, function (d, def) {
+                    if (typeof def.key !== 'undefined') {
+                        unique[def.key] = {
+                            key: def.key,
+                            value: def.value,
+                            description: def.description,
+                            enabled: false
+                        };
+                        mQuery.each(currents, function (c, cur) {
+                            if (typeof cur.key !== 'undefined' && cur.key === def.key) {
+                                if (
+                                    (typeof cur.enabled === 'undefined') ||
+                                    (typeof cur.enabled !== 'undefined' && cur.enabled === true)
+                                ) {
+                                    unique[def.key].enabled = true;
+                                    unique[def.key].value = cur.value;
+                                    unique[def.key].description = cur.description;
+                                }
+                            }
+                        });
+                    }
+                });
+                mQuery.each(unique, function (u, uni) {
+                    result.push(uni);
+                });
+                newJson = JSON.stringify(result, null, 2);
+                overridesJSONEditorStart(function (editor) {
+                    editor.setValue(result);
+                });
+            }
+            catch (e) {
+                console.warn('Could not merge overrides', e);
+            }
+            $overrides.val(newJson);
+        }).trigger('change');
+
+        // $client.addClass('contactclient-checked');
+        // $overrides.addClass('contactclient-checked');
+        Mautic.removeButtonLoadingIndicator($button);
     }
 };

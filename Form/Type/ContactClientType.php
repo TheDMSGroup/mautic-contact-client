@@ -47,7 +47,6 @@ class ContactClientType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         // CleanFormSubscriber causes JSON payloads containing XML to be purged :(
-        // @todo - We may have to run clean on individual fields instead.
         // $builder->addEventSubscriber(new CleanFormSubscriber(['website' => 'url']));
         $builder->addEventSubscriber(new FormExitSubscriber('contactclient', $options));
 
@@ -76,9 +75,9 @@ class ContactClientType extends AbstractType
             'api_payload',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.api_payload',
-                'label_attr' => ['class' => 'control-label api-payload'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.api_payload',
+                'label_attr'  => ['class' => 'control-label api-payload'],
+                'attr'        => [
                     'class' => 'form-control api-payload',
                     'rows'  => 12,
                 ],
@@ -91,9 +90,9 @@ class ContactClientType extends AbstractType
             'file_payload',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.file_payload',
-                'label_attr' => ['class' => 'control-label file-payload'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.file_payload',
+                'label_attr'  => ['class' => 'control-label file-payload'],
+                'attr'        => [
                     'class' => 'form-control file-payload',
                     'rows'  => 12,
                 ],
@@ -135,9 +134,9 @@ class ContactClientType extends AbstractType
             'attribution_settings',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.attribution.settings',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.attribution.settings',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
@@ -150,9 +149,9 @@ class ContactClientType extends AbstractType
             'duplicate',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.duplicate',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.duplicate',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
@@ -165,9 +164,9 @@ class ContactClientType extends AbstractType
             'exclusive',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.exclusive',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.exclusive',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
@@ -180,9 +179,9 @@ class ContactClientType extends AbstractType
             'filter',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.filter',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.filter',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
@@ -195,9 +194,9 @@ class ContactClientType extends AbstractType
             'limits',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.limits',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.limits',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class' => 'form-control',
                     'rows'  => 12,
                 ],
@@ -226,9 +225,9 @@ class ContactClientType extends AbstractType
             'schedule_hours',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.schedule_hours',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.schedule_hours',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class'   => 'form-control',
                     'rows'    => 12,
                     'tooltip' => 'mautic.contactclient.form.schedule_hours.tooltip',
@@ -242,9 +241,9 @@ class ContactClientType extends AbstractType
             'schedule_exclusions',
             'textarea',
             [
-                'label'      => 'mautic.contactclient.form.schedule_exclusions',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
+                'label'       => 'mautic.contactclient.form.schedule_exclusions',
+                'label_attr'  => ['class' => 'control-label'],
+                'attr'        => [
                     'class'   => 'form-control',
                     'rows'    => 12,
                     'tooltip' => 'mautic.contactclient.form.schedule_exclusions.tooltip',

@@ -12,20 +12,28 @@
 namespace MauticPlugin\MauticContactClientBundle\Services;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use Monolog\Handler\TestHandler;
+use Monolog\Logger;
 
 /**
  * Class Transport.
  */
 class Transport implements TransportInterface
 {
-    /**
-     * @var Client
-     */
+    /** @var Logger */
+    protected $logger;
+
+    /** @var HandlerStack */
+    protected $handler;
+
+    /** @var TestHandler */
+    protected $testHandler;
+
+    /** @var Client */
     private $client;
 
-    /**
-     * @var
-     */
+    /** @var \Guzzle\Http\Message\Response */
     private $response;
 
     /**
@@ -80,6 +88,17 @@ class Transport implements TransportInterface
         $original = $this->settings;
         $this->mergeSettings($settings, $this->settings);
         if ($this->settings != $original) {
+            // if (!isset($this->settings['handler']) && class_exists(
+            //         '\Namshi\Cuzzle\Middleware\CurlFormatterMiddleware'
+            //     )) {
+            //     $this->logger      = new Logger('guzzle.to.curl'); //initialize the logger
+            //     $this->testHandler = new TestHandler(); //test logger handler
+            //     $this->logger->pushHandler($this->testHandler);
+            //
+            //     $this->handler = HandlerStack::create();
+            //     $this->handler->after('cookies', new \Namshi\Cuzzle\Middleware\CurlFormatterMiddleware($this->logger));
+            //     $this->settings['handler'] = $this->handler;
+            // }
             $this->client = new Client($this->settings);
         }
     }
@@ -150,6 +169,11 @@ class Transport implements TransportInterface
         $this->response = $this->client->request($options);
 
         return $this->response;
+    }
+
+    public function getRecords()
+    {
+        return ($this->testHandler) ? $this->testHandler->getRecords() : [];
     }
 
     public function getStatusCode()

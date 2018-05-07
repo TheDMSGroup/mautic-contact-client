@@ -11,7 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
@@ -58,7 +58,7 @@ class ApiPayload
     /** @var Contact */
     protected $contact;
 
-    /** @var array */
+    /** @var object */
     protected $payload;
 
     /** @var array */
@@ -74,7 +74,7 @@ class ApiPayload
     protected $transport;
 
     /** @var bool */
-    protected $valid = true;
+    protected $valid = false;
 
     /** @var TokenHelper */
     protected $tokenHelper;
@@ -88,30 +88,36 @@ class ApiPayload
     /** @var string */
     protected $externalId = null;
 
-    /** @var CoreParametersHelper */
-    protected $coreParametersHelper;
-
     /** @var contactClientModel */
     protected $contactClientModel;
+
+    /** @var array */
+    protected $event;
+
+    /** @var Campaign */
+    protected $campaign;
+
+    /** @var Schedule */
+    protected $scheduleModel;
 
     /**
      * ApiPayload constructor.
      *
-     * @param contactClientModel   $contactClientModel
-     * @param Transport            $transport
-     * @param TokenHelper          $tokenHelper
-     * @param CoreParametersHelper $coreParametersHelper
+     * @param contactClientModel $contactClientModel
+     * @param Transport          $transport
+     * @param TokenHelper        $tokenHelper
+     * @param Schedule           $scheduleModel
      */
     public function __construct(
         contactClientModel $contactClientModel,
         Transport $transport,
         tokenHelper $tokenHelper,
-        CoreParametersHelper $coreParametersHelper
+        Schedule $scheduleModel
     ) {
-        $this->contactClientModel   = $contactClientModel;
-        $this->transport            = $transport;
-        $this->tokenHelper          = $tokenHelper;
-        $this->coreParametersHelper = $coreParametersHelper;
+        $this->contactClientModel = $contactClientModel;
+        $this->transport          = $transport;
+        $this->tokenHelper        = $tokenHelper;
+        $this->scheduleModel      = $scheduleModel;
     }
 
     /**
@@ -121,7 +127,7 @@ class ApiPayload
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper', 'coreParametersHelper'])
+    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
@@ -154,6 +160,29 @@ class ApiPayload
     }
 
     /**
+     * @return Campaign
+     */
+    public function getCampaign()
+    {
+        return $this->campaign;
+    }
+
+    /**
+     * @param Campaign|null $campaign
+     *
+     * @return $this
+     */
+    public function setCampaign(Campaign $campaign = null)
+    {
+        if ($campaign instanceof Campaign) {
+            $this->setLogs($campaign->getId(), 'campaign');
+        }
+        $this->campaign = $campaign;
+
+        return $this;
+    }
+
+    /**
      * @return ContactClient
      */
     public function getContactClient()
@@ -179,14 +208,17 @@ class ApiPayload
     /**
      * Take the stored JSON string and parse for use.
      *
-     * @param string $payload
+     * @param string|null $payload
      *
      * @return $this
      *
      * @throws ContactClientException
      */
-    private function setPayload(string $payload)
+    private function setPayload(string $payload = null)
     {
+        if (!$payload && $this->contactClient) {
+            $payload = $this->contactClient->getApiPayload();
+        }
         if (!$payload) {
             throw new ContactClientException(
                 'API instructions not set.',
@@ -234,6 +266,14 @@ class ApiPayload
         }
     }
 
+    /**
+     * @return bool
+     */
+    public function getValid()
+    {
+        return $this->valid;
+    }
+
     public function getTest()
     {
         return $this->test;
@@ -247,12 +287,31 @@ class ApiPayload
     }
 
     /**
-     * Step through all operations defined.
+     * Returns the expected send time for limit evaluation.
+     * Throws an exception if an open slot is not available.
      *
-     * @return bool
+     * @return \DateTime
      *
      * @throws ContactClientException
-     * @throws \Exception
+     */
+    public function evaluateSchedule()
+    {
+        $this->scheduleModel->reset()
+            ->setContactClient($this->contactClient)
+            ->setTimezone()
+            ->evaluateDay()
+            ->evaluateTime()
+            ->evaluateExclusions();
+
+        return new \DateTime();
+    }
+
+    /**
+     * Step through all operations defined.
+     *
+     * @return $this
+     *
+     * @throws ContactClientException
      */
     public function run()
     {
@@ -268,7 +327,7 @@ class ApiPayload
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $transport */
         $transport     = $this->getTransport();
-        $tokenHelper   = $this->getTokenHelper();
+        $tokenHelper   = $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
         $updatePayload = (bool) $this->settings['autoUpdate'];
 
         foreach ($this->payload->operations as $id => &$operation) {
@@ -276,8 +335,8 @@ class ApiPayload
             $apiOperation = new ApiOperation(
                 $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
             );
+            $this->valid  = false;
             try {
-                $this->valid = false;
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
             } catch (\Exception $e) {
@@ -311,7 +370,7 @@ class ApiPayload
             throw $e;
         }
 
-        return $this->valid;
+        return $this;
     }
 
     /**
@@ -325,34 +384,6 @@ class ApiPayload
         $this->transport->setSettings($this->settings);
 
         return $this->transport;
-    }
-
-    /**
-     * Retrieve the transport service for API interaction.
-     * This tokenHelper will be reused throughout the API operations so that they can be context aware.
-     */
-    private function getTokenHelper()
-    {
-        // Set the timezones for date/time conversion.
-        $tza = $this->coreParametersHelper->getParameter(
-            'default_timezone'
-        );
-        $tza = !empty($tza) ? $tza : date_default_timezone_get();
-        $tzb = $this->contactClient->getScheduleTimezone();
-        $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
-        $this->tokenHelper->setTimezones($tza, $tzb);
-
-        // Add the Contact as context for field replacement.
-        if ($this->contact) {
-            $this->tokenHelper->addContextContact($this->contact);
-        }
-
-        // Include the payload as additional context.
-        if ($this->payload) {
-            $this->tokenHelper->addContext(['payload' => $this->payload]);
-        }
-
-        return $this->tokenHelper;
     }
 
     /**
@@ -500,7 +531,7 @@ class ApiPayload
      *
      * @return array
      */
-    public function getOverridableFields()
+    public function getOverrides()
     {
         $result = [];
         if (isset($this->payload->operations)) {
@@ -524,8 +555,9 @@ class ApiPayload
                 }
             }
         }
+        ksort($result);
 
-        return $result;
+        return array_values($result);
     }
 
     /**
@@ -533,6 +565,8 @@ class ApiPayload
      *
      * @param       $fieldName
      * @param array $types
+     *
+     * @return null|string
      */
     public function getAggregateResponseFieldValue($fieldName, $types = ['headers', 'body'])
     {
@@ -550,6 +584,39 @@ class ApiPayload
         }
 
         return null;
+    }
+
+    /**
+     * @param array $event
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function setEvent($event = [])
+    {
+        if (!empty($event['id'])) {
+            $this->setLogs($event['id'], 'campaignEvent');
+        }
+        $overrides = [];
+        if (!empty($event['contactclient_overrides'])) {
+            // Flatten overrides to key-value pairs.
+            $jsonHelper = new JSONHelper();
+            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
+            if ($array) {
+                foreach ($array as $field) {
+                    if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
+                        $overrides[$field->key] = $field->value;
+                    }
+                }
+            }
+            if ($overrides) {
+                $this->setOverrides($overrides);
+            }
+        }
+        $this->event = $event;
+
+        return $this;
     }
 
     /**

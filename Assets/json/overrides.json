@@ -46,12 +46,13 @@
           "maxLength": 255
         },
         "enabled": {
-          "title": "Override",
+          "title": "Enabled",
           "propertyOrder": 15,
           "type": "boolean",
           "format": "checkbox",
+          "default": false,
           "options": {
-            "infoText": "Disable to use original values."
+            "infoText": "Enable to override the value within this campaign. Disable to use the default values configured for the client."
           }
         },
         "description": {

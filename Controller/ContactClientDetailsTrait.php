@@ -316,7 +316,7 @@ trait ContactClientDetailsTrait
             $filters = $session->get(
                 'mautic.contactClient.'.$contactClient->getId().'.timeline.filters',
                 [
-                    'search'        => '',
+                    'search' => '',
                 ]
             );
         }

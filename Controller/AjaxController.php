@@ -111,7 +111,7 @@ class AjaxController extends CommonAjaxController
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
             //$dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsYAML());
-            $dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
+            $dataArray['html'] = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
         }
 
         return $this->sendJsonResponse($dataArray);
@@ -164,7 +164,8 @@ class AjaxController extends CommonAjaxController
         }
         $contact->setFields($fieldGroups);
 
-        $tokenHelper = new TokenHelper();
+        /** @var TokenHelper $tokenHelper */
+        $tokenHelper = $this->get('mautic.contactclient.helper.token');
         $tokenHelper->addContextContact($contact);
 
         $tokens = $tokenHelper->getContext(true);

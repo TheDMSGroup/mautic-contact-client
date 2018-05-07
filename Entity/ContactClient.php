@@ -32,6 +32,12 @@ class ContactClient extends FormEntity
     const API_PAYLOAD_DEFAULT_FILE = '/../Assets/json/api_payload_default.json';
 
     /**
+     * The relative path to a file containing the default file payload for new clients.
+     * This file should only contain the minimum fields as required properties will be enforced automatically.
+     */
+    const FILE_PAYLOAD_DEFAULT_FILE = '/../Assets/json/file_payload_default.json';
+
+    /**
      * @var int
      */
     private $id;
@@ -57,7 +63,7 @@ class ContactClient extends FormEntity
     private $name;
 
     /**
-     * @var
+     * @var string
      */
     private $category;
 
@@ -82,7 +88,7 @@ class ContactClient extends FormEntity
     private $publishDown;
 
     /**
-     * @var int
+     * @var float
      */
     private $attribution_default;
 
@@ -131,13 +137,19 @@ class ContactClient extends FormEntity
      */
     public function __construct()
     {
-        if (!$this->type) {
+        if (null === $this->type) {
             $this->type = 'api';
         }
         if (!$this->api_payload) {
             $defaultFile = __DIR__.self::API_PAYLOAD_DEFAULT_FILE;
             if (file_exists($defaultFile)) {
                 $this->api_payload = file_get_contents($defaultFile);
+            }
+        }
+        if (!$this->file_payload) {
+            $defaultFile = __DIR__.self::FILE_PAYLOAD_DEFAULT_FILE;
+            if (file_exists($defaultFile)) {
+                $this->file_payload = file_get_contents($defaultFile);
             }
         }
     }
@@ -465,7 +477,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @return mixed
+     * @return float
      */
     public function getAttributionDefault()
     {
@@ -667,7 +679,6 @@ class ContactClient extends FormEntity
      */
     public function getPermissionUser()
     {
-        // @todo add Contact Client ownership? => $this->>getOwner() else getCreatedBy()
         return $this->getCreatedBy();
     }
 }
