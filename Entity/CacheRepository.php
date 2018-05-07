@@ -227,7 +227,6 @@ class CacheRepository extends CommonRepository
                     $query->setParameter('contactClientId'.$k, $set['contactclient_id']);
                     $query->setParameter('dateAdded'.$k, $set['date_added']);
                 }
-
             }
             // Expiration can always be applied globally.
             if (isset($exprOuter) && isset($expireDate)) {

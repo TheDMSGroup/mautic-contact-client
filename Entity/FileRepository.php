@@ -21,7 +21,7 @@ class FileRepository extends CommonRepository
     /**
      * Gets the number of files (ready/sent by default) on a given date.
      *
-     * @param \DateTime|null $date the date of the client, including client timezone
+     * @param \DateTime|null $date            the date of the client, including client timezone
      * @param                $contactClientId
      * @param array          $statuses
      *
@@ -49,7 +49,7 @@ class FileRepository extends CommonRepository
             $q->expr()->gte('date_added', (int) $start->format('U')),
             $q->expr()->lt('date_added', (int) $end->format('U'))
         );
-        $q->andWhere('status IN (\'' . implode('\',\'', $statuses).'\')');
+        $q->andWhere('status IN (\''.implode('\',\'', $statuses).'\')');
 
         return $q->execute()->fetchColumn();
     }
