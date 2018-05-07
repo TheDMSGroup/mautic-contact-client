@@ -127,7 +127,7 @@ class ApiPayload
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper'])
+    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper', 'scheduleModel'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),

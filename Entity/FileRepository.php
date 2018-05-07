@@ -47,10 +47,9 @@ class FileRepository extends CommonRepository
         $q->where(
             $q->expr()->eq('contactclient_id', (int) $contactClientId),
             $q->expr()->gte('date_added', (int) $start->format('U')),
-            $q->expr()->lt('date_added', (int) $end->format('U')),
-            $q->expr()->in('status', ':statuses')
+            $q->expr()->lt('date_added', (int) $end->format('U'))
         );
-        $q->setParameter('statuses', $statuses);
+        $q->andWhere('status IN (\''.implode('\',\'', $statuses).'\')');
 
         return $q->execute()->fetchColumn();
     }
