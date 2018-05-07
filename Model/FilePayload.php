@@ -1586,29 +1586,21 @@ class FilePayload
     public function getOverrides()
     {
         $result = [];
-        if (isset($this->payload->operations)) {
-            foreach ($this->payload->operations as $id => $operation) {
-                if (isset($operation->request)) {
-                    foreach (['headers', 'body'] as $type) {
-                        if (isset($operation->request->{$type})) {
-                            foreach ($operation->request->{$type} as $field) {
-                                if (isset($field->overridable) && true === $field->overridable) {
-                                    // Remove irrelevant data, since this result will need to be light-weight.
-                                    unset($field->default_value);
-                                    unset($field->test_value);
-                                    unset($field->test_only);
-                                    unset($field->overridable);
-                                    unset($field->required);
-                                    $result[(string) $field->key] = $field;
-                                }
-                            }
-                        }
-                    }
+        if (isset($this->payload->body)) {
+            foreach ($this->payload->body as $field) {
+                if (isset($field->overridable) && true === $field->overridable) {
+                    // Remove irrelevant data, since this result will need to be light-weight.
+                    unset($field->default_value);
+                    unset($field->test_value);
+                    unset($field->test_only);
+                    unset($field->overridable);
+                    unset($field->required);
+                    $result[(string) $field->key] = $field;
                 }
             }
         }
-
-        return $result;
+        ksort($result);
+        return array_values($result);
     }
 
     /**

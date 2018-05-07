@@ -58,7 +58,7 @@ class ApiPayload
     /** @var Contact */
     protected $contact;
 
-    /** @var array */
+    /** @var object */
     protected $payload;
 
     /** @var array */
@@ -555,8 +555,8 @@ class ApiPayload
                 }
             }
         }
-
-        return $result;
+        ksort($result);
+        return array_values($result);
     }
 
     /**

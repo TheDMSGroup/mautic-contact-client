@@ -1,10 +1,11 @@
 /* Style the body key column to prevent user confusion/clicking */
-#campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr > td[data-schemapath*=".key"] > div > input {
+#campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr > td[data-schemapath$=".key"] > div > input {
     pointer-events: none;
     background: none;
     border: 0;
     border-radius: 0;
 }
+
 #campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr > td {
     min-width: 150px;
 }
@@ -12,6 +13,7 @@
 #campaignevent_properties_config .contactclient_jsoneditor {
     overflow-y: auto;
 }
+
 @media (min-width: 768px) {
     #CampaignEventModal .modal-dialog.expanded {
         width: auto;
@@ -23,4 +25,22 @@
         -o-transition: width 300ms ease-in-out;
         transition: width 300ms ease-in-out;
     }
+}
+
+#campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr {
+    opacity: 1;
+    -webkit-transition: opacity 300ms ease-in-out;
+    -moz-transition: opacity 300ms ease-in-out;
+    -ms-transition: opacity 300ms ease-in-out;
+    -o-transition: opacity 300ms ease-in-out;
+    transition: opacity 300ms ease-in-out;
+}
+
+#campaignevent_properties_config .contactclient_jsoneditor div > table > tbody > tr.disabled {
+    opacity: .5;
+    -webkit-transition: opacity 300ms ease-in-out;
+    -moz-transition: opacity 300ms ease-in-out;
+    -ms-transition: opacity 300ms ease-in-out;
+    -o-transition: opacity 300ms ease-in-out;
+    transition: opacity 300ms ease-in-out;
 }
