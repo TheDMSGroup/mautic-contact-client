@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
@@ -291,6 +292,69 @@ trait ContactClientDetailsTrait
             'page'     => $page,
             'limit'    => $limit,
             'maxPages' => ceil($logCount / $limit),
+        ];
+    }
+
+    /**
+     * @param ContactClient $contactClient
+     * @param array|null    $filters
+     * @param array|null    $orderBy
+     * @param int           $page
+     * @param int           $limit
+     *
+     * @return array
+     */
+    protected function getFiles(
+        ContactClient $contactClient,
+        array $filters = null,
+        array $orderBy = null,
+        $page = 1,
+        $limit = 25
+    ) {
+        $session = $this->get('session');
+
+        if (null == $filters) {
+            $filters = $session->get(
+                'mautic.contactClient.'.$contactClient->getId().'.files.filters',
+                [
+                    'search'        => '',
+                ]
+            );
+        }
+        $filters['contactClient'] = $contactClient;
+
+        if (null == $orderBy) {
+            if (!$session->has('mautic.contactClient.'.$contactClient->getId().'.files.orderby')) {
+                $session->set('mautic.contactClient.'.$contactClient->getId().'.files.orderby', 'dateAdded');
+                $session->set('mautic.contactClient.'.$contactClient->getId().'.files.orderbydir', 'DESC');
+            }
+        }
+        $orderBy = [
+            $session->get('mautic.contactClient.'.$contactClient->getId().'.files.orderby'),
+            $session->get('mautic.contactClient.'.$contactClient->getId().'.files.orderbydir'),
+        ];
+
+        /** @var FileRepository $fileRepository */
+        $fileRepository = $this->getDoctrine()->getManager()->getRepository('MauticContactClientBundle:File');
+        $files          = $fileRepository->getEntities(
+            [
+                'filter'  => $filters,
+                'orderBy' => $orderBy,
+                'limit'   => $limit,
+                'page'    => $page,
+            ]
+        );
+
+        $fileCount = count($files);
+
+        return [
+            'files'    => $files,
+            'filters'  => $filters,
+            'order'    => $orderBy,
+            'total'    => $fileCount,
+            'page'     => $page,
+            'limit'    => $limit,
+            'maxPages' => ceil($fileCount / $limit),
         ];
     }
 

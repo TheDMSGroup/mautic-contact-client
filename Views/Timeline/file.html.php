@@ -12,7 +12,7 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Timeline:index.html.php');
 }
 
-$order   = $events['order'];
+$order   = $files['order'];
 $baseUrl = $view['router']->path(
     'mautic_contactclient_timeline_action',
     [
@@ -34,41 +34,52 @@ $baseUrl = $view['router']->path(
                     <span class="fa fa-fw fa-level-down"></span>
                 </a>
             </th>
-            <th class="visible-md visible-lg timeline-message">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="message"
+            <th class="visible-md visible-lg timeline-filename">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="filename"
                    title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.message'
+                       'mautic.contactclient.timeline.filename'
                    ); ?>">
                     <?php echo $view['translator']->trans(
-                        'mautic.contactclient.timeline.message'
+                        'mautic.contactclient.timeline.filename'
                     ); ?>
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg timeline-contact-id">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="contact_id"
-                   title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.contact_id'
-                   ); ?>">
-                    <?php echo $view['translator']->trans(
-                        'mautic.contactclient.timeline.contact_id'
-                    ); ?>
-                    <i class="fa fa-sort"></i>
-                </a>
-            </th>
-            <th class="visible-md visible-lg timeline-event-type">
+            <th class="visible-md visible-lg timeline-type">
                 <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
                    title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.event_type'
+                       'mautic.contactclient.timeline.type'
                    ); ?>">
                     <?php echo $view['translator']->trans(
-                        'mautic.contactclient.timeline.event_type'
+                        'mautic.contactclient.timeline.type'
+                    ); ?>
+                    <i class="fa fa-sort"></i>
+                </a>
+            </th>
+            <th class="visible-md visible-lg timeline-status">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="status"
+                   title="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.timeline.status'
+                   ); ?>">
+                    <?php echo $view['translator']->trans(
+                        'mautic.contactclient.timeline.status'
+                    ); ?>
+                    <i class="fa fa-sort"></i>
+                </a>
+            </th>
+            <th class="visible-md visible-lg timeline-crc32">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="crc32"
+                   title="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.timeline.crc32'
+                   ); ?>">
+                    <?php echo $view['translator']->trans(
+                        'mautic.contactclient.timeline.crc32'
                     ); ?>
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-timestamp">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="date_added"
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="timestamp"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.timeline.event_timestamp'
                    ); ?>">
@@ -80,33 +91,24 @@ $baseUrl = $view['router']->path(
             </th>
         </tr>
         <tbody>
-        <?php foreach ($events['events'] as $counter => $event): ?>
+        <?php foreach ($files['files'] as $counter => $file): ?>
             <?php
-            ++$counter; // prevent 0
-            $icon       = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
-            $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
-            $message    = (isset($event['message'])) ? $event['message'] : null;
-            $contact    = (isset($event['contactId'])) ? "<a href=\"/s/contacts/view/{$event['contactId']}\" data-toggle=\"ajax\">{$event['contactId']}</a>" : null;
-            if (is_array($eventLabel)):
-                $linkType   = empty($eventLabel['isExternal']) ? 'data-toggle="ajax"' : 'target="_new"';
-                $eventLabel = isset($eventLabel['href']) ? "<a href=\"{$eventLabel['href']}\" $linkType>{$eventLabel['label']}</a>" : "{$eventLabel['label']}";
-            endif;
-
-            $details = '';
-            if (isset($event['contentTemplate']) && $view->exists($event['contentTemplate'])):
-                $details = trim(
-                    $view->render($event['contentTemplate'], ['event' => $event, 'contactClient' => $contactClient])
-                );
-            endif;
-
+            /** @var \MauticPlugin\MauticContactClientBundle\Entity\File $file */
+            $name   = $file->getName();
+            $type   = $file->getType();
+            $status = ucwords($file->getStatus());
+            $crc32  = $file->getCrc32();
+            $logs   = $file->getLogs();
+            $icon   = 'fa-plus-square-o';
+            ++$counter;
             $rowStripe = (0 === $counter % 2) ? ' timeline-row-highlighted' : '';
             ?>
-            <tr class="timeline-row<?php echo $rowStripe; ?><?php if (!empty($event['featured'])) {
+            <tr class="timeline-row<?php echo $rowStripe; ?><?php if (\MauticPlugin\MauticContactClientBundle\Entity\File::STATUS_READY === $status) {
                 echo ' timeline-featured';
             } ?>">
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="<?php echo $counter; ?>"
-                       class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
+                       class="btn btn-sm btn-nospin btn-default<?php if (empty($logs)) {
                            echo ' disabled';
                        } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.toggle_details'
@@ -114,23 +116,22 @@ $baseUrl = $view['router']->path(
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>
                     </a>
                 </td>
-                <td class="timeline-message"><?php echo $message; ?></td>
-                <td class="timeline-contact-id"><?php echo $contact; ?></td>
-                <td class="timeline-type"><?php if (isset($event['eventType'])) {
-                        echo $event['eventType'];
-                    } ?></td>
+                <td class="timeline-name"><?php echo $name; ?></td>
+                <td class="timeline-name"><?php echo $type; ?></td>
+                <td class="timeline-name"><?php echo $status; ?></td>
+                <td class="timeline-name"><?php echo $crc32; ?></td>
                 <td class="timeline-timestamp"><?php echo $view['date']->toText(
-                        $event['timestamp'],
+                        $file->getDateModified(),
                         'local',
                         'Y-m-d H:i:s',
                         true
                     ); ?></td>
             </tr>
-            <?php if (!empty($details)): ?>
+            <?php if (!empty($logs)): ?>
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide"
                     id="timeline-details-<?php echo $counter; ?>">
                     <td colspan="5">
-                        <?php echo $details; ?>
+                        <?php echo $logs; ?>
                     </td>
                 </tr>
             <?php endif; ?>
@@ -142,12 +143,12 @@ $baseUrl = $view['router']->path(
 echo $view->render(
     'MauticCoreBundle:Helper:pagination.html.php',
     [
-        'page'       => $events['page'],
-        'fixedPages' => $events['maxPages'],
+        'page'       => $files['page'],
+        'fixedPages' => $files['maxPages'],
         'fixedLimit' => true,
         'baseUrl'    => '/page',
         'target'     => '',
-        'totalItems' => $events['total'],
+        'totalItems' => $files['total'],
     ]
 ); ?>
 <script>
