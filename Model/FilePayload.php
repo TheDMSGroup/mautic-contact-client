@@ -595,6 +595,9 @@ class FilePayload
                 $this->file->setCount($this->count);
                 $this->setLogs($this->count, 'count');
             }
+            if ($this->scheduleStart) {
+                $this->file->setDateAdded($this->scheduleStart);
+            }
         }
 
         return $this;

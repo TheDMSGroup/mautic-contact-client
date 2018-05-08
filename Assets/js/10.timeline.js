@@ -1,15 +1,18 @@
 Mautic.contactclientTimelineOnLoad = function (container, response) {
 
-    var sortedColumn = mQuery('#contactclient-timeline a[data-sort=' + sortField + '] i');
+    var sortedColumn = mQuery('.contactclient-timeline a[data-sort=' + sortField + '] i');
     sortedColumn.addClass('fa-sort-amount-' + sortDirection);
     sortedColumn.removeClass('fa-sort');
 
     var codeMirror = function ($el) {
         if (!$el.hasClass('codemirror-active')) {
-            var $textarea = $el.find('textarea.codeMirror-yaml');
+            var $textarea = $el.find('textarea.codeMirror-json');
             if ($textarea.length) {
                 CodeMirror.fromTextArea($textarea[0], {
-                    mode: 'yaml',
+                    mode: {
+                        name: 'javascript',
+                        json: true
+                    },
                     theme: 'material',
                     gutters: [],
                     lineNumbers: false,
@@ -20,9 +23,9 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
             $el.addClass('codemirror-active');
         }
     };
-    mQuery('#contactclient-timeline a[data-activate-details=\'all\']').on('click', function () {
+    mQuery('.contactclient-timeline a[data-activate-details=\'all\']').on('click', function () {
         if (mQuery(this).find('span').first().hasClass('fa-level-down')) {
-            mQuery('#contactclient-timeline a[data-activate-details!=\'all\']').each(function () {
+            mQuery('.contactclient-timeline a[data-activate-details!=\'all\']').each(function () {
                 var detailsId = mQuery(this).data('activate-details'),
                     $details = mQuery('#timeline-details-' + detailsId);
                 if (detailsId && $details.length) {
@@ -34,7 +37,7 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
             mQuery(this).find('span').first().removeClass('fa-level-down').addClass('fa-level-up');
         }
         else {
-            mQuery('#contactclient-timeline a[data-activate-details!=\'all\']').each(function () {
+            mQuery('.contactclient-timeline a[data-activate-details!=\'all\']').each(function () {
                 var detailsId = mQuery(this).data('activate-details'),
                     $details = mQuery('#timeline-details-' + detailsId);
                 if (detailsId && $details.length) {
@@ -45,8 +48,9 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
             mQuery(this).find('span').first().removeClass('fa-level-up').addClass('fa-level-down');
         }
     });
-    mQuery('#contactclient-timeline a[data-activate-details!=\'all\']').on('click', function () {
+    mQuery('.contactclient-timeline a[data-activate-details!=\'all\']').on('click', function () {
         var detailsId = mQuery(this).data('activate-details');
+        console.log(detailsId);
         if (detailsId && mQuery('#timeline-details-' + detailsId).length) {
             var activateDetailsState = mQuery(this).hasClass('active'),
                 $details = mQuery('#timeline-details-' + detailsId);
@@ -67,13 +71,14 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
         }
     });
 
-    mQuery('#contactclient-timeline a.timeline-header-sort').on('click', function () {
+    mQuery('.contactclient-timeline a.timeline-header-sort').on('click', function () {
         var column = mQuery(this).data('sort');
         var newDirection;
-        if(column!=sortField){
+        if (column !== sortField) {
             newDirection = 'DESC';
-        } else {
-            newDirection = sortDirection=='desc' ? 'ASC' : 'DESC';
+        }
+        else {
+            newDirection = sortDirection == 'desc' ? 'ASC' : 'DESC';
         }
         mQuery('#orderBy').val(column + ':' + newDirection);
         // trigger a form submit
@@ -89,7 +94,6 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
         // trigger a form submit
         mQuery('#timeline-filters').submit();
     });
-
 
     if (response && typeof response.timelineCount !== 'undefined') {
         mQuery('#TimelineCount').html(response.timelineCount);
@@ -115,7 +119,8 @@ mQuery(function () {
 
     filterForm.submit(function (event) {
         mQuery('#client-timeline-overlay').show(); // spinner
-        event.preventDefault(); // Prevent the form from submitting via the browser
+        event.preventDefault(); // Prevent the form from submitting via the
+                                // browser
         var form = $(this);
         mQuery.ajax({
             type: form.attr('method'),
@@ -123,10 +128,10 @@ mQuery(function () {
             data: {
                 action: 'plugin:mauticContactClient:ajaxTimeline',
                 filters: form.serializeArray(),
-            },
+            }
         }).done(function (data) {
             mQuery('div#timeline-table').html(data);
-            if (mQuery('#contactclient-timeline').length) {
+            if (mQuery('.contactclient-timeline').length) {
                 Mautic.contactclientTimelineOnLoad();
             }
         }).fail(function (data) {
@@ -136,15 +141,15 @@ mQuery(function () {
     });
 });
 
-Mautic.exportContactClientTimeline= function (contactClient_id) {
+Mautic.exportContactClientTimeline = function (contactClient_id) {
     var dateFrom = mQuery('#chartfilter_date_from').val();
-    var dateTo = mQuery('#chartfilter_date_to').val()
+    var dateTo = mQuery('#chartfilter_date_to').val();
 
-    console.log(dateFrom, dateTo, contactClient_id);
+    // console.log(dateFrom, dateTo, contactClient_id);
 
-    var redeemFrame = document.createElement("iframe");
+    var redeemFrame = document.createElement('iframe');
     var src = '/s/contactclient/timeline/export/' + contactClient_id;
-    redeemFrame.setAttribute("src",src);
-    redeemFrame.setAttribute("style","display: none");
+    redeemFrame.setAttribute('src', src);
+    redeemFrame.setAttribute('style', 'display: none');
     document.body.appendChild(redeemFrame);
-}
+};

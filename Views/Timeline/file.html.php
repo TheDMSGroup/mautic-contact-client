@@ -23,7 +23,7 @@ $baseUrl = $view['router']->path(
 
 <!-- timeline -->
 <div class="table-responsive">
-    <table class="table table-hover table-bordered" id="contactclient-timeline" style="z-index: 2; position: relative;">
+    <table class="table table-hover table-bordered contactclient-timeline" style="z-index: 2; position: relative;">
         <thead>
         <tr>
             <th class="visible-md visible-lg timeline-icon">
@@ -34,13 +34,13 @@ $baseUrl = $view['router']->path(
                     <span class="fa fa-fw fa-level-down"></span>
                 </a>
             </th>
-            <th class="visible-md visible-lg timeline-filename">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="filename"
+            <th class="visible-md visible-lg timeline-name">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="name"
                    title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.filename'
+                       'mautic.contactclient.timeline.name'
                    ); ?>">
                     <?php echo $view['translator']->trans(
-                        'mautic.contactclient.timeline.filename'
+                        'mautic.contactclient.timeline.name'
                     ); ?>
                     <i class="fa fa-sort"></i>
                 </a>
@@ -68,7 +68,7 @@ $baseUrl = $view['router']->path(
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-crc32">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="crc32"
+                <a class="timeline-header-sort" data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.timeline.crc32'
                    ); ?>">
@@ -107,7 +107,7 @@ $baseUrl = $view['router']->path(
                 echo ' timeline-featured';
             } ?>">
                 <td class="timeline-icon">
-                    <a href="javascript:void(0);" data-activate-details="<?php echo $counter; ?>"
+                    <a href="javascript:void(0);" data-activate-details="f<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($logs)) {
                            echo ' disabled';
                        } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
@@ -117,9 +117,9 @@ $baseUrl = $view['router']->path(
                     </a>
                 </td>
                 <td class="timeline-name"><?php echo $name; ?></td>
-                <td class="timeline-name"><?php echo $type; ?></td>
-                <td class="timeline-name"><?php echo $status; ?></td>
-                <td class="timeline-name"><?php echo $crc32; ?></td>
+                <td class="timeline-type"><?php echo $type; ?></td>
+                <td class="timeline-status"><?php echo $status; ?></td>
+                <td class="timeline-crc32"><?php echo $crc32; ?></td>
                 <td class="timeline-timestamp"><?php echo $view['date']->toText(
                         $file->getDateModified(),
                         'local',
@@ -129,9 +129,13 @@ $baseUrl = $view['router']->path(
             </tr>
             <?php if (!empty($logs)): ?>
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide"
-                    id="timeline-details-<?php echo $counter; ?>">
-                    <td colspan="5">
-                        <?php echo $logs; ?>
+                    id="timeline-details-f<?php echo $counter; ?>">
+                    <td colspan="6">
+                        <div class="small" style="max-width: 100%;">
+                            <strong><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.heading'); ?></strong>
+                            <br/>
+                            <textarea class="codeMirror-json"><?php echo $logs = $logs[0] === '{' ? json_encode(json_decode($logs), JSON_PRETTY_PRINT) : $logs; ?></textarea>
+                        </div>
                     </td>
                 </tr>
             <?php endif; ?>

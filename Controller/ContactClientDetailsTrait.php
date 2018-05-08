@@ -339,10 +339,10 @@ trait ContactClientDetailsTrait
         $files          = $fileRepository->getEntities(
             [
                 'filter'  => $filters,
-                'orderBy' => $orderBy,
                 'limit'   => $limit,
                 'page'    => $page,
-            ]
+            ],
+            $orderBy
         );
 
         $fileCount = count($files);
