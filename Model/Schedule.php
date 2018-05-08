@@ -107,7 +107,7 @@ class Schedule
             $this->now = new \DateTime('noon +'.$day.' day');
             try {
                 $start = $end = $this->now;
-                $hours = $this->evaluateDay();
+                $hours = $this->evaluateDay(true);
                 $this->evaluateExclusions();
                 if (0 == $day) {
                     // Is *now* a good time?
@@ -159,11 +159,12 @@ class Schedule
     }
 
     /**
-     * @return array|mixed
+     * @param bool $returnHours
      *
+     * @return $this|array
      * @throws ContactClientException
      */
-    public function evaluateDay()
+    public function evaluateDay($returnHours = false)
     {
         $hours = $this->getScheduleHours();
 
@@ -180,13 +181,13 @@ class Schedule
                         null,
                         Stat::TYPE_SCHEDULE
                     );
-                } else {
+                } elseif ($returnHours) {
                     return $hours[$day];
                 }
             }
         }
 
-        return null;
+        return $this;
     }
 
     /**
