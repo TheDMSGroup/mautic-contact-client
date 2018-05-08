@@ -93,16 +93,18 @@ class Schedule
      * @param int $seekDays maximum number of days forward to seek for an opening
      *
      * @return array
+     *
      * @throws \Exception
      */
     public function nextOpening($fileRate, $seekDays)
     {
+        $realNow = new \DateTime();
         // Seek up to a year in the future for an opening date.
         if (!isset($this->nextOpeningDay)) {
             $this->nextOpeningDay = 0;
         }
         for ($day = $this->nextOpeningDay; $day < $seekDays; ++$day) {
-            if (0 ===$day) {
+            if (0 === $day) {
                 $this->now = new \DateTime('+'.$day.' day');
             } else {
                 // Use noon to evaluate days to not worry about timezones.
@@ -110,7 +112,7 @@ class Schedule
             }
             try {
                 $start = clone $this->now;
-                $end = clone $this->now;
+                $end   = clone $this->now;
                 $hours = $this->evaluateDay(true);
                 $this->evaluateExclusions();
                 if (0 == $day) {
@@ -124,7 +126,7 @@ class Schedule
                 $end->modify($timeTill.':59');
                 // Give breathing room.
                 $end->modify('+1 minute');
-                if (0 == $day && new \DateTime() >= $end) {
+                if (0 == $day && $realNow >= $end) {
                     // No time left today, try tomorrow.
                     continue;
                 }
@@ -132,6 +134,11 @@ class Schedule
                 $timeFrom = !empty($hours->timeFrom) ? $hours->timeFrom : '00:00';
                 $start->setTimezone($this->timezone);
                 $start->modify($timeFrom);
+
+                // Start time should not be less than this second.
+                if (0 == $day && $start < $realNow) {
+                    $start = $realNow;
+                }
 
                 // Check if there is an open slot today given the range (file limit).
                 if ($fileRate) {
@@ -336,8 +343,10 @@ class Schedule
      */
     private function evaluateFileRate($fileRate = 1)
     {
+        $date = clone $this->now;
+        $date->setTimezone($this->timezone);
         $repo      = $this->getFileRepository();
-        $fileCount = $repo->getCountByDate($this->now, $this->contactClient->getId());
+        $fileCount = $repo->getCountByDate($date, $this->contactClient->getId());
         if ($fileCount >= $fileRate) {
             throw new ContactClientException(
                 'This client has reached the maximum number of files they can receive per day.',

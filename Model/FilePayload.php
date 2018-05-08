@@ -716,7 +716,7 @@ class FilePayload
                 $prepEnd->modify('+'.self::FILE_PREP_AFTER_TIME);
                 if ($now < $prepStart || $now > $prepEnd) {
                     throw new ContactClientException(
-                        'It is not yet time to prepare a file for this client.',
+                        'It is not yet time to prepare the next file for this client.',
                         0,
                         null,
                         Stat::TYPE_SCHEDULE,
