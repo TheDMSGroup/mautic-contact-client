@@ -811,9 +811,10 @@ class FilePayload
         if ($this->count) {
             $this->fileCompress();
             $this->fileMove();
+            $this->file->setStatus(File::STATUS_READY);
+            $this->setLogs($this->file->getStatus(), 'fileStatus');
             $this->fileEntityRefreshSettings();
             $this->fileEntityAddLogs();
-            $this->file->setStatus(File::STATUS_READY);
             $this->fileEntitySave();
             $this->getQueueRepository()->deleteEntitiesById($queueEntriesProcessed);
         } else {
