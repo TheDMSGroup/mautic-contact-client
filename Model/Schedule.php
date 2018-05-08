@@ -162,6 +162,7 @@ class Schedule
      * @param bool $returnHours
      *
      * @return $this|array
+     *
      * @throws ContactClientException
      */
     public function evaluateDay($returnHours = false)
@@ -280,14 +281,15 @@ class Schedule
     }
 
     /**
-     * @return array|null
+     * @param bool $returnRange
+     *
+     * @return $this|array
      *
      * @throws ContactClientException
      */
-    public function evaluateTime()
+    public function evaluateTime($returnRange = false)
     {
-        $hours  = $this->getScheduleHours();
-        $result = null;
+        $hours = $this->getScheduleHours();
         if ($hours) {
             $day = intval($this->now->format('N')) - 1;
             if (isset($hours[$day])) {
@@ -309,12 +311,14 @@ class Schedule
                             Stat::TYPE_SCHEDULE
                         );
                     }
-                    $result = [$startDate, $endDate];
+                    if ($returnRange) {
+                        return [$startDate, $endDate];
+                    }
                 }
             }
         }
 
-        return $result;
+        return $this;
     }
 
     /**
