@@ -92,8 +92,7 @@ class Schedule
      * @param int $fileRate maximum number of files to build per day
      * @param int $seekDays maximum number of days forward to seek for an opening
      *
-     * @return \DateTime|null
-     *
+     * @return array
      * @throws \Exception
      */
     public function nextOpening($fileRate, $seekDays)
@@ -103,10 +102,15 @@ class Schedule
             $this->nextOpeningDay = 0;
         }
         for ($day = $this->nextOpeningDay; $day < $seekDays; ++$day) {
-            // Use noon to evaluate days to not worry about timezones.
-            $this->now = new \DateTime('noon +'.$day.' day');
+            if (0 ===$day) {
+                $this->now = new \DateTime('+'.$day.' day');
+            } else {
+                // Use noon to evaluate days to not worry about timezones.
+                $this->now = new \DateTime('noon +'.$day.' day');
+            }
             try {
-                $start = $end = $this->now;
+                $start = clone $this->now;
+                $end = clone $this->now;
                 $hours = $this->evaluateDay(true);
                 $this->evaluateExclusions();
                 if (0 == $day) {
@@ -144,7 +148,7 @@ class Schedule
                 }
                 $this->nextOpeningDay = $day + 1;
 
-                return $start;
+                return [$start, $end];
                 break;
             } catch (\Exception $e) {
                 if ($e instanceof ContactClientException) {
@@ -155,7 +159,7 @@ class Schedule
             }
         }
 
-        return null;
+        return [null, null];
     }
 
     /**

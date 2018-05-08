@@ -32,7 +32,8 @@ class FileRepository extends CommonRepository
         $contactClientId,
         $statuses = [File::STATUS_READY, File::STATUS_SENT]
     ) {
-        $start = $end = $date;
+        $start = clone $date;
+        $end   = clone $date;
         $q     = $this->getEntityManager()->getConnection()->createQueryBuilder();
         $q->select('count(*)')
             ->from(MAUTIC_TABLE_PREFIX.$this->getTableName());

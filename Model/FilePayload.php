@@ -159,6 +159,9 @@ class FilePayload
     /** @var Schedule */
     protected $scheduleModel;
 
+    /** @var \DateTime */
+    protected $scheduleStart;
+
     /**
      * FilePayload constructor.
      *
@@ -479,7 +482,7 @@ class FilePayload
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required file request field is missing or empty: '.$field->key,
+                        'A required file field is missing or empty: '.$field->key,
                         0,
                         null,
                         Stat::TYPE_FIELDS,
@@ -672,9 +675,6 @@ class FilePayload
         return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
-    /** @var \DateTime */
-    protected $scheduleStart;
-
     /**
      * Assuming we have a file entity ready to go
      * Throws an exception if an open slot is not available.
@@ -695,7 +695,7 @@ class FilePayload
                 ->setContactClient($this->contactClient)
                 ->setTimezone();
 
-            $start = $this->scheduleModel->nextOpening($rate, $seekDays);
+            list($start, $end) = $this->scheduleModel->nextOpening($rate, $seekDays);
 
             if (!$start) {
                 throw new ContactClientException(
@@ -710,7 +710,8 @@ class FilePayload
             // More stringent schedule check to discern if now is a good time to prepare a file for build/send.
             if ($prepFile) {
                 $now       = new \DateTime();
-                $prepStart = $prepEnd = $start;
+                $prepStart = clone $start;
+                $prepEnd   = clone $end;
                 $prepStart->modify('-'.self::FILE_PREP_BEFORE_TIME);
                 $prepEnd->modify('+'.self::FILE_PREP_AFTER_TIME);
                 if ($now < $prepStart || $now > $prepEnd) {
