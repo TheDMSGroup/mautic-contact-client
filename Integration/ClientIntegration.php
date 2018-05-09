@@ -1064,6 +1064,7 @@ class ClientIntegration extends AbstractIntegration
      * @param string $attributionSettings
      *
      * @return bool
+     * @throws ContactClientException
      */
     public function sendTestFile(&$filePayload, $attributionDefault = '', $attributionSettings = '')
     {
@@ -1076,10 +1077,15 @@ class ClientIntegration extends AbstractIntegration
             $client->setAttributionDefault($attributionDefault);
         }
 
-        // @todo - Instead of sending a contact, skip to file creation & send, but skip entity creation.
+        $this->test = true;
+        $this->contact = new Contact();
 
-        // $contact = new Contact();
-        // $this->sendContact($client, $contact, true);
+        /** @var FilePayload $payloadModel */
+        $payloadModel = $this->getContainer()->get('mautic.contactclient.model.filepayload');
+        $payloadModel->reset()
+            ->setTest(true)
+            ->setContactClient($client)
+            ->run('test');
 
         return $this->valid;
     }

@@ -22,13 +22,6 @@ use Mautic\CoreBundle\Entity\FormEntity;
 class File extends FormEntity
 {
     /**
-     * Indicates that all attempts to upload/send this file failed.
-     *
-     * Contacts sent:   No (unable to confirm)
-     */
-    const STATUS_ERROR = 'error';
-
-    /**
      * Indicates that we are processing contacts to create a file at this time.
      *
      * Contacts sent:   No
@@ -117,6 +110,9 @@ class File extends FormEntity
     /** @var string */
     private $status;
 
+    /** @var bool */
+    private $test;
+
     /**
      * File constructor.
      */
@@ -125,6 +121,7 @@ class File extends FormEntity
         // Default status for a new file is "queueing".
         $this->status  = self::STATUS_QUEUEING;
         $this->headers = true;
+        $this->test    = false;
     }
 
     /**
@@ -146,6 +143,7 @@ class File extends FormEntity
                 [
                     'type',
                     'headers',
+                    'test',
                     'compression',
                     'dateAdded',
                     'publishUp',
@@ -224,6 +222,10 @@ class File extends FormEntity
 
         $builder->createField('headers', 'boolean')
             ->columnName('headers')
+            ->build();
+
+        $builder->createField('test', 'boolean')
+            ->columnName('test')
             ->build();
 
         $builder->createField('compression', 'string')
@@ -496,6 +498,27 @@ class File extends FormEntity
     {
         $this->isChanged('headers', $headers);
         $this->headers = $headers;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getTest()
+    {
+        return $this->test;
+    }
+
+    /**
+     * @param $test
+     *
+     * @return $this
+     */
+    public function setTest($test)
+    {
+        $this->isChanged('test', $test);
+        $this->test = $test;
 
         return $this;
     }

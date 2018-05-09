@@ -410,6 +410,18 @@ class FilePayload
                 $this->evaluateSchedule(true);
                 $this->fileSend();
                 break;
+
+            // Skip temporal evaluation and saving for tests.
+            case 'test':
+                $this->getFieldValues();
+                $this->fileEntitySelect(true);
+                $this->fileEntityRefreshSettings();
+                $this->addContactToQueue();
+                $this->fileEntityRefreshSettings();
+                // Alternative method that does not require the queue.
+                $this->fileBuildTest();
+                $this->fileSend();
+                break;
         }
 
         return $this;
@@ -510,20 +522,26 @@ class FilePayload
     private function fileEntitySelect($create = false, $status = null)
     {
         if (!$this->file && $this->contactClient) {
+            $file = null;
             // Discern the next file entity to use.
             if (!$status) {
                 $status = File::STATUS_QUEUEING;
             }
-            $file = $this->getFileRepository()->findOneBy(
-                ['contactClient' => $this->contactClient, 'status' => $status],
-                ['dateAdded' => 'desc']
-            );
-            if (!$file && $create) {
+            if (!$this->test) {
+                $file = $this->getFileRepository()->findOneBy(
+                    ['contactClient' => $this->contactClient, 'status' => $status, 'test' => $this->test],
+                    ['dateAdded' => 'desc']
+                );
+            }
+            if (!$file && ($create || $this->test)) {
                 // There isn't currently a file being built, let's create one.
                 $file = new File();
                 $file->setContactClient($this->contactClient);
                 $file->setIsPublished(true);
-                $this->em->persist($file);
+                $file->setTest($this->test);
+                if (!$this->test) {
+                    $this->em->persist($file);
+                }
             }
 
             if ($file) {
@@ -813,8 +831,6 @@ class FilePayload
         if ($this->count) {
             $this->fileCompress();
             $this->fileMove();
-            $this->file->setStatus(File::STATUS_READY);
-            $this->setLogs($this->file->getStatus(), 'fileStatus');
             $this->fileEntityRefreshSettings();
             $this->fileEntityAddLogs();
             $this->fileEntitySave();
@@ -1032,7 +1048,9 @@ class FilePayload
             return;
         }
         if ($this->file->isNew() || $this->file->getChanges()) {
-            $this->formModel->saveEntity($this->file, true);
+            if ($this->contactClient->getId()) {
+                $this->formModel->saveEntity($this->file, true);
+            }
         }
     }
 
@@ -1161,6 +1179,9 @@ class FilePayload
                     $this->setLogs(filesize($target), 'fileSize');
 
                     $this->filesystemLocal->remove($origin);
+
+                    $this->file->setStatus(File::STATUS_READY);
+                    $this->setLogs($this->file->getStatus(), 'fileStatus');
                 } else {
                     throw new ContactClientException(
                         'Could not move file to local location.',
@@ -1540,6 +1561,47 @@ class FilePayload
         }
 
         return $written;
+    }
+
+    /**
+     * Build out the original temp file.
+     *
+     * @return $this
+     *
+     * @throws ContactClientException
+     */
+    private function fileBuildTest()
+    {
+        try {
+            if (!$this->contact) {
+                throw new ContactClientException(
+                    'Contact must be defined.',
+                    Codes::HTTP_GONE,
+                    null,
+                    Stat::TYPE_REJECT
+                );
+            }
+
+            // Get tokenized field values (will include overrides).
+            $fieldValues = $this->getFieldValues();
+            $this->fileAddRow($fieldValues);
+
+        } catch (\Exception $e) {
+            $this->setLogs($e->getMessage(), 'notice');
+        }
+
+        $this->fileClose();
+        if ($this->count) {
+            $this->fileCompress();
+            $this->fileMove();
+            $this->fileEntityRefreshSettings();
+            $this->fileEntityAddLogs();
+            $this->fileEntitySave();
+        } else {
+            $this->setLogs('No applicable contacts were found, so no file was generated.', 'notice');
+        }
+
+        return $this;
     }
 
     /**
