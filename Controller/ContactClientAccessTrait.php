@@ -12,6 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\File;
+use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 
 /**
  * Class ContactClientAccessTrait.
@@ -19,7 +21,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 trait ContactClientAccessTrait
 {
     /**
-     * Determines if the user has access to the contactClient the note is for.
+     * Determines if the user has access to the contactClient.
      *
      * @param        $contactClientId
      * @param        $action
@@ -73,14 +75,83 @@ trait ContactClientAccessTrait
                 return $this->notFound('mautic.contact.error.notfound');
             }
         } elseif (!$this->get('mautic.security')->hasEntityAccess(
-            'contactClient:contactClients:'.$action.'own',
-            'contactClient:contactClients:'.$action.'other',
+            'contactclient:items:'.$action.'own',
+            'contactclient:items:'.$action.'other',
             $contactClient->getPermissionUser()
         )
         ) {
             return $this->accessDenied();
         } else {
             return $contactClient;
+        }
+    }
+
+    /**
+     * Determines if the user has access to a File.
+     *
+     * @param        $fileId
+     * @param        $action
+     * @param bool   $isPlugin
+     * @param string $integration
+     *
+     * @return File
+     */
+    protected function checkContactClientFileAccess($fileId, $action, $isPlugin = false, $integration = '')
+    {
+        if (!$fileId instanceof File) {
+            /** @var FileRepository $fileRepository */
+            $fileRepository = $this->getDoctrine()->getEntityManager()->getRepository(
+                'MauticContactClientBundle:File'
+            );
+            /** @var File $file */
+            $file = $fileRepository->getEntity((int) $fileId);
+        } else {
+            /** @var File $file */
+            $file   = $fileId;
+            $fileId = $file->getId();
+        }
+
+        if (null === $file || !$file->getId()) {
+            if (method_exists($this, 'postActionRedirect')) {
+                //set the return URL
+                $page      = $this->get('session')->get(
+                    $isPlugin ? 'mautic.'.$integration.'.page' : 'mautic.contactClient.page',
+                    1
+                );
+                $returnUrl = $this->generateUrl(
+                    $isPlugin ? 'mautic_plugin_timeline_index' : 'mautic_contact_index',
+                    ['page' => $page]
+                );
+
+                return $this->postActionRedirect(
+                    [
+                        'returnUrl'       => $returnUrl,
+                        'viewParameters'  => ['page' => $page],
+                        'contentTemplate' => $isPlugin ? 'MauticContactClientBundle:ContactClient:pluginIndex' : 'MauticContactClientBundle:ContactClient:index',
+                        'passthroughVars' => [
+                            'activeLink'    => $isPlugin ? '#mautic_plugin_timeline_index' : '#mautic_contact_index',
+                            'mauticContent' => 'contactClientTimeline',
+                        ],
+                        'flashes'         => [
+                            [
+                                'type'    => 'error',
+                                'msg'     => 'mautic.contactClient.contactClient.error.notfound',
+                                'msgVars' => ['%id%' => $fileId],
+                            ],
+                        ],
+                    ]
+                );
+            } else {
+                return $this->notFound('mautic.contact.error.notfound');
+            }
+        } elseif (!$this->get('mautic.security')->hasEntityAccess(
+            'contactclient:files:'.$action.'own',
+            'contactclient:files:'.$action.'other',
+            0 // @todo - Add ownership access when ownership exists by way of a File model extending FormModel.
+        )) {
+            return $this->accessDenied();
+        } else {
+            return $file;
         }
     }
 
@@ -116,8 +187,8 @@ trait ContactClientAccessTrait
 
         foreach ($contactClients as $contactClient) {
             if (!$this->get('mautic.security')->hasEntityAccess(
-                'contactClient:contactClients:'.$action.'own',
-                'contactClient:contactClients:'.$action.'other',
+                'contactclient:items:'.$action.'own',
+                'contactclient:items:'.$action.'other',
                 $contactClient['createdBy']
             )
             ) {

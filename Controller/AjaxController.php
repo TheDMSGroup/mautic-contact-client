@@ -99,13 +99,60 @@ class AjaxController extends CommonAjaxController
             /** @var ClientIntegration $clientIntegration */
             $clientIntegration = $this->get('mautic.contactclient.integration');
 
-            $valid                = $clientIntegration->sendTest(
+            $valid                = $clientIntegration->sendTestApi(
                 $apiPayload,
                 $attributionDefault,
                 $attributionSettings
             );
             $dataArray['valid']   = $valid;
             $dataArray['payload'] = $apiPayload;
+            $dataArray['message'] = $valid ? $translator->trans(
+                'mautic.contactclient.form.test_results.passed'
+            ) : $translator->trans('mautic.contactclient.form.test_results.failed');
+            $dataArray['error']   = $clientIntegration->getLogs('error');
+            //$dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsYAML());
+            $dataArray['html'] = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
+        }
+
+        return $this->sendJsonResponse($dataArray);
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *
+     * @throws \Exception
+     */
+    protected function getFilePayloadTestAction(Request $request)
+    {
+        // Get the File payload to test.
+        $filePayload = html_entity_decode(InputHelper::clean($request->request->get('filePayload')));
+
+        $attributionDefault = html_entity_decode(InputHelper::clean($request->request->get('attributionDefault')));
+
+        $attributionSettings = html_entity_decode(InputHelper::clean($request->request->get('attributionSettings')));
+
+        // default to empty
+        $dataArray = [
+            'html'  => '',
+            'valid' => false,
+        ];
+
+        if (!empty($filePayload)) {
+            /** @var Translator $translator */
+            $translator = $this->get('translator');
+
+            /** @var ClientIntegration $clientIntegration */
+            $clientIntegration = $this->get('mautic.contactclient.integration');
+
+            $valid                = $clientIntegration->sendTestFile(
+                $filePayload,
+                $attributionDefault,
+                $attributionSettings
+            );
+            $dataArray['valid']   = $valid;
+            $dataArray['payload'] = $filePayload;
             $dataArray['message'] = $valid ? $translator->trans(
                 'mautic.contactclient.form.test_results.passed'
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');

@@ -1039,7 +1039,7 @@ class ClientIntegration extends AbstractIntegration
      *
      * @return bool
      */
-    public function sendTest(&$apiPayload, $attributionDefault = '', $attributionSettings = '')
+    public function sendTestApi(&$apiPayload, $attributionDefault = '', $attributionSettings = '')
     {
         $client = new ContactClient();
         $client->setAPIPayload($apiPayload);
@@ -1052,7 +1052,34 @@ class ClientIntegration extends AbstractIntegration
         $contact = new Contact();
 
         $this->sendContact($client, $contact, true);
-        $apiPayload = $client->getAPIPayload();
+
+        return $this->valid;
+    }
+
+    /**
+     * Sends a test file with one row.
+     *
+     * @param        $filePayload
+     * @param string $attributionDefault
+     * @param string $attributionSettings
+     *
+     * @return bool
+     */
+    public function sendTestFile(&$filePayload, $attributionDefault = '', $attributionSettings = '')
+    {
+        $client = new ContactClient();
+        $client->setFilePayload($filePayload);
+        if ($attributionSettings) {
+            $client->setAttributionSettings($attributionSettings);
+        }
+        if ($attributionDefault) {
+            $client->setAttributionDefault($attributionDefault);
+        }
+
+        // @todo - Instead of sending a contact, skip to file creation & send, but skip entity creation.
+
+        // $contact = new Contact();
+        // $this->sendContact($client, $contact, true);
 
         return $this->valid;
     }

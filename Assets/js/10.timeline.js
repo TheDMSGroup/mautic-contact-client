@@ -78,7 +78,7 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
             newDirection = 'DESC';
         }
         else {
-            newDirection = sortDirection == 'desc' ? 'ASC' : 'DESC';
+            newDirection = sortDirection === 'desc' ? 'ASC' : 'DESC';
         }
         mQuery('#orderBy').val(column + ':' + newDirection);
         // trigger a form submit
@@ -127,7 +127,7 @@ mQuery(function () {
             url: mauticAjaxUrl,
             data: {
                 action: 'plugin:mauticContactClient:ajaxTimeline',
-                filters: form.serializeArray(),
+                filters: form.serializeArray()
             }
         }).done(function (data) {
             mQuery('div#timeline-table').html(data);
@@ -141,15 +141,18 @@ mQuery(function () {
     });
 });
 
-Mautic.exportContactClientTimeline = function (contactClient_id) {
-    var dateFrom = mQuery('#chartfilter_date_from').val();
-    var dateTo = mQuery('#chartfilter_date_to').val();
+Mautic.contactClientTimelineExport = function (contactClientId) {
+    var frame = document.createElement('iframe');
+    var src = mauticBaseUrl + 's/contactclient/timeline/export/' + contactClientId;
+    frame.setAttribute('src', src);
+    frame.setAttribute('style', 'display: none');
+    document.body.appendChild(frame);
+};
 
-    // console.log(dateFrom, dateTo, contactClient_id);
-
-    var redeemFrame = document.createElement('iframe');
-    var src = '/s/contactclient/timeline/export/' + contactClient_id;
-    redeemFrame.setAttribute('src', src);
-    redeemFrame.setAttribute('style', 'display: none');
-    document.body.appendChild(redeemFrame);
+Mautic.contactClientTimelineFile = function (contactClientId, fileId) {
+    var frame = document.createElement('iframe');
+    var src = mauticBaseUrl + 's/contactclient/timeline/file/' + contactClientId + '/' + fileId;
+    frame.setAttribute('src', src);
+    frame.setAttribute('style', 'display: none');
+    document.body.appendChild(frame);
 };

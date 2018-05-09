@@ -43,6 +43,8 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class FilePayload.
+ *
+ * @todo - Needs refactoring to include a File model extending FormEntity, and reduce repo direct use.
  */
 class FilePayload
 {
@@ -1144,7 +1146,7 @@ class FilePayload
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
 
-                    $crc32 = hash_file('crc32', $target);
+                    $crc32 = hash_file('crc32b', $target);
                     $this->file->setCrc32($crc32);
                     $this->setLogs($crc32, 'crc32');
 
