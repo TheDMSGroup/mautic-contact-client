@@ -58,7 +58,7 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
 <!-- Export button -->
     <div class="std-toolbar btn-group">
         <a class="btn btn-default"
-           onclick="Mautic.exportContactClientTimeline(<?php echo  $contactClient->getId(); ?>);">
+           onclick="Mautic.contactClientTimelineExport(<?php echo $contactClient->getId(); ?>);">
             <span>
                 <i class="fa fa-download "></i>
                 <span class="hidden-xs hidden-sm">Export</span>

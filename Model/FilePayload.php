@@ -43,6 +43,8 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class FilePayload.
+ *
+ * @todo - Needs refactoring to include a File model extending FormEntity, and reduce repo direct use.
  */
 class FilePayload
 {
@@ -158,6 +160,9 @@ class FilePayload
 
     /** @var Schedule */
     protected $scheduleModel;
+
+    /** @var \DateTime */
+    protected $scheduleStart;
 
     /**
      * FilePayload constructor.
@@ -479,7 +484,7 @@ class FilePayload
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required file request field is missing or empty: '.$field->key,
+                        'A required file field is missing or empty: '.$field->key,
                         0,
                         null,
                         Stat::TYPE_FIELDS,
@@ -592,6 +597,9 @@ class FilePayload
                 $this->file->setCount($this->count);
                 $this->setLogs($this->count, 'count');
             }
+            if ($this->scheduleStart) {
+                $this->file->setDateAdded($this->scheduleStart);
+            }
         }
 
         return $this;
@@ -672,9 +680,6 @@ class FilePayload
         return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
-    /** @var \DateTime */
-    protected $scheduleStart;
-
     /**
      * Assuming we have a file entity ready to go
      * Throws an exception if an open slot is not available.
@@ -695,7 +700,7 @@ class FilePayload
                 ->setContactClient($this->contactClient)
                 ->setTimezone();
 
-            $start = $this->scheduleModel->nextOpening($rate, $seekDays);
+            list($start, $end) = $this->scheduleModel->nextOpening($rate, $seekDays);
 
             if (!$start) {
                 throw new ContactClientException(
@@ -710,12 +715,13 @@ class FilePayload
             // More stringent schedule check to discern if now is a good time to prepare a file for build/send.
             if ($prepFile) {
                 $now       = new \DateTime();
-                $prepStart = $prepEnd = $start;
+                $prepStart = clone $start;
+                $prepEnd   = clone $end;
                 $prepStart->modify('-'.self::FILE_PREP_BEFORE_TIME);
                 $prepEnd->modify('+'.self::FILE_PREP_AFTER_TIME);
                 if ($now < $prepStart || $now > $prepEnd) {
                     throw new ContactClientException(
-                        'It is not yet time to prepare a file for this client.',
+                        'It is not yet time to prepare the next file for this client.',
                         0,
                         null,
                         Stat::TYPE_SCHEDULE,
@@ -807,9 +813,10 @@ class FilePayload
         if ($this->count) {
             $this->fileCompress();
             $this->fileMove();
+            $this->file->setStatus(File::STATUS_READY);
+            $this->setLogs($this->file->getStatus(), 'fileStatus');
             $this->fileEntityRefreshSettings();
             $this->fileEntityAddLogs();
-            $this->file->setStatus(File::STATUS_READY);
             $this->fileEntitySave();
             $this->getQueueRepository()->deleteEntitiesById($queueEntriesProcessed);
         } else {
@@ -1139,7 +1146,7 @@ class FilePayload
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
 
-                    $crc32 = hash_file('crc32', $target);
+                    $crc32 = hash_file('crc32b', $target);
                     $this->file->setCrc32($crc32);
                     $this->setLogs($crc32, 'crc32');
 

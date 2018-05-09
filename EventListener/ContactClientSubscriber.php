@@ -217,7 +217,7 @@ class ContactClientSubscriber extends CommonSubscriber
                             'logs'                => $log,
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],
-                        'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents\Timeline:index.html.php',
+                        'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents\Timeline:eventdetails.html.php',
                         'icon'            => 'fa-plus-square-o',
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],

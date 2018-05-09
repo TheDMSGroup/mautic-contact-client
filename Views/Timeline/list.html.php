@@ -23,7 +23,7 @@ $baseUrl = $view['router']->path(
 
 <!-- timeline -->
 <div class="table-responsive">
-    <table class="table table-hover table-bordered" id="contactclient-timeline" style="z-index: 2; position: relative;">
+    <table class="table table-hover table-bordered contactclient-timeline" style="z-index: 2; position: relative;">
         <thead>
         <tr>
             <th class="visible-md visible-lg timeline-icon">
@@ -105,7 +105,7 @@ $baseUrl = $view['router']->path(
                 echo ' timeline-featured';
             } ?>">
                 <td class="timeline-icon">
-                    <a href="javascript:void(0);" data-activate-details="<?php echo $counter; ?>"
+                    <a href="javascript:void(0);" data-activate-details="e<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
                 echo ' disabled';
             } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
@@ -128,7 +128,7 @@ $baseUrl = $view['router']->path(
             </tr>
             <?php if (!empty($details)): ?>
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide"
-                    id="timeline-details-<?php echo $counter; ?>">
+                    id="timeline-details-e<?php echo $counter; ?>">
                     <td colspan="5">
                         <?php echo $details; ?>
                     </td>

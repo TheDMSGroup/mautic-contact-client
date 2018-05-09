@@ -167,16 +167,10 @@ class ContactClientController extends FormController
             }
 
             $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
+            $args['viewParameters']['files']           = $this->getFiles($item);
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['events']          = $model->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-
-//            if ('link' == $item->getType()) {
-//                $args['viewParameters']['trackables'] = $this->getModel('page.trackable')->getTrackableList(
-//                    'contactclient',
-//                    $item->getId()
-//                );
-//            }
         }
 
         return $args;

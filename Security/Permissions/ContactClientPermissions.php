@@ -27,6 +27,7 @@ class ContactClientPermissions extends AbstractPermissions
         parent::__construct($params);
         $this->addStandardPermissions('categories');
         $this->addExtendedPermissions('items');
+        $this->addExtendedPermissions('files');
     }
 
     /**
@@ -49,5 +50,6 @@ class ContactClientPermissions extends AbstractPermissions
     {
         $this->addStandardFormFields('contactclient', 'categories', $builder, $data);
         $this->addExtendedFormFields('contactclient', 'items', $builder, $data);
+        $this->addExtendedFormFields('contactclient', 'files', $builder, $data);
     }
 }

@@ -13,8 +13,11 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use Mautic\CoreBundle\Controller\CommonController;
 use Mautic\CoreBundle\Helper\InputHelper;
+use MauticPlugin\MauticContactClientBundle\Entity\File;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Yaml\Yaml;
 
@@ -196,15 +199,23 @@ class TimelineController extends CommonController
     }
 
     /**
-     * @param Request $request
-     * @param         $contactClientId
+     * @param   $contactClientId
      *
-     * @return StreamedResponse
+     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|StreamedResponse
      *
      * @throws \Exception
      */
-    public function exportTimelineAction(Request $request, $contactClientId)
+    public function exportTimelineAction($contactClientId)
     {
+        if (empty($contactClientId)) {
+            return $this->accessDenied();
+        }
+
+        $contactClient = $this->checkContactClientAccess($contactClientId, 'view');
+        if ($contactClient instanceof Response) {
+            return $contactClient;
+        }
+
         // send a stream csv file of the timeline
         $name    = 'ContactClientExport';
         $headers = [
@@ -414,5 +425,42 @@ class TimelineController extends CommonController
         }
 
         return $rows;
+    }
+
+    /**
+     * Downloads a file securely.
+     *
+     * @param null $contactClientId
+     * @param null $fileId
+     *
+     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|BinaryFileResponse|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+     *
+     * @throws \Exception
+     */
+    public function fileAction($contactClientId = null, $fileId = null)
+    {
+        if (empty($contactClientId) || empty($fileId)) {
+            return $this->accessDenied();
+        }
+
+        $contactClient = $this->checkContactClientAccess($contactClientId, 'view');
+        if ($contactClient instanceof Response) {
+            return $contactClient;
+        }
+
+        $file = $this->checkContactClientFileAccess($fileId, 'view');
+        if ($file instanceof Response) {
+            return $file;
+        }
+
+        if (!$file || !$file->getLocation() || !file_exists($file->getLocation())) {
+            return $this->accessDenied();
+        }
+
+        $response = new BinaryFileResponse($file->getLocation());
+        $response->setPrivate();
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+
+        return $response;
     }
 }

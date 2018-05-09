@@ -32,26 +32,28 @@ class FileRepository extends CommonRepository
         $contactClientId,
         $statuses = [File::STATUS_READY, File::STATUS_SENT]
     ) {
-        $start = $end = $date;
+        $start = clone $date;
+        $end   = clone $date;
         $q     = $this->getEntityManager()->getConnection()->createQueryBuilder();
-        $q->select('count(*)')
+        $q->select('COUNT(*)')
             ->from(MAUTIC_TABLE_PREFIX.$this->getTableName());
 
         $start->setTime(0, 0, 0);
-        $start->setTime(0, 0, 0)->modify('+1 days');
-        // Convert range to the system timezone. Assume database is the same.
-        // $tz = new \DateTimeZone(date_default_timezone_get());
-        // $start->setTimezone($tz);
-        // $end->setTimezone($tz);
+        $end->setTime(0, 0, 0)->modify('+1 day');
+        $timezone = new \DateTimeZone(date_default_timezone_get());
+        $start->setTimezone($timezone);
+        $end->setTimezone($timezone);
 
         $q->where(
             $q->expr()->eq('contactclient_id', (int) $contactClientId),
-            $q->expr()->gte('date_added', (int) $start->format('U')),
-            $q->expr()->lt('date_added', (int) $end->format('U'))
+            $q->expr()->gte('date_added', ':start'),
+            $q->expr()->lt('date_added', ':end')
         );
+        $q->setParameter('start', $start->format('Y-m-d H:i:s'));
+        $q->setParameter('end', $end->format('Y-m-d H:i:s'));
         $q->andWhere('status IN (\''.implode('\',\'', $statuses).'\')');
 
-        return $q->execute()->fetchColumn();
+        return (int) $q->execute()->fetchColumn();
     }
 
     /**
