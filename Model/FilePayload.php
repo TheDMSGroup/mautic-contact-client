@@ -387,6 +387,7 @@ class FilePayload
      */
     public function run($step = 'add')
     {
+        $this->setLogs($step, 'step');
         switch ($step) {
             // Step 1: Validate and add a contact to a queue for the next file for the client.
             case 'add':
@@ -398,6 +399,9 @@ class FilePayload
 
             // Step 3: Build the file (if a good time), performing a second validation on each contact.
             case 'build':
+                if ($this->test) {
+                    $this->getFieldValues();
+                }
                 $this->fileEntitySelect();
                 $this->evaluateSchedule(true);
                 $this->fileEntityRefreshSettings();
@@ -408,18 +412,6 @@ class FilePayload
             case 'send':
                 $this->fileEntitySelect(false, File::STATUS_READY);
                 $this->evaluateSchedule(true);
-                $this->fileSend();
-                break;
-
-            // Skip temporal evaluation and saving for tests.
-            case 'test':
-                $this->getFieldValues();
-                $this->fileEntitySelect(true);
-                $this->fileEntityRefreshSettings();
-                $this->addContactToQueue();
-                $this->fileEntityRefreshSettings();
-                // Alternative method that does not require the queue.
-                $this->fileBuildTest();
                 $this->fileSend();
                 break;
         }
@@ -710,7 +702,7 @@ class FilePayload
      */
     public function evaluateSchedule($prepFile = false)
     {
-        if (!$this->scheduleStart) {
+        if (!$this->scheduleStart && !$this->test) {
             $rate     = max(1, (int) $this->settings['rate']);
             $seekDays = 30;
             $this->scheduleModel
@@ -764,6 +756,10 @@ class FilePayload
     {
         if (!$this->contactClient || !$this->file) {
             return $this;
+        }
+
+        if ($this->test) {
+            return $this->fileBuildTest();
         }
 
         $filter['contactClient'] = $this->contactClient;
@@ -843,64 +839,40 @@ class FilePayload
     }
 
     /**
-     * @param array $event
+     * Build out the original temp file.
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws ContactClientException
      */
-    public function setEvent($event = [])
+    private function fileBuildTest()
     {
-        if (!empty($event['id'])) {
-            $this->setLogs($event['id'], 'campaignEventId');
-        }
-        $overrides = [];
-        if (!empty($event['contactclient_overrides'])) {
-            // Flatten overrides to key-value pairs.
-            $jsonHelper = new JSONHelper();
-            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
-            if ($array) {
-                foreach ($array as $field) {
-                    if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
-                        $overrides[$field->key] = $field->value;
-                    }
-                }
+        try {
+            if (!$this->contact) {
+                throw new ContactClientException(
+                    'Contact must be defined.',
+                    Codes::HTTP_GONE,
+                    null,
+                    Stat::TYPE_REJECT
+                );
             }
-            if ($overrides) {
-                $this->setOverrides($overrides);
-            }
-        }
-        $this->event = $event;
 
-        return $this;
-    }
-
-    /**
-     * Override the default field values, if allowed.
-     *
-     * @param $overrides
-     *
-     * @return $this
-     */
-    public function setOverrides($overrides)
-    {
-        $fieldsOverridden = [];
-        if (isset($this->payload->body)) {
-            foreach ($this->payload->body as &$field) {
-                if (
-                    isset($field->overridable)
-                    && true === $field->overridable
-                    && isset($field->key)
-                    && isset($overrides[$field->key])
-                    && null !== $overrides[$field->key]
-                ) {
-                    $field->value                  = $overrides[$field->key];
-                    $fieldsOverridden[$field->key] = $overrides[$field->key];
-                }
-            }
+            // Get tokenized field values (will include overrides).
+            $fieldValues = $this->getFieldValues();
+            $this->fileAddRow($fieldValues);
+        } catch (\Exception $e) {
+            $this->setLogs($e->getMessage(), 'notice');
         }
-        if ($fieldsOverridden) {
-            $this->setLogs($fieldsOverridden, 'fieldsOverridden');
+
+        $this->fileClose();
+        if ($this->count) {
+            $this->fileCompress();
+            $this->fileMove();
+            $this->fileEntityRefreshSettings();
+            $this->fileEntityAddLogs();
+            $this->fileEntitySave();
+        } else {
+            $this->setLogs('No applicable contacts were found, so no file was generated.', 'notice');
         }
 
         return $this;
@@ -1204,12 +1176,76 @@ class FilePayload
     {
         if ($this->logs) {
             // Add our new logs to the entity.
-            $logs           = $this->file->getLogs();
-            $logs           = $logs ? json_decode($logs, true) : [];
-            $iso1601        = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
-            $logs[$iso1601] = $this->logs;
+            $logs               = $this->file->getLogs();
+            $logs               = $logs ? json_decode($logs, true) : [];
+            $this->logs['date'] = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
+            $logs[]             = $this->logs;
             $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
             $this->logs = [];
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param array $event
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function setEvent($event = [])
+    {
+        if (!empty($event['id'])) {
+            $this->setLogs($event['id'], 'campaignEventId');
+        }
+        $overrides = [];
+        if (!empty($event['contactclient_overrides'])) {
+            // Flatten overrides to key-value pairs.
+            $jsonHelper = new JSONHelper();
+            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
+            if ($array) {
+                foreach ($array as $field) {
+                    if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
+                        $overrides[$field->key] = $field->value;
+                    }
+                }
+            }
+            if ($overrides) {
+                $this->setOverrides($overrides);
+            }
+        }
+        $this->event = $event;
+
+        return $this;
+    }
+
+    /**
+     * Override the default field values, if allowed.
+     *
+     * @param $overrides
+     *
+     * @return $this
+     */
+    public function setOverrides($overrides)
+    {
+        $fieldsOverridden = [];
+        if (isset($this->payload->body)) {
+            foreach ($this->payload->body as &$field) {
+                if (
+                    isset($field->overridable)
+                    && true === $field->overridable
+                    && isset($field->key)
+                    && isset($overrides[$field->key])
+                    && null !== $overrides[$field->key]
+                ) {
+                    $field->value                  = $overrides[$field->key];
+                    $fieldsOverridden[$field->key] = $overrides[$field->key];
+                }
+            }
+        }
+        if ($fieldsOverridden) {
+            $this->setLogs($fieldsOverridden, 'fieldsOverridden');
         }
 
         return $this;
@@ -1220,10 +1256,12 @@ class FilePayload
      */
     private function fileSend()
     {
-        $results = $result = false;
+        $attemptCount = 0;
+        $results      = $result = false;
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
                 if (is_array($operation)) {
+                    $attemptCount++;
                     $now = new \DateTime();
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
                     switch ($type) {
@@ -1250,10 +1288,17 @@ class FilePayload
                 }
             }
         }
-        $this->fileEntityAddLogs();
         if ($results) {
             $this->file->setStatus(File::STATUS_SENT);
+            $this->setLogs($this->file->getStatus(), 'fileStatus');
+            $this->valid = true;
         }
+        if (0 === $attemptCount) {
+            $this->setLogs('No file send operations are enabled. Please add a file send operation to be tested', 'error');
+            $this->valid = false;
+        }
+        $this->setLogs($this->valid, 'valid');
+        $this->fileEntityAddLogs();
         $this->fileEntitySave();
 
         return $this;
@@ -1564,46 +1609,6 @@ class FilePayload
     }
 
     /**
-     * Build out the original temp file.
-     *
-     * @return $this
-     *
-     * @throws ContactClientException
-     */
-    private function fileBuildTest()
-    {
-        try {
-            if (!$this->contact) {
-                throw new ContactClientException(
-                    'Contact must be defined.',
-                    Codes::HTTP_GONE,
-                    null,
-                    Stat::TYPE_REJECT
-                );
-            }
-
-            // Get tokenized field values (will include overrides).
-            $fieldValues = $this->getFieldValues();
-            $this->fileAddRow($fieldValues);
-        } catch (\Exception $e) {
-            $this->setLogs($e->getMessage(), 'notice');
-        }
-
-        $this->fileClose();
-        if ($this->count) {
-            $this->fileCompress();
-            $this->fileMove();
-            $this->fileEntityRefreshSettings();
-            $this->fileEntityAddLogs();
-            $this->fileEntitySave();
-        } else {
-            $this->setLogs('No applicable contacts were found, so no file was generated.', 'notice');
-        }
-
-        return $this;
-    }
-
-    /**
      * @return File
      */
     public function getFile()
@@ -1701,7 +1706,13 @@ class FilePayload
      */
     public function getLogs()
     {
-        return $this->logs;
+        $fileLogs = [];
+        if ($this->file) {
+            $fileLogs = $this->file->getLogs();
+            $fileLogs = $fileLogs ? json_decode($fileLogs, true) : [];
+        }
+
+        return array_merge($fileLogs, $this->logs);
     }
 
     /**
@@ -1726,5 +1737,35 @@ class FilePayload
         } else {
             $this->logs[] = $value;
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getLogsImportant()
+    {
+        // Elevate error/warning/message to the top.
+        $elevated = [];
+        foreach ($this->getLogs() as &$log) {
+            foreach (['error', 'warning', 'message', 'valid'] as $type) {
+                if (isset($log[$type])) {
+                    if (!isset($elevated[$type])) {
+                        $elevated[$type] = $log[$type];
+                    } else {
+                        if (is_array($log[$type])) {
+                            $elevated[$type] = array_merge($elevated[$type], $log[$type]);
+                        } else {
+                            if (isset($elevated[$type]) && !is_bool($log[$type])) {
+                                $elevated[$type][] = $log[$type];
+                            } else {
+                                $elevated[$type] = $log[$type];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $elevated;
     }
 }

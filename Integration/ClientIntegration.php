@@ -800,7 +800,10 @@ class ClientIntegration extends AbstractIntegration
      */
     public function getLogsJSON()
     {
-        return json_encode($this->getLogs(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        return json_encode(
+            $this->getLogs(),
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_PRETTY_PRINT
+        );
     }
 
     /**
@@ -1084,9 +1087,18 @@ class ClientIntegration extends AbstractIntegration
         /** @var FilePayload $payloadModel */
         $payloadModel = $this->getContainer()->get('mautic.contactclient.model.filepayload');
         $payloadModel->reset()
-            ->setTest(true)
+            ->setTest($this->test)
+            ->setContact($this->contact)
             ->setContactClient($client)
-            ->run('test');
+            ->run('build')
+            ->run('send');
+
+        $this->valid = $payloadModel->getValid();
+
+        if ($payloadModel) {
+            $this->logs = $payloadModel->getLogsImportant();
+            $this->setLogs($payloadModel->getLogs(), 'operations');
+        }
 
         return $this->valid;
     }
