@@ -800,7 +800,10 @@ class ClientIntegration extends AbstractIntegration
      */
     public function getLogsJSON()
     {
-        return json_encode($this->getLogs(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        return json_encode(
+            $this->getLogs(),
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_PRETTY_PRINT
+        );
     }
 
     /**
@@ -1064,6 +1067,8 @@ class ClientIntegration extends AbstractIntegration
      * @param string $attributionSettings
      *
      * @return bool
+     *
+     * @throws ContactClientException
      */
     public function sendTestFile(&$filePayload, $attributionDefault = '', $attributionSettings = '')
     {
@@ -1076,10 +1081,24 @@ class ClientIntegration extends AbstractIntegration
             $client->setAttributionDefault($attributionDefault);
         }
 
-        // @todo - Instead of sending a contact, skip to file creation & send, but skip entity creation.
+        $this->test    = true;
+        $this->contact = new Contact();
 
-        // $contact = new Contact();
-        // $this->sendContact($client, $contact, true);
+        /** @var FilePayload $payloadModel */
+        $payloadModel = $this->getContainer()->get('mautic.contactclient.model.filepayload');
+        $payloadModel->reset()
+            ->setTest($this->test)
+            ->setContact($this->contact)
+            ->setContactClient($client)
+            ->run('build')
+            ->run('send');
+
+        $this->valid = $payloadModel->getValid();
+
+        if ($payloadModel) {
+            $this->logs = $payloadModel->getLogsImportant();
+            $this->setLogs($payloadModel->getLogs(), 'operations');
+        }
 
         return $this->valid;
     }

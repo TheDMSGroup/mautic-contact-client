@@ -21,16 +21,18 @@ class FileRepository extends CommonRepository
     /**
      * Gets the number of files (ready/sent by default) on a given date.
      *
-     * @param \DateTime|null $date            the date of the client, including client timezone
+     * @param \DateTime|null $date
      * @param                $contactClientId
      * @param array          $statuses
+     * @param bool           $test
      *
-     * @return bool|string
+     * @return int
      */
     public function getCountByDate(
         \DateTime $date = null,
         $contactClientId,
-        $statuses = [File::STATUS_READY, File::STATUS_SENT]
+        $statuses = [File::STATUS_READY, File::STATUS_SENT],
+        $test = false
     ) {
         $start = clone $date;
         $end   = clone $date;
@@ -47,7 +49,8 @@ class FileRepository extends CommonRepository
         $q->where(
             $q->expr()->eq('contactclient_id', (int) $contactClientId),
             $q->expr()->gte('date_added', ':start'),
-            $q->expr()->lt('date_added', ':end')
+            $q->expr()->lt('date_added', ':end'),
+            $q->expr()->eq('test', $test ? 1 : 0)
         );
         $q->setParameter('start', $start->format('Y-m-d H:i:s'));
         $q->setParameter('end', $end->format('Y-m-d H:i:s'));

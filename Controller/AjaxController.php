@@ -157,8 +157,7 @@ class AjaxController extends CommonAjaxController
                 'mautic.contactclient.form.test_results.passed'
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
-            //$dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsYAML());
-            $dataArray['html'] = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
+            $dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
         }
 
         return $this->sendJsonResponse($dataArray);
