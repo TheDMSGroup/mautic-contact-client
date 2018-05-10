@@ -778,7 +778,7 @@ class FilePayload
             return $this->fileBuildTest();
         }
 
-        $filter = [];
+        $filter                  = [];
         $filter['force'][]       = [
             'column' => 'f.contactClient',
             'expr'   => 'eq',
