@@ -605,7 +605,7 @@ class ApiPayload
             $array      = $jsonHelper->decodeArray($event['config']['contactclient_overrides'], 'Overrides');
             if ($array) {
                 foreach ($array as $field) {
-                    if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
+                    if (!empty($field->key) && !empty($field->value) && (!isset($field->enabled) || true === $field->enabled)) {
                         $overrides[$field->key] = $field->value;
                     }
                 }
