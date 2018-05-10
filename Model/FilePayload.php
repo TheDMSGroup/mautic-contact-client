@@ -165,6 +165,9 @@ class FilePayload
     /** @var \DateTime */
     protected $scheduleStart;
 
+    /** @var UtmSourceHelper */
+    protected $utmSourceHelper;
+
     /**
      * FilePayload constructor.
      *
@@ -778,13 +781,13 @@ class FilePayload
             return $this->fileBuildTest();
         }
 
-        $filter                  = [];
-        $filter['force'][]       = [
+        $filter            = [];
+        $filter['force'][] = [
             'column' => 'f.contactClient',
             'expr'   => 'eq',
             'value'  => (int) $this->contactClient->getId(),
         ];
-        $filter['force'][]       = [
+        $filter['force'][] = [
             'column' => 'f.file',
             'expr'   => 'eq',
             'value'  => (int) $this->file->getId(),
