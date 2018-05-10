@@ -165,6 +165,9 @@ class FilePayload
     /** @var \DateTime */
     protected $scheduleStart;
 
+    /** @var UtmSourceHelper */
+    protected $utmSourceHelper;
+
     /**
      * FilePayload constructor.
      *
@@ -778,8 +781,17 @@ class FilePayload
             return $this->fileBuildTest();
         }
 
-        $filter['contactClient'] = $this->contactClient;
-        $filter['file']          = $this->file;
+        $filter            = [];
+        $filter['force'][] = [
+            'column' => 'f.contactClient',
+            'expr'   => 'eq',
+            'value'  => (int) $this->contactClient->getId(),
+        ];
+        $filter['force'][] = [
+            'column' => 'f.file',
+            'expr'   => 'eq',
+            'value'  => (int) $this->file->getId(),
+        ];
 
         $queues = $this->getQueueRepository()->getEntities(
             [
@@ -841,7 +853,13 @@ class FilePayload
                     } catch (\Exception $e) {
                         $utmSource = null;
                     }
-                    $this->contactClientModel->addStat($this->contactClient, Stat::TYPE_CANCELLED, $this->contact, $attributionChange, $utmSource);
+                    $this->contactClientModel->addStat(
+                        $this->contactClient,
+                        Stat::TYPE_CANCELLED,
+                        $this->contact,
+                        $attributionChange,
+                        $utmSource
+                    );
                 }
             }
 

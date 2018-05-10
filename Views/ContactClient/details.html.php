@@ -137,7 +137,7 @@ $website = $item->getWebsite();
                         <?php echo $view['translator']->trans('mautic.contactclient.timeline.events'); ?>
                     </a>
                 </li>
-                <?php if ($files): ?>
+                <?php if ($files['total']): ?>
                     <li class="">
                         <a href="#files-container" role="tab" data-toggle="tab">
                     <span class="label label-primary mr-sm" id="FileCount">
@@ -164,7 +164,7 @@ $website = $item->getWebsite();
                         ]
                     ); ?>
                 </div>
-                <?php if ($files): ?>
+                <?php if ($files['total']): ?>
                     <div class="tab-pane fade in bdr-w-0" id="files-container">
                         <?php echo $view->render(
                             'MauticContactClientBundle:Timeline:file.html.php',
