@@ -115,7 +115,9 @@ echo $view['form']->start($form);
                             <div class="row">
                                 <div class="col-sm-6">
                                     <?php echo $view['form']->row($form['attribution_default']); ?>
-                                    <?php echo $view['form']->row($form['attribution_settings']); ?>
+                                    <div id="contactclient_attribution_settings">
+                                        <?php echo $view['form']->row($form['attribution_settings']); ?>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">

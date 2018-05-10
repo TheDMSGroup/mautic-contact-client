@@ -35,21 +35,15 @@ class Attribution
     /**
      * Attribution constructor.
      *
-     * @param ContactClient $contactClient
-     * @param Contact       $contact
+     * @param ContactClient          $contactClient
+     * @param Contact                $contact
+     * @param ApiPayload|FilePayload $payloadModel
      */
-    public function __construct(ContactClient $contactClient, Contact $contact)
+    public function __construct(ContactClient $contactClient, Contact &$contact, $payloadModel)
     {
         $this->contactClient = $contactClient;
-        $this->contact       = $contact;
-    }
-
-    /**
-     * @param ApiPayload|FilePayload $payload
-     */
-    public function setPayloadModel($payload)
-    {
-        $this->payloadModel = $payload;
+        $this->contact       = &$contact;
+        $this->payloadModel  = $payloadModel;
     }
 
     /**
@@ -79,6 +73,7 @@ class Attribution
                 && isset($attributionSettings->mode)
                 && is_object($attributionSettings->mode)
                 && !empty($attributionSettings->mode->key)
+                && method_exists($this->payloadModel, 'getAggregateResponseFieldValue')
             ) {
                 // Dynamic mode.
                 $key = $attributionSettings->mode->key;
@@ -118,7 +113,7 @@ class Attribution
         }
 
         if ($update && $attributionChange) {
-            $this->setNewAttribution($attributionChange);
+            $this->attributionChange = $attributionChange;
             $this->contact->addUpdatedField(
                 'attribution',
                 $originalAttribution + $attributionChange,

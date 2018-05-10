@@ -23,6 +23,14 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 class Stat
 {
     /**
+     * Indicates that we intended to send this contact to a client by way of a file, but the requirements for the file,
+     * or the contact changed in such a way that the contact is no longer applicable. Attribution change was reversed.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_CANCELLED = 'cancelled';
+
+    /**
      * Indicates that the contact was fully accepted by the client, and we passed validation on the response/s.
      *
      * Contact sent:    Yes
