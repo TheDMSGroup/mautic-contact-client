@@ -312,16 +312,19 @@ trait ContactClientDetailsTrait
         $limit = 25
     ) {
         $session = $this->get('session');
-
         if (null == $filters) {
             $filters = $session->get(
                 'mautic.contactClient.'.$contactClient->getId().'.files.filters',
                 [
-                    'search'        => '',
+                    'search' => '',
                 ]
             );
         }
-        $filters['contactClient'] = $contactClient;
+        $filters['force'][] = [
+            'column' => 'f.contactClient',
+            'expr'   => 'eq',
+            'value'  => (int) $contactClient->getId(),
+        ];
 
         if (null == $orderBy) {
             if (!$session->has('mautic.contactClient.'.$contactClient->getId().'.files.orderby')) {
@@ -338,9 +341,9 @@ trait ContactClientDetailsTrait
         $fileRepository = $this->getDoctrine()->getManager()->getRepository('MauticContactClientBundle:File');
         $files          = $fileRepository->getEntities(
             [
-                'filter'  => $filters,
-                'limit'   => $limit,
-                'page'    => $page,
+                'filter' => $filters,
+                'limit'  => $limit,
+                'page'   => $page,
             ],
             $orderBy
         );
