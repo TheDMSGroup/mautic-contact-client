@@ -1257,12 +1257,13 @@ class FilePayload
     private function fileSend()
     {
         $attemptCount = 0;
-        $results      = $result = false;
+        $successCount = 0;
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
                 if (is_object($operation)) {
                     ++$attemptCount;
-                    $now = new \DateTime();
+                    $result = false;
+                    $now    = new \DateTime();
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
                     switch ($type) {
                         case 'email':
@@ -1281,22 +1282,25 @@ class FilePayload
                             $result = $this->operationS3($operation);
                             break;
                     }
-                }
-                if ($result) {
-                    // Show a status of sent even if only one send succeeded.
-                    $results = true;
+                    if ($result) {
+                        ++$successCount;
+                    }
                 }
             }
         }
-        if ($results) {
+        if (!$attemptCount) {
+            $this->setLogs(
+                'No file send operations are enabled. Please add a file send operation to be tested',
+                'error'
+            );
+        } elseif ($successCount === $attemptCount) {
             $this->file->setStatus(File::STATUS_SENT);
-            $this->setLogs($this->file->getStatus(), 'fileStatus');
             $this->valid = true;
-        }
-        if (0 === $attemptCount) {
-            $this->setLogs('No file send operations are enabled. Please add a file send operation to be tested', 'error');
+        } elseif ($successCount < $attemptCount) {
+            $this->file->setStatus(File::STATUS_ERROR);
             $this->valid = false;
         }
+        $this->setLogs($this->file->getStatus(), 'fileStatus');
         $this->setLogs($this->valid, 'valid');
         $this->fileEntityAddLogs();
         $this->fileEntitySave();
