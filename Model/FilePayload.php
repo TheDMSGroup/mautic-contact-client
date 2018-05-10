@@ -1260,8 +1260,8 @@ class FilePayload
         $results      = $result = false;
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
-                if (is_array($operation)) {
-                    $attemptCount++;
+                if (is_object($operation)) {
+                    ++$attemptCount;
                     $now = new \DateTime();
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
                     switch ($type) {
