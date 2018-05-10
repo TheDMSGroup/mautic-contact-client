@@ -599,10 +599,10 @@ class ApiPayload
             $this->setLogs($event['id'], 'campaignEvent');
         }
         $overrides = [];
-        if (!empty($event['contactclient_overrides'])) {
+        if (!empty($event['config']['contactclient_overrides'])) {
             // Flatten overrides to key-value pairs.
             $jsonHelper = new JSONHelper();
-            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
+            $array      = $jsonHelper->decodeArray($event['config']['contactclient_overrides'], 'Overrides');
             if ($array) {
                 foreach ($array as $field) {
                     if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
