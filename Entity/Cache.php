@@ -141,6 +141,13 @@ class Cache
 
         $builder->addIndex(
             [
+                'category_id',
+            ],
+            'contactclient_cache_category_id'
+        );
+
+        $builder->addIndex(
+            [
                 'date_added',
             ],
             'contactclient_cache_date_added'
@@ -195,10 +202,22 @@ class Cache
         $builder->addIndex(
             [
                 'exclusive_pattern',
+            ],
+            'contactclient_cache_exclusive_pattern'
+        );
+
+        $builder->addIndex(
+            [
                 'exclusive_expire_date',
+            ],
+            'contactclient_cache_exclusive_expire_date'
+        );
+
+        $builder->addIndex(
+            [
                 'exclusive_scope',
             ],
-            'contactclient_cache_exclusivity'
+            'contactclient_cache_exclusive_scope'
         );
 
         $builder->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\CacheRepository');

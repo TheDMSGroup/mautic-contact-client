@@ -194,12 +194,24 @@ class CacheRepository extends CommonRepository
                     foreach ($properties as $property => $value) {
                         if (is_array($value)) {
                             $expr->add(
-                                $query->expr()->in($alias.'.'.$property, $value)
+                                $query->expr()->andX(
+                                    $query->expr()->isNotNull($alias.'.'.$property),
+                                    $query->expr()->in($alias.'.'.$property, $value)
+                                )
                             );
                         } else {
-                            $expr->add(
-                                $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
-                            );
+                            if (!empty($value)) {
+                                $expr->add(
+                                    $query->expr()->andX(
+                                        $query->expr()->isNotNull($alias.'.'.$property),
+                                        $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                                    )
+                                );
+                            } else {
+                                $expr->add(
+                                    $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                                );
+                            }
                             $query->setParameter($property.$k, $value);
                         }
                     }
