@@ -89,6 +89,9 @@ class ClientIntegration extends AbstractIntegration
     /** @var \DateTime */
     protected $dateSend;
 
+    /** @var float */
+    protected $attribution;
+
     /**
      * @return string
      */
@@ -516,6 +519,9 @@ class ClientIntegration extends AbstractIntegration
      */
     private function updateContact()
     {
+        // Assume no attribution till calculated.
+        $this->attribution = 0;
+
         // Do not update contacts for test runs.
         if ($this->test || !$this->payloadModel) {
             return;
@@ -526,31 +532,29 @@ class ClientIntegration extends AbstractIntegration
             return;
         }
 
-        // Only API has a map to update contacts based on the response.
-        if ('api' !== $this->contactClient->getType()) {
-            return;
-        }
-
         try {
             $this->dispatchContextCreate();
 
-            // Update any fields based on the response map.
-            /** @var bool $updatedFields */
-            $updatedFields = $this->payloadModel->applyResponseMap();
-            if ($updatedFields) {
-                $this->contact = $this->payloadModel->getContact();
+            // Only API model currently has a map to update contacts based on the response.
+            $updatedFields = false;
+            if (method_exists($this->payloadModel, 'applyResponseMap')) {
+                /** @var bool $updatedFields */
+                $updatedFields = $this->payloadModel->applyResponseMap();
+                if ($updatedFields) {
+                    $this->contact = $this->payloadModel->getContact();
+                }
             }
 
-            // @todo - Remove need for logs to carry over attribution to other tables/entities.
-            // Update attribution based on attribution settings.
             /** @var Attribution $attribution */
-            $attribution = new Attribution($this->contactClient, $this->contact);
-            $attribution->setPayloadModel($this->payloadModel);
+            $attribution = new Attribution($this->contactClient, $this->contact, $this->payloadModel);
             /** @var bool $updatedAttribution */
             $updatedAttribution = $attribution->applyAttribution();
             if ($updatedAttribution) {
-                $this->contact = $attribution->getContact();
-                $this->setLogs(strval(round($attribution->getAttributionChange(), 4)), 'attribution');
+                $this->attribution = $attribution->getAttributionChange();
+                $this->setLogs(strval(round($this->attribution, 4)), 'attribution');
+                if ($this->attribution && method_exists($this->payloadModel, 'setAttribution')) {
+                    $this->payloadModel->setAttribution($this->attribution);
+                }
             } else {
                 $this->setLogs('0', 'attribution');
             }
@@ -696,8 +700,7 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Add log entry for statistics / charts.
-        $attribution = !empty($this->logs['attribution']) ? floatval($this->logs['attribution']) : 0;
-        $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $attribution, $utmSource);
+        $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $this->attribution, $utmSource);
         $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
 
         // Add transactional event for deep dive into logs.

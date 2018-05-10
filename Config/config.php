@@ -128,6 +128,7 @@ return [
                     'symfony.filesystem',
                     'mautic.helper.mailer',
                     'mautic.contactclient.model.schedule',
+                    'mautic.contactclient.helper.utmsource',
                 ],
             ],
             'mautic.contactclient.model.cache'         => [

@@ -29,6 +29,13 @@ class File extends FormEntity
     const STATUS_BUILDING = 'building';
 
     /**
+     * Indicates that all attempts to upload/send this file failed.
+     *
+     * Contacts sent:   No (unable to confirm)
+     */
+    const STATUS_ERROR = 'error';
+
+    /**
      * Indicates that we are building a list of contacts to send at the next appropriate time.
      * This is the default status.
      *

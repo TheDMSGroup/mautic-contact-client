@@ -38,6 +38,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
+use MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper;
 use Symfony\Component\Filesystem\Filesystem as FileSystemLocal;
 use Symfony\Component\Yaml\Yaml;
 
@@ -178,6 +179,7 @@ class FilePayload
      * @param FileSystemLocal      $filesystemLocal
      * @param MailHelper           $mailHelper
      * @param Schedule             $scheduleModel
+     * @param UtmSourceHelper      $utmSourceHelper
      */
     public function __construct(
         contactClientModel $contactClientModel,
@@ -190,7 +192,8 @@ class FilePayload
         CoreParametersHelper $coreParametersHelper,
         FileSystemLocal $filesystemLocal,
         MailHelper $mailHelper,
-        Schedule $scheduleModel
+        Schedule $scheduleModel,
+        UtmSourceHelper $utmSourceHelper
     ) {
         $this->contactClientModel   = $contactClientModel;
         $this->tokenHelper          = $tokenHelper;
@@ -203,6 +206,7 @@ class FilePayload
         $this->filesystemLocal      = $filesystemLocal;
         $this->mailHelper           = $mailHelper;
         $this->scheduleModel        = $scheduleModel;
+        $this->utmSourceHelper      = $utmSourceHelper;
     }
 
     /**
@@ -211,6 +215,27 @@ class FilePayload
     public function getValid()
     {
         return $this->valid;
+    }
+
+    /**
+     * Append the current queue entity with attribution.
+     *
+     * @param $attribution
+     */
+    public function setAttribution($attribution)
+    {
+        if ($this->queue) {
+            $this->queue->setAttribution($attribution);
+            $this->getQueueRepository()->saveEntity($this->queue);
+        }
+    }
+
+    /**
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\QueueRepository
+     */
+    private function getQueueRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
     /**
@@ -233,6 +258,7 @@ class FilePayload
             'filesystemLocal',
             'mailHelper',
             'scheduleModel',
+            'utmSourceHelper',
         ]
     ) {
         foreach (array_diff_key(
@@ -652,8 +678,6 @@ class FilePayload
                 $queue->setContact($this->contact);
                 $queue->setFile($this->file);
 
-                // @todo - Add attribution to the queue entity so that it can be reversed on requirement change.
-                // $queue->setAttribution();
                 if (!empty($this->event['id'])) {
                     $queue->setCampaignEvent($this->event['id']);
                 }
@@ -661,8 +685,8 @@ class FilePayload
                     $queue->setCampaign($this->campaign);
                 }
                 if ($queue) {
-                    $this->getQueueRepository()->saveEntity($queue);
                     $this->queue = $queue;
+                    $this->getQueueRepository()->saveEntity($this->queue);
                     $this->valid = true;
                     $this->setLogs($this->queue->getId(), 'queueId');
                 }
@@ -680,14 +704,6 @@ class FilePayload
         }
 
         return $this->queue;
-    }
-
-    /**
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\QueueRepository
-     */
-    private function getQueueRepository()
-    {
-        return $this->em->getRepository('MauticContactClientBundle:Queue');
     }
 
     /**
@@ -765,7 +781,7 @@ class FilePayload
         $filter['contactClient'] = $this->contactClient;
         $filter['file']          = $this->file;
 
-        $queueEntries = $this->getQueueRepository()->getEntities(
+        $queues = $this->getQueueRepository()->getEntities(
             [
                 'filter'        => $filter,
                 'iterator_mode' => true,
@@ -775,12 +791,13 @@ class FilePayload
 
         $this->count           = 0;
         $queueEntriesProcessed = [];
-        while (false !== ($queueEntry = $queueEntries->next())) {
-            $queueEntry    = reset($queueEntry);
+        while (false !== ($queue = $queues->next())) {
+            /** @var Queue $queueEntry */
+            $queue         = reset($queue);
             $this->contact = null;
             try {
                 // Get the full Contact entity.
-                $contactId = $queueEntry->getContact();
+                $contactId = $queue->getContact();
                 if ($contactId) {
                     $this->contact = $this->contactModel->getEntity($contactId);
                 }
@@ -794,7 +811,7 @@ class FilePayload
                 }
 
                 // Apply the event for configuration/overrides.
-                $eventId = $queueEntry->getCampaignEvent();
+                $eventId = $queue->getCampaignEvent();
                 if ($eventId) {
                     $event = $this->eventModel->getEntity((int) $eventId);
                     if ($event) {
@@ -808,20 +825,33 @@ class FilePayload
                 $fieldValues = $this->getFieldValues();
                 $this->fileAddRow($fieldValues);
 
-                $queueEntriesProcessed[] = $queueEntry->getId();
+                $queueEntriesProcessed[] = $queue->getId();
             } catch (\Exception $e) {
-                // @todo - Reverse attribution for this contact.
-                // @todo - Log a stat of some kind as well.
-                $this->setLogs($e->getMessage(), 'notice');
+                // Cancel this contact and any attribution applied to it.
+                $this->setLogs($e->getMessage(), 'error');
+                $attribution = $queue->getAttribution();
+                if (!empty($attribution)) {
+                    $attributionChange   = $attribution * -1;
+                    $originalAttribution = $this->contact->getAttribution();
+                    $newAttribution      = $originalAttribution + $attributionChange;
+                    $this->contact->addUpdatedField('attribution', $newAttribution, $originalAttribution);
+                    $this->setLogs($attributionChange, 'attributionCancelled');
+                    try {
+                        $utmSource = $this->utmSourceHelper->getFirstUtmSource($this->contact);
+                    } catch (\Exception $e) {
+                        $utmSource = null;
+                    }
+                    $this->contactClientModel->addStat($this->contactClient, Stat::TYPE_CANCELLED, $this->contact, $attributionChange, $utmSource);
+                }
             }
 
             if ($this->contact) {
                 $this->em->detach($this->contact);
             }
-            $this->em->detach($queueEntry);
-            unset($queueEntry, $contact);
+            $this->em->detach($queue);
+            unset($queue, $contact);
         }
-        unset($queueEntries);
+        unset($queues);
 
         $this->fileClose();
         if ($this->count) {
@@ -1200,10 +1230,10 @@ class FilePayload
             $this->setLogs($event['id'], 'campaignEventId');
         }
         $overrides = [];
-        if (!empty($event['contactclient_overrides'])) {
+        if (!empty($event['config']['contactclient_overrides'])) {
             // Flatten overrides to key-value pairs.
             $jsonHelper = new JSONHelper();
-            $array      = $jsonHelper->decodeArray($event['contactclient_overrides'], 'Overrides');
+            $array      = $jsonHelper->decodeArray($event['config']['contactclient_overrides'], 'Overrides');
             if ($array) {
                 foreach ($array as $field) {
                     if (!empty($field->key) && !empty($field->value) && (empty($field->enabled) || true === $field->enabled)) {
@@ -1257,12 +1287,13 @@ class FilePayload
     private function fileSend()
     {
         $attemptCount = 0;
-        $results      = $result = false;
+        $successCount = 0;
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
                 if (is_object($operation)) {
                     ++$attemptCount;
-                    $now = new \DateTime();
+                    $result = false;
+                    $now    = new \DateTime();
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
                     switch ($type) {
                         case 'email':
@@ -1281,22 +1312,25 @@ class FilePayload
                             $result = $this->operationS3($operation);
                             break;
                     }
-                }
-                if ($result) {
-                    // Show a status of sent even if only one send succeeded.
-                    $results = true;
+                    if ($result) {
+                        ++$successCount;
+                    }
                 }
             }
         }
-        if ($results) {
+        if (!$attemptCount) {
+            $this->setLogs(
+                'No file send operations are enabled. Please add a file send operation to be tested',
+                'error'
+            );
+        } elseif ($successCount === $attemptCount) {
             $this->file->setStatus(File::STATUS_SENT);
-            $this->setLogs($this->file->getStatus(), 'fileStatus');
             $this->valid = true;
-        }
-        if (0 === $attemptCount) {
-            $this->setLogs('No file send operations are enabled. Please add a file send operation to be tested', 'error');
+        } elseif ($successCount < $attemptCount) {
+            $this->file->setStatus(File::STATUS_ERROR);
             $this->valid = false;
         }
+        $this->setLogs($this->file->getStatus(), 'fileStatus');
         $this->setLogs($this->valid, 'valid');
         $this->fileEntityAddLogs();
         $this->fileEntitySave();
