@@ -1585,7 +1585,6 @@ class FilePayload
             // Get tokenized field values (will include overrides).
             $fieldValues = $this->getFieldValues();
             $this->fileAddRow($fieldValues);
-
         } catch (\Exception $e) {
             $this->setLogs($e->getMessage(), 'notice');
         }

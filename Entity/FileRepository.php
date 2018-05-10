@@ -50,7 +50,7 @@ class FileRepository extends CommonRepository
             $q->expr()->eq('contactclient_id', (int) $contactClientId),
             $q->expr()->gte('date_added', ':start'),
             $q->expr()->lt('date_added', ':end'),
-            $q->expr()->eq('test', (bool) $test)
+            $q->expr()->eq('test', $test ? 1 : 0)
         );
         $q->setParameter('start', $start->format('Y-m-d H:i:s'));
         $q->setParameter('end', $end->format('Y-m-d H:i:s'));

@@ -1064,6 +1064,7 @@ class ClientIntegration extends AbstractIntegration
      * @param string $attributionSettings
      *
      * @return bool
+     *
      * @throws ContactClientException
      */
     public function sendTestFile(&$filePayload, $attributionDefault = '', $attributionSettings = '')
@@ -1077,7 +1078,7 @@ class ClientIntegration extends AbstractIntegration
             $client->setAttributionDefault($attributionDefault);
         }
 
-        $this->test = true;
+        $this->test    = true;
         $this->contact = new Contact();
 
         /** @var FilePayload $payloadModel */
