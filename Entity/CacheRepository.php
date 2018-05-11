@@ -124,19 +124,19 @@ class CacheRepository extends CommonRepository
             if (!$timezone) {
                 $timezone = date_default_timezone_get();
             }
-            $timezone = new \DateTimeZone($timezone);
+            $oldest->setTimezone(new \DateTimeZone($timezone));
             switch (strtoupper(substr($duration, -1))) {
                 case 'Y':
-                    $oldest = $oldest->modify('next year jan 1 midnight', $timezone);
+                    $oldest->modify('next year jan 1 midnight');
                     break;
                 case 'M':
-                    $oldest = $oldest->modify('first day of next month midnight', $timezone);
+                    $oldest->modify('first day of next month midnight');
                     break;
                 case 'W':
-                    $oldest = $oldest->modify('sunday next week midnight', $timezone);
+                    $oldest->modify('sunday next week midnight');
                     break;
                 case 'D':
-                    $oldest = $oldest->modify('tomorrow midnight', $timezone);
+                    $oldest->modify('tomorrow midnight');
                     break;
             }
             // Add P so that we can now use standard interval
