@@ -245,6 +245,7 @@ class CacheRepository extends CommonRepository
                 $query->add(
                     'where',
                     $query->expr()->andX(
+                        $query->expr()->isNotNull($alias.'.exclusive_expire_date'),
                         $query->expr()->gte($alias.'.exclusive_expire_date', ':exclusiveExpireDate'),
                         $exprOuter
                     )
