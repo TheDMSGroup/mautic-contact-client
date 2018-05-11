@@ -124,19 +124,19 @@ class CacheRepository extends CommonRepository
             if (!$timezone) {
                 $timezone = date_default_timezone_get();
             }
-            $timezone = new \DateTimeZone($timezone);
+            $oldest->setTimezone(new \DateTimeZone($timezone));
             switch (strtoupper(substr($duration, -1))) {
                 case 'Y':
-                    $oldest = $oldest->modify('next year jan 1 midnight', $timezone);
+                    $oldest->modify('next year jan 1 midnight');
                     break;
                 case 'M':
-                    $oldest = $oldest->modify('first day of next month midnight', $timezone);
+                    $oldest->modify('first day of next month midnight');
                     break;
                 case 'W':
-                    $oldest = $oldest->modify('sunday next week midnight', $timezone);
+                    $oldest->modify('sunday next week midnight');
                     break;
                 case 'D':
-                    $oldest = $oldest->modify('tomorrow midnight', $timezone);
+                    $oldest->modify('tomorrow midnight');
                     break;
             }
             // Add P so that we can now use standard interval
@@ -245,6 +245,7 @@ class CacheRepository extends CommonRepository
                 $query->add(
                     'where',
                     $query->expr()->andX(
+                        $query->expr()->isNotNull($alias.'.exclusive_expire_date'),
                         $query->expr()->gte($alias.'.exclusive_expire_date', ':exclusiveExpireDate'),
                         $exprOuter
                     )
@@ -369,7 +370,7 @@ class CacheRepository extends CommonRepository
             if ($scope & self::SCOPE_CATEGORY) {
                 $category = $contactClient->getCategory();
                 if ($category) {
-                    $category = $category->getId();
+                    $category = (int) $category->getId();
                     if (!empty($category)) {
                         $orx['category_id'] = $category;
                     }
@@ -422,8 +423,9 @@ class CacheRepository extends CommonRepository
      *
      * @param Contact        $contact
      * @param ContactClient  $contactClient
-     * @param int            $matching
      * @param \DateTime|null $dateSend
+     * @param int            $matching
+     * @param int            $scope
      *
      * @return mixed|null
      */
@@ -431,7 +433,8 @@ class CacheRepository extends CommonRepository
         Contact $contact,
         ContactClient $contactClient,
         \DateTime $dateSend = null,
-        $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE
+        $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE,
+        $scope = self::SCOPE_GLOBAL | self::SCOPE_CATEGORY
     ) {
         // Generate our filters based on all rules possibly in play.
         $filters = [];
@@ -529,28 +532,33 @@ class CacheRepository extends CommonRepository
             }
         }
 
-        // Scope Global
-        $scopePattern = $this->bitwiseIn($matching, self::SCOPE_GLOBAL);
-        foreach ($filters as &$filter) {
-            $filter['andx']['exclusive_scope'] = $scopePattern;
-        }
-
-        // Scope Category
-        $category = $contactClient->getCategory();
-        if ($category) {
-            $category = $category->getId();
-            if ($category) {
-                $newFilters   = [];
-                $scopePattern = $this->bitwiseIn($matching, self::SCOPE_CATEGORY);
-                foreach ($filters as $filter) {
-                    $filter['andx']['category_id']     = $category;
-                    $filter['andx']['exclusive_scope'] = $scopePattern;
-                    $newFilters[]                      = $filter;
-                }
-                $filters = array_merge($filters, $newFilters);
+        // Scope Global (added to all filters)
+        if ($scope & self::SCOPE_GLOBAL) {
+            $scopePattern = $this->bitwiseIn($scope, self::SCOPE_GLOBAL);
+            foreach ($filters as &$filter) {
+                $filter['andx']['exclusive_scope'] = $scopePattern;
             }
         }
 
+        // Scope Category (duplicates all filters with category specificity)
+        if ($scope & self::SCOPE_CATEGORY) {
+            $category = $contactClient->getCategory();
+            if ($category) {
+                $category = (int) $category->getId();
+                if ($category) {
+                    $newFilters   = [];
+                    $scopePattern = $this->bitwiseIn($scope, self::SCOPE_CATEGORY);
+                    foreach ($filters as $filter) {
+                        $filter['andx']['category_id']     = $category;
+                        $filter['andx']['exclusive_scope'] = $scopePattern;
+                        $newFilters[]                      = $filter;
+                    }
+                    $filters = array_merge($filters, $newFilters);
+                }
+            }
+        }
+
+        // Add expiration to all filters.
         $this->addExpiration($filters, $dateSend);
 
         return $this->applyFilters($filters);
