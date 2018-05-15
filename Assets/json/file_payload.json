@@ -412,7 +412,7 @@
                 "timeout": {
                   "title": "Timeout",
                   "type": "integer",
-                  "default": 90,
+                  "default": 30,
                   "minimum": 1,
                   "maximum": 300
                 },
@@ -496,7 +496,7 @@
                 "timeout": {
                   "title": "Timeout",
                   "type": "integer",
-                  "default": 90,
+                  "default": 30,
                   "minimum": 1,
                   "maximum": 300
                 },

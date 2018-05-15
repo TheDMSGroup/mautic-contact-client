@@ -1313,22 +1313,27 @@ class FilePayload
                     $result = false;
                     $now    = new \DateTime();
                     $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
-                    switch ($type) {
-                        case 'email':
-                            $result = $this->operationEmail($operation);
-                            break;
+                    try {
+                        switch ($type) {
+                            case 'email':
+                                $result = $this->operationEmail($operation);
+                                break;
 
-                        case 'ftp':
-                            $result = $this->operationFtp($operation);
-                            break;
+                            case 'ftp':
+                                $result = $this->operationFtp($operation);
+                                break;
 
-                        case 'sftp':
-                            $result = $this->operationSftp($operation);
-                            break;
+                            case 'sftp':
+                                $result = $this->operationSftp($operation);
+                                break;
 
-                        case 's3':
-                            $result = $this->operationS3($operation);
-                            break;
+                            case 's3':
+                                $result = $this->operationS3($operation);
+                                break;
+                        }
+                    } catch (\Exception $e) {
+                        $message = 'Unable to send file to '.$type.': '.$e->getMessage();
+                        $this->setLogs($message, $type.'error');
                     }
                     if ($result) {
                         ++$successCount;
