@@ -783,7 +783,7 @@ class FilePayload
 
         $filter            = [];
         $filter['force'][] = [
-            'column' => 'f.contactClient',
+            'column' => 'q.contactClient',
             'expr'   => 'eq',
             'value'  => (int) $this->contactClient->getId(),
         ];
