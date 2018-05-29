@@ -263,18 +263,22 @@ class TokenHelper
         if (!$payload) {
             return $this;
         }
-        if (!empty($payload->operations)) {
-            foreach ($payload->operations as $id => &$operation) {
+        $payload = json_decode(json_encode($payload), true);
+        if (!isset($this->context['payload'])) {
+            $this->context['payload'] = $payload;
+        }
+        if (!empty($payload['operations'])) {
+            foreach ($payload['operations'] as $id => $operation) {
                 foreach (['request', 'response'] as $opType) {
-                    if (!empty($operation->{$opType})) {
+                    if (!empty($operation[$opType])) {
                         foreach (['headers', 'body'] as $fieldType) {
-                            if (!empty($operation->{$opType}->{$fieldType})) {
+                            if (!empty($operation[$opType][$fieldType])) {
                                 $fieldSet = [];
                                 if ('request' === $opType) {
-                                    foreach ($operation->{$opType}->{$fieldType} as $field) {
-                                        if (!empty($field->key)) {
-                                            if (!empty($field->value)) {
-                                                $fieldSet[$field->key] = $field->value;
+                                    foreach ($operation[$opType][$fieldType] as $field) {
+                                        if (!empty($field['key'])) {
+                                            if (!empty($field['value'])) {
+                                                $fieldSet[$field['key']] = $field['value'];
                                             }
                                         }
                                     }
@@ -286,14 +290,13 @@ class TokenHelper
                                         $fieldSet = $responseActual[$fieldType];
                                     }
                                 }
-                                $operation->{$opType}->{$fieldType} = $fieldSet;
+                                $this->context['payload']['operations'][$id][$opType][$fieldType] = $fieldSet;
                             }
                         }
                     }
                 }
             }
         }
-        $this->addContext(['payload' => $payload]);
     }
 
     /**
@@ -307,7 +310,7 @@ class TokenHelper
             return $this;
         }
         $this->nestContext($context);
-        $this->context = array_merge_recursive($this->context, $context);
+        $this->context = array_merge($this->context, $context);
 
         return $this;
     }
