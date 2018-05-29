@@ -207,7 +207,7 @@ class ApiPayloadOperation
                                 $result->{$type}[$fieldId]->example = $value;
                                 $updates                            = true;
                                 $this->setLogs(
-                                    'Existing '.$type.' field "'.$key.'" now has an example: '.$value,
+                                    'Existing '.$type.' field '.$key.' now has an example: '.$value,
                                     'autoUpdate'
                                 );
                             } else {
@@ -216,7 +216,7 @@ class ApiPayloadOperation
                                     $result->{$type}[$fieldId]->example = $value;
                                     $updates                            = true;
                                     $this->setLogs(
-                                        'Existing '.$type.' field "'.$key.'" has a new example: '.$value,
+                                        'Existing '.$type.' field '.$key.' has a new example: '.$value,
                                         'autoUpdate'
                                     );
                                 }

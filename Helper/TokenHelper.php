@@ -377,7 +377,7 @@ class TokenHelper
      * Replace Tokens in a simple string using an array for context.
      *
      * @param      $string
-     * @param bool $force  skip checking for a token
+     * @param bool $force skip checking for a token
      *
      * @return string
      */
@@ -399,22 +399,25 @@ class TokenHelper
 
     /**
      * @param bool $labeled
+     * @param bool $flattened
      *
      * @return array
      */
-    public function getContext($labeled = false)
+    public function getContext($labeled = false, $flattened = false)
     {
+        $result = [];
         if ($labeled) {
-            // When retrieving labels, nested contacts are not needed.
-            // unset($this->context['contacts']);
-            $labels     = $this->labels($this->context);
-            $flatLabels = [];
-            $this->flattenArray($labels, $flatLabels);
-
-            return $flatLabels;
+            $labels = $this->labels($this->context);
+            $this->flattenArray($labels, $result);
         } else {
-            return $this->context;
+            if ($flattened) {
+                $this->flattenArray($this->context, $result);
+            } else {
+                $result = $this->context;
+            }
         }
+
+        return $result;
     }
 
     /**
