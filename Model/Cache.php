@@ -67,7 +67,11 @@ class Cache extends AbstractCommonModel
                     $entity = clone $entity;
                 }
                 // Each entry may have different exclusion expiration.
-                $expireDate = $this->getRepository()->oldestDateAdded($rule['duration'], $this->getTimezone(), $this->dateSend);
+                $expireDate = $this->getRepository()->oldestDateAdded(
+                    $rule['duration'],
+                    $this->getTimezone(),
+                    $this->dateSend
+                );
                 $entity->setExclusiveExpireDate(new \DateTime($expireDate));
                 $entity->setExclusivePattern($rule['matching']);
                 $entity->setExclusiveScope($rule['scope']);
