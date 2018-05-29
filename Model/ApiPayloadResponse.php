@@ -188,8 +188,21 @@ class ApiPayloadResponse
                         $doc->recover = true;
                         $data         = trim($data);
                         // Ensure UTF-8 encoding is handled correctly.
-                        if (1 !== preg_match('/<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
-                            $data = '<?xml version="1.0" encoding="UTF-8"?>'.$data;
+                        if (1 !== preg_match('/^<\??xml .*encoding=["|\']?UTF-8["|\']?.*>/iU', $data, $matches)) {
+                            // Possibly missing UTF-8 specification.
+                            $opening      = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+                            $replaceCount = 0;
+                            $data         = preg_replace(
+                                '/^<\??xml(.*)\?*>/iU',
+                                $opening,
+                                $data,
+                                1,
+                                $replaceCount
+                            );
+                            if (!$replaceCount) {
+                                // Missing opening XML block entirely.
+                                $data = $opening.$data;
+                            }
                         }
                         if ('html' == $responseExpectedFormat) {
                             @$doc->loadHTML($data);

@@ -37,7 +37,7 @@ return [
                 'path'       => '/contactclient/timeline/export/{contactClientId}',
                 'controller' => 'MauticContactClientBundle:Timeline:exportTimeline',
             ],
-            'mautic_contactclient_timeline_file' => [
+            'mautic_contactclient_timeline_file'   => [
                 'path'       => '/contactclient/timeline/file/{contactClientId}/{fileId}',
                 'controller' => 'MauticContactClientBundle:Timeline:file',
             ],

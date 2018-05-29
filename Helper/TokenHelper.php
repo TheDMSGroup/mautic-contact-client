@@ -215,6 +215,7 @@ class TokenHelper
             }
         }
 
+        // @todo - Refactor to only get field values that we may need based on all tokens in use throughout operations.
         $fieldGroups = $contact->getFields();
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
@@ -235,29 +236,67 @@ class TokenHelper
             }
         }
 
-        $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
+        // Support multiple contacts in the future if needed by uncommenting a bit here.
+        // $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
         $this->context = $context;
 
         // Support multiple contacts for future batch processing.
-        $this->context['contacts']                 = $contacts;
-        $this->context['contacts'][$context['id']] = $context;
+        // $this->context['contacts']                 = $contacts;
+        // $this->context['contacts'][$context['id']] = $context;
 
         return $this;
     }
 
     /**
+     * Simplify the payload for tokens, including actual response data when possible.
+     *
      * @param array $payload
+     * @param null  $operationId
+     * @param array $responseActual
      *
      * @return $this
      */
-    public function addContextPayload($payload = [])
+    public function addContextPayload($payload = [], $operationId = null, $responseActual = [])
     {
         if (!$payload) {
             return $this;
         }
-        $this->addContext(['payload' => $payload]);
+        $payload = json_decode(json_encode($payload), true);
+        if (!isset($this->context['payload'])) {
+            $this->context['payload'] = $payload;
+        }
+        if (!empty($payload['operations'])) {
+            foreach ($payload['operations'] as $id => $operation) {
+                foreach (['request', 'response'] as $opType) {
+                    if (!empty($operation[$opType])) {
+                        foreach (['headers', 'body'] as $fieldType) {
+                            if (!empty($operation[$opType][$fieldType])) {
+                                $fieldSet = [];
+                                if ('request' === $opType) {
+                                    foreach ($operation[$opType][$fieldType] as $field) {
+                                        if (!empty($field['key'])) {
+                                            if (!empty($field['value'])) {
+                                                $fieldSet[$field['key']] = $field['value'];
+                                            }
+                                        }
+                                    }
+                                } elseif ('response' === $opType) {
+                                    if (
+                                        $id === $operationId
+                                        && !empty($responseActual[$fieldType])
+                                    ) {
+                                        $fieldSet = $responseActual[$fieldType];
+                                    }
+                                }
+                                $this->context['payload']['operations'][$id][$opType][$fieldType] = $fieldSet;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -360,22 +399,25 @@ class TokenHelper
 
     /**
      * @param bool $labeled
+     * @param bool $flattened
      *
      * @return array
      */
-    public function getContext($labeled = false)
+    public function getContext($labeled = false, $flattened = false)
     {
+        $result = [];
         if ($labeled) {
-            // When retrieving labels, nested contacts are not needed.
-            unset($this->context['contacts']);
-            $labels     = $this->labels($this->context);
-            $flatLabels = [];
-            $this->flattenArray($labels, $flatLabels);
-
-            return $flatLabels;
+            $labels = $this->labels($this->context);
+            $this->flattenArray($labels, $result);
         } else {
-            return $this->context;
+            if ($flattened) {
+                $this->flattenArray($this->context, $result);
+            } else {
+                $result = $this->context;
+            }
         }
+
+        return $result;
     }
 
     /**

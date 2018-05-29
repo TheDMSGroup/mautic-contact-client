@@ -13,7 +13,6 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use Mautic\CoreBundle\Controller\CommonController;
 use Mautic\CoreBundle\Helper\InputHelper;
-use MauticPlugin\MauticContactClientBundle\Entity\File;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

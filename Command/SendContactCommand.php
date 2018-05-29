@@ -88,15 +88,19 @@ class SendContactCommand extends ModeratedCommand
         /** @var ClientModel $clientModel */
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
         /** @var ContactClient $client */
-        $client      = $clientModel->getEntity($options['client']);
+        $client = $clientModel->getEntity($options['client']);
         if (!$client) {
-            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.load').'</error>');
+            $output->writeln(
+                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.load').'</error>'
+            );
 
             return 1;
         }
 
         if (false === $client->getIsPublished() && !$options['force']) {
-            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>');
+            $output->writeln(
+                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>'
+            );
 
             return 1;
         }
@@ -106,7 +110,9 @@ class SendContactCommand extends ModeratedCommand
         /** @var \Mautic\LeadBundle\Entity\Lead $contact */
         $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {
-            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load').'</error>');
+            $output->writeln(
+                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load').'</error>'
+            );
 
             return 1;
         }
@@ -121,18 +127,24 @@ class SendContactCommand extends ModeratedCommand
                 !$integrationObject
                 || (false === $integrationObject->getIntegrationSettings()->getIsPublished() && !$options['force'])
             ) {
-                $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.plugin.publish').'</error>');
+                $output->writeln(
+                    '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.plugin.publish').'</error>'
+                );
 
                 return 1;
             }
             $integrationObject->sendContact($client, $contact, $options['test']);
             if ($integrationObject->getValid()) {
-                $output->writeln('<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted').'</info>');
+                $output->writeln(
+                    '<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted').'</info>'
+                );
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }
             } else {
-                $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.contact.rejected').'</error>');
+                $output->writeln(
+                    '<error>'.$translator->trans('mautic.contactclient.sendcontact.contact.rejected').'</error>'
+                );
                 if (isset($options['verbose']) && $options['verbose']) {
                     $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                 }

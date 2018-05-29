@@ -232,6 +232,9 @@ class ApiPayloadRequest
             }
         }
         $this->setLogs(microtime(true) - $startTime, 'duration');
+        if ($this->test) {
+            $this->setLogs($this->tokenHelper->getContext(false, true), 'availableTokens');
+        }
     }
 
     /**
