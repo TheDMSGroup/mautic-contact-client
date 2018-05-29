@@ -377,7 +377,7 @@ class TokenHelper
      * Replace Tokens in a simple string using an array for context.
      *
      * @param      $string
-     * @param bool $force skip checking for a token
+     * @param bool $force  skip checking for a token
      *
      * @return string
      */
