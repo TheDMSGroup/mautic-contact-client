@@ -364,6 +364,9 @@ class ApiPayload
                     // Update context to include actual previous payload responses.
                     if ($responseActual) {
                         $this->tokenHelper->addContextPayload($this->payload, $id, $responseActual);
+                        if ($this->test) {
+                            $this->setLogs($this->tokenHelper->getContext(true), 'tokensForNextRequest');
+                        }
                     }
                 }
             }

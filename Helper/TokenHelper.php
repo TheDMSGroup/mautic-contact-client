@@ -406,7 +406,7 @@ class TokenHelper
     {
         if ($labeled) {
             // When retrieving labels, nested contacts are not needed.
-            unset($this->context['contacts']);
+            // unset($this->context['contacts']);
             $labels     = $this->labels($this->context);
             $flatLabels = [];
             $this->flattenArray($labels, $flatLabels);
