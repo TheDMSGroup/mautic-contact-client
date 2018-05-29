@@ -100,6 +100,9 @@ class ApiPayload
     /** @var Schedule */
     protected $scheduleModel;
 
+    /** @var bool */
+    protected $updatedFields = false;
+
     /**
      * ApiPayload constructor.
      *
@@ -329,6 +332,7 @@ class ApiPayload
         $transport     = $this->getTransport();
         $tokenHelper   = $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
         $updatePayload = (bool) $this->settings['autoUpdate'];
+        $opsRemaining  = count($this->payload->operations);
 
         foreach ($this->payload->operations as $id => &$operation) {
             $logs         = [];
@@ -340,7 +344,7 @@ class ApiPayload
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
             } catch (\Exception $e) {
-                // Delay this exception throw...
+                // Delay this exception throw till after we can do some important logging.
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
             $this->setLogs($logs, $id);
@@ -351,7 +355,17 @@ class ApiPayload
             } else {
                 // Aggregate successful responses that are mapped to Contact fields.
                 $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
-                $this->setAggregateActualResponses($apiOperation->getResponseActual());
+                $responseActual    = $apiOperation->getResponseActual();
+                $this->setAggregateActualResponses($responseActual);
+                --$opsRemaining;
+                if ($opsRemaining) {
+                    // Update the contextual awareness for subsequent requests if needed.
+                    $this->applyResponseMap(true);
+                    // Update context to include actual previous payload responses.
+                    if ($responseActual) {
+                        $this->tokenHelper->addContextPayload($this->payload, $id, $responseActual);
+                    }
+                }
             }
         }
 
@@ -407,6 +421,44 @@ class ApiPayload
         }
 
         return $this;
+    }
+
+    /**
+     * Apply the responsemap to update a contact entity.
+     *
+     * @param bool $updateTokens
+     *
+     * @return bool
+     */
+    public function applyResponseMap($updateTokens = false)
+    {
+        $responseMap = $this->getResponseMap();
+        // Check the responseMap to discern where field values should go.
+        if (count($responseMap)) {
+            foreach ($responseMap as $alias => $value) {
+                $oldValue = $this->contact->getFieldValue($alias);
+                if ($oldValue !== $value) {
+                    $this->contact->addUpdatedField($alias, $value, $oldValue);
+                    if ($updateTokens) {
+                        $this->tokenHelper->addContext([$alias => $value]);
+                    }
+                    $this->setLogs('Updating Contact: '.$alias.' = '.$value, 'fieldsUpdated');
+                    $this->updatedFields = true;
+                }
+            }
+        }
+
+        return $this->updatedFields;
+    }
+
+    /**
+     * Return the aggregate responsemap of all valid operations.
+     *
+     * @return array
+     */
+    public function getResponseMap()
+    {
+        return $this->responseMap;
     }
 
     /**
@@ -490,40 +542,6 @@ class ApiPayload
         } else {
             $this->logs[] = $value;
         }
-    }
-
-    /**
-     * Apply the responsemap to update a contact entity.
-     *
-     * @return bool
-     */
-    public function applyResponseMap()
-    {
-        $updated     = false;
-        $responseMap = $this->getResponseMap();
-        // Check the responseMap to discern where field values should go.
-        if (count($responseMap)) {
-            foreach ($responseMap as $alias => $value) {
-                $oldValue = $this->contact->getFieldValue($alias);
-                if ($oldValue !== $value) {
-                    $this->contact->addUpdatedField($alias, $value, $oldValue);
-                    $this->setLogs('Updating Contact: '.$alias.' = '.$value);
-                    $updated = true;
-                }
-            }
-        }
-
-        return $updated;
-    }
-
-    /**
-     * Return the aggregate responsemap of all valid operations.
-     *
-     * @return array
-     */
-    public function getResponseMap()
-    {
-        return $this->responseMap;
     }
 
     /**

@@ -248,14 +248,48 @@ class TokenHelper
     }
 
     /**
+     * Simplify the payload for tokens, including actual response data when possible.
+     *
      * @param array $payload
+     * @param null  $operationId
+     * @param array $responseActual
      *
      * @return $this
      */
-    public function addContextPayload($payload = [])
+    public function addContextPayload($payload = [], $operationId = null, $responseActual = [])
     {
         if (!$payload) {
             return $this;
+        }
+        if (!empty($payload->operations)) {
+            foreach ($payload->operations as $id => &$operation) {
+                foreach (['request', 'response'] as $opType) {
+                    if (!empty($operation->{$opType})) {
+                        foreach (['headers', 'body'] as $fieldType) {
+                            if (!empty($operation->{$opType}->{$fieldType})) {
+                                $fieldSet = [];
+                                if ('request' === $opType) {
+                                    foreach ($operation->{$opType}->{$fieldType} as $field) {
+                                        if (!empty($field->key)) {
+                                            if (!empty($field->value)) {
+                                                $fieldSet[$field->key] = $field->value;
+                                            }
+                                        }
+                                    }
+                                } elseif ('response' === $opType) {
+                                    if (
+                                        $id === $operationId
+                                        && !empty($responseActual[$fieldType])
+                                    ) {
+                                        $fieldSet = $responseActual[$fieldType];
+                                    }
+                                }
+                                $operation->{$opType}->{$fieldType} = $fieldSet;
+                            }
+                        }
+                    }
+                }
+            }
         }
         $this->addContext(['payload' => $payload]);
     }
@@ -271,7 +305,7 @@ class TokenHelper
             return $this;
         }
         $this->nestContext($context);
-        $this->context = array_merge($this->context, $context);
+        $this->context = array_merge_recursive($this->context, $context);
 
         return $this;
     }
