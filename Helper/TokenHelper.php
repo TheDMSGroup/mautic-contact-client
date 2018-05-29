@@ -215,6 +215,7 @@ class TokenHelper
             }
         }
 
+        // @todo - Refactor to only get field values that we may need based on all tokens in use throughout operations.
         $fieldGroups = $contact->getFields();
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
@@ -235,14 +236,15 @@ class TokenHelper
             }
         }
 
-        $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
+        // Support multiple contacts in the future if needed by uncommenting a bit here.
+        // $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
         $this->context = $context;
 
         // Support multiple contacts for future batch processing.
-        $this->context['contacts']                 = $contacts;
-        $this->context['contacts'][$context['id']] = $context;
+        // $this->context['contacts']                 = $contacts;
+        // $this->context['contacts'][$context['id']] = $context;
 
         return $this;
     }

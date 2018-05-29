@@ -375,7 +375,7 @@ class ApiPayload
         }
 
         // Update the payload if enabled.
-        if ($updatePayload) {
+        if ($updatePayload && $this->test) {
             $this->updatePayload();
         }
 
