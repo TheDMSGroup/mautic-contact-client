@@ -88,7 +88,7 @@ class SendContactCommand extends ModeratedCommand
         /** @var ClientModel $clientModel */
         $clientModel = $container->get('mautic.contactclient.model.contactclient');
         /** @var ContactClient $client */
-        $client = $clientModel->getEntity($options['client']);
+        $client = $clientModel->getEntity((int) $options['client']);
         if (!$client) {
             $output->writeln(
                 '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.load').'</error>'
@@ -107,8 +107,28 @@ class SendContactCommand extends ModeratedCommand
 
         /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
+        // Using getEntities for faster performance vs the singular method.
+        $contacts = $contactModel->getRepository()->getEntities(
+            [
+                'filter' => [
+                    'force' => [
+                        [
+                            'column' => 'l.date_identified',
+                            'expr'   => 'isNotNull',
+                        ],
+                        [
+                            'column' => 'l.id',
+                            'expr'   => 'eq',
+                            'value'  => (int) $options['contact'],
+                        ],
+                    ],
+                ],
+                'limit'  => 1,
+            ]
+        );
+        $contact  = reset($contacts);
+
         /** @var \Mautic\LeadBundle\Entity\Lead $contact */
-        $contact = $contactModel->getEntity($options['contact']);
         if (!$contact) {
             $output->writeln(
                 '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load').'</error>'
