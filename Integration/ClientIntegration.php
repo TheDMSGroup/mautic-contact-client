@@ -973,6 +973,7 @@ class ClientIntegration extends AbstractIntegration
                     'attr'  => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.from.tooltip'),
                     ],
+                    'required'   => false,
                 ]
             );
 
@@ -985,6 +986,7 @@ class ClientIntegration extends AbstractIntegration
                     'attr'  => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.success_message.tooltip'),
                     ],
+                    'required'   => false,
                 ]
             );
 
@@ -997,6 +999,7 @@ class ClientIntegration extends AbstractIntegration
                     'attr'  => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
                     ],
+                    'required'   => false,
                 ]
             );
 
@@ -1009,6 +1012,7 @@ class ClientIntegration extends AbstractIntegration
                     'attr'  => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
                     ],
+                    'required'   => false,
                 ]
             );
 
@@ -1021,6 +1025,7 @@ class ClientIntegration extends AbstractIntegration
                     'attr'  => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.footer.tooltip'),
                     ],
+                    'required'   => false,
                 ]
             );
         }
