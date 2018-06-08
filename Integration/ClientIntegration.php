@@ -675,15 +675,19 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Session storage for external plugins (should probably be dispatcher instead).
-        $session          = $this->dispatcher->getContainer()->get('session');
-        $eventId          = isset($this->event['id']) ? $this->event['id'] : 0;
-        $eventName        = isset($this->event['name']) ? $this->event['name'] : null;
-        $events           = $session->get('mautic.contactClient.events', []);
-        $events[$eventId] = [
+        $contactId = $this->contact->getId();
+        $session   = $this->dispatcher->getContainer()->get('session');
+        $eventId   = isset($this->event['id']) ? $this->event['id'] : 0;
+        $eventName = isset($this->event['name']) ? $this->event['name'] : null;
+        $events    = $session->get('mautic.contactClient.events', []);
+        if (!isset($events[$contactId])) {
+            $events[$contactId] = [];
+        }
+        $events[$contactId][$eventId] = [
             'name'     => $eventName,
             'valid'    => $this->valid,
             'statType' => $this->statType,
-            'error'    => $errors,
+            'errors'   => $errors,
         ];
         $session->set('mautic.contactClient.events', $events);
 
