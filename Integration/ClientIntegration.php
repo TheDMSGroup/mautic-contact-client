@@ -686,10 +686,7 @@ class ClientIntegration extends AbstractIntegration
             'error'    => $errors,
         ];
         $session->set('mautic.contactClient.events', $events);
-        // Indicates that a single (or more) valid sends have been made.
-        if ($this->valid) {
-            $session->set('mautic.contactClient.valid', true);
-        }
+
         // get the original / first utm source code for contact
         try {
             /** @var \MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper $utmHelper */
