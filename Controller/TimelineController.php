@@ -42,7 +42,7 @@ class TimelineController extends CommonController
         $this->setListFilters();
 
         $session = $this->get('session');
-        if ('POST' == $request->getMethod() && $request->request->has('search')) {
+        if ('POST' === $request->getMethod() && $request->request->has('search')) {
             $filters = [
                 'search' => InputHelper::clean($request->request->get('search')),
             ];

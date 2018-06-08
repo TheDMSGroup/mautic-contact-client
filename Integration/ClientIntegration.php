@@ -678,17 +678,17 @@ class ClientIntegration extends AbstractIntegration
         $session          = $this->dispatcher->getContainer()->get('session');
         $eventId          = isset($this->event['id']) ? $this->event['id'] : 0;
         $eventName        = isset($this->event['name']) ? $this->event['name'] : null;
-        $events           = $session->get('contactclient_events', []);
+        $events           = $session->get('mautic.contactClient.events', []);
         $events[$eventId] = [
             'name'     => $eventName,
             'valid'    => $this->valid,
             'statType' => $this->statType,
             'error'    => $errors,
         ];
-        $session->set('contactclient_events', $events);
+        $session->set('mautic.contactClient.events', $events);
         // Indicates that a single (or more) valid sends have been made.
         if ($this->valid) {
-            $session->set('contactclient_valid', true);
+            $session->set('mautic.contactClient.valid', true);
         }
         // get the original / first utm source code for contact
         try {
