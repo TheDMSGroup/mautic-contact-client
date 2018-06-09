@@ -34,7 +34,7 @@ before_install:
   - if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.6" ]]; then composer global require phpstan/phpstan-shim:0.8.5; fi
 
   # Clone the latest core release.
-  - git clone -b master --single-branch --depth 1 https://github.com/mautic/mautic.git /tmp/mautic
+  - git clone -b staging --single-branch --depth 1 https://github.com/mautic/mautic.git /tmp/mautic
 
   # Combine core with our plugin.
   - mkdir -p /tmp/mautic/plugins/$MAUTIC_PLUGIN

@@ -215,7 +215,6 @@ class TokenHelper
             }
         }
 
-        // @todo - Refactor to only get field values that we may need based on all tokens in use throughout operations.
         $fieldGroups = $contact->getFields();
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
