@@ -14,7 +14,6 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
-use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
@@ -110,8 +109,7 @@ class AjaxController extends CommonAjaxController
                 'mautic.contactclient.form.test_results.passed'
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
-            //$dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsYAML());
-            $dataArray['html'] = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
+            $dataArray['html']    = $clientIntegration->getLogsJSON();
         }
 
         return $this->sendJsonResponse($dataArray);
@@ -157,7 +155,7 @@ class AjaxController extends CommonAjaxController
                 'mautic.contactclient.form.test_results.passed'
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
-            $dataArray['html']    = UTF8Helper::fixUTF8($clientIntegration->getLogsJSON());
+            $dataArray['html']    = $clientIntegration->getLogsJSON();
         }
 
         return $this->sendJsonResponse($dataArray);

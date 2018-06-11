@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
 use Mautic\CampaignBundle\Model\CampaignModel;
+use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Mautic\PluginBundle\Exception\ApiErrorException;
@@ -805,7 +806,7 @@ class ClientIntegration extends AbstractIntegration
     public function getLogsJSON()
     {
         return json_encode(
-            $this->getLogs(),
+            UTF8Helper::fixUTF8($this->getLogs()),
             JSON_PRETTY_PRINT
         );
     }
