@@ -41,7 +41,7 @@ class Schedule
 
     /** @var int */
     protected $nextOpeningDay;
-    
+
     /** @var EntityManager */
     protected $em;
 
