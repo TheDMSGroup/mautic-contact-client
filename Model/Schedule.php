@@ -11,6 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use Doctrine\ORM\EntityManager;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
@@ -39,6 +41,12 @@ class Schedule
 
     /** @var int */
     protected $nextOpeningDay;
+    
+    /** @var EntityManager */
+    protected $em;
+
+    /** @var CoreParametersHelper */
+    protected $coreParametersHelper;
 
     /**
      * Schedule constructor.
@@ -47,10 +55,11 @@ class Schedule
      *
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(EntityManager $em, CoreParametersHelper $coreParametersHelper)
     {
-        $this->container = $container;
-        $this->now       = new \DateTime();
+        $this->em                   = $em;
+        $this->coreParametersHelper = $coreParametersHelper;
+        $this->now                  = new \DateTime();
     }
 
     /**
@@ -72,7 +81,7 @@ class Schedule
      *
      * @return $this
      */
-    public function reset($exclusions = ['container'])
+    public function reset($exclusions = ['em', 'coreParametersHelper'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
@@ -364,9 +373,7 @@ class Schedule
      */
     public function getFileRepository()
     {
-        $em = $this->container->get('doctrine.orm.default_entity_manager');
-
-        return $em->getRepository('MauticContactClientBundle:File');
+        return $this->em->getRepository('MauticContactClientBundle:File');
     }
 
     /**
@@ -413,7 +420,7 @@ class Schedule
         if (!$timezone) {
             $timezone = $this->contactClient->getScheduleTimezone();
             if (!$timezone) {
-                $timezone = $this->container->get('mautic.helper.core_parameters')->getParameter(
+                $timezone = $this->coreParametersHelper->getParameter(
                     'default_timezone'
                 );
                 $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();

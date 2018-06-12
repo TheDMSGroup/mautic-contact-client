@@ -137,7 +137,8 @@ return [
             'mautic.contactclient.model.schedule'      => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\Schedule',
                 'arguments' => [
-                    'service_container',
+                    'doctrine.orm.default_entity_manager',
+                    'mautic.helper.core_parameters',
                 ],
             ],
         ],
