@@ -116,6 +116,28 @@ class TokenHelper
     {
         $this->dateFormatHelper = new DateFormatHelper($timzoneSource, $timzoneDestination);
         $this->engine->addHelper('date', $this->dateFormatHelper);
+        $this->engine->addHelper(
+            'lpad',
+            [
+                '2' => function ($value) {
+                    return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
+                },
+                '4' => function ($value) {
+                    return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
+                },
+            ]
+        );
+        $this->engine->addHelper(
+            'rpad',
+            [
+                '2' => function ($value) {
+                    return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
+                },
+                '4' => function ($value) {
+                    return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
+                },
+            ]
+        );
 
         return $this;
     }

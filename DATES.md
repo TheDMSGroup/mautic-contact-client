@@ -90,3 +90,14 @@ You can make your own formats by combining [date format characters](http://php.n
 | c           | {{#date.c}}2018-03-05{{/date.c}}                     | 2018-03-05T00:00:00+00:00                 |
 | r           | {{#date.r}}2018-03-05{{/date.r}}                     | Mon, 05 Mar 2018 00:00:00 +0000           |
 | U           | {{#date.U}}2018-03-05{{/date.U}}                     | 1520208000                                |
+
+
+Using filters pragma:
+We also support filters pragma for all the above, and a few extra padding helpers:
+
+| Format      | Example Token                                        | Result                                    |
+| ----------- | ---------------------------------------------------- | ----------------------------------------- |
+| lpad.2      | {{% FILTERS }}{{ dob_month | lpad.2 }}               | 02                                        |
+| lpad.4      | {{% FILTERS }}{{ dob_year | lpad.4 }}                | 0002                                      |
+| rpad.2      | {{% FILTERS }}{{ dob_month | rpad.2 }}               | 20                                        |
+| rpad.4      | {{% FILTERS }}{{ dob_year | rpad.4 }}                | 2000                                      |
