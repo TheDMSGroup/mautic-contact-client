@@ -97,7 +97,7 @@ We also support filters pragma for all the above, and a few extra padding helper
 
 | Format      | Example Token                                        | Result                                    |
 | ----------- | ---------------------------------------------------- | ----------------------------------------- |
-| lpad.2      | {{% FILTERS }}{{ dob_month | lpad.2 }}               | 02                                        |
-| lpad.4      | {{% FILTERS }}{{ dob_year | lpad.4 }}                | 0002                                      |
-| rpad.2      | {{% FILTERS }}{{ dob_month | rpad.2 }}               | 20                                        |
-| rpad.4      | {{% FILTERS }}{{ dob_year | rpad.4 }}                | 2000                                      |
+| lpad.2      | {{% FILTERS }}{{ dob_month \| lpad.2 }}              | 02                                        |
+| lpad.4      | {{% FILTERS }}{{ dob_year \| lpad.4 }}               | 0002                                      |
+| rpad.2      | {{% FILTERS }}{{ dob_month \| rpad.2 }}              | 20                                        |
+| rpad.4      | {{% FILTERS }}{{ dob_year \| rpad.4 }}               | 2000                                      |
