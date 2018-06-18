@@ -118,13 +118,13 @@ class CacheRepository extends CommonRepository
     public function oldestDateAdded($duration, string $timezone = null, \DateTime $dateSend = null)
     {
         $oldest = $dateSend ? $dateSend : new \DateTime();
+        if (!$timezone) {
+            $timezone = date_default_timezone_get();
+        }
+        $oldest->setTimezone(new \DateTimeZone($timezone));
         if (0 !== strpos($duration, 'P')) {
             // Non-rolling interval, go to previous interval segment.
             // Will only work for simple (singular) intervals.
-            if (!$timezone) {
-                $timezone = date_default_timezone_get();
-            }
-            $oldest->setTimezone(new \DateTimeZone($timezone));
             switch (strtoupper(substr($duration, -1))) {
                 case 'Y':
                     $oldest->modify('next year jan 1 midnight');
