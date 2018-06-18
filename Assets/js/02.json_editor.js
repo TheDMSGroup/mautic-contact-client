@@ -132,7 +132,7 @@ JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
         onChange: function (el, ed, tag_list) {
             if (!changed) {
                 if ('createEvent' in document) {
-                    changed = true;
+                    // changed = true;
                     var event = document.createEvent('HTMLEvents');
                     event.initEvent('change', false, true);
                     $text[0].dispatchEvent(event);
@@ -142,7 +142,7 @@ JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
                 }
             }
             else {
-                changed = true;
+                // changed = true;
             }
         },
         beforeTagSave: function () {},
