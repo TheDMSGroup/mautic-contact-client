@@ -149,6 +149,8 @@ class CacheRepository extends CommonRepository
             $interval = new \DateInterval('P1M');
         }
         $oldest->sub($interval);
+        // Switch back to UTC for the format output.
+        $oldest->setTimezone(new \DateTimeZone('UTC'));
 
         return $oldest->format('Y-m-d H:i:s');
     }
