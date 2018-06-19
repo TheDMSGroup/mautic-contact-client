@@ -278,6 +278,7 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
             $this->contactClient = $client;
+            $this->addTrace('contactClientId', $this->contactClient->getId());
 
             if (!$contact && !$this->test) {
                 throw new \InvalidArgumentException(
@@ -285,6 +286,7 @@ class ClientIntegration extends AbstractIntegration
                 );
             }
             $this->contact = $contact;
+            $this->addTrace('contactClientContactId', $this->contact->getId());
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
@@ -339,6 +341,19 @@ class ClientIntegration extends AbstractIntegration
         $this->logResults();
 
         return $this;
+    }
+
+    /**
+     * If available add a parameter to NewRelic tracing to aid in debugging.
+     *
+     * @param $parameter
+     * @param $value
+     */
+    private function addTrace($parameter, $value)
+    {
+        if (function_exists('newrelic_add_custom_parameter')) {
+            call_user_func('newrelic_add_custom_parameter', $parameter, $value);
+        }
     }
 
     /**
@@ -659,6 +674,7 @@ class ClientIntegration extends AbstractIntegration
         // Stats - contactclient_stats
         $errors         = $this->getLogs('error');
         $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
+        $this->addTrace('contactClientStatType', $this->statType);
         if ($this->valid) {
             $statLevel = 'INFO';
             switch ($this->contactClient->getType()) {
