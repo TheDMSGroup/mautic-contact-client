@@ -171,7 +171,7 @@ class ContactClientController extends FormController
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['events']          = $model->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats);
+            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $chartFilterForm);
         }
 
         return $args;
@@ -253,7 +253,7 @@ class ContactClientController extends FormController
         return $options;
     }
 
-    protected function convertChartStatsToDatatable($stats)
+    protected function convertChartStatsToDatatable($stats, $chartFilterForm)
     {
         $tableData = [
             'labels' => [],
@@ -261,15 +261,16 @@ class ContactClientController extends FormController
         ];
 
         if (!empty($stats)) {
+            $tableData['labels'][] = ['title' => 'RowNum'];
             $tableData['labels'][] = ['title' => 'Date'];
             $row                   =[];
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
-                    $dateStr = $stats['labels'][$key];
-
-                    $row[$key][0]           = date('Y-m-d', strtotime($dateStr));
-                    $row[$key][$column + 1] = $data;
+                    $dateStr                = $stats['labels'][$key];
+                    $row[$key][0]           = $key;
+                    $row[$key][1]           = $dateStr;
+                    $row[$key][$column + 2] = $data;
                 }
             }
             $tableData['data'] = $row;

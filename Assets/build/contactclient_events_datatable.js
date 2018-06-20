@@ -13,8 +13,16 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                             data: tableData.data,
                             autoFill: true,
                             columns: tableData.labels,
+                            bSort : false,
                             order: [0, 'asc'],
                             bLengthChange: true,
+                            columnDefs: [
+                                {
+                                    "targets": [ 0 ],
+                                    "visible": false,
+                                    "searchable": false
+                                }
+                                ]
                         });
                     }); //getScriptsCachedOnce - fonteawesome css
                 });//getScriptsCachedOnce - datatables css
