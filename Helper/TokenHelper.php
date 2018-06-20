@@ -110,7 +110,7 @@ class TokenHelper
      */
     public function setContactClient(ContactClient $contactClient = null)
     {
-        if ($contactClient !== $this->contactClient) {
+        if ($contactClient && $contactClient !== $this->contactClient) {
             $this->contactClient = $contactClient;
 
             // Set the timezones for date/time conversion.
@@ -261,7 +261,7 @@ class TokenHelper
         // $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
-        $this->context = $context;
+        $this->context = array_merge($this->context, $context);
 
         // Support multiple contacts for future batch processing.
         // $this->context['contacts']                 = $contacts;
@@ -459,10 +459,11 @@ class TokenHelper
      * @param array  $array
      * @param string $keys
      * @param bool   $sort
+     * @param bool   $payload
      *
      * @return array
      */
-    private function labels($array = [], $keys = '', $sort = true)
+    private function labels($array = [], $keys = '', $sort = true, $payload = false)
     {
         foreach ($array as $key => &$value) {
             if (is_array($value)) {
@@ -471,7 +472,7 @@ class TokenHelper
                     unset($array[$key]);
                     continue;
                 } else {
-                    $value = $this->labels($value, $keys.' '.$key);
+                    $value = $this->labels($value, $keys.' '.$key, $sort, ($payload || 'payload' === $key));
                 }
             } else {
                 if (is_bool($value) || null === $value || 0 === $value) {
@@ -488,6 +489,10 @@ class TokenHelper
                     $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
                     // One exception is UTM variables.
                     $value = str_replace('Utm ', 'UTM ', $value);
+                } elseif ($payload) {
+                    // For payload tokens, don't label at all but express the path to the token instead.
+                    // This is for advanced use.
+                    $value = implode('.', explode(' ', trim($keys))).'.'.$key;
                 }
             }
         }

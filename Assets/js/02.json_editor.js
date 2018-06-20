@@ -497,7 +497,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     url: mauticAjaxUrl,
                     type: 'POST',
                     data: {
-                        action: tokenSource
+                        action: tokenSource,
+                        apiPayload: mQuery('#contactclient_api_payload:first').val(),
+                        filePayload: mQuery('#contactclient_file_payload:first').val()
                     },
                     cache: true,
                     dataType: 'json',

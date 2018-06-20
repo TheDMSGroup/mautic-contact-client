@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,8 +35,8 @@ class AjaxController extends CommonAjaxController
      */
     public function ajaxTimelineAction(Request $request)
     {
-        $filters     = [];
-        $eventsModel = $this->get('mautic.contactclient.model.contactclient');
+        $filters            = [];
+        $contactClientModel = $this->get('mautic.contactclient.model.contactclient');
 
         foreach ($request->request->get('filters') as $key => $filter) {
             $filter['name']           = str_replace(
@@ -46,7 +47,7 @@ class AjaxController extends CommonAjaxController
             $filters[$filter['name']] = $filter['value'];
         }
         if (isset($filters['contactClientId'])) {
-            if (!$contactClient = $eventsModel->getEntity($filters['contactClientId'])) {
+            if (!$contactClient = $contactClientModel->getEntity($filters['contactClientId'])) {
                 throw new \InvalidArgumentException('Contact Client argument is Invalid.');
             }
         } else {
@@ -56,7 +57,7 @@ class AjaxController extends CommonAjaxController
         $page    = isset($filters['page']) ? $filters['page'] : 1;
         $limit   = isset($filters['limit']) ? $filters['limit'] : 25;
 
-        $events = $eventsModel->getEngagements($contactClient, $filters, $orderBy, $page, $limit, true);
+        $events = $contactClientModel->getEngagements($contactClient, $filters, $orderBy, $page, $limit, true);
         $view   = $this->render(
             'MauticContactClientBundle:Timeline:list.html.php',
             [
@@ -175,6 +176,17 @@ class AjaxController extends CommonAjaxController
             'success' => 0,
         ];
 
+        // Get an array representation of the current payload (of last save) for context.
+        $filePayload = [];
+        // Leaving File payload out of the tokens for now, since token use is not cognizant of the type yet.
+        // $filePayload = html_entity_decode(InputHelper::clean($request->request->get('filePayload')));
+        // $filePayload = json_decode($filePayload, true);
+        // $filePayload = is_array($filePayload) ? $filePayload : [];
+        $apiPayload = html_entity_decode(InputHelper::clean($request->request->get('apiPayload')));
+        $apiPayload = json_decode($apiPayload, true);
+        $apiPayload = is_array($apiPayload) ? $apiPayload : [];
+        $payload = array_merge($filePayload, $apiPayload);
+
         /** @var \Mautic\LeadBundle\Model\FieldModel $fieldModel */
         $fieldModel = $this->get('mautic.lead.model.field');
 
@@ -210,7 +222,7 @@ class AjaxController extends CommonAjaxController
 
         /** @var TokenHelper $tokenHelper */
         $tokenHelper = $this->get('mautic.contactclient.helper.token');
-        $tokenHelper->addContextContact($contact);
+        $tokenHelper->newSession(null, $contact, $payload);
 
         $tokens = $tokenHelper->getContext(true);
         if ($tokens) {
