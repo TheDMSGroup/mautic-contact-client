@@ -185,7 +185,7 @@ class AjaxController extends CommonAjaxController
         $apiPayload = html_entity_decode(InputHelper::clean($request->request->get('apiPayload')));
         $apiPayload = json_decode($apiPayload, true);
         $apiPayload = is_array($apiPayload) ? $apiPayload : [];
-        $payload = array_merge($filePayload, $apiPayload);
+        $payload    = array_merge($filePayload, $apiPayload);
 
         /** @var \Mautic\LeadBundle\Model\FieldModel $fieldModel */
         $fieldModel = $this->get('mautic.lead.model.field');

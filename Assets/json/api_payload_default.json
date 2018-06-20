@@ -56,6 +56,12 @@
             "value": "{{phone}}",
             "test_value": "+15555555555",
             "required": true
+          },
+          {
+            "key": "eventToken",
+            "value": "{{event.token}}",
+            "test_value": "10101",
+            "required": false
           }
         ]
       }
