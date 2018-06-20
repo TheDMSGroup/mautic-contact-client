@@ -171,7 +171,7 @@ class ContactClientController extends FormController
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['events']          = $model->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $chartFilterForm);
+            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats);
         }
 
         return $args;
@@ -253,7 +253,7 @@ class ContactClientController extends FormController
         return $options;
     }
 
-    protected function convertChartStatsToDatatable($stats, $chartFilterForm)
+    protected function convertChartStatsToDatatable($stats)
     {
         $tableData = [
             'labels' => [],
