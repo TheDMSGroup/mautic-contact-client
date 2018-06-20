@@ -263,7 +263,7 @@ class ContactClientController extends FormController
         if (!empty($stats)) {
             $tableData['labels'][] = ['title' => 'Date'];
             $row                   =[];
-            foreach ($stats[datasets] as $column => $dataset) {
+            foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
                     $dateStr = $stats['labels'][$key];
