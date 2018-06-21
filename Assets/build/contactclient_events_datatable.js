@@ -16,14 +16,20 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                             bSort : false,
                             order: [0, 'asc'],
                             bLengthChange: true,
+                            dom: '<<B>frtip>',
+                            buttons: [
+                                'excelHtml5',
+                                'csvHtml5'
+                            ],
                             columnDefs: [
-                                {
-                                    "targets": [ 0 ],
-                                    "visible": false,
-                                    "searchable": false
-                                }
-                                ]
+                            {
+                                "targets": [ 0 ],
+                                "visible": false,
+                                "searchable": false
+                            }
+                            ]
                         });
+                        mQuery('#contactClientEventsTable_wrapper .dt-buttons').css({float: "right", marginLeft: "10px"});
                     }); //getScriptsCachedOnce - fonteawesome css
                 });//getScriptsCachedOnce - datatables css
             });  //getScriptsCachedOnce - datatables js
