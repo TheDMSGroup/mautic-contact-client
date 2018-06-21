@@ -158,7 +158,7 @@ class ApiPayloadOperation
 
         $this->setValid($valid);
         $this->setLogs($valid, 'valid');
-        if ($this->updatePayload) {
+        if ($this->updatePayload && $this->test) {
             $this->updatePayloadResponse();
         }
 

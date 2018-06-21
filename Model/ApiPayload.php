@@ -92,7 +92,7 @@ class ApiPayload
     protected $contactClientModel;
 
     /** @var array */
-    protected $event;
+    protected $event = [];
 
     /** @var Campaign */
     protected $campaign;
@@ -330,7 +330,7 @@ class ApiPayload
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $transport */
         $transport     = $this->getTransport();
-        $tokenHelper   = $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
+        $tokenHelper   = $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload, $this->campaign, $this->event);
         $updatePayload = (bool) $this->settings['autoUpdate'];
         $opsRemaining  = count($this->payload->operations);
 
@@ -474,7 +474,6 @@ class ApiPayload
                 if (!$this->contactClient->isNew()) {
                     try {
                         $this->contactClientModel->saveEntity($this->contactClient);
-                        $this->setLogs('Updated our response payload expectations.', 'payload');
                     } catch (\Exception $e) {
                         $this->setLogs('Unable to save updates to the payload. '.$e->getMessage(), 'error');
                     }
