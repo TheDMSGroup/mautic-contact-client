@@ -392,7 +392,7 @@ class ContactClientModel extends FormModel
         if ($dayDiff > 31) {
             $unit = 'W';
         }
-        if ($dayDiff > 100) {
+        if ($dayDiff > 63) {
             $unit = 'm';
         }
         if ($dayDiff > 1000) {
