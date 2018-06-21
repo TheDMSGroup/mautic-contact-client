@@ -381,7 +381,7 @@ class ContactClientModel extends FormModel
             $sameDay    = $dateTo->format('d') == $dateFrom->format('d') ? 1 : 0;
             $hourDiff   = $dateTo->diff($dateFrom)->format('%h');
             $minuteDiff = $dateTo->diff($dateFrom)->format('%i');
-            if ($sameDay && !intval($hourDiff) && intval($minutesDiff)) {
+            if ($sameDay && !intval($hourDiff) && intval($minuteDiff)) {
                 $unit = 'i';
             }
             $secondDiff = $dateTo->diff($dateFrom)->format('%s');

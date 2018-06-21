@@ -127,7 +127,7 @@ class FilePayload
     protected $queue;
 
     /** @var array */
-    protected $event;
+    protected $event = [];
 
     /** @var Campaign */
     protected $campaign;
@@ -457,7 +457,7 @@ class FilePayload
     {
         $requestFields = [];
         if (!empty($this->payload->body) && !is_string($this->payload->body)) {
-            $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload);
+            $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload, $this->campaign, $this->event);
             $requestFields = $this->fieldValues($this->payload->body);
             if ($this->file) {
                 $nullCsv = $this->file->getCsvNull();
@@ -1040,7 +1040,7 @@ class FilePayload
      */
     private function getFileName($compression = null)
     {
-        $this->tokenHelper->newSession($this->contactClient, null, $this->payload);
+        $this->tokenHelper->newSession($this->contactClient, null, $this->payload, $this->campaign, $this->event);
         $type      = $this->file->getType();
         $extension = $type.($compression ? '.'.$compression : '');
         $this->tokenHelper->addContext(
