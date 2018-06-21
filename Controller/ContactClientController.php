@@ -148,6 +148,8 @@ class ContactClientController extends FormController
 
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
+            $unit = $model->getTimeUnitFromDateRange(new \DateTime($chartFilterForm->get('date_from')->getData()),
+                new \DateTime($chartFilterForm->get('date_to')->getData()));
 
             if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
                 $stats = $model->getStats(
@@ -171,7 +173,7 @@ class ContactClientController extends FormController
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['events']          = $model->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats);
+            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
         }
 
         return $args;
@@ -253,7 +255,7 @@ class ContactClientController extends FormController
         return $options;
     }
 
-    protected function convertChartStatsToDatatable($stats)
+    protected function convertChartStatsToDatatable($stats, $unit)
     {
         $tableData = [
             'labels' => [],
@@ -262,12 +264,31 @@ class ContactClientController extends FormController
 
         if (!empty($stats)) {
             $tableData['labels'][] = ['title' => 'RowNum'];
-            $tableData['labels'][] = ['title' => 'Date'];
+            $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
             $row                   =[];
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
                     $dateStr                = $stats['labels'][$key];
+                    $date = null;
+                    switch ($unit)
+                    {
+                        case 'd': // M j, y
+                            $date = date_create_from_format('M j, y', $dateStr);
+                            break;
+                        case 'H': // M j ga
+                            $date = date_create_from_format('M j ga', $dateStr);
+                            break;
+                        case 'm': // M j ga
+                            $date = date_create_from_format('M Y', $dateStr);
+                            break;
+                        case 'Y': // M j ga
+                            $date = date_create_from_format('Y', $dateStr);
+                            break;
+                        default:
+                            break;
+                    }
+                    $dateStr = !empty($date) ? $date->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
                     $row[$key][0]           = $key;
                     $row[$key][1]           = $dateStr;
                     $row[$key][$column + 2] = $data;

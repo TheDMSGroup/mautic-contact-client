@@ -13,8 +13,8 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                             data: tableData.data,
                             autoFill: true,
                             columns: tableData.labels,
-                            bSort : false,
-                            order: [0, 'asc'],
+                            //bSort : false,
+                            order: [1, 'asc'],
                             bLengthChange: true,
                             dom: '<<lBf>rtip>',
                             buttons: [
