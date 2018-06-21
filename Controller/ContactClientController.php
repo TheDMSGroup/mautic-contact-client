@@ -273,28 +273,28 @@ class ContactClientController extends FormController
                     $date                   = null;
                     switch ($unit) {
                         case 'd': // M j, y
-                            $date = date_create_from_format('M j, y', $dateStr);
+                            $date    = date_create_from_format('M j, y', $dateStr);
                             $dateStr = $date->format('Y-m-d');
                             break;
                         case 'H': // M j ga
-                            $date = date_create_from_format('M j ga', $dateStr);
-                            $dateStr = $date->format('Y-m-d - H:00');
+                            $date                   = date_create_from_format('M j ga', $dateStr);
+                            $dateStr                = $date->format('Y-m-d - H:00');
                             $tableData['labels'][1] = ['title' => 'Date/Time'];
                             break;
                         case 'm': // M j ga
-                            $date = date_create_from_format('M Y', $dateStr);
-                            $dateStr = $date->format('Y-m');
+                            $date                   = date_create_from_format('M Y', $dateStr);
+                            $dateStr                = $date->format('Y-m');
                             $tableData['labels'][1] = ['title' => 'Date (Y-m)'];
                             break;
                         case 'Y': // Y
-                            $date = date_create_from_format('Y', $dateStr);
-                            $dateStr = $date->format('Y');
+                            $date                   = date_create_from_format('Y', $dateStr);
+                            $dateStr                = $date->format('Y');
                             $tableData['labels'][1] = ['title' => 'Year'];
                             break;
                         case 'W': // W
                             $date = new \DateTime();
-                            $date->setISODate(date("Y"), str_replace("Week ", "", $dateStr));
-                            $dateStr = "Week " .$date->format('W');
+                            $date->setISODate(date('Y'), str_replace('Week ', '', $dateStr));
+                            $dateStr                = 'Week '.$date->format('W');
                             $tableData['labels'][1] = ['title' => 'Week #'];
                             break;
                         default:
