@@ -148,7 +148,7 @@ class ContactClientController extends FormController
 
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
-            $unit = $model->getTimeUnitFromDateRange(new \DateTime($chartFilterForm->get('date_from')->getData()),
+            $unit  = $model->getTimeUnitFromDateRange(new \DateTime($chartFilterForm->get('date_from')->getData()),
                 new \DateTime($chartFilterForm->get('date_to')->getData()));
 
             if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
@@ -270,9 +270,8 @@ class ContactClientController extends FormController
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
                     $dateStr                = $stats['labels'][$key];
-                    $date = null;
-                    switch ($unit)
-                    {
+                    $date                   = null;
+                    switch ($unit) {
                         case 'd': // M j, y
                             $date = date_create_from_format('M j, y', $dateStr);
                             break;
@@ -288,7 +287,7 @@ class ContactClientController extends FormController
                         default:
                             break;
                     }
-                    $dateStr = !empty($date) ? $date->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
+                    $dateStr                = !empty($date) ? $date->format('Y-m-d') : date('Y-m-d', strtotime($dateStr));
                     $row[$key][0]           = $key;
                     $row[$key][1]           = $dateStr;
                     $row[$key][$column + 2] = $data;
