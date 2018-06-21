@@ -14,7 +14,9 @@ Mautic.contactclientApiPayloadPre = function () {
                 url: mauticAjaxUrl,
                 type: 'POST',
                 data: {
-                    action: tokenSource
+                    action: tokenSource,
+                    apiPayload: $apiPayload.val(),
+                    filePayload: mQuery('#contactclient_file_payload:first').val()
                 },
                 cache: true,
                 dataType: 'json',

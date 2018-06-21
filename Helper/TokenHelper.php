@@ -86,11 +86,18 @@ class TokenHelper
      * @param ContactClient|null $contactClient
      * @param Contact|null       $contact
      * @param array              $payload
+     * @param null               $campaign
+     * @param array              $event
      *
      * @return $this
      */
-    public function newSession(ContactClient $contactClient = null, Contact $contact = null, $payload = [])
-    {
+    public function newSession(
+        ContactClient $contactClient = null,
+        Contact $contact = null,
+        $payload = [],
+        $campaign = null,
+        $event = []
+    ) {
         $this->context     = [];
         $this->renderCache = [];
         if ($this->engine->hasHelper('date')) {
@@ -99,6 +106,8 @@ class TokenHelper
         $this->setContactClient($contactClient);
         $this->addContextContact($contact);
         $this->addContextPayload($payload);
+        $this->addContextCampaign($campaign);
+        $this->addContextEvent($event);
 
         return $this;
     }
@@ -110,7 +119,7 @@ class TokenHelper
      */
     public function setContactClient(ContactClient $contactClient = null)
     {
-        if ($contactClient !== $this->contactClient) {
+        if ($contactClient && $contactClient !== $this->contactClient) {
             $this->contactClient = $contactClient;
 
             // Set the timezones for date/time conversion.
@@ -261,7 +270,7 @@ class TokenHelper
         // $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
-        $this->context = $context;
+        $this->context = array_merge($this->context, $context);
 
         // Support multiple contacts for future batch processing.
         // $this->context['contacts']                 = $contacts;
@@ -318,6 +327,77 @@ class TokenHelper
                 }
             }
         }
+    }
+
+    /**
+     * @param null $campaign
+     */
+    public function addContextCampaign($campaign = null)
+    {
+        $this->context['campaign']['id'] = $campaign ? $campaign->getId() : null;
+    }
+
+    /**
+     * Take an event array and use it to enhance the context for later dispositional callback.
+     * Campaign context should be added before this, as it is used for the token.
+     *
+     * @param array $event
+     */
+    public function addContextEvent($event = [])
+    {
+        $contactId                       = isset($this->context['id']) ? $this->context['id'] : 0;
+        $this->context['event']['id']    = !empty($event['id']) ? (int) $event['id'] : null;
+        $this->context['event']['name']  = !empty($event['name']) ? $event['name'] : null;
+        $this->context['event']['token'] = null;
+        if ($contactId || $this->context['event']['id'] || $this->context['campaign']['id']) {
+            $this->context['event']['token'] = $this->eventTokenEncode(
+                [
+                    $this->context['campaign']['id'],
+                    $this->context['event']['id'],
+                    $contactId,
+                ]
+            );
+        }
+    }
+
+    /**
+     * Encode Campaign ID, Event ID, and Contact ID into a short base62 string.
+     * Zeros are used as delimiters reducing the subsequent integers to base61.
+     *
+     * @param $values
+     *
+     * @return string
+     */
+    private function eventTokenEncode($values)
+    {
+        list($campaignId, $eventId, $contactId) = $values;
+        $campaignIdString                       = $this->baseEncode((int) $campaignId);
+        $eventIdString                          = $this->baseEncode((int) $eventId);
+        $contactIdString                        = $this->baseEncode((int) $contactId);
+
+        return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
+    }
+
+    /**
+     * @param     $integer
+     * @param int $b
+     *
+     * @return string
+     */
+    private function baseEncode($integer)
+    {
+        $b      = 61;
+        $base   = '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $r      = $integer % $b;
+        $result = $base[$r];
+        $q      = floor($integer / $b);
+        while ($q) {
+            $r      = $q % $b;
+            $q      = floor($q / $b);
+            $result = $base[$r].$result;
+        }
+
+        return $result;
     }
 
     /**
@@ -459,10 +539,11 @@ class TokenHelper
      * @param array  $array
      * @param string $keys
      * @param bool   $sort
+     * @param bool   $payload
      *
      * @return array
      */
-    private function labels($array = [], $keys = '', $sort = true)
+    private function labels($array = [], $keys = '', $sort = true, $payload = false)
     {
         foreach ($array as $key => &$value) {
             if (is_array($value)) {
@@ -471,7 +552,7 @@ class TokenHelper
                     unset($array[$key]);
                     continue;
                 } else {
-                    $value = $this->labels($value, $keys.' '.$key);
+                    $value = $this->labels($value, $keys.' '.$key, $sort, ($payload || 'payload' === $key));
                 }
             } else {
                 if (is_bool($value) || null === $value || 0 === $value) {
@@ -488,6 +569,10 @@ class TokenHelper
                     $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
                     // One exception is UTM variables.
                     $value = str_replace('Utm ', 'UTM ', $value);
+                } elseif ($payload) {
+                    // For payload tokens, don't label at all but express the path to the token instead.
+                    // This is for advanced use.
+                    $value = implode('.', explode(' ', trim($keys))).'.'.$key;
                 }
             }
         }
@@ -515,5 +600,42 @@ class TokenHelper
                 $new[$k] = $value;
             }
         }
+    }
+
+    /**
+     * Take a string from eventTokenEncode and reverse it to an array.
+     *
+     * @param $string
+     *
+     * @return array
+     */
+    private function eventTokenDecode($string)
+    {
+        list($campaignIdString, $eventIdString, $contactIdString) = explode('0', $string);
+
+        return [
+            $this->baseDecode($campaignIdString),
+            $this->baseDecode($eventIdString),
+            $this->baseDecode($contactIdString),
+        ];
+    }
+
+    /**
+     * @param     $string
+     * @param int $b
+     *
+     * @return bool|float|int
+     */
+    private function baseDecode($string)
+    {
+        $b      = 61;
+        $base   = '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $limit  = strlen($string);
+        $result = strpos($base, $string[0]);
+        for ($i = 1; $i < $limit; ++$i) {
+            $result = $b * $result + strpos($base, $string[$i]);
+        }
+
+        return $result;
     }
 }
