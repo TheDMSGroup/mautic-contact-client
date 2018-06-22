@@ -56,7 +56,7 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                                     var total = mQuery('#' + container[0].id + ' thead th').length;
                                     var footer1 = mQuery(container).find('tfoot tr:nth-child(1)');
                                     var footer2 = mQuery(container).find('tfoot tr:nth-child(2)');
-                                    for (var i = 1; i <= total; i++) {
+                                    for (var i = 1; i < total; i++) {
                                         var pageSum = api
                                             .column(i, {page: 'current'})
                                             .data()
