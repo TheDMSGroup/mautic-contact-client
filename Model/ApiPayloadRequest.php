@@ -233,7 +233,7 @@ class ApiPayloadRequest
         }
         $this->setLogs(microtime(true) - $startTime, 'duration');
         if ($this->test) {
-            $this->setLogs($this->tokenHelper->getContext(false, true), 'availableTokens');
+            $this->setLogs($this->tokenHelper->getContext(true), 'availableTokens');
         }
     }
 

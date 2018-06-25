@@ -16,7 +16,6 @@ use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
@@ -173,6 +172,7 @@ class AjaxController extends CommonAjaxController
     {
         $dataArray = [
             'tokens'  => [],
+            'types'   => [],
             'success' => 0,
         ];
 
@@ -215,6 +215,7 @@ class AjaxController extends CommonAjaxController
         foreach ($fields as $field) {
             $fieldGroups[$field['group']][$field['alias']] = [
                 'value' => $field['label'],
+                'type'  => $field['type'],
                 'label' => $field['label'],
             ];
         }
@@ -224,10 +225,14 @@ class AjaxController extends CommonAjaxController
         $tokenHelper = $this->get('mautic.contactclient.helper.token');
         $tokenHelper->newSession(null, $contact, $payload);
 
-        $tokens = $tokenHelper->getContext(true);
+        $tokens = $tokenHelper->getContextLabeled();
         if ($tokens) {
             $dataArray['tokens']  = $tokens;
             $dataArray['success'] = true;
+            $types                = $tokenHelper->getContextTypes();
+            if ($types) {
+                $dataArray['types'] = $types;
+            }
         }
 
         return $this->sendJsonResponse($dataArray);
