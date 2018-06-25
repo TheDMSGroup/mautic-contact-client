@@ -392,10 +392,14 @@ class ApiPayloadResponse
                 );
             }
 
-            // Always consider a 500 to be an error.
-            if (isset($this->responseActual['status']) && 500 == $this->responseActual['status']) {
+            // Always consider a 5xx to be an error.
+            if (
+                is_int($this->responseActual['status'])
+                && $this->responseActual['status'] >= 500
+                && $this->responseActual['status'] < 600
+            ) {
                 throw new ContactClientException(
-                    'Client responded with a 500 server error code.',
+                    'Client responded with a '.$this->responseActual['status'].' server error code.',
                     0,
                     null,
                     Stat::TYPE_ERROR,
