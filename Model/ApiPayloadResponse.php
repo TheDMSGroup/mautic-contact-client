@@ -36,7 +36,7 @@ class ApiPayloadResponse
     /** @var bool */
     protected $test;
 
-    /** @var array */
+    /** @var string */
     protected $successDefinition;
 
     /** @var bool */
@@ -404,7 +404,7 @@ class ApiPayloadResponse
             }
 
             // If there is no success definition, than do the default test of a 200 ok status check.
-            if (!$this->successDefinition) {
+            if (empty($this->successDefinition) || in_array($this->successDefinition, ['null', '[]'])) {
                 if (!$this->responseActual['status'] || 200 != $this->responseActual['status']) {
                     throw new ContactClientException(
                         'Status code is not 200. Default validation failure.',
@@ -414,9 +414,7 @@ class ApiPayloadResponse
                         true
                     );
                 }
-            }
-
-            if (!empty($this->successDefinition) && 'null' !== $this->successDefinition) {
+            } else {
                 // Standard success definition validation.
                 $filter = new FilterHelper();
                 try {

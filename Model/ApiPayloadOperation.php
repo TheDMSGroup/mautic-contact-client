@@ -37,7 +37,7 @@ class ApiPayloadOperation
     /** @var array */
     protected $responseExpected;
 
-    /** @var array */
+    /** @var string */
     protected $successDefinition;
 
     /** @var array */
@@ -104,7 +104,7 @@ class ApiPayloadOperation
         $this->name              = !empty($operation->name) ? $operation->name : $this->id;
         $this->request           = isset($operation->request) ? $operation->request : [];
         $this->responseExpected  = isset($operation->response) ? $operation->response : [];
-        $this->successDefinition = isset($operation->response->success->definition) ? $operation->response->success->definition : [];
+        $this->successDefinition = isset($operation->response->success->definition) ? $operation->response->success->definition : null;
         $this->tokenHelper       = $tokenHelper;
         $this->test              = $test;
         $this->updatePayload     = $updatePayload;
