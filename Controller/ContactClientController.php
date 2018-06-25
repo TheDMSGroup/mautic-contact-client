@@ -263,7 +263,6 @@ class ContactClientController extends FormController
         ];
 
         if (!empty($stats)) {
-            $tableData['labels'][] = ['title' => 'RowNum'];
             $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
             $row                   =[];
             foreach ($stats['datasets'] as $column => $dataset) {
@@ -279,30 +278,29 @@ class ContactClientController extends FormController
                         case 'H': // M j ga
                             $date                   = date_create_from_format('M j ga', $dateStr);
                             $dateStr                = $date->format('Y-m-d - H:00');
-                            $tableData['labels'][1] = ['title' => 'Date/Time'];
+                            $tableData['labels'][0] = ['title' => 'Date/Time'];
                             break;
                         case 'm': // M j ga
                             $date                   = date_create_from_format('M Y', $dateStr);
                             $dateStr                = $date->format('Y-m');
-                            $tableData['labels'][1] = ['title' => 'Date (Y-m)'];
+                            $tableData['labels'][0] = ['title' => 'Date (Y-m)'];
                             break;
                         case 'Y': // Y
                             $date                   = date_create_from_format('Y', $dateStr);
                             $dateStr                = $date->format('Y');
-                            $tableData['labels'][1] = ['title' => 'Year'];
+                            $tableData['labels'][0] = ['title' => 'Year'];
                             break;
                         case 'W': // W
                             $date = new \DateTime();
                             $date->setISODate(date('Y'), str_replace('Week ', '', $dateStr));
                             $dateStr                = 'Week '.$date->format('W');
-                            $tableData['labels'][1] = ['title' => 'Week #'];
+                            $tableData['labels'][0] = ['title' => 'Week #'];
                             break;
                         default:
                             break;
                     }
-                    $row[$key][0]           = $key;
-                    $row[$key][1]           = $dateStr;
-                    $row[$key][$column + 2] = $data;
+                    $row[$key][0]           = $dateStr;
+                    $row[$key][$column + 1] = $data;
                 }
             }
             $tableData['data'] = $row;

@@ -21,13 +21,6 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                                 'excelHtml5',
                                 'csvHtml5'
                             ],
-                            columnDefs: [
-                            {
-                                "targets": [ 0 ],
-                                "visible": false,
-                                "searchable": false
-                            }
-                            ],
                             footerCallback: function (row, data, start, end, display) {
                                 if (data && data.length === 0 || typeof data[0] === 'undefined') {
                                     mQuery('#contactClientEventsTable').hide();
@@ -43,7 +36,7 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                                         var tr2 = mQuery('<tr class=\'grandTotal\' style=\'font-weight: 600; background: #fafafa;\'></tr>');
                                         tr.append(mQuery('<td colspan=\'1\'>Page totals</td>'));
                                         tr2.append(mQuery('<td colspan=\'1\'>Grand totals</td>'));
-                                        for (var i = 2; i < columns; i++) {
+                                        for (var i = 1; i < columns; i++) {
                                             tr.append(mQuery('<td class=\'td-right\'></td>'));
                                             tr2.append(mQuery('<td class=\'td-right\'></td>'));
                                         }
@@ -63,7 +56,7 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                                     var total = mQuery('#' + container[0].id + ' thead th').length;
                                     var footer1 = mQuery(container).find('tfoot tr:nth-child(1)');
                                     var footer2 = mQuery(container).find('tfoot tr:nth-child(2)');
-                                    for (var i = 2; i < total +1; i++) {
+                                    for (var i = 1; i < total; i++) {
                                         var pageSum = api
                                             .column(i, {page: 'current'})
                                             .data()
@@ -76,8 +69,8 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                                             .reduce(function (a, b) {
                                                 return intVal(a) + intVal(b);
                                             }, 0);
-                                        footer1.find('td:nth-child(' + (i) + ')').html(pageSum);
-                                        footer2.find('td:nth-child(' + (i) + ')').html(sum);
+                                        footer1.find('td:nth-child(' + (i + 1) + ')').html(pageSum);
+                                        footer2.find('td:nth-child(' + (i + 1) + ')').html(sum);
                                     }
                                     mQuery('#global-builder-overlay').hide();
 
