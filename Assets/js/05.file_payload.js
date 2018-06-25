@@ -10,6 +10,8 @@ Mautic.contactclientFilePayloadPre = function () {
         }
         if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
             window.JSONEditor.tokenCache[tokenSource] = {};
+            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
+            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
             mQuery.ajax({
                 url: mauticAjaxUrl,
                 type: 'POST',
@@ -23,6 +25,12 @@ Mautic.contactclientFilePayloadPre = function () {
                 success: function (response) {
                     if (typeof response.tokens !== 'undefined') {
                         window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                    }
+                    if (typeof response.types !== 'undefined') {
+                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
+                    }
+                    if (typeof response.formats !== 'undefined') {
+                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
                     }
                 },
                 error: function (request, textStatus, errorThrown) {

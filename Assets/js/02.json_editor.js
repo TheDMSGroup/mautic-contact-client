@@ -127,7 +127,23 @@ JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
                 }
                 response(tokens);
             },
-            delay: 120
+            delay: 120,
+            select: function (e, ui) {
+                if (typeof window.JSONEditor.tokenCacheTypes[tokenSource] !== 'undefined') {
+                    var token = ui.item.value.replace('{{', '').replace('}}', '');
+                    if (typeof window.JSONEditor.tokenCacheTypes[tokenSource][token]) {
+                        var type = window.JSONEditor.tokenCacheTypes[tokenSource][token];
+                        switch (type) {
+                            case 'datetime':
+                            case 'time':
+                                if (typeof Mautic.contactclientTokenHelper !== 'undefined') {
+                                    Mautic.contactclientTokenHelper(tokenSource, 'Date/Time Token Helper', token, 'date', type, $text);
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
         },
         onChange: function (el, ed, tag_list) {
             if (!changed) {
@@ -469,6 +485,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
         }
+        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
+            window.JSONEditor.tokenCacheTypes = {};
+        }
+        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
+            window.JSONEditor.tokenCacheFormats = {};
+        }
 
         // Re-render any who's values have been altered by reordering or
         // deletion.
@@ -507,6 +529,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         if (typeof response.tokens !== 'undefined') {
                             window.JSONEditor.tokenCache[tokenSource] = response.tokens;
                         }
+                        if (typeof response.types !== 'undefined') {
+                            window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
+                        }
+                        if (typeof response.formats !== 'undefined') {
+                            window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
+                        }
                         if (!mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
                             JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
                         }
@@ -539,9 +567,10 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
     // Set html5 "required' fields by the option "notBlank"
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.notBlank !== 'undefined' && schema.options.notBlank === true) {
-        // mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not([required])').each(function () {
-        //     mQuery(this).prop('required', true);
-        // });
+        // mQuery('input[type=\'text\'][name=\'' + path.replace('root.',
+        // 'root[').split('.').join('][') +
+        // ']\']:first:not([required])').each(function () {
+        // mQuery(this).prop('required', true); });
         if (value.replace(/^\s+|\s+$/gm, '') === '') {
             errors.push({
                 path: path,

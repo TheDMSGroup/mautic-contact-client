@@ -87,8 +87,9 @@ class AjaxController extends CommonAjaxController
 
         // default to empty
         $dataArray = [
-            'html'  => '',
-            'valid' => false,
+            'html'    => '',
+            'valid'   => false,
+            'success' => 0,
         ];
 
         if (!empty($apiPayload)) {
@@ -110,6 +111,7 @@ class AjaxController extends CommonAjaxController
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
             $dataArray['html']    = $clientIntegration->getLogsJSON();
+            $dataArray['success'] = true;
         }
 
         return $this->sendJsonResponse($dataArray);
@@ -133,8 +135,9 @@ class AjaxController extends CommonAjaxController
 
         // default to empty
         $dataArray = [
-            'html'  => '',
-            'valid' => false,
+            'html'    => '',
+            'valid'   => false,
+            'success' => 0,
         ];
 
         if (!empty($filePayload)) {
@@ -156,6 +159,7 @@ class AjaxController extends CommonAjaxController
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
             $dataArray['html']    = $clientIntegration->getLogsJSON();
+            $dataArray['success'] = true;
         }
 
         return $this->sendJsonResponse($dataArray);
@@ -173,6 +177,7 @@ class AjaxController extends CommonAjaxController
         $dataArray = [
             'tokens'  => [],
             'types'   => [],
+            'formats' => [],
             'success' => 0,
         ];
 
@@ -232,6 +237,10 @@ class AjaxController extends CommonAjaxController
             $types                = $tokenHelper->getContextTypes();
             if ($types) {
                 $dataArray['types'] = $types;
+            }
+            $formats = $tokenHelper->getDateFormatHelper()->getFormats();
+            if ($formats) {
+                $dataArray['formats'] = $formats;
             }
         }
 

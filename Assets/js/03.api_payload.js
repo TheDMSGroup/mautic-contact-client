@@ -8,8 +8,16 @@ Mautic.contactclientApiPayloadPre = function () {
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
         }
+        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
+            window.JSONEditor.tokenCacheTypes = {};
+        }
+        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
+            window.JSONEditor.tokenCacheFormats = {};
+        }
         if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
             window.JSONEditor.tokenCache[tokenSource] = {};
+            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
+            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
             mQuery.ajax({
                 url: mauticAjaxUrl,
                 type: 'POST',
@@ -23,6 +31,12 @@ Mautic.contactclientApiPayloadPre = function () {
                 success: function (response) {
                     if (typeof response.tokens !== 'undefined') {
                         window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                    }
+                    if (typeof response.types !== 'undefined') {
+                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
+                    }
+                    if (typeof response.formats !== 'undefined') {
+                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
                     }
                 },
                 error: function (request, textStatus, errorThrown) {

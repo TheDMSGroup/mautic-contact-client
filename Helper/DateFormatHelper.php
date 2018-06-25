@@ -254,4 +254,17 @@ class DateFormatHelper
 
         return $result;
     }
+
+    /**
+     * @return array
+     */
+    public function getFormats()
+    {
+        $formats = $this->formats;
+        foreach (str_split($this->formatSingle) as $key) {
+            $formats[$key] = $key;
+        }
+
+        return $formats;
+    }
 }
