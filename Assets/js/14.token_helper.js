@@ -27,7 +27,7 @@ Mautic.contactclientTokenHelper = function (tokenSource, title, token, helper, t
         content += '    <ul id="token-format-examples" class="token-format-examples hide"></ul>';
         content += '</div>';
         content += '<div class="form-group">';
-        content += '    <label for="token-output" class="hide">Token Usage:</label></br>';
+        content += '    <label for="token-output" class="hide">Token:</label></br>';
         content += '    <input id="token-output" type="text" class="token-output form-control hide" />';
         content += '</div>';
     }

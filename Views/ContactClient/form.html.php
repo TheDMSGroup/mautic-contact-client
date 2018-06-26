@@ -23,7 +23,7 @@ $view['slots']->set('headerTitle', $header);
 
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js');
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
-
+echo $view['assets']->includeStylesheet('https://fonts.googleapis.com/css?family=Roboto+Mono');
 echo $view['form']->start($form);
 ?>
 

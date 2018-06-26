@@ -134,7 +134,7 @@ Mautic.contactclientFilePayload = function () {
                 json: true
             },
             lint: 'json',
-            theme: 'material',
+            theme: 'cc',
             gutters: ['CodeMirror-lint-markers'],
             lintOnChange: true,
             matchBrackets: true,
@@ -291,7 +291,7 @@ Mautic.contactclientFilePayload = function () {
                                         filePayloadTestCodeMirror = CodeMirror($result[0], {
                                             value: response.html,
                                             mode: 'yaml',
-                                            theme: 'material',
+                                            theme: 'cc',
                                             gutters: [],
                                             lineNumbers: false,
                                             lineWrapping: true,

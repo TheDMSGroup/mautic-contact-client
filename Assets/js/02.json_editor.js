@@ -262,8 +262,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     }
 
     // When a textarea with option "codeMirror" is true, render codeMirror.
-    if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
-        mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)')
+    if (typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
+        var selector = '[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)';
+        mQuery('input' + selector + ', textarea' + selector).first()
             .each(function () {
                 if (schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
                     var tokenSource = schema.options.tokenSource;
@@ -280,7 +281,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     json: true
                                 },
                                 lint: 'json',
-                                theme: 'material',
+                                theme: 'cc',
                                 gutters: ['CodeMirror-lint-markers'],
                                 lintOnChange: true,
                                 matchBrackets: true,
@@ -480,7 +481,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     }
 
     // Add support for a token text field.
-    if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
+    if (schema.type === 'string' && typeof schema.options !== 'undefined' && (typeof schema.options.codeMirror === 'undefined' || schema.options.codeMirror === false) && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
 
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
@@ -551,7 +552,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 var tries = 0,
                     checkTokens = setInterval(function () {
                         tries++;
-                        if (tries > 300) {
+                        if (tries > 50) {
                             console.warn('Took too long to retrieve tokens for ' + tokenSource);
                             clearInterval(checkTokens);
                         }
