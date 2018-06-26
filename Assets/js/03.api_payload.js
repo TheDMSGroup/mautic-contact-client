@@ -544,15 +544,12 @@ Mautic.contactclientApiPayload = function () {
         $apiPayload.css({'display': 'none'});
         apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
             value: $apiPayload.val(),
-            mode: {
-                name: 'javascript',
-                json: true
-            },
+            mode: 'json/mustache',
             lint: 'json',
             theme: 'cc',
             gutters: ['CodeMirror-lint-markers'],
             lintOnChange: true,
-            matchBrackets: true,
+            matchBrackets: false,
             autoCloseBrackets: true,
             lineNumbers: true,
             extraKeys: {'Ctrl-Space': 'autocomplete'},

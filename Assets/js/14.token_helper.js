@@ -87,7 +87,7 @@ Mautic.contactclientTokenHelper = function (tokenSource, title, token, helper, t
                         }
                         $examples.html(examples)
                             .removeClass('hide');
-                        tokenString = '{{' + token + '|' + helper + '.' + formatPHP + '}}';
+                        tokenString = '{{ ' + token + ' | ' + helper + '.' + formatPHP + ' }}';
                         $tokenOutput.val(tokenString)
                             .removeClass('hide');
                         $tokenOutputLabel.removeClass('hide');

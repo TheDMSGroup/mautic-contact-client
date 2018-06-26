@@ -1,4 +1,11 @@
 /* ContactClient API Payload - JSON Editor customizations */
+.api_payload .contactclient_jsoneditor input[type="text"].form-control {
+    line-height: normal;
+    font-family: 'Roboto Mono', Menlo, Monaco, Consolas, "Courier New", monospace !important;
+    font-size: 13px;
+    font-weight: normal;
+    padding: 3px 6px;
+}
 .api_payload .contactclient_jsoneditor .well {
     background: none;
     border: 0;

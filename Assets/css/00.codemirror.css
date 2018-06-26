@@ -1,41 +1,26 @@
-/* Codemirror Mustache tags to style like our tag-editor tags (sorta) */
-.cm-mustache,
-.cm-mustache-danger,
-.cm-mustache-warn {
-    color: #fff;
-    background-color: #216EAB;
-    border-radius: 3px;
-}
-
-.cm-mustache-danger {
-    background-color: #d9534f;
-}
-
-.cm-mustache-warn {
-    background-color: #e2a231;
-}
-
 /* Custom theme to be more friendly to non-developers */
 .cm-s-cc {
-    background: #FFFFFF;
+    background: #fff;
     color: #424242;
-    line-height: normal;
+    line-height: 22px;
     font-family: 'Roboto Mono', Menlo, Monaco, Consolas, "Courier New", monospace !important;
     font-size: 13px;
     font-weight: normal;
+    padding: 0px;
 }
+
 .cm-s-cc .CodeMirror-gutters {
     background: #fff;
     color: #616161;
     border: none;
 }
 /*.cm-s-cc .CodeMirror-cursors { visibility: visible !important; }*/
-.cm-s-cc .CodeMirror-cursor { border-left: 1px solid #303030 !important; width: 2px; }
+.cm-s-cc .CodeMirror-cursor { border-left: 1px solid #303030 !important; background: #303030; width: 2px; }
 .cm-s-cc .CodeMirror-guttermarker,
 .cm-s-cc .CodeMirror-guttermarker-subtle,
 .cm-s-cc .CodeMirror-linenumber { color: rgb(83,127,126); }
 .cm-s-cc .CodeMirror-activeline-background { background: #b0bec5; }
-.cm-s-cc .CodeMirror-selected { background: #b0bec5; }
+/*.cm-s-cc .CodeMirror-selected { background: #b0bec5; }*/
 .cm-s-cc .cm-comment { color: #616161; }
 .cm-s-cc .cm-string { color: #009688; }
 .cm-s-cc .cm-string-2 { color: #80CBC4; }
@@ -54,4 +39,39 @@
 .cm-s-cc .cm-builtin { color: #ad9e53; }
 .cm-s-cc .cm-attribute { color: #caa155; }
 .cm-s-cc .cm-qualifier { color: #a69850; }
-.cm-s-cc .CodeMirror-matchingbracket { font-weight: bold; color: #1c75d1 !important; }
+.cm-s-cc .CodeMirror-matchingbracket { font-weight: bold; color: #3c4980 !important; }
+
+/* Codemirror Mustache tags to style like our tag-editor tags (sorta) */
+.cm-mustache,
+.cm-mustache-danger,
+.cm-mustache-warn {
+    color: #fff;
+    background-color: rgba(0, 86, 171, 0.8);
+    border-radius: 3px;
+    padding: 3px;
+}
+
+.cm-mustache-danger {
+    /*background-color: #d9534f;*/
+    background-color: rgba(217, 35, 20, 0.8);
+}
+
+.cm-mustache-warn {
+    /*background-color: #e2a231;*/
+    background-color: rgba(226, 144, 0, 0.8);
+}
+.cm-mustache.CodeMirror-matchingbracket,
+.cm-mustache-danger.CodeMirror-matchingbracket,
+.cm-mustache-warn.CodeMirror-matchingbracket {
+    color: #fff !important;
+    font-weight: bold;
+    border-radius: 3px;
+    padding: 3px 0;
+    /*margin: 0 -1px;*/
+}
+
+.cm-mustache.CodeMirror-selected,
+.cm-mustache-danger.CodeMirror-selected,
+.cm-mustache-warn.CodeMirror-selected {
+    background: #fff;
+}
