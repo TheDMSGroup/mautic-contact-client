@@ -277,13 +277,13 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     while (end < line.length && (/[\w|}|\.|\|]/.test(line.charAt(end)) || /[}]/.test(line.charAt(end + 1)))) {
                                         ++end;
                                     }
-                                    var word = line.slice(start, end).split('|')[0].toLocaleLowerCase().replace(/[\s|{|}]/g, ''),
+                                    var word = line.slice(start, end).split('|')[0].replace(/[\s|{|}]/g, ''),
                                         len = word.length,
                                         matches = [];
                                     if (len >= 2) {
                                         // Exact matching keys
                                         mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
-                                            if (key === word) {
+                                            if (key.length === len && key === word) {
                                                 addMatch(matches, key, value);
                                                 // Check for format options.
                                                 if (typeof window.JSONEditor.tokenCacheTypes[tokenSource][word] !== 'undefined') {
@@ -292,14 +292,15 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                         mQuery.each(window.JSONEditor.tokenCacheFormats[tokenSource][type], function (key, value) {
                                                             if (key.indexOf('.') !== -1) {
                                                                 addMatch(matches, word + ' | ' + key, value);
-                                                            } else {
+                                                            }
+                                                            else {
                                                                 addMatch(matches, word + ' | ' + type + '.' + key, value);
                                                             }
                                                             formatsFound = true;
                                                         });
                                                     }
                                                     if (!formatsFound) {
-                                                        console.log('No token formatting suggestions provided for field type: '+ type)
+                                                        console.log('No token formatting suggestions provided for field type: ' + type);
                                                     }
                                                 }
                                                 return false;
@@ -309,7 +310,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length > len) {
-                                                    if (key.toLowerCase().substr(0, len) === word) {
+                                                    if (key.substr(0, len) === word) {
                                                         addMatch(matches, key, value);
                                                         if (matches.length === 10) {
                                                             return false;
@@ -322,7 +323,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length > len) {
-                                                    if (value.toLowerCase().substr(0, len) === word) {
+                                                    if (value.substr(0, len) === word) {
                                                         addMatch(matches, key, value);
                                                         if (matches.length === 10) {
                                                             return false;
@@ -348,7 +349,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length > len) {
-                                                    if (value.toLowerCase().indexOf(word) !== -1 || word.indexOf(value.toLowerCase()) !== -1) {
+                                                    if (value.indexOf(word) !== -1 || word.indexOf(value) !== -1) {
                                                         addMatch(matches, key, value);
                                                         if (matches.length === 10) {
                                                             return false;

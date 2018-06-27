@@ -323,7 +323,7 @@ class DateFormatHelper
     /**
      * @return array
      */
-    public function getFormatsDateTime()
+    public function getFormatsDateTime($prefix = true)
     {
         $formats = array_merge($this->formatsDate, $this->formatsTime);
         // Add other common suggestions
@@ -336,13 +336,34 @@ class DateFormatHelper
             }
         }
 
-        return $formats;
+        return $this->prefixWithHelperName($formats, $prefix);
     }
 
     /**
+     * @param      $array
+     * @param bool $prefix
+     *
      * @return array
      */
-    public function getFormatsDate()
+    private function prefixWithHelperName($array, $prefix = true)
+    {
+        if ($prefix) {
+            $newArray = [];
+            foreach ($array as $key => $value) {
+                $newArray['date.'.$key] = $value;
+            }
+            $array = $newArray;
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param bool $prefix
+     *
+     * @return array
+     */
+    public function getFormatsDate($prefix = true)
     {
         $formats = $this->formatsDate;
         // Add other common suggestions
@@ -360,13 +381,15 @@ class DateFormatHelper
             }
         }
 
-        return $formats;
+        return $this->prefixWithHelperName($formats, $prefix);
     }
 
     /**
+     * @param bool $prefix
+     *
      * @return array
      */
-    public function getFormatsTime()
+    public function getFormatsTime($prefix = true)
     {
         $formats = $this->formatsTime;
         // Add other common suggestions
@@ -381,6 +404,6 @@ class DateFormatHelper
             }
         }
 
-        return $formats;
+        return $this->prefixWithHelperName($formats, $prefix);
     }
 }
