@@ -238,10 +238,12 @@ class AjaxController extends CommonAjaxController
             if ($types) {
                 $dataArray['types'] = $types;
             }
-            $formats = $tokenHelper->getDateFormatHelper()->getFormats();
-            if ($formats) {
-                $dataArray['formats'] = $formats;
-            }
+            $dataArray['formats'] = [
+                'date'     => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
+                'datetime' => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
+                'time'     => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
+                'number'     => $tokenHelper->getFormatNumber(),
+            ];
         }
 
         return $this->sendJsonResponse($dataArray);

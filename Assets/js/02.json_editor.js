@@ -247,13 +247,17 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         line = cm.getLine(cursor.line),
                                         start = cursor.ch,
                                         end = cursor.ch,
-                                        startspacecheck = false,
-                                        endspacecheck = false;
+                                        startSpaceCheck = false,
+                                        endSpaceCheck = false,
+                                        formatsFound = false;
                                     if (start && (/[}]/.test(line.charAt(start - 1)))) {
                                         --start;
-                                        startspacecheck = true;
+                                        startSpaceCheck = true;
+                                        if (start && (/[}]/.test(line.charAt(start - 1)))) {
+                                            --start;
+                                        }
                                     }
-                                    if (startspacecheck) {
+                                    if (startSpaceCheck) {
                                         while (start && (/[\s]/.test(line.charAt(start - 1)))) {
                                             --start;
                                         }
@@ -263,9 +267,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     }
                                     while (end < line.length && (/[{]/.test(line.charAt(end)))) {
                                         ++end;
-                                        endspacecheck = true;
+                                        endSpaceCheck = true;
                                     }
-                                    if (endspacecheck) {
+                                    if (endSpaceCheck) {
                                         while (end < line.length && (/[\s]/.test(line.charAt(end)))) {
                                             ++end;
                                         }
@@ -281,10 +285,28 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                             if (key === word) {
                                                 addMatch(matches, key, value);
+                                                // Check for format options.
+                                                if (typeof window.JSONEditor.tokenCacheTypes[tokenSource][word] !== 'undefined') {
+                                                    var type = window.JSONEditor.tokenCacheTypes[tokenSource][word];
+                                                    if (typeof window.JSONEditor.tokenCacheFormats[tokenSource][type] !== 'undefined') {
+                                                        mQuery.each(window.JSONEditor.tokenCacheFormats[tokenSource][type], function (key, value) {
+                                                            if (key.indexOf('.') !== -1) {
+                                                                addMatch(matches, word + ' | ' + key, value);
+                                                            } else {
+                                                                addMatch(matches, word + ' | ' + type + '.' + key, value);
+                                                            }
+                                                            formatsFound = true;
+                                                        });
+                                                    }
+                                                    if (!formatsFound) {
+                                                        console.log('No token formatting suggestions provided for field type: '+ type)
+                                                    }
+                                                }
+                                                return false;
                                             }
                                         });
                                         // Partial matching keys.
-                                        if (matches.length < 10) {
+                                        if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length > len) {
                                                     if (key.toLowerCase().substr(0, len) === word) {
@@ -297,7 +319,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Partial matching keys.
-                                        if (matches.length < 10) {
+                                        if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length > len) {
                                                     if (value.toLowerCase().substr(0, len) === word) {
@@ -310,7 +332,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Containing keys.
-                                        if (matches.length < 10) {
+                                        if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length > len) {
                                                     if (key.indexOf(word) !== -1 || word.indexOf(key) !== -1) {
@@ -323,7 +345,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Containing labels.
-                                        if (matches.length < 10) {
+                                        if (!formatsFound && matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length > len) {
                                                     if (value.toLowerCase().indexOf(word) !== -1 || word.indexOf(value.toLowerCase()) !== -1) {
@@ -336,7 +358,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Levenshtein keys.
-                                        if (matches.length < 5) {
+                                        if (!formatsFound && matches.length < 5) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length >= len) {
                                                     if (levenshtein(word, key) < 5) {
@@ -349,7 +371,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Levenshtein labels.
-                                        if (matches.length < 5) {
+                                        if (!formatsFound && matches.length < 5) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length >= len) {
                                                     if (levenshtein(word, value) < 5) {
@@ -363,7 +385,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         }
                                         if (matches.length) {
                                             setTimeout(function () {
-                                                listener(cm);
+                                                listener(cm, tokenSource);
                                             }, 100);
                                             return accept({
                                                 list: matches,
@@ -377,7 +399,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                             }, 200);
                         });
                     },
-                    listener = function (cm) {
+                    listener = function (cm, tokenSource) {
                         // Listen for selection of a hint autocomplete box.
                         if (
                             cm.state.completionActive !== null

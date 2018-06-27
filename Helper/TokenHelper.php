@@ -45,6 +45,14 @@ class TokenHelper
     /** @var array Used to remember context data types that are not text (text being the default) */
     private $conType = [];
 
+    /** @var array */
+    private $formatNumber = [
+        'lpad.2' => 'Pad 2 zeros on the left.',
+        'lpad.4' => 'Pad 4 zeros on the left.',
+        'rpad.2' => 'Pad 2 zeros on the right.',
+        'rpad.4' => 'Pad 4 zeros on the right.',
+    ];
+
     /**
      * TokenHelper constructor.
      *
@@ -83,6 +91,14 @@ class TokenHelper
         }
 
         $this->coreParametersHelper = $coreParametersHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormatNumber()
+    {
+        return $this->formatNumber;
     }
 
     /**
@@ -395,9 +411,9 @@ class TokenHelper
     private function eventTokenEncode($values)
     {
         list($campaignId, $eventId, $contactId) = $values;
-        $campaignIdString                       = $this->baseEncode((int) $campaignId);
-        $eventIdString                          = $this->baseEncode((int) $eventId);
-        $contactIdString                        = $this->baseEncode((int) $contactId);
+        $campaignIdString = $this->baseEncode((int) $campaignId);
+        $eventIdString    = $this->baseEncode((int) $eventId);
+        $contactIdString  = $this->baseEncode((int) $contactId);
 
         return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
     }
@@ -502,7 +518,7 @@ class TokenHelper
      * Replace Tokens in a simple string using an array for context.
      *
      * @param      $string
-     * @param bool $force  skip checking for a token
+     * @param bool $force skip checking for a token
      *
      * @return string
      */
@@ -540,6 +556,36 @@ class TokenHelper
     }
 
     /**
+     * @param array $context
+     *
+     * @return $this
+     */
+    public function setContext($context = [])
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
+    /**
+     * @param        $original
+     * @param array  $new
+     * @param string $delimiter
+     * @param string $keys
+     */
+    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
+    {
+        foreach ($original as $key => $value) {
+            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
+            if (is_array($value)) {
+                $this->flattenArray($value, $new, $delimiter, $k);
+            } else {
+                $new[$k] = $value;
+            }
+        }
+    }
+
+    /**
      * Get the context array labels instead of values for use in token suggestions.
      *
      * @return array
@@ -551,32 +597,6 @@ class TokenHelper
         $this->flattenArray($labels, $result);
 
         return $result;
-    }
-
-    /**
-     * Get the context data types (that are not text) for use in token suggestions.
-     *
-     * @return array
-     */
-    public function getContextTypes()
-    {
-        $result = [];
-        $types  = $this->describe($this->conType);
-        $this->flattenArray($types, $result);
-
-        return $result;
-    }
-
-    /**
-     * @param array $context
-     *
-     * @return $this
-     */
-    public function setContext($context = [])
-    {
-        $this->context = $context;
-
-        return $this;
     }
 
     /**
@@ -631,21 +651,17 @@ class TokenHelper
     }
 
     /**
-     * @param        $original
-     * @param array  $new
-     * @param string $delimiter
-     * @param string $keys
+     * Get the context data types (that are not text) for use in token suggestions.
+     *
+     * @return array
      */
-    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
+    public function getContextTypes()
     {
-        foreach ($original as $key => $value) {
-            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
-            if (is_array($value)) {
-                $this->flattenArray($value, $new, $delimiter, $k);
-            } else {
-                $new[$k] = $value;
-            }
-        }
+        $result = [];
+        $types  = $this->describe($this->conType);
+        $this->flattenArray($types, $result);
+
+        return $result;
     }
 
     /**
