@@ -227,25 +227,53 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                             clearTimeout(hintTimer);
                             var addMatch = function (matches, key, value) {
                                 if (key === value) {
-                                    matches.push('{{ ' + key + ' }}');
+                                    value = '{{ ' + key + ' }}';
                                 }
                                 else {
-                                    matches.push('{{ ' + key + ' }}' + delimiter + value);
+                                    value = '{{ ' + key + ' }}' + delimiter + value;
+                                }
+                                if (matches.indexOf(value) === -1) {
+                                    matches.push(value);
                                 }
                             };
                             hintTimer = setTimeout(function () {
+                                if (cm.getSelection()) {
+                                    // Autocompletion doesn't function when
+                                    // text is selected, so abort.
+                                    return accept(null);
+                                }
                                 if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
                                     var cursor = cm.getCursor(),
                                         line = cm.getLine(cursor.line),
                                         start = cursor.ch,
-                                        end = cursor.ch;
-                                    while (start && /[\w|{|\.]/.test(line.charAt(start - 1))) {
+                                        end = cursor.ch,
+                                        startspacecheck = false,
+                                        endspacecheck = false;
+                                    if (start && (/[}]/.test(line.charAt(start - 1)))) {
+                                        --start;
+                                        startspacecheck = true;
+                                    }
+                                    if (startspacecheck) {
+                                        while (start && (/[\s]/.test(line.charAt(start - 1)))) {
+                                            --start;
+                                        }
+                                    }
+                                    while (start && (/[\w|{|\.|\|]/.test(line.charAt(start - 1)) || (start > 1 && /[{]/.test(line.charAt(start - 2))))) {
                                         --start;
                                     }
-                                    while (end < line.length && /[\w|}|\.]/.test(line.charAt(end))) {
+                                    while (end < line.length && (/[{]/.test(line.charAt(end)))) {
+                                        ++end;
+                                        endspacecheck = true;
+                                    }
+                                    if (endspacecheck) {
+                                        while (end < line.length && (/[\s]/.test(line.charAt(end)))) {
+                                            ++end;
+                                        }
+                                    }
+                                    while (end < line.length && (/[\w|}|\.|\|]/.test(line.charAt(end)) || /[}]/.test(line.charAt(end + 1)))) {
                                         ++end;
                                     }
-                                    var word = line.slice(start, end).toLocaleLowerCase().replace(/[\s|{|}]/g, ''),
+                                    var word = line.slice(start, end).split('|')[0].toLocaleLowerCase().replace(/[\s|{|}]/g, ''),
                                         len = word.length,
                                         matches = [];
                                     if (len >= 2) {
@@ -334,7 +362,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         if (matches.length) {
-                                            setTimeout(function(){
+                                            setTimeout(function () {
                                                 listener(cm);
                                             }, 100);
                                             return accept({
@@ -346,52 +374,59 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     }
                                     return accept(null);
                                 }
-                            }, 500);
+                            }, 200);
                         });
                     },
                     listener = function (cm) {
                         // Listen for selection of a hint autocomplete box.
                         if (
-                            cm.state.completionActive
+                            cm.state.completionActive !== null
                             && typeof cm.state.completionActive.data !== 'undefined'
                             && cm.state.completionActive.data
                         ) {
+                            var predata = cm.state.completionActive.data;
                             CodeMirror.on(cm.state.completionActive.data, 'pick', function (completion, element) {
                                 var parts = completion.split(delimiter);
-                                if (parts.length) {
-                                    cm.replaceRange(parts[0], cm.state.completionActive.data.from, {
-                                        'ch': cm.state.completionActive.data.from.ch + completion.length,
-                                        'line': cm.state.completionActive.data.from.line
+                                if (parts.length > 1) {
+                                    var data = (cm.state.completionActive && typeof cm.state.completionActive.data !== 'undefined') ? cm.state.completionActive.data : predata;
+                                    cm.replaceRange(parts[0], data.from, {
+                                        'ch': data.from.ch + completion.length,
+                                        'line': data.from.line
                                     }, 'complete');
                                 }
                             });
                         }
                     },
-                    options = mQuery.extend(
-                        isTextarea ? {
-                            mode: 'json/mustache',
-                            lint: 'json',
-                            theme: 'cc',
-                            gutters: ['CodeMirror-lint-markers'],
-                            lintOnChange: true,
-                            matchBrackets: false,
-                            autoCloseBrackets: true,
-                            lineNumbers: true,
-                            lineWrapping: true
-                        } : {
-                            mode: 'json/mustache',
-                            theme: 'cc',
-                            gutters: [],
-                            lintOnChange: false,
-                            matchBrackets: false,
-                            autoCloseBrackets: true,
-                            lineNumbers: false,
-                            lineWrapping: false
-                        }, {
-                            hintOptions: {
-                                hint: function (cm, options) { return hinter(cm, options); }
-                            }
-                        }),
+                    options = isTextarea ? {
+                        mode: 'json/mustache',
+                        lint: 'json',
+                        theme: 'cc',
+                        gutters: ['CodeMirror-lint-markers'],
+                        lintOnChange: true,
+                        matchBrackets: false,
+                        autoCloseBrackets: true,
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        hintOptions: {
+                            hint: function (cm, options) { return hinter(cm, options); }
+                        }
+                    } : {
+                        mode: 'yaml/mustache',
+                        theme: 'cc',
+                        gutters: [],
+                        lintOnChange: false,
+                        matchBrackets: false,
+                        autoCloseBrackets: true,
+                        lineNumbers: false,
+                        lineWrapping: false,
+                        extraKeys: {
+                            'Tab': false,
+                            'Shift-Tab': false
+                        },
+                        hintOptions: {
+                            hint: function (cm, options) { return hinter(cm, options); }
+                        }
+                    },
                     // Wait till the textarea is visible before codemirror.
                     pollVisibility = setInterval(function () {
                         if ($input.is(':visible')) {
@@ -409,13 +444,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     $input[0].fireEvent('onchange');
                                 }
                             });
-                            cm.on('keyup', function (cm, event) {
-                                // Autocomplete suggestions on keyup.
-                                if (!cm.state.completionActive && event.keyCode !== 13) {
-                                    CodeMirror.commands.autocomplete(cm, null, {
-                                        completeSingle: false
-                                    });
-                                }
+                            cm.on('cursorActivity', function (cm, event) {
+                                // if (!cm.state.completionActive) {
+                                CodeMirror.commands.autocomplete(cm, null, {
+                                    completeSingle: false
+                                });
+                                // }
                             });
                             $input.addClass('codeMirror-active');
                             // @todo - Remove this hack.
