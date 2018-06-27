@@ -45,28 +45,28 @@
 .cm-mustache,
 .cm-mustache-danger,
 .cm-mustache-warn {
-    color: #fff;
-    background-color: rgba(0, 86, 171, 0.8);
+    color: #424242;
+    background-color: rgba(187, 210, 236, 0.8);
     border-radius: 3px;
-    padding: 3px;
+    padding: 2px;
 }
 
 .cm-mustache-danger {
     /*background-color: #d9534f;*/
-    background-color: rgba(217, 35, 20, 0.8);
+    background-color: rgba(255, 124, 114, 0.8);
 }
 
 .cm-mustache-warn {
     /*background-color: #e2a231;*/
-    background-color: rgba(226, 144, 0, 0.8);
+    background-color: rgba(255, 195, 86, 0.8);
 }
 .cm-mustache.CodeMirror-matchingbracket,
 .cm-mustache-danger.CodeMirror-matchingbracket,
 .cm-mustache-warn.CodeMirror-matchingbracket {
-    color: #fff !important;
+    color: #424242 !important;
     font-weight: bold;
     border-radius: 3px;
-    padding: 3px 0;
+    padding: 2px 0;
     /*margin: 0 -1px;*/
 }
 
