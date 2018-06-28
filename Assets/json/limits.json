@@ -62,6 +62,10 @@
                 },
                 {
                   "value": 3,
+                  "title": "total contacts or category is"
+                },
+                {
+                  "value": 4,
                   "title": "contacts where the UTM Source is"
                 }
               ],
