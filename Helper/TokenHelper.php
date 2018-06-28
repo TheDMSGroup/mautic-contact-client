@@ -47,10 +47,10 @@ class TokenHelper
 
     /** @var array */
     private $formatNumber = [
-        'lpad.2' => 'Pad 2 zeros on the left.',
-        'lpad.4' => 'Pad 4 zeros on the left.',
-        'rpad.2' => 'Pad 2 zeros on the right.',
-        'rpad.4' => 'Pad 4 zeros on the right.',
+        'lpad.2' => 'Pad up to 2 zeros on the left.',
+        'lpad.4' => 'Pad up to 4 zeros on the left.',
+        'rpad.2' => 'Pad up to 2 zeros on the right.',
+        'rpad.4' => 'Pad up to 4 zeros on the right.',
     ];
 
     /**
