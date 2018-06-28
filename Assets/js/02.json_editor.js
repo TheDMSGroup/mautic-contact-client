@@ -247,41 +247,61 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         line = cm.getLine(cursor.line),
                                         start = cursor.ch,
                                         end = cursor.ch,
-                                        startSpaceCheck = false,
-                                        endSpaceCheck = false,
-                                        formatsFound = false;
+                                        formatsFound = false,
+                                        startRegex,
+                                        endRegex,
+                                        tagcount = 0;
+
+                                    // Handle end of token.
                                     if (start && (/[}]/.test(line.charAt(start - 1)))) {
                                         --start;
-                                        startSpaceCheck = true;
                                         if (start && (/[}]/.test(line.charAt(start - 1)))) {
                                             --start;
                                         }
-                                    }
-                                    if (startSpaceCheck) {
                                         while (start && (/[\s]/.test(line.charAt(start - 1)))) {
                                             --start;
                                         }
                                     }
-                                    while (start && (/[\w|{|\.|\|]/.test(line.charAt(start - 1)) || (start > 1 && /[{]/.test(line.charAt(start - 2))))) {
+                                    // Handle filtered tokens with spaces.
+                                    if (/{{.*[\||\.].*}}/.test(line)) {
+                                        startRegex = new RegExp('[\\s|\\w|{|\\.|\\|]');
+                                        endRegex = new RegExp('[\\s|\\w|}|\\.|\\|]');
+                                    }
+                                    else {
+                                        startRegex = new RegExp('[\\w|{|\\.|\\|]');
+                                        endRegex = new RegExp('[\\w|}|\\.|\\|]');
+                                    }
+                                    while (
+                                        start
+                                        && tagcount < 2
+                                        && (
+                                            startRegex.test(line.charAt(start - 1))
+                                            || (
+                                                line.charAt(start - 1) === ' '
+                                                && startRegex.test(line.charAt(start - 2))
+                                            )
+                                        )) {
+                                        if (line.charAt(start - 1) === '{') {
+                                            ++tagcount;
+                                        }
                                         --start;
                                     }
-                                    while (end < line.length && (/[{]/.test(line.charAt(end)))) {
-                                        ++end;
-                                        endSpaceCheck = true;
-                                    }
-                                    if (endSpaceCheck) {
-                                        while (end < line.length && (/[\s]/.test(line.charAt(end)))) {
-                                            ++end;
+                                    tagcount = 0;
+                                    while (
+                                        end < line.length
+                                        && tagcount < 2
+                                        && endRegex.test(line.charAt(end))
+                                        ) {
+                                        if (line.charAt(end) === '}') {
+                                            ++tagcount;
                                         }
-                                    }
-                                    while (end < line.length && (/[\w|}|\.|\|]/.test(line.charAt(end)) || /[}]/.test(line.charAt(end + 1)))) {
                                         ++end;
                                     }
                                     var word = line.slice(start, end).split('|')[0].replace(/[\s|{|}]/g, ''),
                                         len = word.length,
                                         matches = [];
                                     if (len >= 2) {
-                                        // Exact matching keys
+                                        // Exact matching keys.
                                         mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                             if (key.length === len && key === word) {
                                                 addMatch(matches, key, value);
@@ -290,6 +310,27 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                     var type = window.JSONEditor.tokenCacheTypes[tokenSource][word];
                                                     if (typeof window.JSONEditor.tokenCacheFormats[tokenSource][type] !== 'undefined') {
                                                         mQuery.each(window.JSONEditor.tokenCacheFormats[tokenSource][type], function (key, value) {
+                                                            // Instead of
+                                                            // showing the raw
+                                                            // value for
+                                                            // date/datetime/time,
+                                                            // show examples.
+                                                            if (type === 'date' || type === 'datetime' || type === 'time') {
+                                                                var val = value;
+                                                                // Mock
+                                                                // intervals.
+                                                                if (val.charAt(0) === 'P') {
+                                                                    val = val.replace('P', '');
+                                                                    if (val.charAt(0) === 'T') {
+                                                                        val = val.replace('T', '');
+                                                                    }
+                                                                    if (val.charAt(0) === '1') {
+                                                                        val = val.replace('1', '');
+                                                                    }
+                                                                }
+                                                                var now = new Date();
+                                                                value = now.format(val) + delimiter + '(' + value + ')';
+                                                            }
                                                             if (key.indexOf('.') !== -1) {
                                                                 addMatch(matches, word + ' | ' + key, value);
                                                             }
@@ -303,24 +344,23 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                         console.log('No token formatting suggestions provided for field type: ' + type);
                                                     }
                                                 }
-                                                return false;
+                                                if (matches.length >= 10) {
+                                                    return false;
+                                                }
                                             }
                                         });
                                         // Partial matching keys.
-                                        if (!formatsFound && matches.length < 10) {
+                                        if (matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length > len) {
                                                     if (key.substr(0, len) === word) {
                                                         addMatch(matches, key, value);
-                                                        if (matches.length === 10) {
-                                                            return false;
-                                                        }
                                                     }
                                                 }
                                             });
                                         }
                                         // Partial matching keys.
-                                        if (!formatsFound && matches.length < 10) {
+                                        if (matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length > len) {
                                                     if (value.substr(0, len) === word) {
@@ -333,7 +373,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Containing keys.
-                                        if (!formatsFound && matches.length < 10) {
+                                        if (matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length > len) {
                                                     if (key.indexOf(word) !== -1 || word.indexOf(key) !== -1) {
@@ -346,7 +386,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Containing labels.
-                                        if (!formatsFound && matches.length < 10) {
+                                        if (matches.length < 10) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length > len) {
                                                     if (value.indexOf(word) !== -1 || word.indexOf(value) !== -1) {
@@ -359,7 +399,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Levenshtein keys.
-                                        if (!formatsFound && matches.length < 5) {
+                                        if (matches.length < 5) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length >= len) {
                                                     if (levenshtein(word, key) < 5) {
@@ -372,7 +412,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             });
                                         }
                                         // Levenshtein labels.
-                                        if (!formatsFound && matches.length < 5) {
+                                        if (matches.length < 5) {
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (value.length >= len) {
                                                     if (levenshtein(word, value) < 5) {
@@ -397,7 +437,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     }
                                     return accept(null);
                                 }
-                            }, 200);
+                            }, 250);
                         });
                     },
                     listener = function (cm, tokenSource) {
@@ -468,11 +508,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 }
                             });
                             cm.on('cursorActivity', function (cm, event) {
-                                // if (!cm.state.completionActive) {
                                 CodeMirror.commands.autocomplete(cm, null, {
                                     completeSingle: false
                                 });
-                                // }
                             });
                             $input.addClass('codeMirror-active');
                             // @todo - Remove this hack.

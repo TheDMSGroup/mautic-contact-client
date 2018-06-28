@@ -323,11 +323,13 @@ class DateFormatHelper
     }
 
     /**
+     * @param bool $prefix
+     *
      * @return array
      */
     public function getFormatsDateTime($prefix = true)
     {
-        $formats = array_merge($this->formatsDate, $this->formatsTime);
+        $formats = $this->formatsDate;
         // Add other common suggestions
         foreach ($this->formatInterval as $key => $value) {
             foreach (['till', 'since'] as $op) {
@@ -336,6 +338,9 @@ class DateFormatHelper
                 }
                 $formats[$key.$op] = $value;
             }
+        }
+        foreach ($this->formatsTime as $key => $value) {
+            $formats[$key] = $value;
         }
 
         return $this->prefixWithHelperName($formats, $prefix);
