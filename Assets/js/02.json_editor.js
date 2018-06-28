@@ -1,4 +1,28 @@
 // Extend the bootstrap3 theme with some minor aesthetic customizations.
+function levenshtein (a, b) {
+    var tmp;
+    if (a.length === 0) { return b.length; }
+    if (b.length === 0) { return a.length; }
+    if (a.length > b.length) {
+        tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    var i, j, res, alen = a.length, blen = b.length, row = Array(alen);
+    for (i = 0; i <= alen; i++) { row[i] = i; }
+
+    for (i = 1; i <= blen; i++) {
+        res = i;
+        for (j = 1; j <= alen; j++) {
+            tmp = row[j - 1];
+            row[j - 1] = res;
+            res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1, Math.min(res + 1, row[j] + 1));
+        }
+    }
+    return res;
+}
+
 JSONEditor.defaults.themes.custom = JSONEditor.defaults.themes.bootstrap3.extend({
     // Support bootstrap-slider.
     getRangeInput: function (min, max, step) {
@@ -90,65 +114,6 @@ JSONEditor.defaults.options.remove_empty_properties = false;
 JSONEditor.defaults.options.required_by_default = true;
 JSONEditor.defaults.options.expand_height = true;
 JSONEditor.defaults.options.keep_oneof_values = false;
-
-/**
- * Convert a standard text field to a tagEditor field using predefined tokens.
- *
- * @param $text
- * @param tokenSource
- */
-JSONEditor.createTagEditor = function ($text, tokenSource, tokenPlaceholder) {
-    var allowedTagArr = [],
-        changed = false;
-    $text.tagEditor({
-        placeholder: tokenPlaceholder,
-        allowedTags: function () {
-            if (!allowedTagArr.length && typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
-                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
-                    allowedTagArr.push('{{' + key + '}}');
-                });
-            }
-            return allowedTagArr;
-        },
-        autocomplete: {
-            minLength: 2,
-            source: function (request, response) {
-                var tokens = [];
-                if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
-                    var regex = new RegExp(request.term.replace(/\{|\}/g, ''), 'i');
-                    mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
-                        if (regex.test(key) || regex.test(value)) {
-                            tokens.push({
-                                label: value,
-                                value: '{{' + key + '}}'
-                            });
-                        }
-                    });
-                }
-                response(tokens);
-            },
-            delay: 120
-        },
-        onChange: function (el, ed, tag_list) {
-            if (!changed) {
-                if ('createEvent' in document) {
-                    // changed = true;
-                    var event = document.createEvent('HTMLEvents');
-                    event.initEvent('change', false, true);
-                    $text[0].dispatchEvent(event);
-                }
-                else {
-                    $text[0].fireEvent('onchange');
-                }
-            }
-            else {
-                // changed = true;
-            }
-        },
-        beforeTagSave: function () {},
-        beforeTagDelete: function () {}
-    });
-};
 
 // Custom validators.
 JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
@@ -246,87 +211,296 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     }
 
     // When a textarea with option "codeMirror" is true, render codeMirror.
-    if (schema.format === 'textarea' && typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
-        mQuery('textarea[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)')
+    if (typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
+        var selector = '[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)';
+        mQuery('input' + selector + ', textarea' + selector).first()
             .each(function () {
                 if (schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
                     var tokenSource = schema.options.tokenSource;
                 }
                 var $input = mQuery(this),
-                    allowedTagArr = [],
+                    isTextarea = $input.is('textarea'),
                     hintTimer,
+                    delimiter = '  ',
+                    hinter = function (cm, option) {
+                        return new Promise(function (accept) {
+                            clearTimeout(hintTimer);
+                            var addMatch = function (matches, key, value, beginning) {
+                                    if (key === value) {
+                                        value = '{{ ' + key + ' }}';
+                                    }
+                                    else {
+                                        value = '{{ ' + key + ' }}' + delimiter + value;
+                                    }
+                                    if (typeof window.JSONEditor.tokenCacheTypes[tokenSource][key] !== 'undefined') {
+                                        var type = window.JSONEditor.tokenCacheTypes[tokenSource][key];
+                                        value += delimiter + '(' + type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() + ')';
+                                    }
+                                    if (matches.indexOf(value) === -1) {
+                                        if (typeof beginning !== 'undefined' && beginning) {
+                                            matches.unshift(value);
+                                        }
+                                        else {
+                                            matches.push(value);
+                                        }
+                                    }
+                                },
+                                hintTimer = setTimeout(function () {
+                                    if (cm.getSelection()) {
+                                        // Autocompletion doesn't function when
+                                        // text is selected, so abort.
+                                        return accept(null);
+                                    }
+                                    if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
+                                        var cursor = cm.getCursor(),
+                                            line = cm.getLine(cursor.line),
+                                            start = cursor.ch,
+                                            end = cursor.ch,
+                                            formatsFound = false,
+                                            startRegex = new RegExp('[\\s|\\w|{|\\.|\\|]'),
+                                            endRegex = new RegExp('[\\s|\\w|}|\\.|\\|]'),
+                                            tagCount = 0;
+
+                                        // Handle end of token.
+                                        if (start && (/[}]/.test(line.charAt(start - 1)))) {
+                                            --start;
+                                            if (start && (/[}]/.test(line.charAt(start - 1)))) {
+                                                --start;
+                                            }
+                                            while (start && (/[\s]/.test(line.charAt(start - 1)))) {
+                                                --start;
+                                            }
+                                        }
+                                        while (
+                                            start
+                                            && tagCount < 2
+                                            && (
+                                                startRegex.test(line.charAt(start - 1))
+                                                || (
+                                                    line.charAt(start - 1) === ' '
+                                                    && startRegex.test(line.charAt(start - 2))
+                                                )
+                                            )) {
+                                            if (line.charAt(start - 1) === '{') {
+                                                ++tagCount;
+                                            }
+                                            --start;
+                                        }
+                                        tagCount = 0;
+                                        while (
+                                            end < line.length
+                                            && tagCount < 2
+                                            && endRegex.test(line.charAt(end))
+                                            ) {
+                                            if (line.charAt(end) === '}') {
+                                                ++tagCount;
+                                            }
+                                            ++end;
+                                        }
+                                        var parts = line.slice(start, end).split('|'),
+                                            word = parts[0].replace(/[\s|{|}]/g, ''),
+                                            len = word.length,
+                                            matches = [];
+                                        if (len >= 2) {
+                                            // Exact matching keys.
+                                            mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                if (key.length === len && key === word) {
+                                                    addMatch(matches, key, value);
+                                                    var filter = parts.length === 2 ? parts[1].replace(/[\s|{|}]/g, '') : '';
+                                                    // Check for format options.
+                                                    if (typeof window.JSONEditor.tokenCacheTypes[tokenSource][word] !== 'undefined') {
+                                                        var type = window.JSONEditor.tokenCacheTypes[tokenSource][word];
+                                                        if (typeof window.JSONEditor.tokenCacheFormats[tokenSource][type] !== 'undefined') {
+                                                            mQuery.each(window.JSONEditor.tokenCacheFormats[tokenSource][type], function (key, value) {
+                                                                if (type === 'date' || type === 'datetime' || type === 'time') {
+                                                                    if (value === 'PT1S') {
+                                                                        value = 'Example: 59' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else if (value === 'PT1M') {
+                                                                        value = 'Example: 45' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else if (value === 'PT1H') {
+                                                                        value = 'Example: 12' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else if (value === 'P1D') {
+                                                                        value = 'Example: 7' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else if (value === 'P1W') {
+                                                                        value = 'Example: 4' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else if (value === 'P1M') {
+                                                                        value = 'Example: 6' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else if (value === 'P1Y') {
+                                                                        value = 'Example: 55' + delimiter + '(' + value + ')';
+                                                                    }
+                                                                    else {
+                                                                        var now = new Date();
+                                                                        value = 'Example: ' + now.format(value) + delimiter + '(' + value.replace(/\\/g, '') + ')';
+                                                                    }
+                                                                }
+                                                                var delimitedKey = key.indexOf('.') !== -1 ? key : type + '.' + key;
+                                                                addMatch(matches, word + ' | ' + delimitedKey, value, (filter.length && delimitedKey.substr(0, filter.length) === filter));
+                                                                formatsFound = true;
+                                                            });
+                                                        }
+                                                        if (!formatsFound) {
+                                                            console.log('No token formatting suggestions provided for field type: ' + type);
+                                                        }
+                                                    }
+                                                    if (matches.length >= 10) {
+                                                        return false;
+                                                    }
+                                                }
+                                            });
+                                            // Partial matching keys.
+                                            if (matches.length < 10) {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    if (key.length > len) {
+                                                        if (key.substr(0, len) === word) {
+                                                            addMatch(matches, key, value);
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            // Partial matching keys.
+                                            if (matches.length < 10) {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    if (value.length > len) {
+                                                        if (value.substr(0, len) === word) {
+                                                            addMatch(matches, key, value);
+                                                            if (matches.length === 10) {
+                                                                return false;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            // Containing keys.
+                                            if (matches.length < 10) {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    if (key.length > len) {
+                                                        if (key.indexOf(word) !== -1 || word.indexOf(key) !== -1) {
+                                                            addMatch(matches, key, value);
+                                                            if (matches.length === 10) {
+                                                                return false;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            // Containing labels.
+                                            if (matches.length < 10) {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    if (value.length > len) {
+                                                        if (value.indexOf(word) !== -1 || word.indexOf(value) !== -1) {
+                                                            addMatch(matches, key, value);
+                                                            if (matches.length === 10) {
+                                                                return false;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            // Levenshtein keys.
+                                            if (matches.length < 5) {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    if (key.length >= len) {
+                                                        if (levenshtein(word, key) < 5) {
+                                                            addMatch(matches, key, value);
+                                                            if (matches.length === 5) {
+                                                                return false;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            // Levenshtein labels.
+                                            if (matches.length < 5) {
+                                                mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                                                    if (value.length >= len) {
+                                                        if (levenshtein(word, value) < 5) {
+                                                            addMatch(matches, key, value);
+                                                            if (matches.length === 5) {
+                                                                return false;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                            if (matches.length) {
+                                                setTimeout(function () {
+                                                    listener(cm, tokenSource);
+                                                }, 100);
+                                                return accept({
+                                                    list: matches,
+                                                    from: CodeMirror.Pos(cursor.line, start),
+                                                    to: CodeMirror.Pos(cursor.line, end)
+                                                });
+                                            }
+                                        }
+                                        return accept(null);
+                                    }
+                                }, 250);
+                        });
+                    },
+                    listener = function (cm, tokenSource) {
+                        // Listen for selection of a hint autocomplete box.
+                        if (
+                            cm.state.completionActive !== null
+                            && typeof cm.state.completionActive.data !== 'undefined'
+                            && cm.state.completionActive.data
+                        ) {
+                            var predata = cm.state.completionActive.data;
+                            CodeMirror.on(cm.state.completionActive.data, 'pick', function (completion, element) {
+                                var parts = completion.split(delimiter);
+                                if (parts.length > 1) {
+                                    var data = (cm.state.completionActive && typeof cm.state.completionActive.data !== 'undefined') ? cm.state.completionActive.data : predata;
+                                    cm.replaceRange(parts[0], data.from, {
+                                        'ch': data.from.ch + completion.length,
+                                        'line': data.from.line
+                                    }, 'complete');
+                                }
+                            });
+                        }
+                    },
+                    options = isTextarea ? {
+                        mode: 'json/mustache',
+                        lint: 'json',
+                        theme: 'cc',
+                        gutters: ['CodeMirror-lint-markers'],
+                        lintOnChange: true,
+                        matchBrackets: false,
+                        autoCloseBrackets: true,
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        hintOptions: {
+                            hint: function (cm, options) { return hinter(cm, options); }
+                        }
+                    } : {
+                        mode: 'yaml/mustache',
+                        theme: 'cc',
+                        gutters: [],
+                        lintOnChange: false,
+                        matchBrackets: false,
+                        autoCloseBrackets: true,
+                        lineNumbers: false,
+                        lineWrapping: false,
+                        extraKeys: {
+                            'Tab': false,
+                            'Shift-Tab': false
+                        },
+                        hintOptions: {
+                            hint: function (cm, options) { return hinter(cm, options); }
+                        }
+                    },
                     // Wait till the textarea is visible before codemirror.
                     pollVisibility = setInterval(function () {
                         if ($input.is(':visible')) {
-                            var cm = CodeMirror.fromTextArea($input[0], {
-                                mode: {
-                                    name: 'javascript',
-                                    json: true
-                                },
-                                lint: 'json',
-                                theme: 'material',
-                                gutters: ['CodeMirror-lint-markers'],
-                                lintOnChange: true,
-                                matchBrackets: true,
-                                autoCloseBrackets: true,
-                                lineNumbers: true,
-                                lineWrapping: true,
-                                hintOptions: {
-                                    hint: function (cm, option) {
-                                        return new Promise(function (accept) {
-                                            clearTimeout(hintTimer);
-                                            hintTimer = setTimeout(function () {
-                                                if (!allowedTagArr.length && typeof tokenSource !== 'undefined') {
-                                                    if (typeof window.JSONEditor.tokenCache[tokenSource] !== 'undefined') {
-                                                        mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
-                                                            allowedTagArr.push(key);
-                                                        });
-                                                    }
-                                                }
-                                                if (allowedTagArr.length) {
-                                                    var cursor = cm.getCursor(),
-                                                        line = cm.getLine(cursor.line),
-                                                        start = cursor.ch,
-                                                        end = cursor.ch;
-                                                    while (start && /[\w|{|\.]/.test(line.charAt(start - 1))) {
-                                                        --start;
-                                                    }
-                                                    while (end < line.length && /[\w|}|\.]/.test(line.charAt(end))) {
-                                                        ++end;
-                                                    }
-                                                    var word = line.slice(start, end).toLowerCase().replace(/[\s|{|}]/g, ''),
-                                                        len = word.length,
-                                                        matches = [];
-                                                    if (len >= 2) {
-                                                        for (var i = 0; i < allowedTagArr.length; i++) {
-                                                            if (
-                                                                allowedTagArr[i].length >= len
-                                                                && allowedTagArr[i].substr(0, len) === word
-                                                            // &&
-                                                            // allowedTagArr[i]
-                                                            // !== word
-                                                            ) {
-                                                                matches.push('{{' + allowedTagArr[i] + '}}');
-                                                            }
-                                                        }
-                                                        if (matches.length) {
-                                                            return accept({
-                                                                list: matches,
-                                                                from: CodeMirror.Pos(cursor.line, start),
-                                                                to: CodeMirror.Pos(cursor.line, end)
-                                                            });
-                                                        }
-                                                    }
-                                                    return accept(null);
-                                                }
-                                            }, 500);
-                                        });
-                                    }
-                                }
-                            });
+                            clearInterval(pollVisibility);
+                            var cm = CodeMirror.fromTextArea($input[0], options);
                             cm.on('change', function (cm) {
-                                // Push changes to the textarea and ensure
-                                // event fires.
+                                // Push changes to the original field.
                                 $input.val(cm.getValue());
                                 if ('createEvent' in document) {
                                     var event = document.createEvent('HTMLEvents');
@@ -337,20 +511,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     $input[0].fireEvent('onchange');
                                 }
                             });
-                            cm.on('keyup', function (cm, event) {
-                                // Autocomplete suggestions on keyup.
-                                if (!cm.state.completionActive && event.keyCode !== 13) {
-                                    CodeMirror.commands.autocomplete(cm, null, {
-                                        completeSingle: false
-                                    });
-                                }
+                            cm.on('cursorActivity', function (cm, event) {
+                                CodeMirror.commands.autocomplete(cm, null, {
+                                    completeSingle: false
+                                });
                             });
-                            clearInterval(pollVisibility);
                             $input.addClass('codeMirror-active');
                             // @todo - Remove this hack.
-                            $input.parent().parent().parent().parent().find('div[data-schemaid="requestFormat"]:first select:first').trigger('change');
+                            if (isTextarea) {
+                                $input.parent().parent().parent().parent().find('div[data-schemaid="requestFormat"]:first select:first').trigger('change');
+                            }
                         }
-                    }, 250);
+                    }, 300);
             }).addClass('codeMirror-checked');
     }
 
@@ -463,85 +635,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
         }).addClass('slider-checked');
     }
 
-    // Add support for a token text field.
-    if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
-
-        if (typeof window.JSONEditor.tokenCache === 'undefined') {
-            window.JSONEditor.tokenCache = {};
-        }
-
-        // Re-render any who's values have been altered by reordering or
-        // deletion.
-        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first.tag-editor-hidden-src').each(function () {
-            var $text = mQuery(this),
-                $tagEditor = mQuery(this).parent().find('ul.tag-editor:first');
-            if ($tagEditor.length) {
-                var tagValue = $tagEditor.data('tags').join('');
-                if ($text.val() !== tagValue) {
-                    $tagEditor.remove();
-                    $text.removeClass('tokens-checked').removeClass('tag-editor-hidden-src');
-                }
-            }
-        });
-
-        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.tokens-checked)').each(function () {
-            var $text = mQuery(this),
-                tokenSource = schema.options.tokenSource,
-                tokenPlaceholder = (typeof schema.options.tokenPlaceholder !== 'undefined' ? schema.options.tokenPlaceholder : null);
-
-            // $text.data('tokenSource', tokenSource);
-
-            if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
-                window.JSONEditor.tokenCache[tokenSource] = {};
-                mQuery.ajax({
-                    url: mauticAjaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: tokenSource,
-                        apiPayload: mQuery('#contactclient_api_payload:first').val(),
-                        filePayload: mQuery('#contactclient_file_payload:first').val()
-                    },
-                    cache: true,
-                    dataType: 'json',
-                    success: function (response) {
-                        if (typeof response.tokens !== 'undefined') {
-                            window.JSONEditor.tokenCache[tokenSource] = response.tokens;
-                        }
-                        if (!mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
-                            JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
-                        }
-                        else {
-                            console.log('No tokens found for ' + tokenSource);
-                        }
-                    },
-                    error: function (e) {
-                        console.warn('Could not retrieve tokens for ' + tokenSource, e);
-                    }
-                });
-            }
-            else {
-                var tries = 0,
-                    checkTokens = setInterval(function () {
-                        tries++;
-                        if (tries > 300) {
-                            console.warn('Took too long to retrieve tokens for ' + tokenSource);
-                            clearInterval(checkTokens);
-                        }
-                        if (!mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
-                            clearInterval(checkTokens);
-                            JSONEditor.createTagEditor($text, tokenSource, tokenPlaceholder);
-                        }
-                    }, 100);
-            }
-
-        }).addClass('tokens-checked');
-    }
-
     // Set html5 "required' fields by the option "notBlank"
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.notBlank !== 'undefined' && schema.options.notBlank === true) {
-        // mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not([required])').each(function () {
-        //     mQuery(this).prop('required', true);
-        // });
+        // mQuery('input[type=\'text\'][name=\'' + path.replace('root.',
+        // 'root[').split('.').join('][') +
+        // ']\']:first:not([required])').each(function () {
+        // mQuery(this).prop('required', true); });
         if (value.replace(/^\s+|\s+$/gm, '') === '') {
             errors.push({
                 path: path,

@@ -47,6 +47,7 @@ The Timezone of the Client will always be applied if provided.... [more](./DATES
 * [Bootstrap Slider](https://github.com/seiyria/bootstrap-slider)
 * [Caret](https://github.com/accursoft/caret)
 * [CodeMirror](https://github.com/codemirror/CodeMirror)
+* [date.format](https://github.com/jacwright/date.format)
 * [HTMLHint](https://github.com/yaniswang/HTMLHint)
 * [Interact.js](https://github.com/taye/interact.js)
 * [jQuery QueryBuilder](https://github.com/mistic100/jQuery-QueryBuilder)

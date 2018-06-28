@@ -17,10 +17,54 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 class DateFormatHelper
 {
     /** @var array All standard date formats, plus any we wish to standardize. */
-    protected $formats = [
+    protected $formatsTime = [
+        '12hr'      => 'h:i:s a',
+        '12hrshort' => 'g:i a',
+        '24hr'      => 'H:i:s',
+        '24hrshort' => 'G:i',
+        'hhmmss'    => 'His',
+        'a'         => 'a',
+        'A'         => 'A',
+        'B'         => 'B',
+        'g'         => 'g',
+        'G'         => 'G',
+        'h'         => 'h',
+        'H'         => 'H',
+        'i'         => 'i',
+        's'         => 's',
+        'u'         => 'u',
+        'v'         => 'v',
+        'e'         => 'e',
+        'I'         => 'I',
+        'O'         => 'O',
+        'P'         => 'P',
+        'T'         => 'T',
+        'Z'         => 'Z',
+        'c'         => 'c',
+        'r'         => 'r',
+        'U'         => 'U',
+    ];
+
+    /** @var array */
+    protected $formatsDate = [
+        'iso8601'    => 'Y-m-d\TH:i:sO',
+        'yyyy'       => 'Y',
+        'm'          => 'n',
+        'd'          => 'j',
+        'yy'         => 'y',
+        'mm'         => 'm',
+        'dd'         => 'd',
+        'day'        => 'l',
+        'week'       => 'W',
+        'month'      => 'F',
+        'dayabr'     => 'D',
+        'monthabr'   => 'M',
+        'dayweek'    => 'w',
+        'dayyear'    => 'z',
+        'monthdays'  => 't',
+        'yearleap'   => 'L',
         'atom'       => 'Y-m-d\TH:i:sP',
         'cookie'     => 'l, d-M-y H:i:s T',
-        'iso8601'    => 'Y-m-d\TH:i:sO',
         'rfc822'     => 'D, d M y H:i:s O',
         'rfc850'     => 'l, d-M-y H:i:s T',
         'rfc1036'    => 'D, d M y H:i:s O',
@@ -31,25 +75,17 @@ class DateFormatHelper
         'rfc7231'    => 'D, d M Y H:i:s \G\M\T',
         'rss'        => 'D, d M Y H:i:s O',
         'w3c'        => 'Y-m-d\TH:i:sP',
-        'short'      => 'd/m/Y',
-        'Y/m/d'      => 'Y/m/d',
-        'Y-m-d'      => 'Y-m-d',
-        'Ymd'        => 'Ymd',
-        'H:i:s'      => 'H:i:s',
-        'His'        => 'His',
-        'H-i-s'      => 'H-i-s',
     ];
 
-    /** @var string All allowed single-character date/time formats. */
-    protected $formatSingle = 'dDjlNSwzWFmMntLoYyaABgGhHisuveIOPTZcrU';
-
+    /** @var array */
     protected $formatInterval = [
-        'seconds' => 'PT1S',
-        'minutes' => 'PT1M',
-        'hours'   => 'PT1H',
-        'days'    => 'P1D',
-        'months'  => 'P1M',
+        'age'     => 'P1Y',
         'years'   => 'P1Y',
+        'months'  => 'P1M',
+        'days'    => 'P1D',
+        'hours'   => 'PT1H',
+        'minutes' => 'PT1M',
+        'seconds' => 'PT1S',
     ];
 
     /** @var string */
@@ -98,18 +134,18 @@ class DateFormatHelper
      */
     private function validateFormat($format)
     {
-        if (1 === strlen($format)) {
-            if (false !== strpos($this->formatSingle, $format)) {
-                return $format;
-            }
-        } else {
-            if (isset($this->formats[$format])) {
-                return $this->formats[$format];
-            }
-            $format = strtolower($format);
-            if (isset($this->formats[$format])) {
-                return $this->formats[$format];
-            }
+        if (isset($this->formatsDate[$format])) {
+            return $this->formatsDate[$format];
+        }
+        if (isset($this->formatsTime[$format])) {
+            return $this->formatsTime[$format];
+        }
+        $format = strtolower($format);
+        if (isset($this->formatsDate[$format])) {
+            return $this->formatsDate[$format];
+        }
+        if (isset($this->formatsTime[$format])) {
+            return $this->formatsTime[$format];
         }
     }
 
@@ -123,16 +159,19 @@ class DateFormatHelper
         $keywords = [
             'from',
             'since',
+            'age',
             'till',
             'until',
         ];
         $op       = null;
-        $format   = strtolower($format);
         foreach ($keywords as $keyword) {
             $len = strlen($keyword);
             if (substr($format, -$len) === $keyword) {
                 $op     = $keyword;
                 $format = substr($format, 0, strlen($format) - $len);
+                if (!$format && 'age' == $op) {
+                    $format = 'years';
+                }
                 break;
             }
         }
@@ -165,6 +204,7 @@ class DateFormatHelper
                         break;
                     case 'since':
                     case 'from':
+                    case 'age':
                         return function ($date) use ($intervalFormat, $now) {
                             $date = $this->parse($date);
 
@@ -181,6 +221,33 @@ class DateFormatHelper
                         };
                         break;
                 }
+            }
+        }
+        $format = $format ? $format : $originalFormat;
+        if (!$format) {
+            // Check for aggregate formats like "yyyymmdd" which aren't listed but supported.
+            $aggregateFormats = array_merge($this->formatsTime, $this->formatsDate);
+            // Put longest keys first.
+            uksort(
+                $aggregateFormats,
+                function ($a, $b) {
+                    $lenA = strlen($a);
+                    $lenB = strlen($b);
+
+                    return $lenA == $lenB ? strcmp($a, $b) : ($lenA < $lenB ? -1 : 1);
+                }
+            );
+            $stack = [];
+            foreach ($aggregateFormats as $key => $val) {
+                while ($position = strpos($format, $key)) {
+                    while (isset($stack[$position])) {
+                        ++$position;
+                    }
+                    $stack[$position] = $val;
+                }
+            }
+            if ($stack) {
+                $format = implode('', $stack);
             }
         }
         $format = $format ? $format : $originalFormat;
@@ -253,5 +320,97 @@ class DateFormatHelper
         }
 
         return $result;
+    }
+
+    /**
+     * @param bool $prefix
+     *
+     * @return array
+     */
+    public function getFormatsDateTime($prefix = true)
+    {
+        $formats = $this->formatsDate;
+        // Add other common suggestions
+        foreach ($this->formatInterval as $key => $value) {
+            foreach (['till', 'since'] as $op) {
+                if ('age' == $key) {
+                    $op = '';
+                }
+                $formats[$key.$op] = $value;
+            }
+        }
+        foreach ($this->formatsTime as $key => $value) {
+            $formats[$key] = $value;
+        }
+
+        return $this->prefixWithHelperName($formats, $prefix);
+    }
+
+    /**
+     * @param      $array
+     * @param bool $prefix
+     *
+     * @return array
+     */
+    private function prefixWithHelperName($array, $prefix = true)
+    {
+        if ($prefix) {
+            $newArray = [];
+            foreach ($array as $key => $value) {
+                $newArray['date.'.$key] = $value;
+            }
+            $array = $newArray;
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param bool $prefix
+     *
+     * @return array
+     */
+    public function getFormatsDate($prefix = true)
+    {
+        $formats = $this->formatsDate;
+        // Add other common suggestions
+        foreach ($this->formatInterval as $key => $value) {
+            foreach (['hours', 'minutes', 'seconds'] as $exclusion) {
+                if ($key == $exclusion) {
+                    continue;
+                }
+            }
+            foreach (['till', 'since'] as $op) {
+                if ('age' == $key) {
+                    $op = '';
+                }
+                $formats[$key.$op] = $value;
+            }
+        }
+
+        return $this->prefixWithHelperName($formats, $prefix);
+    }
+
+    /**
+     * @param bool $prefix
+     *
+     * @return array
+     */
+    public function getFormatsTime($prefix = true)
+    {
+        $formats = $this->formatsTime;
+        // Add other common suggestions
+        foreach ($this->formatInterval as $key => $value) {
+            foreach (['months', 'years', 'days', 'age'] as $exclusion) {
+                if ($key == $exclusion) {
+                    continue;
+                }
+            }
+            foreach (['from', 'till'] as $op) {
+                $formats[$key.$op] = $value;
+            }
+        }
+
+        return $this->prefixWithHelperName($formats, $prefix);
     }
 }

@@ -1,6 +1,5 @@
 /* Overlay CodeMirror editor modes with custom mustache mode to style our mustache tags */
 var CodeMirrorMustacheOverlay = function (config, parserConfig) {
-    // console.log(config);
     var originalMode = config.mode.replace('/mustache', '');
     if (originalMode === 'json') {
         originalMode = {
@@ -27,10 +26,15 @@ var CodeMirrorMustacheOverlay = function (config, parserConfig) {
                                 window.CodeMirrorMustacheOverlayTokens.push(key);
                             });
                         }
-                        if (window.CodeMirrorMustacheOverlayTokens.length && window.CodeMirrorMustacheOverlayTokens.indexOf(word.replace('#', '').replace('/', '')) === -1) {
+                        var parts = word.split('|'),
+                            token = parts[0].trim(),
+                            tokenNoOpenClose = token.replace('#','').replace('/','');
+
+                        if (window.CodeMirrorMustacheOverlayTokens.length && window.CodeMirrorMustacheOverlayTokens.indexOf(tokenNoOpenClose) === -1) {
                             return 'mustache-danger';
                         }
-                        else if (word[0] === '#' || word[0] === '/') {
+                        else if (typeof parts[1] !== 'undefined' || token[0] === '#' || token[0] === '/') {
+                            // Indicates a special token use (opening/closing/filter)
                             return 'mustache-warn';
                         }
                         else {

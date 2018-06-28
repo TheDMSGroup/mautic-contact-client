@@ -55,6 +55,10 @@ ul.CodeMirror-hints,
     padding: 4px;
     overflow-x: hidden;
     overflow-y: auto;
+    line-height: 22px;
+    font-family: 'Roboto Mono', Menlo, Monaco, Consolas, "Courier New", monospace !important;
+    font-size: 13px;
+    font-weight: normal;
 }
 
 ul.CodeMirror-hints li,
@@ -66,6 +70,6 @@ ul.CodeMirror-hints li,
 
 ul.CodeMirror-hints li.CodeMirror-hint-active,
 .nav.nav-pills.nav-stacked.bs-autocomplete-menu li.ui-menu-item.ui-state-focus {
-    background-color: #467ca2;
-    color: white;
+    color: #fff;
+    background-color: rgba(0, 86, 171, 0.8);
 }

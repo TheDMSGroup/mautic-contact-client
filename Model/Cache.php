@@ -355,7 +355,7 @@ class Cache extends AbstractCommonModel
         );
         if ($limits) {
             throw new ContactClientException(
-                'Not able to send contact due to an exceeded budget.',
+                'Not able to send contact to client due to an exceeded budget.',
                 Codes::HTTP_TOO_MANY_REQUESTS,
                 null,
                 Stat::TYPE_LIMITS,

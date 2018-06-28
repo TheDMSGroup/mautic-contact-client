@@ -16,7 +16,6 @@ use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
-use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
@@ -88,8 +87,9 @@ class AjaxController extends CommonAjaxController
 
         // default to empty
         $dataArray = [
-            'html'  => '',
-            'valid' => false,
+            'html'    => '',
+            'valid'   => false,
+            'success' => 0,
         ];
 
         if (!empty($apiPayload)) {
@@ -111,6 +111,7 @@ class AjaxController extends CommonAjaxController
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
             $dataArray['html']    = $clientIntegration->getLogsJSON();
+            $dataArray['success'] = true;
         }
 
         return $this->sendJsonResponse($dataArray);
@@ -134,8 +135,9 @@ class AjaxController extends CommonAjaxController
 
         // default to empty
         $dataArray = [
-            'html'  => '',
-            'valid' => false,
+            'html'    => '',
+            'valid'   => false,
+            'success' => 0,
         ];
 
         if (!empty($filePayload)) {
@@ -157,6 +159,7 @@ class AjaxController extends CommonAjaxController
             ) : $translator->trans('mautic.contactclient.form.test_results.failed');
             $dataArray['error']   = $clientIntegration->getLogs('error');
             $dataArray['html']    = $clientIntegration->getLogsJSON();
+            $dataArray['success'] = true;
         }
 
         return $this->sendJsonResponse($dataArray);
@@ -173,6 +176,8 @@ class AjaxController extends CommonAjaxController
     {
         $dataArray = [
             'tokens'  => [],
+            'types'   => [],
+            'formats' => [],
             'success' => 0,
         ];
 
@@ -215,6 +220,7 @@ class AjaxController extends CommonAjaxController
         foreach ($fields as $field) {
             $fieldGroups[$field['group']][$field['alias']] = [
                 'value' => $field['label'],
+                'type'  => $field['type'],
                 'label' => $field['label'],
             ];
         }
@@ -224,10 +230,20 @@ class AjaxController extends CommonAjaxController
         $tokenHelper = $this->get('mautic.contactclient.helper.token');
         $tokenHelper->newSession(null, $contact, $payload);
 
-        $tokens = $tokenHelper->getContext(true);
+        $tokens = $tokenHelper->getContextLabeled();
         if ($tokens) {
             $dataArray['tokens']  = $tokens;
             $dataArray['success'] = true;
+            $types                = $tokenHelper->getContextTypes();
+            if ($types) {
+                $dataArray['types'] = $types;
+            }
+            $dataArray['formats'] = [
+                'date'       => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
+                'datetime'   => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
+                'time'       => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
+                'number'     => $tokenHelper->getFormatNumber(),
+            ];
         }
 
         return $this->sendJsonResponse($dataArray);

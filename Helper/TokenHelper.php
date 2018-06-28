@@ -42,6 +42,17 @@ class TokenHelper
     /** @var ContactClient */
     private $contactClient;
 
+    /** @var array Used to remember context data types that are not text (text being the default) */
+    private $conType = [];
+
+    /** @var array */
+    private $formatNumber = [
+        'lpad.2' => 'Pad up to 2 zeros on the left.',
+        'lpad.4' => 'Pad up to 4 zeros on the left.',
+        'rpad.2' => 'Pad up to 2 zeros on the right.',
+        'rpad.4' => 'Pad up to 4 zeros on the right.',
+    ];
+
     /**
      * TokenHelper constructor.
      *
@@ -80,6 +91,14 @@ class TokenHelper
         }
 
         $this->coreParametersHelper = $coreParametersHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormatNumber()
+    {
+        return $this->formatNumber;
     }
 
     /**
@@ -132,6 +151,9 @@ class TokenHelper
             }
             $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
             $this->setTimezones($tza, $tzb);
+        } else {
+            // Assume UTC for all (for the sake of token list by ajax)
+            $this->setTimezones();
         }
 
         return $this;
@@ -164,15 +186,18 @@ class TokenHelper
             return $this;
         }
         $context = [];
+        $conType = [];
 
         // Append contact ID.
         $contactId     = $contact->getId();
         $context['id'] = isset($contactId) ? $contactId : null;
+        $conType['id'] = 'number';
 
         // Append contact owner data.
         $owner                         = $contact->getOwner();
         $context['owner']              = [];
         $context['owner']['id']        = $owner ? $owner->getId() : null;
+        $conType['owner']['id']        = 'number';
         $context['owner']['username']  = $owner ? $owner->getUsername() : null;
         $context['owner']['firstName'] = $owner ? $owner->getFirstName() : null;
         $context['owner']['lastName']  = $owner ? $owner->getLastName() : null;
@@ -181,6 +206,7 @@ class TokenHelper
         // Append points value.
         $points            = $contact->getPoints();
         $context['points'] = isset($points) ? $points : null;
+        $conType['points'] = 'number';
 
         // Append IP Addresses.
         $context['ipAddresses'] = [];
@@ -194,11 +220,13 @@ class TokenHelper
         /** @var \DateTime $dateIdentified */
         $dateIdentified            = $contact->getDateIdentified();
         $context['dateIdentified'] = $dateIdentified ? $this->dateFormatHelper->format($dateIdentified) : null;
+        $conType['dateIdentified'] = 'datetime';
 
         // Add Modified date.
         /** @var \DateTime $dateModified */
         $dateModified            = $contact->getDateModified();
         $context['dateModified'] = $dateModified ? $this->dateFormatHelper->format($dateModified) : null;
+        $conType['dateModified'] = 'datetime';
 
         // Add DNC status.
         $context['doNotContacts'] = [];
@@ -211,6 +239,7 @@ class TokenHelper
             ];
             $context['doNotContact']                         = true;
         }
+        $conType['doNotContact'] = 'boolean';
 
         // Add UTM data.
         $utmTags            = $contact->getUtmTags();
@@ -251,16 +280,26 @@ class TokenHelper
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
                     $value = !empty($field['value']) ? $field['value'] : null;
-                    if ($value && isset($field['type']) && 'datetime' == $field['type']) {
+                    $type  = !empty($field['type']) ? $field['type'] : null;
+                    if ($value && 'datetime' == $type) {
                         $value = $this->dateFormatHelper->format($value);
                     }
                     if ('core' == $fgKey) {
                         $context[$fkey] = $value;
+                        if ($type) {
+                            $conType[$fkey] = $type;
+                        }
                     } else {
                         if (!isset($context[$fgKey])) {
                             $context[$fgKey] = [];
                         }
                         $context[$fgKey][$fkey] = $value;
+                        if ($type) {
+                            if (!isset($conType[$fgKey])) {
+                                $conType[$fgKey] = [];
+                            }
+                            $conType[$fgKey][$fkey] = $type;
+                        }
                     }
                 }
             }
@@ -271,6 +310,7 @@ class TokenHelper
 
         // Set the context to this contact.
         $this->context = array_merge($this->context, $context);
+        $this->conType = array_merge($this->conType, $conType);
 
         // Support multiple contacts for future batch processing.
         // $this->context['contacts']                 = $contacts;
@@ -499,23 +539,17 @@ class TokenHelper
     }
 
     /**
-     * @param bool $labeled
      * @param bool $flattened
      *
      * @return array
      */
-    public function getContext($labeled = false, $flattened = false)
+    public function getContext($flattened = false)
     {
         $result = [];
-        if ($labeled) {
-            $labels = $this->labels($this->context);
-            $this->flattenArray($labels, $result);
+        if ($flattened) {
+            $this->flattenArray($this->context, $result);
         } else {
-            if ($flattened) {
-                $this->flattenArray($this->context, $result);
-            } else {
-                $result = $this->context;
-            }
+            $result = $this->context;
         }
 
         return $result;
@@ -534,7 +568,39 @@ class TokenHelper
     }
 
     /**
-     * Given a token array, set the values to the labels of the fields if possible, or generate them.
+     * @param        $original
+     * @param array  $new
+     * @param string $delimiter
+     * @param string $keys
+     */
+    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
+    {
+        foreach ($original as $key => $value) {
+            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
+            if (is_array($value)) {
+                $this->flattenArray($value, $new, $delimiter, $k);
+            } else {
+                $new[$k] = $value;
+            }
+        }
+    }
+
+    /**
+     * Get the context array labels instead of values for use in token suggestions.
+     *
+     * @return array
+     */
+    public function getContextLabeled()
+    {
+        $result = [];
+        $labels = $this->describe($this->context);
+        $this->flattenArray($labels, $result);
+
+        return $result;
+    }
+
+    /**
+     * Given a token array, set the values to the labels for the context if possible.
      *
      * @param array  $array
      * @param string $keys
@@ -543,7 +609,7 @@ class TokenHelper
      *
      * @return array
      */
-    private function labels($array = [], $keys = '', $sort = true, $payload = false)
+    private function describe($array = [], $keys = '', $sort = true, $payload = false)
     {
         foreach ($array as $key => &$value) {
             if (is_array($value)) {
@@ -552,7 +618,7 @@ class TokenHelper
                     unset($array[$key]);
                     continue;
                 } else {
-                    $value = $this->labels($value, $keys.' '.$key, $sort, ($payload || 'payload' === $key));
+                    $value = $this->describe($value, $keys.' '.$key, $sort, ($payload || 'payload' === $key));
                 }
             } else {
                 if (is_bool($value) || null === $value || 0 === $value) {
@@ -585,21 +651,17 @@ class TokenHelper
     }
 
     /**
-     * @param        $original
-     * @param array  $new
-     * @param string $delimiter
-     * @param string $keys
+     * Get the context data types (that are not text) for use in token suggestions.
+     *
+     * @return array
      */
-    private function flattenArray($original, &$new = [], $delimiter = '.', $keys = '')
+    public function getContextTypes()
     {
-        foreach ($original as $key => $value) {
-            $k = strlen($keys) ? $keys.$delimiter.$key : $key;
-            if (is_array($value)) {
-                $this->flattenArray($value, $new, $delimiter, $k);
-            } else {
-                $new[$k] = $value;
-            }
-        }
+        $result = [];
+        $types  = $this->describe($this->conType);
+        $this->flattenArray($types, $result);
+
+        return $result;
     }
 
     /**

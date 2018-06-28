@@ -10,6 +10,8 @@ Mautic.contactclientFilePayloadPre = function () {
         }
         if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
             window.JSONEditor.tokenCache[tokenSource] = {};
+            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
+            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
             mQuery.ajax({
                 url: mauticAjaxUrl,
                 type: 'POST',
@@ -23,6 +25,12 @@ Mautic.contactclientFilePayloadPre = function () {
                 success: function (response) {
                     if (typeof response.tokens !== 'undefined') {
                         window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                    }
+                    if (typeof response.types !== 'undefined') {
+                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
+                    }
+                    if (typeof response.formats !== 'undefined') {
+                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
                     }
                 },
                 error: function (request, textStatus, errorThrown) {
@@ -126,7 +134,7 @@ Mautic.contactclientFilePayload = function () {
                 json: true
             },
             lint: 'json',
-            theme: 'material',
+            theme: 'cc',
             gutters: ['CodeMirror-lint-markers'],
             lintOnChange: true,
             matchBrackets: true,
@@ -283,7 +291,7 @@ Mautic.contactclientFilePayload = function () {
                                         filePayloadTestCodeMirror = CodeMirror($result[0], {
                                             value: response.html,
                                             mode: 'yaml',
-                                            theme: 'material',
+                                            theme: 'cc',
                                             gutters: [],
                                             lineNumbers: false,
                                             lineWrapping: true,

@@ -3,11 +3,6 @@
     margin-top: 42px;
 }
 
-.api_payload .CodeMirror,
-#contactclient_api_payload_codemirror .CodeMirror {
-    border: 0;
-}
-
 #api_payload_buttons {
     margin-bottom: -19px;
     position: relative;

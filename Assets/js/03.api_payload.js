@@ -8,8 +8,16 @@ Mautic.contactclientApiPayloadPre = function () {
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
         }
+        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
+            window.JSONEditor.tokenCacheTypes = {};
+        }
+        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
+            window.JSONEditor.tokenCacheFormats = {};
+        }
         if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
             window.JSONEditor.tokenCache[tokenSource] = {};
+            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
+            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
             mQuery.ajax({
                 url: mauticAjaxUrl,
                 type: 'POST',
@@ -23,6 +31,12 @@ Mautic.contactclientApiPayloadPre = function () {
                 success: function (response) {
                     if (typeof response.tokens !== 'undefined') {
                         window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                    }
+                    if (typeof response.types !== 'undefined') {
+                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
+                    }
+                    if (typeof response.formats !== 'undefined') {
+                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
                     }
                 },
                 error: function (request, textStatus, errorThrown) {
@@ -530,15 +544,12 @@ Mautic.contactclientApiPayload = function () {
         $apiPayload.css({'display': 'none'});
         apiPayloadCodeMirror = CodeMirror($apiPayloadCodeMirror[0], {
             value: $apiPayload.val(),
-            mode: {
-                name: 'javascript',
-                json: true
-            },
+            mode: 'json/mustache',
             lint: 'json',
-            theme: 'material',
+            theme: 'cc',
             gutters: ['CodeMirror-lint-markers'],
             lintOnChange: true,
-            matchBrackets: true,
+            matchBrackets: false,
             autoCloseBrackets: true,
             lineNumbers: true,
             extraKeys: {'Ctrl-Space': 'autocomplete'},
@@ -692,7 +703,7 @@ Mautic.contactclientApiPayload = function () {
                                         apiPayloadTestCodeMirror = CodeMirror($result[0], {
                                             value: response.html,
                                             mode: 'yaml',
-                                            theme: 'material',
+                                            theme: 'cc',
                                             gutters: [],
                                             lineNumbers: false,
                                             lineWrapping: true,

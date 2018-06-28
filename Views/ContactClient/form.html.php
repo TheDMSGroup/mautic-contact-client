@@ -23,7 +23,7 @@ $view['slots']->set('headerTitle', $header);
 
 echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js');
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
-
+echo $view['assets']->includeStylesheet('https://fonts.googleapis.com/css?family=Roboto+Mono');
 echo $view['form']->start($form);
 ?>
 
@@ -210,7 +210,7 @@ echo $view['form']->start($form);
                                         </div>
                                     </div>
                                     <?php echo $view['form']->row($form['api_payload']); ?>
-                                    <div id="api_payload_test_result" class="hide modal fade bg-white" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
+                                    <div id="api_payload_test_result" class="hide modal modal-lg fade bg-white" style="left: auto !important;" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                             <h4 class="modal-title" id="testResultsModalTitle">
