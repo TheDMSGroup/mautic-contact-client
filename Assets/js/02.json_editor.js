@@ -257,9 +257,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             start = cursor.ch,
                                             end = cursor.ch,
                                             formatsFound = false,
-                                            startRegex,
-                                            endRegex,
-                                            tagcount = 0;
+                                            startRegex = new RegExp('[\\s|\\w|{|\\.|\\|]'),
+                                            endRegex = new RegExp('[\\s|\\w|}|\\.|\\|]'),
+                                            tagCount = 0;
 
                                         // Handle end of token.
                                         if (start && (/[}]/.test(line.charAt(start - 1)))) {
@@ -271,18 +271,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 --start;
                                             }
                                         }
-                                        // Handle filtered tokens with spaces.
-                                        if (/{{.*[\||\.].*}}/.test(line)) {
-                                            startRegex = new RegExp('[\\s|\\w|{|\\.|\\|]');
-                                            endRegex = new RegExp('[\\s|\\w|}|\\.|\\|]');
-                                        }
-                                        else {
-                                            startRegex = new RegExp('[\\w|{|\\.|\\|]');
-                                            endRegex = new RegExp('[\\w|}|\\.|\\|]');
-                                        }
                                         while (
                                             start
-                                            && tagcount < 2
+                                            && tagCount < 2
                                             && (
                                                 startRegex.test(line.charAt(start - 1))
                                                 || (
@@ -291,18 +282,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 )
                                             )) {
                                             if (line.charAt(start - 1) === '{') {
-                                                ++tagcount;
+                                                ++tagCount;
                                             }
                                             --start;
                                         }
-                                        tagcount = 0;
+                                        tagCount = 0;
                                         while (
                                             end < line.length
-                                            && tagcount < 2
+                                            && tagCount < 2
                                             && endRegex.test(line.charAt(end))
                                             ) {
                                             if (line.charAt(end) === '}') {
-                                                ++tagcount;
+                                                ++tagCount;
                                             }
                                             ++end;
                                         }
@@ -323,29 +314,29 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                             mQuery.each(window.JSONEditor.tokenCacheFormats[tokenSource][type], function (key, value) {
                                                                 if (type === 'date' || type === 'datetime' || type === 'time') {
                                                                     if (value === 'PT1S') {
-                                                                        value = '59' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 59' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else if (value === 'PT1M') {
-                                                                        value = '45' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 45' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else if (value === 'PT1H') {
-                                                                        value = '12' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 12' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else if (value === 'P1D') {
-                                                                        value = '7' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 7' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else if (value === 'P1W') {
-                                                                        value = '4' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 4' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else if (value === 'P1M') {
-                                                                        value = '6' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 6' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else if (value === 'P1Y') {
-                                                                        value = '55' + delimiter + '(' + value + ')';
+                                                                        value = 'Example: 55' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else {
                                                                         var now = new Date();
-                                                                        value = now.format(value) + delimiter + '(' + value.replace(/\\/g, '') + ')';
+                                                                        value = 'Example: ' + now.format(value) + delimiter + '(' + value.replace(/\\/g, '') + ')';
                                                                     }
                                                                 }
                                                                 var delimitedKey = key.indexOf('.') !== -1 ? key : type + '.' + key;
