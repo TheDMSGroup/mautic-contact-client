@@ -411,9 +411,9 @@ class TokenHelper
     private function eventTokenEncode($values)
     {
         list($campaignId, $eventId, $contactId) = $values;
-        $campaignIdString = $this->baseEncode((int) $campaignId);
-        $eventIdString    = $this->baseEncode((int) $eventId);
-        $contactIdString  = $this->baseEncode((int) $contactId);
+        $campaignIdString                       = $this->baseEncode((int) $campaignId);
+        $eventIdString                          = $this->baseEncode((int) $eventId);
+        $contactIdString                        = $this->baseEncode((int) $contactId);
 
         return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
     }
@@ -518,7 +518,7 @@ class TokenHelper
      * Replace Tokens in a simple string using an array for context.
      *
      * @param      $string
-     * @param bool $force skip checking for a token
+     * @param bool $force  skip checking for a token
      *
      * @return string
      */

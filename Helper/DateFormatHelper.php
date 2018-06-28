@@ -45,6 +45,7 @@ class DateFormatHelper
         'U'         => 'U',
     ];
 
+    /** @var array */
     protected $formatsDate = [
         'iso8601'    => 'Y-m-d\TH:i:sO',
         'yyyy'       => 'Y',
@@ -76,6 +77,7 @@ class DateFormatHelper
         'w3c'        => 'Y-m-d\TH:i:sP',
     ];
 
+    /** @var array */
     protected $formatInterval = [
         'age'     => 'P1Y',
         'years'   => 'P1Y',
@@ -167,7 +169,7 @@ class DateFormatHelper
             if (substr($format, -$len) === $keyword) {
                 $op     = $keyword;
                 $format = substr($format, 0, strlen($format) - $len);
-                if (!$format && $op == 'age') {
+                if (!$format && 'age' == $op) {
                     $format = 'years';
                 }
                 break;
@@ -239,7 +241,7 @@ class DateFormatHelper
             foreach ($aggregateFormats as $key => $val) {
                 while ($position = strpos($format, $key)) {
                     while (isset($stack[$position])) {
-                        $position++;
+                        ++$position;
                     }
                     $stack[$position] = $val;
                 }
@@ -329,7 +331,7 @@ class DateFormatHelper
         // Add other common suggestions
         foreach ($this->formatInterval as $key => $value) {
             foreach (['till', 'since'] as $op) {
-                if ($key == 'age') {
+                if ('age' == $key) {
                     $op = '';
                 }
                 $formats[$key.$op] = $value;
@@ -374,7 +376,7 @@ class DateFormatHelper
                 }
             }
             foreach (['till', 'since'] as $op) {
-                if ($key == 'age') {
+                if ('age' == $key) {
                     $op = '';
                 }
                 $formats[$key.$op] = $value;

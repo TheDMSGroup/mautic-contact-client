@@ -239,9 +239,9 @@ class AjaxController extends CommonAjaxController
                 $dataArray['types'] = $types;
             }
             $dataArray['formats'] = [
-                'date'     => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
-                'datetime' => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
-                'time'     => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
+                'date'       => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
+                'datetime'   => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
+                'time'       => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
                 'number'     => $tokenHelper->getFormatNumber(),
             ];
         }
