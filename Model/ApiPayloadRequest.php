@@ -279,7 +279,7 @@ class ApiPayloadRequest
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required API template field "'.$field->key.'" is empty based on "'.$field->value.'"',
+                        'A required API field "'.$field->key.'" is empty based on "'.$field->value.'"',
                         0,
                         null,
                         Stat::TYPE_FIELDS,
