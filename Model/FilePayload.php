@@ -517,7 +517,7 @@ class FilePayload
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
-                        'A required file field is missing or empty: '.$field->key,
+                        'A required file field "'.$field->key.'" is empty based on "'.$field->value.'"',
                         0,
                         null,
                         Stat::TYPE_FIELDS,
