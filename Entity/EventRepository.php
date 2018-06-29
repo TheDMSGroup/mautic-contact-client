@@ -84,11 +84,12 @@ class EventRepository extends CommonRepository
                 );
             } else {
                 $expr = $query->expr()->orX(
-                    $query->expr()->eq('c.type', $options['search']),
+                    $query->expr()->eq('c.type', ':search'),
                     $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%'))
                 );
             }
             $query->andWhere($expr);
+            $query->setParameter('search', $options['search']);
         }
 
         if (!empty($options['fromDate']) && !empty($options['toDate'])) {
