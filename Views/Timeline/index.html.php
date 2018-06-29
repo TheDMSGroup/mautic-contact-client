@@ -38,14 +38,6 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
                         <i class="the-icon fa fa-search fa-fw"></i>
                     </button>
                 </div>
-
-                <div class="input-group-btn" style="width:auto;font-size:1em;padding-left:4px;"
-                ">
-                    <input id="include-logs" type="checkbox"
-                           title="Apply search term to verbose logs - may cause unexpected results." name="logs"
-                           class="bdr-w-0">
-                    <label style="padding:4px;" for="include-logs">Apply search term to verbose logs.</label>
-                </div>
             </div>
         </div>
 

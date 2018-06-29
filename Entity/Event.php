@@ -77,9 +77,10 @@ class Event
 
         $builder->setTable('contactclient_events')
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\EventRepository')
-            // ->addIndex(['type', 'contactclient_id', 'contact_id'], 'event_contactclient_contact')
             ->addIndex(['type', 'contact_id'], 'type_contact')
+            ->addIndex(['type', 'message'], 'type_message')
             ->addIndex(['contact_id'], 'contact_id')
+            ->addIndex(['contactclient_id', 'date_added'], 'contactclient_id_date_added')
             ->addIndex(['date_added'], 'date_added');
 
         $builder->addId();
