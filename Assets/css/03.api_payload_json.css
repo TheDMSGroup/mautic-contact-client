@@ -131,21 +131,10 @@
     pointer-events: none;
 }
 
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] .tag-editor .tag-editor-tag.normal {
-    color: #fff;
-}
-
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul {
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > .CodeMirror {
     background: none;
     border: 0;
-}
-
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul .tag-editor-tag {
-    border-radius: 3px;
-}
-
-.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > ul .tag-editor-delete {
-    display: none;
+    color: #fff;
 }
 
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schematype="array"][data-schemapath="root.operations"].col-md-12 {
