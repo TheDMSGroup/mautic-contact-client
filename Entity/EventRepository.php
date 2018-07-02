@@ -78,19 +78,18 @@ class EventRepository extends CommonRepository
         }
 
         if (isset($options['search']) && $options['search']) {
-            if (isset($options['logs']) && $options['logs']) {
+            if (is_numeric($options['search']) && !$contactId) {
                 $expr = $query->expr()->orX(
-                    $query->expr()->like('c.type', $query->expr()->literal('%'.$options['search'].'%')),
-                    $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%')),
-                    $query->expr()->like('c.logs', $query->expr()->literal('%'.$options['search'].'%'))
+                    $query->expr()->eq('c.contact_id', (int) $options['search'])
                 );
             } else {
                 $expr = $query->expr()->orX(
-                    $query->expr()->like('c.type', $query->expr()->literal('%'.$options['search'].'%')),
+                    $query->expr()->eq('c.type', ':search'),
                     $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%'))
                 );
             }
             $query->andWhere($expr);
+            $query->setParameter('search', $options['search']);
         }
 
         if (!empty($options['fromDate']) && !empty($options['toDate'])) {
