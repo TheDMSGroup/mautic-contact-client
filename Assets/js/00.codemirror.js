@@ -21,20 +21,27 @@ var CodeMirrorMustacheOverlay = function (config, parserConfig) {
                     }
                     if (ch === '}' && stream.next() === '}') {
                         stream.eat('}');
-                        if (!window.CodeMirrorMustacheOverlayTokens.length && typeof window.JSONEditor.tokenCache['plugin:mauticContactClient:getTokens'] !== 'undefined') {
+                        if (
+                            !window.CodeMirrorMustacheOverlayTokens.length
+                            && typeof window.JSONEditor.tokenCache !== 'undefined'
+                            && typeof window.JSONEditor.tokenCache['plugin:mauticContactClient:getTokens'] !== 'undefined'
+                        ) {
                             mQuery.each(window.JSONEditor.tokenCache['plugin:mauticContactClient:getTokens'], function (key, value) {
                                 window.CodeMirrorMustacheOverlayTokens.push(key);
                             });
                         }
                         var parts = word.split('|'),
                             token = parts[0].trim(),
-                            tokenNoOpenClose = token.replace('#','').replace('/','');
-
-                        if (window.CodeMirrorMustacheOverlayTokens.length && window.CodeMirrorMustacheOverlayTokens.indexOf(tokenNoOpenClose) === -1) {
+                            tokenNoOpenClose = token.replace('#', '').replace('/', '');
+                        if (
+                            window.CodeMirrorMustacheOverlayTokens.length
+                            && window.CodeMirrorMustacheOverlayTokens.indexOf(tokenNoOpenClose) === -1
+                        ) {
                             return 'mustache-danger';
                         }
                         else if (typeof parts[1] !== 'undefined' || token[0] === '#' || token[0] === '/') {
-                            // Indicates a special token use (opening/closing/filter)
+                            // Indicates a special token use
+                            // (opening/closing/filter)
                             return 'mustache-warn';
                         }
                         else {
