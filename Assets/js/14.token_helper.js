@@ -1,4 +1,4 @@
-// A date/time format helper modal to work in tandem with DateFormatHelper.php
+/* // A date/time format helper modal to work in tandem with DateFormatHelper.php
 Mautic.contactclientTokenHelper = function (tokenSource, title, token, helper, type, field, selection) {
     // Check that we don't already have a modal running, recreate?
     mQuery('#tokenHelper').remove();
@@ -101,4 +101,4 @@ Mautic.contactclientTokenHelper = function (tokenSource, title, token, helper, t
             });
         })
         .modal('show');
-};
+}; */

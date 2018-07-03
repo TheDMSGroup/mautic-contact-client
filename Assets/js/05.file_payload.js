@@ -8,6 +8,12 @@ Mautic.contactclientFilePayloadPre = function () {
         if (typeof window.JSONEditor.tokenCache === 'undefined') {
             window.JSONEditor.tokenCache = {};
         }
+        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
+            window.JSONEditor.tokenCacheTypes = {};
+        }
+        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
+            window.JSONEditor.tokenCacheFormats = {};
+        }
         if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
             window.JSONEditor.tokenCache[tokenSource] = {};
             window.JSONEditor.tokenCacheTypes[tokenSource] = {};
@@ -18,7 +24,7 @@ Mautic.contactclientFilePayloadPre = function () {
                 data: {
                     action: tokenSource,
                     apiPayload: mQuery('#contactclient_api_payload:first').val(),
-                    filePayload: $filePayload
+                    filePayload: $filePayload.val()
                 },
                 cache: true,
                 dataType: 'json',

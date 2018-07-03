@@ -160,14 +160,14 @@ class TokenHelper
     }
 
     /**
-     * @param string $timzoneSource
-     * @param string $timzoneDestination
+     * @param string $timezoneSource
+     * @param string $timezoneDestination
      *
      * @return $this
      */
-    public function setTimezones($timzoneSource = 'UTC', $timzoneDestination = 'UTC')
+    public function setTimezones($timezoneSource = 'UTC', $timezoneDestination = 'UTC')
     {
-        $this->dateFormatHelper = new DateFormatHelper($timzoneSource, $timzoneDestination);
+        $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
         $this->engine->addHelper('date', $this->dateFormatHelper);
 
         return $this;
@@ -281,8 +281,12 @@ class TokenHelper
                 foreach ($fieldGroup as $fkey => $field) {
                     $value = !empty($field['value']) ? $field['value'] : null;
                     $type  = !empty($field['type']) ? $field['type'] : null;
-                    if ($value && 'datetime' == $type) {
-                        $value = $this->dateFormatHelper->format($value);
+                    if ($value && in_array($type, ['datetime', 'date', 'time'])) {
+                        // Soft support for labels/values as dates/times.
+                        @$newValue = $this->dateFormatHelper->format($value);
+                        if (!empty($newValue)) {
+                            $value = $newValue;
+                        }
                     }
                     if ('core' == $fgKey) {
                         $context[$fkey] = $value;

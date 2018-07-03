@@ -951,12 +951,12 @@ class ClientIntegration extends AbstractIntegration
                             'class'   => 'btn btn-default',
                             'tooltip' => 'mautic.contactclient.integration.overrides.tooltip',
                             // Shim to get our javascript over the border and into Integration land.
-                            'onclick' => "if (typeof Mautic.contactclientIntegration === 'undefined') {".
+                            'onclick' => "if (typeof Mautic.contactclientIntegrationPre === 'undefined') {".
                                 "    mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', function(){".
-                                '        Mautic.contactclientIntegration();'.
+                                '        Mautic.contactclientIntegrationPre();'.
                                 '    });'.
                                 '} else {'.
-                                '    Mautic.contactclientIntegration();'.
+                                '    Mautic.contactclientIntegrationPre();'.
                                 '}',
                             'icon'    => 'fa fa-wrench',
                         ],
