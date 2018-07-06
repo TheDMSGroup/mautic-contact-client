@@ -2,7 +2,7 @@
 
 /*
  * @copyright   2018 Mautic Contributors. All rights reserved
- * @author      Mautic, Inc
+ * @author      Digital Media Solutions, LLC
  *
  * @link        http://mautic.org
  *
@@ -185,7 +185,7 @@ class FilterHelper
             $contextValue = $contextValue ? '"'.$contextValue.'"' : 'empty';
             $ruleValue    = $ruleValue ? '"'.$ruleValue.'"' : 'empty';
             $this->setError(
-                $rule->field.' must '.rtrim($rule->operator, 's').' '.$ruleValue.' (value was '.$contextValue.').'
+                $rule->field.' must '.rtrim($rule->operator, 's').' '.$ruleValue.' (value was '.trim($contextValue).').'
             );
         }
 
