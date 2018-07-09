@@ -571,34 +571,42 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     // 8 elements. Use "format": "select" to activate.
     if (schema.format === 'select') {
         // Get the element based on schema path.
-        mQuery('select[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:not(.chosen-checked)').each(function () {
-            if (mQuery(this).children('option').length > 8) {
-                var $select = mQuery(this),
-                    changed = false;
-                $select.chosen({
-                    width: '100%',
-                    allow_single_deselect: false,
-                    include_group_label_in_selected: false,
-                    search_contains: true
-                }).change(function (e) {
-                    // Feed back the change to JSONEditor (little tricky).
-                    if (!changed) {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        if ('createEvent' in document) {
-                            changed = true;
-                            var event = document.createEvent('HTMLEvents');
-                            event.initEvent('change', false, true);
-                            $select[0].dispatchEvent(event);
+        mQuery('select[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']').each(function () {
+            var $select = mQuery(this),
+                changed = false;
+            if ($select.children('option').length > 8) {
+                if (!$select.hasClass('chosen-checked')) {
+                    $select.chosen({
+                        width: '100%',
+                        allow_single_deselect: false,
+                        include_group_label_in_selected: false,
+                        search_contains: true
+                    }).change(function (e) {
+                        // Feed back the change to JSONEditor (little tricky).
+                        if (!changed) {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            if ('createEvent' in document) {
+                                changed = true;
+                                var event = document.createEvent('HTMLEvents');
+                                event.initEvent('change', false, true);
+                                $select[0].dispatchEvent(event);
+                            }
+                            else {
+                                $select[0].fireEvent('onchange');
+                            }
                         }
                         else {
-                            $select[0].fireEvent('onchange');
+                            changed = false;
                         }
-                    }
-                    else {
-                        changed = false;
-                    }
-                });
+                    });
+                } else {
+                    // Need to re-instantiate chosen.
+                    $select.trigger('chosen:updated');
+                }
+            } else {
+                // If chosen was previously used drop it.
+                $select.trigger('chosen:updated');
             }
         }).addClass('chosen-checked');
     }
