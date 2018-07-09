@@ -1,7 +1,7 @@
 // File Payload field.
 // File Payload JSON Schema.
 Mautic.contactclientFilePayloadPre = function () {
-    var $filePayload = mQuery('#contactclient_file_payload:first:not(.hide):not(.payload-checked)');
+    var $filePayload = mQuery('#contactclient_file_payload:first:not(.payload-checked)');
     if ($filePayload.length) {
 
         var tokenSource = 'plugin:mauticContactClient:getTokens';
@@ -63,7 +63,7 @@ Mautic.contactclientFilePayloadPre = function () {
 };
 Mautic.contactclientFilePayload = function () {
 
-    var $filePayload = mQuery('#contactclient_file_payload:first:not(.hide)');
+    var $filePayload = mQuery('#contactclient_file_payload:first');
     if ($filePayload.length) {
 
         var filePayloadCodeMirror,

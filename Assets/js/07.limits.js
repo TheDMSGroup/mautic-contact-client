@@ -1,6 +1,6 @@
 // Limits field.
 Mautic.contactclientLimits = function () {
-    var $limits = mQuery('#contactclient_limits:not(.hide):first');
+    var $limits = mQuery('#contactclient_limits:first:not(.limits-checked)');
     if ($limits.length) {
 
         var limitsJSONEditor;
@@ -65,7 +65,7 @@ Mautic.contactclientLimits = function () {
                     }
                 });
 
-                $limits.addClass('hide');
+                $limits.addClass('limits-checked');
                 $limitsJSONEditor.show();
             }
         });

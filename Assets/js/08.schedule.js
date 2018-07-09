@@ -1,8 +1,8 @@
 // Schedule - Hours of Operation.
 Mautic.contactclientSchedule = function () {
 
-    var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget:not(.hide):first'),
-        $scheduleHoursSource = mQuery('#contactclient_schedule_hours:not(.hide):first');
+    var $scheduleHoursTarget = mQuery('#contactclient_schedule_hours_widget:first'),
+        $scheduleHoursSource = mQuery('#contactclient_schedule_hours:first:not(.schedule-checked)');
     if ($scheduleHoursTarget.length && $scheduleHoursSource.length) {
 
         var operationTime = $scheduleHoursSource.val();
@@ -78,14 +78,14 @@ Mautic.contactclientSchedule = function () {
             '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-moon-o"></i></span><input type="text" name="endTime" class="mini-time form-control operationTimeTill" value=""></div>' +
             '</div></div>'
         });
-        $scheduleHoursSource.addClass('hide');
+        $scheduleHoursSource.addClass('schedule-checked');
         mQuery('#contactclient_schedule_hours_widget .operationState, #contactclient_schedule_hours_widget input').change(function () {
             mQuery('#contactclient_schedule_hours').val(JSON.stringify(scheduleHours.serialize(), null, 2));
         });
 
     }
 
-    var $exclusions = mQuery('#contactclient_schedule_exclusions:first');
+    var $exclusions = mQuery('#contactclient_schedule_exclusions:first:not(.exclusions-checked)');
     if ($exclusions.length) {
         var exclusionsJSONEditor;
 
@@ -138,7 +138,7 @@ Mautic.contactclientSchedule = function () {
                     }
                 });
 
-                $exclusions.addClass('hide');
+                $exclusions.addClass('exclusions-checked');
                 $exclusionsJSONEditor.show();
             }
         });

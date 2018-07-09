@@ -51,7 +51,6 @@ The Timezone of the Client will always be applied if provided.... [more](./DATES
 * [HTMLHint](https://github.com/yaniswang/HTMLHint)
 * [Interact.js](https://github.com/taye/interact.js)
 * [jQuery QueryBuilder](https://github.com/mistic100/jQuery-QueryBuilder)
-* [jQuery TagEditor](https://github.com/heathdutton/jQuery-tagEditor)
 * [jQuery Timepicker](https://github.com/jonthornton/jquery-timepicker)
 * [jQuery BusinessHours](https://github.com/gEndelf/jquery.businessHours)
 * [js-yaml](https://github.com/nodeca/js-yaml)

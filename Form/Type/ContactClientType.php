@@ -78,7 +78,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.api_payload',
                 'label_attr'  => ['class' => 'control-label api-payload'],
                 'attr'        => [
-                    'class' => 'form-control api-payload',
+                    'class' => 'form-control api-payload hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -93,7 +93,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.file_payload',
                 'label_attr'  => ['class' => 'control-label file-payload'],
                 'attr'        => [
-                    'class' => 'form-control file-payload',
+                    'class' => 'form-control file-payload hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -137,7 +137,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.attribution.settings',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control',
+                    'class' => 'form-control hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -152,7 +152,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.duplicate',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control',
+                    'class' => 'form-control hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -167,7 +167,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.exclusive',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control',
+                    'class' => 'form-control hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -182,7 +182,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.filter',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control',
+                    'class' => 'form-control hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -197,7 +197,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.limits',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control',
+                    'class' => 'form-control hide',
                     'rows'  => 12,
                 ],
                 'required'    => false,
@@ -228,7 +228,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.schedule_hours',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class'   => 'form-control',
+                    'class'   => 'form-control hide',
                     'rows'    => 12,
                     'tooltip' => 'mautic.contactclient.form.schedule_hours.tooltip',
                 ],
@@ -244,7 +244,7 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.schedule_exclusions',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class'   => 'form-control',
+                    'class'   => 'form-control hide',
                     'rows'    => 12,
                     'tooltip' => 'mautic.contactclient.form.schedule_exclusions.tooltip',
                 ],

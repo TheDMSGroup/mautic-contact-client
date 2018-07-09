@@ -1,6 +1,6 @@
 // Attribition (cost/revenue/finances)
 Mautic.contactclientAttribution = function () {
-    var $attribution = mQuery('#contactclient_attribution_settings:not(.hide):first');
+    var $attribution = mQuery('#contactclient_attribution_settings:first:not(.attribution-checked)');
     if ($attribution.length) {
 
         /**
@@ -139,7 +139,7 @@ Mautic.contactclientAttribution = function () {
                     }
                 });
 
-                $attribution.addClass('hide');
+                $attribution.addClass('attribution-checked');
                 $attributionJSONEditor.show();
                 mQuery('label[for=contactclient_attribution_settings]').addClass('hide');
             }

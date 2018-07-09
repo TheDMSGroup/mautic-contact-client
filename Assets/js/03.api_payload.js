@@ -1,7 +1,7 @@
 // API Payload field.
 // API Payload JSON Schema.
 Mautic.contactclientApiPayloadPre = function () {
-    var $apiPayload = mQuery('#contactclient_api_payload:first:not(.hide):not(.payload-checked)');
+    var $apiPayload = mQuery('#contactclient_api_payload:first:not(.payload-checked)');
     if ($apiPayload.length) {
 
         var tokenSource = 'plugin:mauticContactClient:getTokens';
@@ -64,7 +64,7 @@ Mautic.contactclientApiPayloadPre = function () {
 };
 Mautic.contactclientApiPayload = function () {
 
-    var $apiPayload = mQuery('#contactclient_api_payload:first:not(.hide)');
+    var $apiPayload = mQuery('#contactclient_api_payload:first');
     if ($apiPayload.length) {
 
         var apiPayloadCodeMirror,
