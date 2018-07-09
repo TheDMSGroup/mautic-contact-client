@@ -631,7 +631,11 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     return val + '%';
                 };
             }
-            var slider = new Slider(mQuery(this)[0], options);
+
+            var $sliderValue = mQuery('<span class="slidervalue">' + value + '%' + '</span>')
+                    .insertAfter($slider.parent().find('span:first')),
+                slider = new Slider(mQuery(this)[0], options);
+
             slider.on('change', function (o) {
                 if ('createEvent' in document) {
                     var event = document.createEvent('HTMLEvents');
@@ -641,6 +645,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 else {
                     $slider[0].fireEvent('onchange');
                 }
+                $sliderValue.text(o.newValue + '%');
             });
         }).addClass('slider-checked');
     }
