@@ -6,6 +6,7 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                 mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactLedgerBundle/Assets/css/datatables.min.css', function () {
                     mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactLedgerBundle/Assets/css/dataTables.fontAwesome.css', function () {
                         // dependent files loaded, now get the data and render
+                        var sortCol = (tableData.labels[1] ? 1 : 0);
                         mQuery('#contactClientEventsTable').DataTable({
                             language: {
                                 emptyTable: 'No results found for this date range and filters.'
@@ -14,7 +15,7 @@ Mautic.loadContactClientEventsDatatable = function (tableData) {
                             autoFill: true,
                             columns: tableData.labels,
                             //bSort : false,
-                            order: [1, 'asc'],
+                            order: [sortCol, 'asc'],
                             bLengthChange: true,
                             dom: '<<lBf>rtip>',
                             buttons: [
