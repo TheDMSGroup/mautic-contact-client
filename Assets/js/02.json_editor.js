@@ -496,7 +496,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     },
                     // Wait till the textarea is visible before codemirror.
                     pollVisibility = setInterval(function () {
-                        if ($input.is(':visible')) {
+                        if (!$input.length) {
+                            clearInterval(pollVisibility);
+                        } else if ($input.is(':visible')) {
                             clearInterval(pollVisibility);
                             var cm = CodeMirror.fromTextArea($input[0], options);
                             cm.on('change', function (cm) {

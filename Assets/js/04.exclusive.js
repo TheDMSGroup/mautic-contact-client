@@ -1,6 +1,6 @@
 // Exclusive field.
 Mautic.contactclientExclusive = function () {
-    var $exclusive = mQuery('#contactclient_exclusive:not(.hide):first');
+    var $exclusive = mQuery('#contactclient_exclusive:first:not(.exclusive-checked)');
     if ($exclusive.length) {
 
         var exclusiveJSONEditor;
@@ -53,9 +53,8 @@ Mautic.contactclientExclusive = function () {
                     }
                 });
 
-                $exclusive.addClass('hide');
+                $exclusive.addClass('exclusive-checked');
                 $exclusiveJSONEditor.show();
-                // mQuery('label[for=contactclient_exclusive]').addClass('hide');
             }
         });
 
