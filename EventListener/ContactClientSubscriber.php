@@ -176,8 +176,13 @@ class ContactClientSubscriber extends CommonSubscriber
         $types               = $stat->getAllTypes();
         $options             = $event->getQueryOptions();
         $chartFilter         = $this->request->request->get('chartfilter');
-        $options['fromDate'] = \DateTime::createFromFormat('M j, Y', $chartFilter['date_from']);
-        $options['toDate']   = \DateTime::createFromFormat('M j, Y', $chartFilter['date_to']);
+        if (isset($chartFilter['date_from'])) {
+            $options['fromDate'] = \DateTime::createFromFormat('M j, Y', $chartFilter['date_from']);
+            $options['toDate']   = \DateTime::createFromFormat('M j, Y', $chartFilter['date_to']);
+        } else {
+            $options['fromDate'] = new \DateTime($this->params['default_daterange_filter']);
+            $options['toDate']   = new \DateTime();
+        }
         foreach ($types as $eventTypeKey) {
             $eventTypeName = ucwords($eventTypeKey);
             $event->addEventType($eventTypeKey, $eventTypeName);
