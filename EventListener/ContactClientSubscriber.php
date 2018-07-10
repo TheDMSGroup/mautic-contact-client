@@ -172,9 +172,12 @@ class ContactClientSubscriber extends CommonSubscriber
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->em->getRepository('MauticContactClientBundle:Event');
 
-        $stat    = new Stat();
-        $types   = $stat->getAllTypes();
-        $options = $event->getQueryOptions();
+        $stat                = new Stat();
+        $types               = $stat->getAllTypes();
+        $options             = $event->getQueryOptions();
+        $chartFilter         = $this->request->request->get('chartfilter');
+        $options['fromDate'] = \DateTime::createFromFormat('M j, Y', $chartFilter['date_from']);
+        $options['toDate']   = \DateTime::createFromFormat('M j, Y', $chartFilter['date_to']);
         foreach ($types as $eventTypeKey) {
             $eventTypeName = ucwords($eventTypeKey);
             $event->addEventType($eventTypeKey, $eventTypeName);
