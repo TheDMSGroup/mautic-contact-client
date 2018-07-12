@@ -26,11 +26,13 @@ return [
                 'controller' => 'MauticContactClientBundle:ContactClient:execute',
             ],
             'mautic_contactclient_timeline_action' => [
-                'path'         => '/s/contactclient/timeline/{contactClientId}/{page}',
+                'path'         => '/contactclient/timeline/{contactClientId}/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
-                    //'contactClientId' => '\d+',
-                    'objectId' => '\d+',
+                    'contactClientId' => '\d+',
+                ],
+                'defaults'     => [
+                    'page' => '1'
                 ],
             ],
             'mautic_contactclient_timeline_export' => [
