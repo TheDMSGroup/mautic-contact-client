@@ -150,7 +150,7 @@ class EventRepository extends CommonRepository
         if ($count) {
             $query->select('COUNT(c.id) as count');
         } else {
-            $query->select('c.type, c.message, c.logs, c.date_added, c.contact_id');
+            $query->select('c.type, c.message, c.logs, c.date_added, c.contact_id, c.utm_source');
         }
 
         $query->where(

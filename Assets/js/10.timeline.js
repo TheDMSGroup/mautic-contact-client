@@ -143,7 +143,8 @@ mQuery(function () {
 
 Mautic.contactClientTimelineExport = function (contactClientId) {
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/timeline/export/' + contactClientId;
+    var src = mauticBaseUrl + 's/contactclient/timeline/export/' + contactClientId + '?timelineFrom=' + mQuery('#chartfilter_date_from').val() + '&timelineTo=' + mQuery('#chartfilter_date_to').val();
+
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);

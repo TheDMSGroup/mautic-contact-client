@@ -62,6 +62,11 @@ class Event
      */
     private $dateAdded;
 
+    /**
+     * @var string
+     */
+    protected $utmSource;
+
     public function __construct()
     {
         $this->dateAdded = new \Datetime();
@@ -111,6 +116,8 @@ class Event
         $builder->addDateAdded();
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
+
+        $builder->addNamedField('utmSource', 'string', 'utm_source');
     }
 
     /**
@@ -271,4 +278,24 @@ class Event
 
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    public function getUtmSource()
+    {
+        return $this->utmSource;
+    }
+
+    /**
+     * @param string $utmSource
+     * @return Event
+     */
+    public function setUtmSource($utmSource)
+    {
+        $this->utmSource = $utmSource;
+
+        return $this;
+    }
+
 }

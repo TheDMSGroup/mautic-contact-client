@@ -217,11 +217,13 @@ class TimelineController extends CommonController
 
         // send a stream csv file of the timeline
         $name    = 'ContactClientExport';
+        // TODO: make this list dynamic based on columns retrieved by the SELECT c.*
         $headers = [
             'type',
             'message',
             'date_added',
             'contact_id',
+            'utm_source',
             'request_format',
             'request_method',
             'request_headers',
@@ -284,26 +286,10 @@ class TimelineController extends CommonController
      */
     private function getDateParams()
     {
-        $params    = [];
-        $lastMonth = new \DateTime();
-        $lastMonth->sub(new \DateInterval('P30D'));
-        $today = new \DateTime();
-
-        $from = new \DateTime(
-            $this->request->getSession()
-                ->get('mautic.dashboard.date.from', $lastMonth->format('Y-m-d 00:00:00'))
-        );
-
-        $to = new \DateTime(
-            $this->request->getSession()
-                ->get('mautic.dashboard.date.to', $today->format('Y-m-d H:i:s'))
-        );
-
-        $params['fromDate'] = $from;
-
-        $params['toDate'] = $to;
-
-        return $params;
+        return [
+            'fromDate' => \DateTime::createFromFormat('M j, Y', $this->request->query->get('timelineFrom')),
+            'toDate'   => \DateTime::createFromFormat('M j, Y', $this->request->query->get('timelineTo')),
+        ];
     }
 
     /**

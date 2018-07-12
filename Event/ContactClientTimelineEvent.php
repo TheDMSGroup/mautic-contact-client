@@ -659,4 +659,40 @@ class ContactClientTimelineEvent extends Event
     {
         $this->fetchTypesOnly = true;
     }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getDateFrom()
+    {
+        return $this->dateFrom;
+    }
+
+    /**
+     * @param \DateTime|null $dateFrom
+     * @return ContactClientTimelineEvent
+     */
+    public function setDateFrom($dateFrom)
+    {
+        $this->dateFrom = $dateFrom;
+        return $this;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getDateTo()
+    {
+        return $this->dateTo;
+    }
+
+    /**
+     * @param \DateTime|null $dateTo
+     * @return ContactClientTimelineEvent
+     */
+    public function setDateTo($dateTo)
+    {
+        $this->dateTo = $dateTo;
+        return $this;
+    }
 }

@@ -183,6 +183,9 @@ class ContactClientSubscriber extends CommonSubscriber
             $options['fromDate'] = new \DateTime($this->params['default_daterange_filter']);
             $options['toDate']   = new \DateTime();
         }
+        $event->setDateFrom($options['fromDate']);
+        $event->setDateTo($options['toDate']);
+
         foreach ($types as $eventTypeKey) {
             $eventTypeName = ucwords($eventTypeKey);
             $event->addEventType($eventTypeKey, $eventTypeName);
@@ -229,6 +232,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         'icon'            => 'fa-plus-square-o',
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],
+                        'utmSource'       => $row['utm_source'],
                     ]
                 );
             }

@@ -249,6 +249,7 @@ class ContactClientModel extends FormModel
      * @param null          $logs
      * @param null          $message
      * @param null          $integration_entity_id
+     * @param string|null   $utm_source
      */
     public function addEvent(
         ContactClient $contactClient,
@@ -256,7 +257,8 @@ class ContactClientModel extends FormModel
         $contact = null,
         $logs = null,
         $message = null,
-        $integration_entity_id = null
+        $integration_entity_id = null,
+        $utm_source = null
     ) {
         $event = new EventEntity();
         $event->setContactClient($contactClient)
@@ -274,6 +276,9 @@ class ContactClientModel extends FormModel
         if ($integration_entity_id) {
             $event->setIntegrationEntityId($integration_entity_id);
         }
+        if ($utm_source) {
+            $event->setUtmSource($utm_source);
+        }
 
         $this->getEventRepository()->saveEntity($event);
     }
@@ -281,7 +286,7 @@ class ContactClientModel extends FormModel
     /**
      * {@inheritdoc}
      *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\EventRepository
      */
     public function getEventRepository()
     {
@@ -601,6 +606,8 @@ class ContactClientModel extends FormModel
             'page'     => $page,
             'limit'    => $limit,
             'maxPages' => $event->getMaxPage(),
+            'dateFrom' => $event->getDateFrom(),
+            'dateTo'   => $event->getDateTo(),
         ];
 
         return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];
