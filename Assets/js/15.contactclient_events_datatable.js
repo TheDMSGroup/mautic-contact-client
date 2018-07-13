@@ -1,6 +1,6 @@
-Mautic.loadContactClientEventsDatatable = function () {
-    var $sourcetarget = mQuery('#contactClientEventsTable');
-    if ($sourcetarget.length) {
+Mautic.contactclientEventsDatatable = function () {
+    var $sourceTarget = mQuery('#contactClientEventsTable');
+    if ($sourceTarget.length) {
         mQuery('#contactClientEventsTable:first:not(.table-initialized)').addClass('table-initialized').each(function () {
             // dependent files loaded, now get the data and render
             var sortCol = (tableData.labels[1] ? 1 : 0);
@@ -82,10 +82,3 @@ Mautic.loadContactClientEventsDatatable = function () {
         });
     }
 };
-
-mQuery(document).ready(function () {
-    if (!mQuery('#contactClientEventsTable').hasClass('table-done')) {
-        Mautic.loadContactClientEventsDatatable(tableData);
-    }
-});
-

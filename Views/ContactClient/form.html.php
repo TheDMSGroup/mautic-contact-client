@@ -21,7 +21,7 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', 'Mautic.contactclientOnLoad', 'Mautic.contactclientOnLoad');
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', 'contactclientOnLoad', 'contactclientOnLoad');
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
 echo $view['assets']->includeStylesheet('https://fonts.googleapis.com/css?family=Roboto+Mono');
 echo $view['form']->start($form);

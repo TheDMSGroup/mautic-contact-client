@@ -16,6 +16,6 @@ Mautic.contactclientOnLoad = function () {
         Mautic.contactclientTimelineOnLoad();
     }
     if (mQuery('#contactClientEventsTable').length) {
-        Mautic.loadContactClientEventsDatatable();
+        Mautic.contactclientEventsDatatable();
     }
 };

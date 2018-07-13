@@ -12,7 +12,7 @@ $view->extend('MauticCoreBundle:Default:content.html.php');
 $view['slots']->set('mauticContent', 'contactclient');
 $view['slots']->set('headerTitle', $item->getName());
 
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js');
+echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js', 'contactclientOnLoad', 'contactclientOnLoad');
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
 
 $view['slots']->set(
