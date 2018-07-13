@@ -26,7 +26,7 @@ return [
                 'controller' => 'MauticContactClientBundle:ContactClient:execute',
             ],
             'mautic_contactclient_timeline_action' => [
-                'path'         => '/contactclient/timeline/{contactClientId}/{page}',
+                'path'         => '/contactclient/timeline/{contactClientId}/page/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
                     'contactClientId' => '\d+',

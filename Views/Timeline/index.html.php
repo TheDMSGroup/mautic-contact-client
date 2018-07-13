@@ -26,8 +26,6 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
     ); ?>" id="timeline-filters">
         <div class="col-xs-8 col-lg-10 va-m form-inline">
             <div class="input-group col-xs-8">
-                <input type="hidden" name="timelineStart" value="<?php echo $events['dateFrom']->format('M j, Y'); ?>" />
-                <input type="hidden" name="timelineEnd" value="<?php echo $events['dateTo']->format('M j, Y'); ?>"' />
                 <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
                        placeholder="<?php echo $view['translator']->trans(
                            'mautic.contactclient.search.placeholder'
@@ -43,7 +41,8 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
             </div>
         </div>
 
-
+        <input type="hidden" name="timelineStart" value="<?php echo $events['dateFrom']->format('M j, Y'); ?>" />
+        <input type="hidden" name="timelineEnd" value="<?php echo $events['dateTo']->format('M j, Y'); ?>"' />
         <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $contactClient->getId(); ?>"/>
         <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $orderBy; ?>:<?php echo $orderByDirection; ?>"/>
         <input type="hidden" name="page" id="page" value="<?php echo $page; ?>"/>
