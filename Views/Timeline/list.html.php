@@ -157,7 +157,7 @@ echo $view->render(
         'page'       => $events['page'],
         'fixedPages' => $events['maxPages'],
         'fixedLimit' => true,
-        'baseUrl'    => '/page',
+        'baseUrl'    => $baseUrl,
         'target'     => '',
         'totalItems' => $events['total'],
     ]
