@@ -20,6 +20,11 @@ $baseUrl = $view['router']->path(
     ]
 );
 ?>
+<script>
+    // put correct sort icons on timeline table headers
+    var sortField = '<?php echo $order[0]; ?>';
+    var sortDirection = '<?php echo strtolower($order[1]); ?>';
+</script>
 
 <!-- timeline -->
 <div class="table-responsive">
@@ -150,9 +155,4 @@ echo $view->render(
         'totalItems' => $events['total'],
     ]
 ); ?>
-<script>
-    // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $order[0]; ?>';
-    var sortDirection = '<?php echo strtolower($order[1]); ?>';
-</script>
 <!--/ timeline -->

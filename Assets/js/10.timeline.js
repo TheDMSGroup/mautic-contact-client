@@ -1,5 +1,11 @@
 Mautic.contactclientTimelineOnLoad = function (container, response) {
 
+    if (typeof sortField === 'undefined') {
+        sortField = 'date_added';
+    }
+    if (typeof sortDirection === 'undefined') {
+        sortDirection = 'desc';
+    }
     var sortedColumn = mQuery('.contactclient-timeline a[data-sort=' + sortField + '] i');
     sortedColumn.addClass('fa-sort-amount-' + sortDirection);
     sortedColumn.removeClass('fa-sort');
