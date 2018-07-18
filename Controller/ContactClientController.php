@@ -132,6 +132,8 @@ class ContactClientController extends FormController
 
             // For line graphs in the view
             $chartFilterValues = $this->request->get('chartfilter', []);
+
+            /** @var \Symfony\Component\Form\Form $chartFilterForm */
             $chartFilterForm   = $this->get('form.factory')->create(
                 'chartfilter',
                 $chartFilterValues,
@@ -146,18 +148,21 @@ class ContactClientController extends FormController
                 ]
             );
 
-            $dateFrom = new \DateTime($chartFilterForm->get('date_from')->getData());
-            $dateTo   = new \DateTime($chartFilterForm->get('date_to')->getData());
+            $dateFrom = new \DateTime($chartFilterForm->get('date_from')->getData().' 00:00:00');
+//            $dateFrom->setTime(0,0,0);
+            $dateTo   = new \DateTime($chartFilterForm->get('date_to')->getData().' 23:59:59.999999');
+//            $dateTo->setTime(23,59,59);
 
             $engagementFilters = [
                 'dateFrom' => $dateFrom,
                 'dateTo'   => $dateTo,
             ];
-
             $engagementOrder = $this->request->get('orderBy', ['date_added', 'DESC']);
 
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
+
+            $unit = $model->getTimeUnitFromDateRange($dateFrom, $dateTo);
 
             if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
                 $stats = $model->getStats(
@@ -175,6 +180,7 @@ class ContactClientController extends FormController
                     $dateTo
                 );
             }
+
 
             $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
             $args['viewParameters']['files']           = $this->getFiles($item);
@@ -272,12 +278,12 @@ class ContactClientController extends FormController
 
         if (!empty($stats)) {
             $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
-            $row                   =[];
+            $row =[];
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
-                    $dateStr                = $stats['labels'][$key];
-                    $date                   = null;
+                    $dateStr = $stats['labels'][$key];
+                    $date = null;
                     switch ($unit) {
                         case 'd': // M j, y
                             $date    = date_create_from_format('M j, y', $dateStr);

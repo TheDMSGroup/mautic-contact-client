@@ -28,6 +28,13 @@ class TimelineController extends CommonController
     use ContactClientAccessTrait;
     use ContactClientDetailsTrait;
 
+    /**
+     * @param Request $request
+     * @param $contactClientId
+     * @param int $page
+     *
+     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     */
     public function indexAction(Request $request, $contactClientId, $page = 1)
     {
         if (empty($contactClientId)) {
@@ -87,25 +94,37 @@ class TimelineController extends CommonController
         $this->setListFilters('mautic.mautic_contactclient');
 
         $session = $this->get('session');
-        if ('POST' === $request->getMethod() && $request->request->has('search')) {
-            $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
-            ];
+        if ('POST' === $request->getMethod()) {
+            $filters = [];
+            $search = InputHelper::clean($request->request->get('search', false));
+            if ($search) {
+                $filters['search'] = $search;
+            };
+            $dateFrom = InputHelper::clean($request->request->get('date_from', false));
+            if ($dateFrom) {
+                $filters['dateFrom'] = new DateTime($dateFrom);
+            };
+            $dateTo = InputHelper::clean($request->request->get('date_to', false));
+            if ($dateTo) {
+                $filters['dateTo'] = new DateTime($dateTo);
+            };
+
+
             $session->set('mautic.plugin.timeline.filters', $filters);
         } else {
             $filters = null;
         }
 
         $order = [
-            $session->get('mautic.plugin.timeline.orderby'),
-            $session->get('mautic.plugin.timeline.orderbydir'),
+            $session->get('mautic.plugin.timeline.orderby', 'date_added'),
+            $session->get('mautic.plugin.timeline.orderbydir', 'DESC'),
         ];
 
         // get all events grouped by contactClient
+        $page = $request->request->get('page', 1);
         $events = $this->getAllEngagements($contactClients, $filters, $order, $page, $limit);
 
-        $str = $this->request->server->get('QUERY_STRING');
-        parse_str($str, $query);
+        parse_str($this->request->server->get('QUERY_STRING'), $query);
 
         $tmpl = 'table';
         if (array_key_exists('from', $query) && 'iframe' === $query['from']) {
@@ -121,7 +140,7 @@ class TimelineController extends CommonController
                     'contactClients' => $contactClients,
                     'page'           => $page,
                     'events'         => $events,
-                    'integration'    => $integration,
+                    //'integration'    => $integration,  this value is not set
                     'tmpl'           => (!$this->request->isXmlHttpRequest()) ? 'index' : '',
                     'newCount'       => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
                 ],
@@ -235,38 +254,44 @@ class TimelineController extends CommonController
             'response_format',
             'valid',
         ];
-        $params  = $this->getDateParams();
-        /** @var EventRepository $eventRepository */
-        $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(
-            'MauticContactClientBundle:Event'
-        );
+
+        $params  = [
+            'fromDate' => \DateTime::createFromFormat('M j, Y', $this->request->query->get('date_from')),
+            'toDate'   => \DateTime::createFromFormat('M j, Y', $this->request->query->get('date_to')),
+        ];
+        if ($this->request->request->get('search', false)) {
+            $params['search'] = $this->request->request->get('search');
+        }
+
+        /** @var \MauticPlugin\MauticContactClientBundle\Entity\EventRepository $eventRepository */
+        $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository('MauticContactClientBundle:Event');
         $count           = $eventRepository->getEventsForTimelineExport($contactClientId, $params, true);
-        $start           = 0;
-        $params['limit'] = 1000;
+
         ini_set('max_execution_time', 0);
+
+        $params['start'] = 0;
+        $params['limit'] = 1000;
+
         $response = new StreamedResponse();
         $response->setCallback(
-            function () use ($params, $headers, $contactClientId, $count, $eventRepository, $start) {
+            function () use ($params, $headers, $contactClientId, $count, $eventRepository) {
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
-                while ($start < $count[0]['count']) {
-                    $params['start'] = $start;
-                    $timelineData    = $eventRepository->getEventsForTimelineExport($contactClientId, $params, false);
-                    foreach ($timelineData as $data) {
+                while ($params['start'] < $count[0]['count']) {
+                    $timelineEvents = $eventRepository->getEventsForTimelineExport($contactClientId, $params, false);
+                    foreach ($timelineEvents as $timelineEvent) {
+
                         // depracating use of YAML for event logs, but need to be backward compatible
-                        $csvRows = $data['logs'][0] === '{' ?
-                            $this->parseLogJSONBlob(
-                                $data
-                            ) :
-                            $this->parseLogYAMLBlob(
-                                $data
-                            );
+                        $csvRows = ($timelineEvent['logs'][0] === '{') ?
+                            $this->parseLogJSONBlob($timelineEvent) :
+                            $this->parseLogYAMLBlob($timelineEvent);
+
                         // a single data row can be multiple operations and subsequent rows
                         foreach ($csvRows as $csvRow) {
                             fputcsv($handle, array_values($csvRow));
                         }
                     }
-                    $start = $start + $params['limit'];
+                    $params['start'] += $params['limit'];
                 }
                 fclose($handle);
             }
@@ -277,33 +302,6 @@ class TimelineController extends CommonController
         $response->headers->set('Content-Disposition', 'attachment; filename="'.$fileName.'"');
 
         return $response;
-    }
-
-    /**
-     * @param $args
-     * @param $view
-     *
-     * @return array
-     */
-    public function customizeViewArguments($args, $view) {
-        $args['MY_CUSTOM_TIMELINE_ARG'] = 717;
-
-        return $args;
-    }
-
-    /**
-     * @return array
-     *
-     * @throws \Exception
-     */
-    private function getDateParams()
-    {
-        $stop = 'here';
-
-        return [
-            'fromDate' => \DateTime::createFromFormat('M j, Y', $this->request->query->get('timelineFrom')),
-            'toDate'   => \DateTime::createFromFormat('M j, Y', $this->request->query->get('timelineTo')),
-        ];
     }
 
     /**

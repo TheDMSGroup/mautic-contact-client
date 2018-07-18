@@ -11,9 +11,8 @@
 ?>
 
 <?php
-$orderBy    = isset($events['filters']['orderby']) && !empty($events['filters']['orderby'][0]) ? $events['filters']['orderby'][0] : 'date_added';
-$orderByDirection = isset($events['filters']['orderby']) && !empty($events['filters']['orderby'][1]) ? $events['filters']['orderby'][1] : 'DESC';
-$page             = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
+$orderBy = isset($events['order']) ? $events['order'] :  ['date_added', 'DESC'];
+$page    = (isset($events['page']) && $events['page']) ? $events['page'] : '1';
 
 ?>
 
@@ -44,8 +43,7 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
         <input type="hidden" name="fromDate" value="<?php echo $events['dateFrom']->format('M j, Y'); ?>" />
         <input type="hidden" name="toDate" value="<?php echo $events['dateTo']->format('M j, Y'); ?>" />
         <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $contactClient->getId(); ?>" />
-        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $orderByColumn; ?>:<?php echo $orderByDirection; ?>" />
-        <input type="hidden" name="page" id="orderBy" value="<?php echo $orderByColumn; ?>:<?php echo $orderByDirection; ?>" />
+        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo implode(':', $orderBy); ?>" />
         <input type="hidden" name="page" id="page" value="<?php echo $page; ?>"/>
     </form>
 <!-- Export button -->

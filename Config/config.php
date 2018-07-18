@@ -26,19 +26,29 @@ return [
                 'controller' => 'MauticContactClientBundle:ContactClient:execute',
             ],
             'mautic_contactclient_timeline_action' => [
-                'path'         => '/contactclient/timeline/{contactClientId}/page/{page}',
+                'path'         => '/contactclient/{contactClientId}/timeline/page/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
+                'defaults' => [
+                    'page' => '1',
+                ]
             ],
             'mautic_contactclient_timeline_export' => [
-                'path'       => '/contactclient/timeline/export/{contactClientId}',
+                'path'       => '/contactclient/{contactClientId}/timeline/export',
                 'controller' => 'MauticContactClientBundle:Timeline:exportTimeline',
+                'requirements' => [
+                    'contactClientId' => '\d+',
+                ],
             ],
             'mautic_contactclient_timeline_file'   => [
-                'path'       => '/contactclient/timeline/file/{contactClientId}/{fileId}',
+                'path'       => '/contactclient/{contactClientId}/timeline/file/{fileId}',
                 'controller' => 'MauticContactClientBundle:Timeline:file',
+                'requirements' => [
+                    'contactClientId' => '\d+',
+                    'fileId' => '\d+'
+                ],
             ],
         ],
     ],

@@ -155,6 +155,7 @@ class ContactClientTimelineEvent extends Event
     ) {
         $this->contactClient = $contactClient;
 
+        $this->filters['search'] = null;
         foreach ($filters as $filter => $value) {
             switch ($filter) {
             case 'dateFrom':
@@ -176,6 +177,7 @@ class ContactClientTimelineEvent extends Event
                 $this->filters[$filter] = $value;
             }
         }
+
         $this->orderBy       = $orderBy;
         $this->page          = $page;
         $this->limit         = $limit;
