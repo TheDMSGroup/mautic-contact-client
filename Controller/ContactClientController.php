@@ -133,8 +133,8 @@ class ContactClientController extends FormController
             // For line graphs in the view
             $chartFilterValues = $this->request->get('chartfilter', []);
             if (!isset($chartFilterValues['date_from'])) {
-                $from = new \DateTime($this->factory->getParameter('default_daterange_filter', '-1 month'));
-                $to = new \DateTime();
+                $from                           = new \DateTime($this->factory->getParameter('default_daterange_filter', '-1 month'));
+                $to                             = new \DateTime();
                 $chartFilterValues['date_from'] = $from->format('Y-m-d H:i:s');
                 $chartFilterValues['date_to']   = $to->format('Y-m-d H:i:s');
             }
