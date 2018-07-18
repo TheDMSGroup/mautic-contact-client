@@ -31,9 +31,6 @@ return [
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
-                'defaults'     => [
-                    'page' => '1'
-                ],
             ],
             'mautic_contactclient_timeline_export' => [
                 'path'       => '/contactclient/timeline/export/{contactClientId}',

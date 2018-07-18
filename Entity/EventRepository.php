@@ -68,28 +68,29 @@ class EventRepository extends CommonRepository
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
             ->select('c.*');
 
-        $query->where(
-            $query->expr()->eq('c.contactclient_id', ':contactClientId')
-        )
+        $query->where('c.contactclient_id = :contactClientId')
             ->setParameter('contactClientId', $contactClientId);
 
+        ;
         if ($contactId) {
-            $query->andWhere('c.contact_id = '.(int) $contactId);
+            $query->andWhere('c.contact_id = :contactId')
+                ->setParameter('contactId', $contactId);
         }
 
         if (isset($options['search']) && $options['search']) {
-            if (is_numeric($options['search']) && !$contactId) {
+            if (is_numeric($options['search'])) {
                 $expr = $query->expr()->orX(
-                    $query->expr()->eq('c.contact_id', (int) $options['search'])
+                    'c.utm_source = :search',
+                    'c.contact_id = :search'
                 );
             } else {
                 $expr = $query->expr()->orX(
-                    $query->expr()->eq('c.type', ':search'),
-                    $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%'))
+                    'c.type = :search',
+                    "c.message LIKE '%$options[search]%'"
                 );
             }
-            $query->andWhere($expr);
-            $query->setParameter('search', $options['search']);
+            $query->andWhere($expr)
+                ->setParameter('search', $options['search']);
         }
 
         if (!empty($options['fromDate']) && !empty($options['toDate'])) {

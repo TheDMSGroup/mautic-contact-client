@@ -146,32 +146,40 @@ class ContactClientController extends FormController
                 ]
             );
 
+            $dateFrom = new \DateTime($chartFilterForm->get('date_from')->getData());
+            $dateTo   = new \DateTime($chartFilterForm->get('date_to')->getData());
+
+            $engagementFilters = [
+                'dateFrom' => $dateFrom,
+                'dateTo'   => $dateTo,
+            ];
+
+            $engagementOrder = $this->request->get('orderBy', ['date_added', 'DESC']);
+
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
-            $unit  = $model->getTimeUnitFromDateRange(new \DateTime($chartFilterForm->get('date_from')->getData()),
-                new \DateTime($chartFilterForm->get('date_to')->getData()));
 
             if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
                 $stats = $model->getStats(
                     $item,
                     null,
-                    new \DateTime($chartFilterForm->get('date_from')->getData()),
-                    new \DateTime($chartFilterForm->get('date_to')->getData())
+                    $dateFrom,
+                    $dateTo
                 );
             } else {
                 $stats = $model->getStatsBySource(
                     $item,
                     null,
                     $chartFilterForm->get('type')->getData(),
-                    new \DateTime($chartFilterForm->get('date_from')->getData()),
-                    new \DateTime($chartFilterForm->get('date_to')->getData())
+                    $dateFrom,
+                    $dateTo
                 );
             }
 
             $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
             $args['viewParameters']['files']           = $this->getFiles($item);
             $args['viewParameters']['stats']           = $stats;
-            $args['viewParameters']['events']          = $model->getEngagements($item);
+            $args['viewParameters']['events']          = $model->getEngagements($item, $engagementFilters, $engagementOrder );
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
             $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
         }

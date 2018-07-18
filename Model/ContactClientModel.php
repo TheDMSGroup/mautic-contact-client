@@ -575,39 +575,41 @@ class ContactClientModel extends FormModel
     public function getEngagements(
         ContactClient $contactClient = null,
         $filters = [],
-        $orderBy = null,
+        $orderBy = ['date_added', 'DESC'],
         $page = 1,
         $limit = 25,
         $forTimeline = true
     ) {
-        $orderBy = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
-        $event   = $this->dispatcher->dispatch(
+
+        $timelineEvent = new ContactClientTimelineEvent(
+            $contactClient,
+            $filters,
+            $orderBy,
+            $page,
+            $limit,
+            $forTimeline,
+            $this->coreParametersHelper->getParameter('site_url')
+        );
+
+        $timelineEvent = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,
-            new ContactClientTimelineEvent(
-                $contactClient,
-                $filters,
-                $orderBy,
-                $page,
-                $limit,
-                $forTimeline,
-                $this->coreParametersHelper->getParameter('site_url')
-            )
+            $timelineEvent
         );
 
         if (!isset($filters['search']) || empty($filters['search'])) {
             $filters['search'] = null;
         }
         $payload = [
-            'events'   => $event->getEvents(),
+            'events'   => $timelineEvent->getEvents(),
             'filters'  => $filters,
             'order'    => $orderBy,
-            'types'    => $event->getEventTypes(),
-            'total'    => $event->getQueryTotal(),
+            'types'    => $timelineEvent->getEventTypes(),
+            'total'    => $timelineEvent->getQueryTotal(),
             'page'     => $page,
             'limit'    => $limit,
-            'maxPages' => $event->getMaxPage(),
-            'dateFrom' => $event->getDateFrom(),
-            'dateTo'   => $event->getDateTo(),
+            'maxPages' => $timelineEvent->getMaxPage(),
+            'dateFrom' => $timelineEvent->getDateFrom(),
+            'dateTo'   => $timelineEvent->getDateTo(),
         ];
 
         return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];

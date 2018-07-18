@@ -39,10 +39,10 @@ class TimelineController extends CommonController
             return $contactClient;
         }
 
-        $this->setListFilters();
+        $this->setListFilters('mautic.mautic_contactclient');
 
         $session = $this->get('session');
-        if ('POST' === $request->getMethod() && $request->request->has('search')) {
+        if ('POST' === $request->getMethod() && $request->request->get('search')) {
             $filters = [
                 'search' => InputHelper::clean($request->request->get('search')),
             ];
@@ -52,8 +52,8 @@ class TimelineController extends CommonController
         }
 
         $order = [
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderby'),
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderbydir'),
+            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderby', 'date_added'),
+            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderbydir', 'DESC'),
         ];
 
         $events = $this->getEngagements($contactClient, $filters, $order, $page);
@@ -84,7 +84,7 @@ class TimelineController extends CommonController
             return $contactClients;
         }
 
-        $this->setListFilters();
+        $this->setListFilters('mautic.mautic_contactclient');
 
         $session = $this->get('session');
         if ('POST' === $request->getMethod() && $request->request->has('search')) {
@@ -280,12 +280,26 @@ class TimelineController extends CommonController
     }
 
     /**
+     * @param $args
+     * @param $view
+     *
+     * @return array
+     */
+    public function customizeViewArguments($args, $view) {
+        $args['MY_CUSTOM_TIMELINE_ARG'] = 717;
+
+        return $args;
+    }
+
+    /**
      * @return array
      *
      * @throws \Exception
      */
     private function getDateParams()
     {
+        $stop = 'here';
+
         return [
             'fromDate' => \DateTime::createFromFormat('M j, Y', $this->request->query->get('timelineFrom')),
             'toDate'   => \DateTime::createFromFormat('M j, Y', $this->request->query->get('timelineTo')),

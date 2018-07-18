@@ -40,6 +40,8 @@ class ContactClientTimelineEvent extends Event
      *  search => (string) search term
      *  includeEvents => (array) event types to include
      *  excludeEvents => (array) event types to exclude.
+     *  dateFrom      => DateTime **passed in via filters, moved to property
+     *  dateTo        => DateTime **passed in via filters, moved to property
      *
      * @var array
      */
@@ -85,12 +87,12 @@ class ContactClientTimelineEvent extends Event
     /**
      * @var \DateTime|null
      */
-    protected $dateFrom;
+    protected $dateFrom = null;
 
     /**
      * @var \DateTime|null
      */
-    protected $dateTo;
+    protected $dateTo = null;
 
     /**
      * Time unit to group counts by (M = month, D = day, Y = year, null = no grouping).
@@ -136,40 +138,49 @@ class ContactClientTimelineEvent extends Event
      *
      * @param ContactClient|null $contactClient
      * @param array              $filters
-     * @param array|null         $orderBy
+     * @param array              $orderBy
      * @param int                $page
-     * @param int                $limit         Limit per type
+     * @param int                $limit          Limit per type
      * @param bool               $forTimeline
      * @param string|null        $siteDomain
      */
     public function __construct(
         ContactClient $contactClient = null,
         array $filters = [],
-        array $orderBy = null,
+        array $orderBy = ['date_added', 'DESC'],
         $page = 1,
         $limit = 25,
         $forTimeline = true,
         $siteDomain = null
     ) {
         $this->contactClient = $contactClient;
-        $this->filters       = !empty($filters) ? $filters : ['search' => ''];
-        $this->orderBy       = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
+
+        foreach ($filters as $filter => $value) {
+            switch ($filter) {
+            case 'dateFrom':
+            case 'dateTo':
+                if (!($value instanceof \DateTime)) {
+                    try {
+                        $value = new \DateTime(\strtotime($value));
+                    } catch (\Exception $e) {
+                        $default = ($filter == 'dateFrom') ?
+                            $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month') :
+                            null;
+                        $value = new \DateTime($default);
+                    }
+                }
+                $this->{$filter} = $value;
+
+                break;
+            default:
+                $this->filters[$filter] = $value;
+            }
+        }
+        $this->orderBy       = $orderBy;
         $this->page          = $page;
         $this->limit         = $limit;
         $this->forTimeline   = $forTimeline;
         $this->siteDomain    = $siteDomain;
-
-        if (!empty($filters['dateFrom'])) {
-            $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime) ? $filters['dateFrom'] : new \DateTime(
-                $filters['dateFrom']
-            );
-        }
-
-        if (!empty($filters['dateTo'])) {
-            $this->dateTo = ($filters['dateTo'] instanceof \DateTime) ? $filters['dateTo'] : new \DateTime(
-                $filters['dateTo']
-            );
-        }
     }
 
     /**

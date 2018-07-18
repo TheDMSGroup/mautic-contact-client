@@ -11,8 +11,8 @@
 ?>
 
 <?php
-$orderBy          = isset($events['filters']['order']) && !empty($events['filters']['order'][0]) ? $events['filters']['order'][0] : 'date_added';
-$orderByDirection = isset($events['filters']['order']) && !empty($events['filters']['order'][1]) ? $events['filters']['order'][1] : 'DESC';
+$orderBy    = isset($events['filters']['orderby']) && !empty($events['filters']['orderby'][0]) ? $events['filters']['orderby'][0] : 'date_added';
+$orderByDirection = isset($events['filters']['orderby']) && !empty($events['filters']['orderby'][1]) ? $events['filters']['orderby'][1] : 'DESC';
 $page             = isset($events['page']) && !empty($events['page']) ? $events['page'] : 1;
 
 ?>
@@ -24,7 +24,7 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
         'mautic_contactclient_timeline_action',
         ['contactClientId' => $contactClient->getId()]
     ); ?>" id="timeline-filters">
-        <div class="col-xs-8 col-lg-10 va-m form-inline">
+        <div class="col-xs-8 col-lg-10 va-m">
             <div class="input-group col-xs-8">
                 <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
                        placeholder="<?php echo $view['translator']->trans(
@@ -41,12 +41,12 @@ $page             = isset($events['page']) && !empty($events['page']) ? $events[
             </div>
         </div>
 
-        <input type="hidden" name="timelineStart" value="<?php echo $events['dateFrom']->format('M j, Y'); ?>" />
-        <input type="hidden" name="timelineEnd" value="<?php echo $events['dateTo']->format('M j, Y'); ?>"' />
-        <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $contactClient->getId(); ?>"/>
-        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $orderBy; ?>:<?php echo $orderByDirection; ?>"/>
+        <input type="hidden" name="fromDate" value="<?php echo $events['dateFrom']->format('M j, Y'); ?>" />
+        <input type="hidden" name="toDate" value="<?php echo $events['dateTo']->format('M j, Y'); ?>" />
+        <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $contactClient->getId(); ?>" />
+        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $orderByColumn; ?>:<?php echo $orderByDirection; ?>" />
+        <input type="hidden" name="page" id="orderBy" value="<?php echo $orderByColumn; ?>:<?php echo $orderByDirection; ?>" />
         <input type="hidden" name="page" id="page" value="<?php echo $page; ?>"/>
-
     </form>
 <!-- Export button -->
     <div class="std-toolbar btn-group">

@@ -390,7 +390,7 @@ trait ContactClientDetailsTrait
 
         if (null == $orderBy || null == $orderBy[0]) { //empty array or no fieldname in first index
             if (!$session->has('mautic.contactClient.'.$contactClient->getId().'.timeline.orderby')) {
-                $session->set('mautic.contactClient.'.$contactClient->getId().'.timeline.orderby', 'timestamp');
+                $session->set('mautic.contactClient.'.$contactClient->getId().'.timeline.orderby', 'date_added');
                 $session->set('mautic.contactClient.'.$contactClient->getId().'.timeline.orderbydir', 'DESC');
             }
 

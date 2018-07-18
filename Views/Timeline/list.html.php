@@ -12,13 +12,15 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Timeline:index.html.php');
 }
 
-$order   = $events['order'];
+$orderBy   = isset($events['order']) ? $events['order'] : ['date_added', 'DESC'];
+
 $baseUrl = $view['router']->path(
     'mautic_contactclient_timeline_action',
     [
         'contactClientId' => $contactClient->getId(),
     ]
 );
+
 ?>
 
 <!-- timeline -->
@@ -90,6 +92,7 @@ $baseUrl = $view['router']->path(
                 </a>
             </th>
         </tr>
+        </thead>
         <tbody>
         <?php foreach ($events['events'] as $counter => $event): ?>
             <?php
@@ -151,6 +154,7 @@ $baseUrl = $view['router']->path(
     </table>
 </div>
 <?php
+
 echo $view->render(
     'MauticCoreBundle:Helper:pagination.html.php',
     [
@@ -158,13 +162,14 @@ echo $view->render(
         'fixedPages' => $events['maxPages'],
         'fixedLimit' => true,
         'baseUrl'    => $baseUrl,
-        'target'     => '',
+        'target'     => '#timeline-table',
         'totalItems' => $events['total'],
+        //'queryString' => $queryString,
     ]
 ); ?>
 <script>
     // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $order[0]; ?>';
-    var sortDirection = '<?php echo strtolower($order[1]); ?>';
+    var sortField = '<?php echo $orderBy[0]; ?>';
+    var sortDirection = '<?php echo strtolower($orderBy[1]); ?>';
 </script>
 <!--/ timeline -->
