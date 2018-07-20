@@ -46,8 +46,8 @@ class ApiPayloadRequest
     /**
      * ApiRequest constructor.
      *
-     * @param             $uri
-     * @param             $request
+     * @param string      $uri
+     * @param array       $request
      * @param Transport   $transport
      * @param TokenHelper $tokenHelper
      * @param bool        $test
@@ -68,7 +68,7 @@ class ApiPayloadRequest
      */
     public function send()
     {
-        $uri = $this->uri;
+        $uri = $this->renderTokens($this->uri);
         $this->setLogs($uri, 'uri');
 
         $request   = $this->request;
@@ -238,6 +238,21 @@ class ApiPayloadRequest
     }
 
     /**
+     * @param string $string
+     * @param array  $context
+     *
+     * @return string
+     */
+    private function renderTokens($string = '', $context = [])
+    {
+        if ($context) {
+            $this->tokenHelper->addContext($context);
+        }
+
+        return $this->tokenHelper->render($string);
+    }
+
+    /**
      * Tokenize/parse fields from the API Payload for transit.
      * This method also exists in the other payload type with a minor difference.
      *
@@ -292,21 +307,6 @@ class ApiPayloadRequest
         }
 
         return $result;
-    }
-
-    /**
-     * @param string $string
-     * @param array  $context
-     *
-     * @return string
-     */
-    private function renderTokens($string = '', $context = [])
-    {
-        if ($context) {
-            $this->tokenHelper->addContext($context);
-        }
-
-        return $this->tokenHelper->render($string);
     }
 
     /**

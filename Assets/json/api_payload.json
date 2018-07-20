@@ -61,6 +61,8 @@
                   "infoText": "The complete web address we will be communicating with.",
                   "grid_columns": 6,
                   "notBlank": true,
+                  "codeMirror": true,
+                  "tokenSource": "plugin:mauticContactClient:getTokens",
                   "placeholder": "https://..."
                 },
                 "default": ""
@@ -71,6 +73,8 @@
                 "title": "Test URL",
                 "options": {
                   "infoText": "Optionally specify an alternative URL to communicate with during tests, commonly used for staging/dev environments.",
+                  "codeMirror": true,
+                  "tokenSource": "plugin:mauticContactClient:getTokens",
                   "grid_columns": 6
                 },
                 "default": ""
