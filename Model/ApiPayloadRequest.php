@@ -25,9 +25,6 @@ class ApiPayloadRequest
 {
     const XML_ROOT_ELEM = 'contact';
 
-    /** @var string */
-    protected $uri;
-
     /** @var array */
     protected $request;
 
@@ -46,15 +43,13 @@ class ApiPayloadRequest
     /**
      * ApiRequest constructor.
      *
-     * @param string      $uri
      * @param array       $request
      * @param Transport   $transport
      * @param TokenHelper $tokenHelper
      * @param bool        $test
      */
-    public function __construct($uri, $request, Transport $transport, TokenHelper $tokenHelper, $test = false)
+    public function __construct($request, Transport $transport, TokenHelper $tokenHelper, $test = false)
     {
-        $this->uri         = $uri;
         $this->request     = $request;
         $this->transport   = $transport;
         $this->tokenHelper = $tokenHelper;
@@ -68,7 +63,22 @@ class ApiPayloadRequest
      */
     public function send()
     {
-        $uri = $this->renderTokens($this->uri);
+        // The URI has already been overriden (if applicable) by this point.
+        $uri = isset($this->request->url) ? $this->request->url : null;
+        if ($this->test && !empty($this->request->testUrl)) {
+            $uri = $this->request->testUrl;
+        }
+        $uri = $this->renderTokens($uri);
+        if (empty(trim($uri))) {
+            throw new ContactClientException(
+                'No URL was specified for an API operation.',
+                0,
+                null,
+                Stat::TYPE_ERROR,
+                false
+            );
+        }
+
         $this->setLogs($uri, 'uri');
 
         $request   = $this->request;

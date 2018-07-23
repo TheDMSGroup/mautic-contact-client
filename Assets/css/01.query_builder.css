@@ -11,7 +11,7 @@
 
 .query-builder .rule-container {
     border: 1px solid transparent;
-    background-color: rgba(161, 140, 225, 0.2);
+    background-color: rgba(149, 165, 183, 0.1);
 }
 
 .query-builder .rule-value-container {

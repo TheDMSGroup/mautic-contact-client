@@ -330,7 +330,13 @@ class ApiPayload
         // We will create and reuse the same Transport session throughout our operations.
         /** @var Transport $transport */
         $transport     = $this->getTransport();
-        $tokenHelper   = $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload, $this->campaign, $this->event);
+        $tokenHelper   = $this->tokenHelper->newSession(
+            $this->contactClient,
+            $this->contact,
+            $this->payload,
+            $this->campaign,
+            $this->event
+        );
         $updatePayload = (bool) $this->settings['autoUpdate'];
         $opsRemaining  = count($this->payload->operations);
 
@@ -554,6 +560,13 @@ class ApiPayload
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $id => $operation) {
                 if (isset($operation->request)) {
+                    // API Payloads can optionally have their URLs overriden per request.
+                    if (isset($operation->request->overridableUrl) && true === $operation->request->overridableUrl) {
+                        $result['payload.operation.'.$id.'.request.url'] = [
+                            'key'   => 'payload.operation.'.$id.'.request.url',
+                            'value' => !empty($operation->request->url) ? $operation->request->url : '',
+                        ];
+                    }
                     foreach (['headers', 'body'] as $type) {
                         if (isset($operation->request->{$type})) {
                             foreach ($operation->request->{$type} as $field) {
@@ -639,7 +652,7 @@ class ApiPayload
     /**
      * Override the default field values, if allowed.
      *
-     * @param $overrides
+     * @param array $overrides
      *
      * @return $this
      */
@@ -648,6 +661,19 @@ class ApiPayload
         $fieldsOverridden = [];
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $id => &$operation) {
+                // API Payloads can optionally have their URLs overriden per request.
+                $key = 'payload.operation.'.$id.'.request.url';
+                if (
+                    isset($operation->request->overridableUrl)
+                    && true === $operation->request->overridableUrl
+                    && !empty($overrides[$key])
+                ) {
+                    $fieldsOverridden[$key]  = [
+                        'key'   => $key,
+                        'value' => $overrides[$key],
+                    ];
+                    $operation->request->url = $overrides[$key];
+                }
                 if (isset($operation->request)) {
                     foreach (['headers', 'body'] as $type) {
                         if (isset($operation->request->{$type})) {
