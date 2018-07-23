@@ -59,23 +59,33 @@
                 "title": "URL",
                 "options": {
                   "infoText": "The complete web address we will be communicating with.",
-                  "grid_columns": 6,
                   "notBlank": true,
                   "codeMirror": true,
                   "tokenSource": "plugin:mauticContactClient:getTokens",
-                  "placeholder": "https://..."
+                  "grid_columns": 12
                 },
-                "default": ""
+                "default": "https://"
+              },
+              "overridableUrl": {
+                "propertyOrder": 15,
+                "type": "boolean",
+                "format": "checkbox",
+                "title": "Overridable URL",
+                "options": {
+                  "grid_columns": 12,
+                  "infoText": "Allow the URL to be overridden within a campaign workflow."
+                },
+                "default": false
               },
               "testUrl": {
                 "propertyOrder": 20,
                 "type": "string",
                 "title": "Test URL",
                 "options": {
-                  "infoText": "Optionally specify an alternative URL to communicate with during tests, commonly used for staging/dev environments.",
+                  "infoText": "Optionally specify an alternative URL to communicate with during tests, commonly used for staging/dev environments. Leave this blank if there is not a special URL for testing purposes.",
                   "codeMirror": true,
                   "tokenSource": "plugin:mauticContactClient:getTokens",
-                  "grid_columns": 6
+                  "grid_columns": 12
                 },
                 "default": ""
               },

@@ -11,10 +11,10 @@
     border: 0;
 }
 
-.api_payload .contactclient_jsoneditor .well .well .well h3,
-.api_payload .contactclient_jsoneditor .well .well .well .well {
-    color: #fff;
-}
+/*.api_payload .contactclient_jsoneditor .well .well .well h3,*/
+/*.api_payload .contactclient_jsoneditor .well .well .well .well {*/
+    /*color: #fff;*/
+/*}*/
 
 /* ContactClient API Payload - JSON Editor */
 .api_payload .contactclient_jsoneditor .slider-horizontal {
@@ -73,6 +73,8 @@
 /*.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath="root.operations"] > .well > div > div> h3,*/
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".name"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".description"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.overridableUrl"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.testUrl"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.manual"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.template"],
 .api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".description"],
@@ -134,7 +136,7 @@
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > .CodeMirror {
     background: none;
     border: 0;
-    color: #fff;
+    /*color: #fff;*/
 }
 
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schematype="array"][data-schemapath="root.operations"].col-md-12 {
@@ -162,7 +164,7 @@
 
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"] {
     border-radius: 3px;
-    background: #637589;
+    background: #dfe7ef;
     padding-top: 20px;
 }
 
@@ -173,9 +175,9 @@
     position: absolute;
     top: 0;
     left: 0;
-    border-bottom: 50px solid #6d8197;
+    border-bottom: 50px solid #d0d7df;
     border-left: 50px solid #fff;
-    box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 8px rgba(60, 60, 60, 0.1);
     border-bottom-right-radius: 3px;
 }
 
@@ -214,7 +216,7 @@
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".response"] {
     margin-top: 80px;
     border-radius: 3px;
-    background: #455392;
+    background: #e0e6e5;
     padding-top: 20px;
 }
 
@@ -225,9 +227,9 @@
     position: absolute;
     top: 0;
     left: 0;
-    border-bottom: 50px solid #4c5ba0;
+    border-bottom: 50px solid #d5dbda;
     border-left: 50px solid #fff;
-    box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 8px rgba(60, 60, 60, 0.1);
     border-bottom-right-radius: 3px;
 }
 
@@ -269,8 +271,8 @@
     display: block;
     text-align: center;
     top: -30px;
-    font-size: 90px;
-    color: #637589;
+    font-size: 80px;
+    color: #DFE7EF;
 }
 
 .api_payload .contactclient_jsoneditor td[data-schematype="boolean"] {
@@ -278,10 +280,10 @@
     text-align: center;
 }
 
-.api_payload .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input,
-.api_payload .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input {
-    color: #fff;
-}
+/*.api_payload .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input,*/
+/*.api_payload .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input {*/
+    /*color: #fff;*/
+/*}*/
 
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td,
 .api_payload .contactclient_jsoneditor .table-bordered > thead > tr > th {
