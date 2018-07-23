@@ -133,7 +133,7 @@ class SendContactCommand extends ModeratedCommand
 
                 return 1;
             }
-            $integrationObject->sendContact($client, $contact, $options['test']);
+            $integrationObject->sendContact($client, $contact, (bool) $options['test'], (bool) $options['force']);
             if ($integrationObject->getValid()) {
                 $output->writeln(
                     '<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted').'</info>'
