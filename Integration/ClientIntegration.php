@@ -295,7 +295,8 @@ class ClientIntegration extends AbstractIntegration
                     $translator->trans('mautic.contactclient.sendcontact.error.client.publish'),
                     0,
                     null,
-                    Stat::TYPE_UNPUBLISHED
+                    Stat::TYPE_UNPUBLISHED,
+                    false
                 );
             }
 
