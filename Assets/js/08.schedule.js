@@ -138,9 +138,9 @@ Mautic.contactclientSchedule = function () {
                     }
                 });
 
-                $exclusions.addClass('exclusions-checked');
                 $exclusionsJSONEditor.show();
             }
         });
+        $exclusions.addClass('exclusions-checked');
     }
 };

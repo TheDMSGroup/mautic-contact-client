@@ -1,6 +1,6 @@
 Mautic.contactclientEventsDatatable = function () {
     var $sourceTarget = mQuery('#contactClientEventsTable');
-    if ($sourceTarget.length) {
+    if ($sourceTarget.length && typeof tableData !== 'undefined') {
         mQuery('#contactClientEventsTable:first:not(.table-initialized)').addClass('table-initialized').each(function () {
             // dependent files loaded, now get the data and render
             var sortCol = (tableData.labels[1] ? 1 : 0);
@@ -78,7 +78,10 @@ Mautic.contactclientEventsDatatable = function () {
                     }
                 } // FooterCallback
             });
-            mQuery('#contactClientEventsTable_wrapper .dt-buttons').css({float: "right", marginLeft: "10px"});
+            mQuery('#contactClientEventsTable_wrapper .dt-buttons').css({
+                float: 'right',
+                marginLeft: '10px'
+            });
         });
     }
 };
