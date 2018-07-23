@@ -260,13 +260,15 @@ class ClientIntegration extends AbstractIntegration
      * @param ContactClient $client
      * @param Contact       $contact
      * @param bool          $test
+     * @param bool          $force
      *
      * @return $this
      */
     public function sendContact(
         ContactClient $client,
         Contact $contact,
-        $test = false
+        $test = false,
+        $force = false
     ) {
         $translator = $this->getContainer()->get('translator');
         $this->test = $test;
@@ -287,6 +289,16 @@ class ClientIntegration extends AbstractIntegration
             }
             $this->contact = $contact;
             $this->addTrace('contactClientContactId', $this->contact->getId());
+
+            if (!$force && !$this->test && !$client->getIsPublished()) {
+                throw new ContactClientException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.client.publish'),
+                    0,
+                    null,
+                    Stat::TYPE_UNPUBLISHED,
+                    false
+                );
+            }
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
@@ -984,12 +996,12 @@ class ClientIntegration extends AbstractIntegration
                 'email_from',
                 'text',
                 [
-                    'label' => $this->translator->trans('mautic.contactclient.email.from'),
-                    'data'  => !isset($data['email_from']) ? '' : $data['email_from'],
-                    'attr'  => [
+                    'label'    => $this->translator->trans('mautic.contactclient.email.from'),
+                    'data'     => !isset($data['email_from']) ? '' : $data['email_from'],
+                    'attr'     => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.from.tooltip'),
                     ],
-                    'required'   => false,
+                    'required' => false,
                 ]
             );
 
@@ -997,12 +1009,12 @@ class ClientIntegration extends AbstractIntegration
                 'success_message',
                 'textarea',
                 [
-                    'label' => $this->translator->trans('mautic.contactclient.email.success_message'),
-                    'data'  => !isset($data['success_message']) ? '' : $data['success_message'],
-                    'attr'  => [
+                    'label'    => $this->translator->trans('mautic.contactclient.email.success_message'),
+                    'data'     => !isset($data['success_message']) ? '' : $data['success_message'],
+                    'attr'     => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.success_message.tooltip'),
                     ],
-                    'required'   => false,
+                    'required' => false,
                 ]
             );
 
@@ -1010,12 +1022,12 @@ class ClientIntegration extends AbstractIntegration
                 'empty_message',
                 'textarea',
                 [
-                    'label' => $this->translator->trans('mautic.contactclient.email.empty_message'),
-                    'data'  => !isset($data['empty_message']) ? '' : $data['empty_message'],
-                    'attr'  => [
+                    'label'    => $this->translator->trans('mautic.contactclient.email.empty_message'),
+                    'data'     => !isset($data['empty_message']) ? '' : $data['empty_message'],
+                    'attr'     => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
                     ],
-                    'required'   => false,
+                    'required' => false,
                 ]
             );
 
@@ -1023,12 +1035,12 @@ class ClientIntegration extends AbstractIntegration
                 'empty_message',
                 'textarea',
                 [
-                    'label' => $this->translator->trans('mautic.contactclient.email.empty_message'),
-                    'data'  => !isset($data['empty_message']) ? '' : $data['empty_message'],
-                    'attr'  => [
+                    'label'    => $this->translator->trans('mautic.contactclient.email.empty_message'),
+                    'data'     => !isset($data['empty_message']) ? '' : $data['empty_message'],
+                    'attr'     => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.empty_message.tooltip'),
                     ],
-                    'required'   => false,
+                    'required' => false,
                 ]
             );
 
@@ -1036,12 +1048,12 @@ class ClientIntegration extends AbstractIntegration
                 'footer',
                 'textarea',
                 [
-                    'label' => $this->translator->trans('mautic.contactclient.email.footer'),
-                    'data'  => !isset($data['footer']) ? '' : $data['footer'],
-                    'attr'  => [
+                    'label'    => $this->translator->trans('mautic.contactclient.email.footer'),
+                    'data'     => !isset($data['footer']) ? '' : $data['footer'],
+                    'attr'     => [
                         'tooltip' => $this->translator->trans('mautic.contactclient.email.footer.tooltip'),
                     ],
-                    'required'   => false,
+                    'required' => false,
                 ]
             );
         }
