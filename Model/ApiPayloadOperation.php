@@ -124,21 +124,12 @@ class ApiPayloadOperation
 
             return true;
         }
-        $uri = isset($this->request->url) ? $this->request->url : null;
-        if ($this->test && !empty($this->request->testUrl)) {
-            $uri = $this->request->testUrl;
-        }
-        if (!$uri) {
-            $this->setLogs('No URL specified. Skipping operation: '.$this->name, 'notice');
-
-            return true;
-        }
 
         $this->setLogs($this->name, 'name');
         $this->setLogs(($this->test ? 'TEST' : 'PROD'), 'mode');
 
         // Send the API request.
-        $apiRequest = new ApiRequest($uri, $this->request, $this->transport, $this->tokenHelper, $this->test);
+        $apiRequest = new ApiRequest($this->request, $this->transport, $this->tokenHelper, $this->test);
         $apiRequest->send();
         $this->setLogs($apiRequest->getLogs(), 'request');
 
