@@ -289,6 +289,7 @@ class Event
 
     /**
      * @param string $utmSource
+     *
      * @return Event
      */
     public function setUtmSource($utmSource)
@@ -297,5 +298,4 @@ class Event
 
         return $this;
     }
-
 }

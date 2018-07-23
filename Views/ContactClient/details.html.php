@@ -162,11 +162,13 @@ $website = $item->getWebsite();
             <div class="tab-content pa-md">
                 <div class="tab-pane fade in active bdr-w-0" id="timeline-container">
                     <?php echo $view->render(
-                        'MauticContactClientBundle:Timeline:list.html.php',
+                        'MauticContactClientBundle:Timeline:index.html.php',
                         [
                             'events'        => $events,
                             'contactClient' => $item,
                             'tmpl'          => 'index',
+                            'dateFrom'      => $dateFrom,
+                            'dateTo'        => $dateTo,
                         ]
                     ); ?>
                 </div>

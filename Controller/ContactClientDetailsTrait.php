@@ -48,9 +48,7 @@ trait ContactClientDetailsTrait
             $filters = $session->get(
                 'mautic.plugin.timeline.filters',
                 [
-                    'search'        => '',
-                    'includeEvents' => [],
-                    'excludeEvents' => [],
+                    'search'   => '',
                 ]
             );
         }
@@ -379,28 +377,44 @@ trait ContactClientDetailsTrait
     ) {
         $session = $this->get('session');
 
-        if (null == $filters) {
+        $timelineSessionKey = 'mautic.contactclient.'.$contactClient->getId().'.timeline';
+
+        if (null === $filters) {
             $filters = $session->get(
-                'mautic.contactClient.'.$contactClient->getId().'.timeline.filters',
+                $timelineSessionKey.'.filters',
                 [
-                    'search' => '',
+                    'dateFrom' => new \DateTime(
+                        $this->request->request->get(
+                            'dateFrom',
+                            $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter')
+                        )
+                    ),
+                    'dateTo'   => new \DateTime(
+                        $this->request->request->get(
+                            'dateFrom',
+                            'tomorrow -1 second'
+                        )
+                    ),
+                    'search'   => '',
                 ]
             );
+            $session->set($timelineSessionKey.'.filters', $filters);
         }
 
-        if (null == $orderBy || null == $orderBy[0]) { //empty array or no fieldname in first index
-            if (!$session->has('mautic.contactClient.'.$contactClient->getId().'.timeline.orderby')) {
-                $session->set('mautic.contactClient.'.$contactClient->getId().'.timeline.orderby', 'date_added');
-                $session->set('mautic.contactClient.'.$contactClient->getId().'.timeline.orderbydir', 'DESC');
+        if (null == $orderBy) {
+            if (!$session->has($timelineSessionKey.'.orderby')) {
+                $session->set($timelineSessionKey.'.orderby', 'timestamp');
+                $session->set($timelineSessionKey.'.orderbydir', 'DESC');
             }
 
             $orderBy = [
-                $session->get('mautic.contactClient.'.$contactClient->getId().'.timeline.orderby'),
-                $session->get('mautic.contactClient.'.$contactClient->getId().'.timeline.orderbydir'),
+                $session->get($timelineSessionKey.'.orderby'),
+                $session->get($timelineSessionKey.'.orderbydir'),
             ];
         }
+
         /** @var ContactClientModel $model */
-        $model = $this->getModel('contactClient');
+        $model = $this->getModel('contactclient');
 
         return $model->getEngagements($contactClient, $filters, $orderBy, $page, $limit);
     }

@@ -71,7 +71,6 @@ class EventRepository extends CommonRepository
         $query->where('c.contactclient_id = :contactClientId')
             ->setParameter('contactClientId', $contactClientId);
 
-        ;
         if ($contactId) {
             $query->andWhere('c.contact_id = :contactId')
                 ->setParameter('contactId', $contactId);

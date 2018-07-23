@@ -12,10 +12,8 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Timeline:index.html.php');
 }
 
-$orderBy   = isset($events['order']) ? $events['order'] : ['date_added', 'DESC'];
-
 $baseUrl = $view['router']->path(
-    'mautic_contactclient_timeline_action',
+    'mautic_contactclienttimeline_action',
     [
         'contactClientId' => $contactClient->getId(),
     ]
@@ -130,7 +128,7 @@ $baseUrl = $view['router']->path(
                 </td>
                 <td class="timeline-message"><?php echo $message; ?></td>
                 <td class="timeline-contact-id"><?php echo $contact; ?></td>
-                <td class="timeline-contact-id"><?php echo isset($event['utmSource'])?$event['utmSource']:''; ?></td>
+                <td class="timeline-utm-source"><?php echo isset($event['utmSource']) ? $event['utmSource'] : ''; ?></td>
                 <td class="timeline-type"><?php if (isset($event['eventType'])) {
                         echo $event['eventType'];
                     } ?></td>
@@ -144,7 +142,7 @@ $baseUrl = $view['router']->path(
             <?php if (!empty($details)): ?>
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide"
                     id="timeline-details-e<?php echo $counter; ?>">
-                    <td colspan="5">
+                    <td colspan="6">
                         <?php echo $details; ?>
                     </td>
                 </tr>
@@ -154,7 +152,6 @@ $baseUrl = $view['router']->path(
     </table>
 </div>
 <?php
-
 echo $view->render(
     'MauticCoreBundle:Helper:pagination.html.php',
     [
@@ -164,12 +161,6 @@ echo $view->render(
         'baseUrl'    => $baseUrl,
         'target'     => '#timeline-table',
         'totalItems' => $events['total'],
-        //'queryString' => $queryString,
     ]
 ); ?>
-<script>
-    // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $orderBy[0]; ?>';
-    var sortDirection = '<?php echo strtolower($orderBy[1]); ?>';
-</script>
 <!--/ timeline -->

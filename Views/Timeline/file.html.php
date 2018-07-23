@@ -15,7 +15,7 @@ if (isset($tmpl) && 'index' == $tmpl) {
 $contactClientId = $contactClient->getId();
 $order           = $files['order'];
 $baseUrl         = $view['router']->path(
-    'mautic_contactclient_timeline_action',
+    'mautic_contactclienttimeline_action',
     [
         'contactClientId' => $contactClientId,
     ]

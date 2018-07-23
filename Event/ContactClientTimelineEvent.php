@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Symfony\Component\EventDispatcher\Event;
@@ -41,7 +42,7 @@ class ContactClientTimelineEvent extends Event
      *  includeEvents => (array) event types to include
      *  excludeEvents => (array) event types to exclude.
      *  dateFrom      => DateTime **passed in via filters, moved to property
-     *  dateTo        => DateTime **passed in via filters, moved to property
+     *  dateTo        => DateTime **passed in via filters, moved to property.
      *
      * @var array
      */
@@ -140,49 +141,49 @@ class ContactClientTimelineEvent extends Event
      * @param array              $filters
      * @param array              $orderBy
      * @param int                $page
-     * @param int                $limit          Limit per type
+     * @param int                $limit         Limit per type
      * @param bool               $forTimeline
      * @param string|null        $siteDomain
      */
     public function __construct(
         ContactClient $contactClient = null,
         array $filters = [],
-        array $orderBy = ['date_added', 'DESC'],
+        array $orderBy = null,
         $page = 1,
         $limit = 25,
         $forTimeline = true,
         $siteDomain = null
     ) {
         $this->contactClient = $contactClient;
+        $this->orderBy     = $orderBy;
+        $this->page        = $page;
+        $this->limit       = $limit;
+        $this->forTimeline = $forTimeline;
+        $this->siteDomain  = $siteDomain;
 
-        $this->filters['search'] = null;
-        foreach ($filters as $filter => $value) {
-            switch ($filter) {
-            case 'dateFrom':
-            case 'dateTo':
-                if (!($value instanceof \DateTime)) {
-                    try {
-                        $value = new \DateTime(\strtotime($value));
-                    } catch (\Exception $e) {
-                        $default = ($filter == 'dateFrom') ?
-                            $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month') :
-                            null;
-                        $value = new \DateTime($default);
-                    }
-                }
-                $this->{$filter} = $value;
-
-                break;
-            default:
-                $this->filters[$filter] = $value;
-            }
+        if (!isset($filters['search'])) {
+            $filters['search'] = '';
         }
 
-        $this->orderBy       = $orderBy;
-        $this->page          = $page;
-        $this->limit         = $limit;
-        $this->forTimeline   = $forTimeline;
-        $this->siteDomain    = $siteDomain;
+        if (isset($filters['dateFrom'])) {
+            $this->dateFrom = $filters['dateFrom'] instanceof \DateTime
+                ? $filters['dateFrom']
+                : new \DateTime($filters['dateFrom']);
+        }else {
+            $this->dateFrom = new \DateTime('-1 month midnight');
+        }
+        $filters['dateFrom'] = $this->dateFrom;
+
+        if (isset($filters['dateTo'])) {
+            $this->dateTo = $filters['dateTo'] instanceof \DateTime
+                ? $filters['dateTo']
+                : new \DateTime($filters['dateTo']);
+        } else {
+            $this->dateTo = new \DateTime('tomorrow -1 second');
+        }
+        $filters['dateTo'] = $this->dateTo;
+
+        $this->filters = $filters;
     }
 
     /**
@@ -207,6 +208,7 @@ class ContactClientTimelineEvent extends Event
                     ],
                 ];
 
+                //change this
                 $count = $this->chartQuery->completeTimeData($countData);
                 $this->addToCounter($data['event'], $count);
             } else {
@@ -228,8 +230,8 @@ class ContactClientTimelineEvent extends Event
                     'eventLabel'         => true,
                     'eventType'          => true,
                     'timestamp'          => true,
-                    'message'            => true,
-                    'integratonEntityId' => true,
+//                    'message'            => true,
+//                    'integrationEntityId' => true,
                     'contactId'          => true,
                     'extra'              => true,
                 ];
@@ -352,8 +354,7 @@ class ContactClientTimelineEvent extends Event
      * @return string
      */
     private function generateEventId(array $data)
-    {
-        return $data['eventType'].hash('crc32', json_encode($data), false);
+    {        return $data['eventType'].hash('crc32', json_encode($data), false);
     }
 
     /**
@@ -370,9 +371,9 @@ class ContactClientTimelineEvent extends Event
         $events = call_user_func_array('array_merge', $this->events);
 
         foreach ($events as &$e) {
-            if (!$e['timestamp'] instanceof \DateTime) {
-                $dt             = new DateTimeHelper($e['timestamp'], 'Y-m-d H:i:s', 'UTC');
-                $e['timestamp'] = $dt->getDateTime();
+            if (!$e['timeline'] instanceof \DateTime) {
+                $dt             = new DateTimeHelper($e['timeline'], 'Y-m-d H:i:s', 'UTC');
+                $e['timeline']  = $dt->getDateTime();
                 unset($dt);
             }
         }
@@ -674,38 +675,26 @@ class ContactClientTimelineEvent extends Event
     }
 
     /**
-     * @return \DateTime|null
+     * @param \DateTime|string|null $dateFrom
      */
-    public function getDateFrom()
+    protected function setDateFrom($dateFrom = null)
     {
-        return $this->dateFrom;
-    }
+        if (is_string($dateFrom)) {
+            try {
+                $dateFrom = new \DateTime($dateFrom.' 00:00:00');
+            } catch (\Exception $e) {
+                $dateFrom = null;
+            }
+        }
 
-    /**
-     * @param \DateTime|null $dateFrom
-     * @return ContactClientTimelineEvent
-     */
-    public function setDateFrom($dateFrom)
-    {
+        if (null === $dateFrom) {
+            $dateFrom = new \DateTime();
+        }
+
+        if (!($dateFrom instanceof \DateTime)) {
+            throw \InvalidArgumentException('Unrecognized dateFrom: '.$dateFrom);
+        }
+
         $this->dateFrom = $dateFrom;
-        return $this;
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getDateTo()
-    {
-        return $this->dateTo;
-    }
-
-    /**
-     * @param \DateTime|null $dateTo
-     * @return ContactClientTimelineEvent
-     */
-    public function setDateTo($dateTo)
-    {
-        $this->dateTo = $dateTo;
-        return $this;
     }
 }

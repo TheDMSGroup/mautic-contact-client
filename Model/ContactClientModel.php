@@ -575,12 +575,11 @@ class ContactClientModel extends FormModel
     public function getEngagements(
         ContactClient $contactClient = null,
         $filters = [],
-        $orderBy = ['date_added', 'DESC'],
+        $orderBy = null,
         $page = 1,
         $limit = 25,
         $forTimeline = true
     ) {
-
         $timelineEvent = new ContactClientTimelineEvent(
             $contactClient,
             $filters,
@@ -599,6 +598,7 @@ class ContactClientModel extends FormModel
         if (!isset($filters['search']) || empty($filters['search'])) {
             $filters['search'] = null;
         }
+
         $payload = [
             'events'   => $timelineEvent->getEvents(),
             'filters'  => $filters,
@@ -608,11 +608,9 @@ class ContactClientModel extends FormModel
             'page'     => $page,
             'limit'    => $limit,
             'maxPages' => $timelineEvent->getMaxPage(),
-            'dateFrom' => $timelineEvent->getDateFrom(),
-            'dateTo'   => $timelineEvent->getDateTo(),
         ];
 
-        return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];
+        return ($forTimeline) ? $payload : [$payload, $timelineEvent->getSerializerGroups()];
     }
 
     /**
@@ -652,5 +650,10 @@ class ContactClientModel extends FormModel
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
+    }
+
+    public function setContactClientTimelineFilter()
+    {
+
     }
 }

@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use Mautic\CoreBundle\Controller\FormController;
+use Mautic\CoreBundle\Helper\InputHelper;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,7 +28,7 @@ class ContactClientController extends FormController
             'contactclient',
             'plugin:contactclient:items',
             'mautic_contactclient',
-            'mautic_contactclient',
+            'contactclient',
             'mautic.contactclient',
             'MauticContactClientBundle:ContactClient',
             null,
@@ -75,7 +76,7 @@ class ContactClientController extends FormController
     /**
      * Displays details on a ContactClient.
      *
-     * @param $objectId
+     * @param $objectIdsetListFilters
      *
      * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
      */
@@ -149,19 +150,10 @@ class ContactClientController extends FormController
             );
 
             $dateFrom = new \DateTime($chartFilterForm->get('date_from')->getData().' 00:00:00');
-//            $dateFrom->setTime(0,0,0);
-            $dateTo   = new \DateTime($chartFilterForm->get('date_to')->getData().' 23:59:59.999999');
-//            $dateTo->setTime(23,59,59);
-
-            $engagementFilters = [
-                'dateFrom' => $dateFrom,
-                'dateTo'   => $dateTo,
-            ];
-            $engagementOrder = $this->request->get('orderBy', ['date_added', 'DESC']);
+            $dateTo = new \DateTime($chartFilterForm->get('date_to')->getData().' 23:59:59.999999');
 
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
-
             $unit = $model->getTimeUnitFromDateRange($dateFrom, $dateTo);
 
             if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
@@ -181,11 +173,10 @@ class ContactClientController extends FormController
                 );
             }
 
-
             $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
             $args['viewParameters']['files']           = $this->getFiles($item);
             $args['viewParameters']['stats']           = $stats;
-            $args['viewParameters']['events']          = $model->getEngagements($item, $engagementFilters, $engagementOrder );
+            $args['viewParameters']['events']          = $this->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
             $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
         }
@@ -278,12 +269,12 @@ class ContactClientController extends FormController
 
         if (!empty($stats)) {
             $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
-            $row =[];
+            $row                   =[];
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
                     $dateStr = $stats['labels'][$key];
-                    $date = null;
+                    $date    = null;
                     switch ($unit) {
                         case 'd': // M j, y
                             $date    = date_create_from_format('M j, y', $dateStr);
@@ -321,5 +312,54 @@ class ContactClientController extends FormController
         }
 
         return $tableData;
+    }
+
+    /**
+     * @param int $contactClientId
+     * @param int $page
+     */
+    protected function setTimelineFilters($contactClientId)
+    {
+        /** @var \Mautic\CoreBundle\Helper\CoreParametersHelper $paramHelper */
+        $paramHelper = $this->get('mautic.helper.core_parameters');
+        $session = $this->get('session');
+
+        $sessionBase = 'mautic.contactclient.timeline.'.$contactClientId;
+        $sessionKeys = ['.search', '.order', '.page', '.limit', 'dateTo', 'dateFrom'];
+
+        $filters['dateTo'] = new \DateTime(
+            $this->request->request->get(
+                'dateTo',
+                'tomorrow -1 second'
+            )
+        );
+        $filters['dateFrom'] = new \DateTime(
+            $this->request->request->get(
+                'dateFrom',
+                $paramHelper->getParameter('default_daterange_filter')
+            )
+        );
+
+            if ($this->request->request->has('search')) {
+                $filters['search'] = InputHelper::clean($this->request->request->gete('search'));
+            }
+
+            if ($this->request->query->has('orderby')) {
+                $orderBy = InputHelper::clean($this->request->query->get('orderby'), true);
+                $dir     = $session->get($session.'.orderbydir', 'ASC');
+                $dir     = ($dir == 'ASC') ? 'DESC' : 'ASC';
+                $session->set("$name.orderby", $orderBy);
+                $session->set("$name.orderbydir", $dir);
+            }
+
+            if ($this->request->query->has('limit')) {
+                $limit = InputHelper::int($this->request->query->get('limit'));
+                $session->set("$name.limit", $limit);
+            }
+
+
+        $session->set('mautic.'.$name.'.dateTo', $filters['dateTo']);
+        $session->set('mautic.'.$name.'.dateFrom', $filters['dateFrom']);
+        $session->set('mautic.'.$name.'.filters', $filters);
     }
 }

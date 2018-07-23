@@ -28,46 +28,68 @@ class AjaxController extends CommonAjaxController
     use AjaxLookupControllerTrait;
 
     /**
+     * Updates the timeline events and gets returns updated HTML.
+     *
+     * @param Request $request
+     *
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     */
+    protected function updateTimelineAction(Request $request)
+    {
+        $dataArray              = ['success' => 0];
+        $dateFrom               = InputHelper::clean($request->request->get('dateFrom', []));
+        $dateTo                 = InputHelper::clean($request->request->get('dateTo', []));
+        $search                 = InputHelper::clean($request->request->get('search'));
+        $contactClientId        = (int) $request->request->get('contactClientId');
+
+        if (!empty($leadId)) {
+            //find the lead
+            $model = $this->getModel('lead.lead');
+            $lead  = $model->getEntity($leadId);
+
+            if ($lead !== null) {
+                $session = $this->get('session');
+
+                $filter = [
+                    'search'        => $search,
+                    'dateFrom'      => $dateFrom,
+                    'dateTo'        => $dateTo,
+                ];
+
+                $session->set('mautic.contactclient.'.$contactClientId.'.timeline.filters', $filter);
+
+                // Trigger the TIMELINE_ON_GENERATE event to fetch the timeline events from subscribed bundles
+                $dispatcher = $this->dispatcher;
+                $event      = new LeadTimelineEvent($lead, $filter);
+                $dispatcher->dispatch(LeadEvents::TIMELINE_ON_GENERATE, $event);
+
+                $events     = $event->getEvents();
+                $eventTypes = $event->getEventTypes();
+
+                $timeline = $this->renderView(
+                    'MauticLeadBundle:Lead:history.html.php',
+                    [
+                        'events'       => $events,
+                        'eventTypes'   => $eventTypes,
+                        'eventFilters' => $filter,
+                        'lead'         => $lead,
+                    ]
+                );
+
+                $dataArray['success']      = 1;
+                $dataArray['timeline']     = $timeline;
+                $dataArray['historyCount'] = count($events);
+            }
+        }
+
+        return $this->sendJsonResponse($dataArray);
+    }
+
+    /**
      * @param Request $request
      *
      * @return mixed
      */
-    public function ajaxTimelineAction(Request $request)
-    {
-        $filters            = [];
-        $contactClientModel = $this->get('mautic.contactclient.model.contactclient');
-
-        foreach ($request->request->get('filters') as $key => $filter) {
-            $filter['name']           = str_replace(
-                '[]',
-                '',
-                $filter['name']
-            ); // the serializeArray() js method seems to add [] to the key ???
-            $filters[$filter['name']] = $filter['value'];
-        }
-        if (isset($filters['contactClientId'])) {
-            if (!$contactClient = $contactClientModel->getEntity($filters['contactClientId'])) {
-                throw new \InvalidArgumentException('Contact Client argument is Invalid.');
-            }
-        } else {
-            throw new \InvalidArgumentException('Contact Client argument is Missing.');
-        }
-        $orderBy = isset($filters['orderBy']) ? explode(':', $filters['orderBy']) : null;
-        $page    = isset($filters['page']) ? $filters['page'] : 1;
-        $limit   = isset($filters['limit']) ? $filters['limit'] : 25;
-
-        $events = $contactClientModel->getEngagements($contactClient, $filters, $orderBy, $page, $limit, true);
-        $view   = $this->render(
-            'MauticContactClientBundle:Timeline:list.html.php',
-            [
-                'events'        => $events,
-                'contactClient' => $contactClient,
-                'tmpl'          => '',
-            ]
-        );
-
-        return $view;
-    }
 
     /**
      * @param Request $request

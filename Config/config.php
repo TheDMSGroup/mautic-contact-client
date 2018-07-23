@@ -17,38 +17,55 @@ return [
 
     'routes' => [
         'main' => [
-            'mautic_contactclient_index'           => [
-                'path'       => '/contactclient/{page}',
-                'controller' => 'MauticContactClientBundle:ContactClient:index',
+            /*
+            'mautic_plugin_contactclienttimeline_index' => [
+                'path'         => '/plugin/{integration}/contactclient/timeline/{page}',
+                'controller'   => 'MauticLeadBundle:Timeline:pluginIndex',
+                'requirements' => [
+                    'integration' => '.+',
+                ],
             ],
-            'mautic_contactclient_action'          => [
-                'path'       => '/contactclient/{objectAction}/{objectId}',
-                'controller' => 'MauticContactClientBundle:ContactClient:execute',
+            'mautic_plugin_contactclienttimeline_view' => [
+                'path'         => '/plugin/{integration}/contactclient/timeline/view/{coId}/{page}',
+                'controller'   => 'MauticLeadBundle:Timeline:pluginView',
+                'requirements' => [
+                    'integration' => '.+',
+                    'leadId'      => '\d+',
+                ],
+            ],
+            */
+            'mautic_contactclient_index'           => [
+                'path'         => '/contactclient/{page}',
+                'controller'   => 'MauticContactClientBundle:ContactClient:index',
+                'requirements' => [
+                    'page' => '\d+',
+                ],
             ],
             'mautic_contactclient_timeline_action' => [
-                'path'         => '/contactclient/{contactClientId}/timeline/page/{page}',
+                'path'         => '/contactclient/timeline/{contactClientId}/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
-                'defaults' => [
-                    'page' => '1',
-                ]
             ],
-            'mautic_contactclient_timeline_export' => [
-                'path'       => '/contactclient/{contactClientId}/timeline/export',
-                'controller' => 'MauticContactClientBundle:Timeline:exportTimeline',
+            'mautic_contactclient_timeline_export_action' => [
+                'path'         => '/contactclient/timeline/{contactClientId}/export',
+                'controller'   => 'MauticContactClientBundle:Timeline:exportTimeline',
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
             ],
-            'mautic_contactclient_timeline_file'   => [
-                'path'       => '/contactclient/{contactClientId}/timeline/file/{fileId}',
-                'controller' => 'MauticContactClientBundle:Timeline:file',
+            'mautic_contactclient_timeline_file_action'   => [
+                'path'         => '/contactclient/timeline/{contactClientId}/file/{fileId}',
+                'controller'   => 'MauticContactClientBundle:Timeline:file',
                 'requirements' => [
                     'contactClientId' => '\d+',
-                    'fileId' => '\d+'
+                    'fileId'          => '\d+',
                 ],
+            ],
+            'mautic_contactclient_action'          => [
+                'path'       => '/contactclient/{objectAction}/{objectId}',
+                'controller' => 'MauticContactClientBundle:ContactClient:execute',
             ],
         ],
     ],
@@ -165,6 +182,14 @@ return [
             ],
             'mautic.contactclient.helper.utmsource'  => [
                 'class' => 'MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper',
+            ],
+            'mautic.contactclient.helper.timeline' => [
+                'class' => 'MauticPlugin\MauticContactClientBundle\Helper\TimelineHelper',
+                'arguments' => [
+                    'request_stack',
+                    'session',
+
+                ]
             ],
             'mautic.contactclient.guzzle.client'     => [
                 'class' => 'GuzzleHttp\Client',

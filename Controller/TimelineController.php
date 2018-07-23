@@ -46,23 +46,10 @@ class TimelineController extends CommonController
             return $contactClient;
         }
 
-        $this->setListFilters('mautic.mautic_contactclient');
+        $timelineHelper = $this->get('mautic.clientcontact.heper.timeline');
+        $timelineHelper->setTimelineFilters();
 
         $session = $this->get('session');
-        if ('POST' === $request->getMethod() && $request->request->get('search')) {
-            $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
-            ];
-            $session->set('mautic.contactClient.'.$contactClientId.'.timeline.filters', $filters);
-        } else {
-            $filters = null;
-        }
-
-        $order = [
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderby', 'date_added'),
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderbydir', 'DESC'),
-        ];
-
         $events = $this->getEngagements($contactClient, $filters, $order, $page);
 
         return $this->delegateView(
@@ -91,37 +78,28 @@ class TimelineController extends CommonController
             return $contactClients;
         }
 
-        $this->setListFilters('mautic.mautic_contactclient');
+        //'plugin.'.$contactClients.'.timeline'
+        $this->setListFilters();
 
         $session = $this->get('session');
         if ('POST' === $request->getMethod()) {
-            $filters = [];
-            $search = InputHelper::clean($request->request->get('search', false));
-            if ($search) {
-                $filters['search'] = $search;
-            };
-            $dateFrom = InputHelper::clean($request->request->get('date_from', false));
-            if ($dateFrom) {
-                $filters['dateFrom'] = new DateTime($dateFrom);
-            };
-            $dateTo = InputHelper::clean($request->request->get('date_to', false));
-            if ($dateTo) {
-                $filters['dateTo'] = new DateTime($dateTo);
-            };
-
-
+            $filters = [
+                'search'   => InputHelper::clean($request->request->get('search')),
+                'dateFrom' => InputHelper::clean($request->request->get('dateFrom', false)),
+                'dateTo'   => InputHelper::clean($request->request->get('dateTo', false)),
+            ];
             $session->set('mautic.plugin.timeline.filters', $filters);
         } else {
             $filters = null;
         }
 
         $order = [
-            $session->get('mautic.plugin.timeline.orderby', 'date_added'),
+            $session->get('mautic.plugin.timeline.orderby', 'timestamp'),
             $session->get('mautic.plugin.timeline.orderbydir', 'DESC'),
         ];
 
         // get all events grouped by contactClient
-        $page = $request->request->get('page', 1);
+        $page   = $request->request->get('page', 1);
         $events = $this->getAllEngagements($contactClients, $filters, $order, $page, $limit);
 
         parse_str($this->request->server->get('QUERY_STRING'), $query);
@@ -165,6 +143,7 @@ class TimelineController extends CommonController
             return $contactClient;
         }
 
+        //'plugin.contactclient.'.$contactClientId.'.timeline'
         $this->setListFilters();
 
         $session = $this->get('session');
@@ -255,13 +234,8 @@ class TimelineController extends CommonController
             'valid',
         ];
 
-        $params  = [
-            'fromDate' => \DateTime::createFromFormat('M j, Y', $this->request->query->get('date_from')),
-            'toDate'   => \DateTime::createFromFormat('M j, Y', $this->request->query->get('date_to')),
-        ];
-        if ($this->request->request->get('search', false)) {
-            $params['search'] = $this->request->request->get('search');
-        }
+        $session = $this->get('session');
+        $params  = $session->get('mautic.contactclient.'.$contactClientId.'.timeline.filters', []);
 
         /** @var \MauticPlugin\MauticContactClientBundle\Entity\EventRepository $eventRepository */
         $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository('MauticContactClientBundle:Event');
@@ -280,7 +254,6 @@ class TimelineController extends CommonController
                 while ($params['start'] < $count[0]['count']) {
                     $timelineEvents = $eventRepository->getEventsForTimelineExport($contactClientId, $params, false);
                     foreach ($timelineEvents as $timelineEvent) {
-
                         // depracating use of YAML for event logs, but need to be backward compatible
                         $csvRows = ($timelineEvent['logs'][0] === '{') ?
                             $this->parseLogJSONBlob($timelineEvent) :
