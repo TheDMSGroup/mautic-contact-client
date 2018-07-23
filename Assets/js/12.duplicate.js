@@ -53,9 +53,9 @@ Mautic.contactclientDuplicate = function () {
                     }
                 });
 
-                $duplicate.addClass('duplicate-checked');
                 $duplicateJSONEditor.show();
             }
         });
+        $duplicate.addClass('duplicate-checked');
     }
 };

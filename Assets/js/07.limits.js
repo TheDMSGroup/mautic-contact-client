@@ -65,10 +65,9 @@ Mautic.contactclientLimits = function () {
                     }
                 });
 
-                $limits.addClass('limits-checked');
                 $limitsJSONEditor.show();
             }
         });
-
+        $limits.addClass('limits-checked');
     }
 };
