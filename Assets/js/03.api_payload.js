@@ -150,7 +150,7 @@ Mautic.contactclientApiPayload = function () {
                         var raw = JSON.stringify(obj, null, 2);
                         if (raw.length && $apiPayload.val() !== raw) {
                             // console.log('Change by JSON editor', raw);
-                            $apiPayload.val(raw);
+                            $apiPayload.val(raw.replace(/(&quot\;)/g, '&amp;quot;'));
                         }
                         // Loop through operations to update success
                         // filters.
@@ -560,7 +560,7 @@ Mautic.contactclientApiPayload = function () {
             var raw = apiPayloadCodeMirror.getValue();
             if (raw.length) {
                 // console.log('Change by codemirror', raw);
-                $apiPayload.val(raw);
+                $apiPayload.val(raw.replace(/(&quot\;)/g, '&amp;quot;'));
             }
         });
 
@@ -778,7 +778,7 @@ Mautic.contactclientApiPayload = function () {
                                     setJSONEditorValue(raw);
                                 }
                                 else {
-                                    $apiPayload.val(raw);
+                                    $apiPayload.val(raw.replace(/(&quot\;)/g, '&amp;quot;'));
                                 }
                             }
                         }
