@@ -6,14 +6,15 @@
  * Time: 3:06 AM
  */
 
-namespace MauticContactClientBundle\Helper;
+namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Mautic\CoreBundle\Helper\InputHelper;
+use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
-class ContactClientTimelineHelper
+class TimelineHelper
 {
 
     /** @var \Symfony\Component\HttpFoundation\RequestStack */
@@ -25,97 +26,175 @@ class ContactClientTimelineHelper
     /** @var \Mautic\CoreBundle\Helper\CoreParametersHelper */
     protected $parameterHelper;
 
-    /** @var string  */
-    protected $sessionKeyBase = 'contactclient.timeline';
+    /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel */
+    protected $model;
 
-    /** @var string  */
+    /** @var string */
     protected $defaultOrderCol = 'timestamp';
 
-    /** @var string  */
+    /** @var string */
     protected $defaultOrderDir = 'DESC';
 
+    /** @var string */
+    protected $sessionKey = false;
+
+    /** @var int */
+    protected $page = 1;
+
+    /** @var int */
+    protected $limit = 25;
+
     /**
-     * ContactClientTimelineHelper constructor.
+     * TimelineHelper constructor.
      * @param RequestStack $requestStack
      * @param Session $session
      * @param CoreParametersHelper $parametersHelper
-     * @param ContactClientModel $contactClientModel
+     * @param ContactClientModel $model
      */
     public function __construct(
         RequestStack $requestStack,
         Session $session,
         CoreParametersHelper $parametersHelper,
-        ContactClientModel $contactClientModel
+        ContactClientModel $model
     )
     {
         $this->requestStack = $requestStack;
         $this->session = $session;
         $this->parameterHelper = $parametersHelper;
-        $this->model = $contactClientModel;
-
+        $this->model = $model; //remove this and make an abstract model passaable to the getter
     }
 
-    public function setTimelineFilters($contactClientId)
+    public function getTimelineParams()
+    {
+        $params = [
+            'page' => $this->page,
+            'limit' => $this->limit,
+            'order' => ['orderby' => 'timestamp', 'orderbydir' => 'DESC'],
+            'filters' => ['search' => ''],
+        ];
+        $unknown = [];
+
+        if ($this->sessionKey()) {
+
+            $params['ContactClient'] = $this->model->getEntity($this->getEntityId());
+
+            foreach ($this->session->getIterator() as $key => $value) {
+
+                if (!strstr($key, $this->sessionKey)) {
+                    continue;
+                }
+
+                $name = str_replace($this->sessionKey, '', $key);
+                switch ($name) {
+                    case 'page':
+                    case 'limit':
+                        $params[$name] = $value;
+                        break;
+                    case 'orderby':
+                    case 'orderbydir':
+                        $params['order'][$name] = $value;
+                        break;
+                    case 'fromDate':
+                    case 'toDate':
+                        if (!($value instanceof \DateTime)) {
+                            try {
+                                $value = new \DateTime($value);
+                            } catch (\Exception $e) {
+                                $value = ($name == 'fromDate')
+                                    ? new \DeepTime('-1 month')
+                                    : new \DateTime();
+                            }
+                        }
+                    case 'search':
+                        $params['filters'][$name] = $value;
+                        break;
+                    default:
+                        $unknown[$name] = $value;
+                }
+
+            }
+
+        }
+        // TODO: validate param set
+
+        return $params;
+    }
+
+    public function setTimelineParams()
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if ($request->getMethod() == 'POST' && $request->request->has('date_from')) {
-            $dateFrom = InputHelpper::clean($request->request->get('date_from'));
-            $dateTo   = InputHelpper::clean($request->request->get('date_to'));
-
-            $filters = [
-                'dateFrom' => InputHelper::clean(),
-                'dateTo'   => InputHelper::clean($request->request->get('dateTo', false)),
-            ];
-            if ($request->request->has('search') && $request->request->get('search')) {
-                $filters['search'] = InputHelper::clean($request->request->get('search'));
-            }
-            $this->session->set('mautic.contactclient.'.$contactClientId.'.timeline.filters', $filters);
+        if (!$this->sessionKey()) {
+            return;
         }
 
-        $filters = $this->session->get('mautic.contactclient'.$contactClientId.'.timeline.filters', []);
+        //initialize the pieces if needed
+        if (!$this->session->get($this->sessionKey . 'fromDate')) {
+            $this->session->set($this->sessionKey . 'fromDate', $this->parameterHelper->getParameter('default_daterange_filter'));
+            $this->session->set($this->sessionKey . 'toDate', 'tomorrow midnight -1 second');
+        }
 
-        $order = [
-            $session->get('mautic.contactclient.'.$contactClientId.'.timeline.orderby'),
-            $session->get('mautic.contactclient.'.$contactClientId.'.timeline.orderbydir'),
-        ];
+        if (!$this->session->get($this->sessionKey . 'orderby')) {
+            $this->session->set($this->sessionKey . 'orderby', 'timestamp');
+            $this->session->set($this->sessionKey . 'orderbydir', 'DESC');
+        }
 
+        if (!$this->session->get($this->sessionKey . 'limit')) {
+            $this->session->set($this->sessionKey . 'limit', 25);
+        }
 
+        // Apply subbmitted changes
+        $this->page = $request->attributes->get('page', 1);
 
+        // combine 'GET' and 'POST' values for simple processing
+        $vars = InputHelper::cleanArray(array_merge(
+            $request->query->all(),
+            $request->request->all()
+        ));
 
-    }
+        if (isset($vars['chartfilter'])) {
+            $this->session->set($this->sessionKey . 'fromDate', $vars['chartfilter']['date_from']);
+            $this->session->set($this->sessionKey . 'toDate', $vars['chartfilter']['date_to']);
+        }
 
-    public function getFilters()
-    {
-
-    }
-
-    public function getOrderBy()
-    {
-            if (!$session->has('mautic.lead.'.$lead->getId().'.timeline.orderby')) {
-                $session->set('mautic.lead.'.$lead->getId().'.timeline.orderby', 'timestamp');
-                $session->set('mautic.lead.'.$lead->getId().'.timeline.orderbydir', 'DESC');
+        if (isset($vars['orderby'])) {
+            if ($this->session->get($this->sessionKey . 'orderby') == $vars['orderby']) {
+                $dir = ($this->session->get($this->sessionKey . 'orderbydir') == 'DESC') ? 'ASC' : 'DESC';
+                $this->session->set($this->sessionKey . 'orderbydir', $dir);
+            } else {
+                $this->session->set($this->sessionKey . 'orderbydir', 'ASC');
             }
 
-            $orderBy = [
-                $this->session->get('mautic.lead.'.$lead->getId().'.timeline.orderby'),
-                $this->get('mautic.lead.'.$lead->getId().'.timeline.orderbydir'),
-            ];
+            $this->session->set($this->sessionKey . 'orderby', $vars['orderby']);
         }
+
+        if (isset($vars['limit'])) {
+            $this->session->set($this->sessionKey . 'limit', $vars['limit']);
+        }
+
+        if (isset($vars['search'])) {
+            if (empty($search)) {
+                $this->session->remove($this->sessionKey . 'search');
+            } else {
+                $this->session->set($this->sessionKey . 'search', $vars['search']);
+            }
+         }
     }
 
-    public function getPage()
-    {
-
+    public function sessionKey() {
+        $id = $this->getEntityId();
+        if ($id) {
+            $this->sessionKey = "mautic.contactclient.$id.timeline.";
+        }
+        return $this->sessionKey;
     }
 
-    public function getLimit()
+    private function getEntityId()
     {
+        $request = $this->requestStack->getCurrentRequest();
 
-    }
-
-    public function getEngagements()
-    {
-
+        return $request->attributes->has('objectId')
+            ? $request->attributes->get('objectId')
+            : $request->attributes->get('contactClientId', false);
     }
 }
