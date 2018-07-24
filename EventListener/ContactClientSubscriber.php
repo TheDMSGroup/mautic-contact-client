@@ -176,8 +176,8 @@ class ContactClientSubscriber extends CommonSubscriber
         $types               = $stat->getAllTypes();
         $options             = $event->getQueryOptions();
 
-        if ('timestamp' == $options['order'][0]) {
-            $options['order'][0] = 'date_added';
+        if ('timestamp' == $options['order']['orderby']) {
+            $options['order']['orderby'] = 'date_added';
         }
 
         foreach ($types as $eventTypeKey) {
@@ -188,14 +188,14 @@ class ContactClientSubscriber extends CommonSubscriber
         $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), null, $options);
         $rows    = isset($results['results']) ? $results['results'] : $results;
         $total   = isset($results['total']) ? $results['total'] : count($rows);
+        $event->setQueryTotal($total);
 
         foreach ($rows as $row) {
             $eventTypeKey  = $row['type'];
             $eventTypeName = ucwords($eventTypeKey);
 
             // Add total to counter
-            $event->setQueryTotal($total);
-            //$event->addToCounter($eventTypeKey, 1);
+            $event->addToCounter($eventTypeKey, 1);
 
             $log = $row['logs'][0] === '{' ? json_encode(json_decode($row['logs']), JSON_PRETTY_PRINT) : $row['logs'];
 
@@ -218,7 +218,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         'eventType'       => $eventTypeName,
                         'timestamp'       => $row['date_added'],
                         'extra'           => [
-                            // 'page' => $this->pageModel->getEntity($row['page_id']),
+//                            'page' => $this->pageModel->getEntity($row['page_id']),
                             'logs'                => $log,
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],

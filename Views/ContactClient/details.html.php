@@ -162,23 +162,23 @@ $website = $item->getWebsite();
             <div class="tab-content pa-md">
                 <div class="tab-pane fade in active bdr-w-0" id="timeline-container">
                     <?php echo $view->render(
-                        'MauticContactClientBundle:Timeline:index.html.php',
+                        'MauticContactClientBundle:Timeline:list.html.php',
                         [
                             'events'        => $events,
                             'contactClient' => $item,
                             'tmpl'          => 'index',
-                            'dateFrom'      => $dateFrom,
-                            'dateTo'        => $dateTo,
                         ]
                     ); ?>
                 </div>
                 <?php if ($files['total']): ?>
-                    <div class="tab-pane fade in bdr-w-0" id="files-container">
-                        <?php echo $view->render(
-                            'MauticContactClientBundle:Timeline:file.html.php',
-                            ['contactClient' => $item, 'files' => $files]
-                        ); ?>
-                    </div>
+                <div class="tab-pane fade in bdr-w-0" id="files-container">
+                    <?php echo $view->render(
+                        'MauticContactClientBundle:Timeline:file.html.php',
+                        [
+                            'contactClient' => $item,
+                            'files' => $files]
+                    ); ?>
+                </div>
                 <?php endif; ?>
 
                 <!-- custom content -->

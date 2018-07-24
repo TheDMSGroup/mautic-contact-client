@@ -595,10 +595,6 @@ class ContactClientModel extends FormModel
             $timelineEvent
         );
 
-        if (!isset($filters['search']) || empty($filters['search'])) {
-            $filters['search'] = null;
-        }
-
         $payload = [
             'events'   => $timelineEvent->getEvents(),
             'filters'  => $filters,

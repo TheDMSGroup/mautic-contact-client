@@ -17,23 +17,6 @@ return [
 
     'routes' => [
         'main' => [
-            /*
-            'mautic_plugin_contactclienttimeline_index' => [
-                'path'         => '/plugin/{integration}/contactclient/timeline/{page}',
-                'controller'   => 'MauticLeadBundle:Timeline:pluginIndex',
-                'requirements' => [
-                    'integration' => '.+',
-                ],
-            ],
-            'mautic_plugin_contactclienttimeline_view' => [
-                'path'         => '/plugin/{integration}/contactclient/timeline/view/{coId}/{page}',
-                'controller'   => 'MauticLeadBundle:Timeline:pluginView',
-                'requirements' => [
-                    'integration' => '.+',
-                    'leadId'      => '\d+',
-                ],
-            ],
-            */
             'mautic_contactclient_index'           => [
                 'path'         => '/contactclient/{page}',
                 'controller'   => 'MauticContactClientBundle:ContactClient:index',
@@ -41,7 +24,7 @@ return [
                     'page' => '\d+',
                 ],
             ],
-            'mautic_contactclient_timeline_action' => [
+            'mautic_contactclienttimeline_action' => [
                 'path'         => '/contactclient/timeline/{contactClientId}/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
@@ -188,8 +171,9 @@ return [
                 'arguments' => [
                     'request_stack',
                     'session',
-
-                ]
+                    'mautic.helper.core_parameters',
+                    'mautic.contactclient.model.contactclient',
+                ],
             ],
             'mautic.contactclient.guzzle.client'     => [
                 'class' => 'GuzzleHttp\Client',

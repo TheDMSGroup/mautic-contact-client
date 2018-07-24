@@ -10,40 +10,42 @@
  */
 ?>
 
-<div class="panel">
-    <!-- filter form -->
-    <form method="post" action="<?php echo $view['router']->path(
-        'mautic_contactclienttimeline_action',
-        ['contactClientId' => $contactClient->getId()]
-    ); ?>" id="timeline-filters">
-        <div class="col-xs-8 col-lg-10 va-m">
-            <h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>
-            <div class="input-group col-xs-8">
-                <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
-                       placeholder="<?php echo $view['translator']->trans(
-                           'mautic.contactclient.search.placeholder'
-                       ); ?>"
-                       value="<?php echo $events['filters']['search']; ?>">
+<!-- filter form -->
+<form method="post" action="<?php echo $view['router']->path(
+    'mautic_contactclienttimeline_action',
+    ['contactClientId' => $contactClient->getId()]
+); ?>" id="timeline-filters" class="panel">
+    <div class="history-search panel-footer text-muted">
+        <div class="input-group col-xs-10">
+            <span class="the-icon fa fa-search text-muted mt-xs"></span>
+            <input type="text" class="form-control bdr-w-0 search tt-input" name="search" id="search"
+                   placeholder="<?php echo $view['translator']->trans(
+                       'mautic.contactclient.search.placeholder'
+                   ); ?>"
+                   value="<?php echo $events['filters']['search']; ?>">
 
-                <div class="input-group-btn">
-                    <button type="submit" id="contactClientTimelineFilterApply" name="contactClientTimelineFilterApply"
-                            class="btn btn-default btn-search btn-nospin">
-                        <i class="the-icon fa fa-search fa-fw"></i>
-                    </button>
-                </div>
+            <div class="input-group-btn">
+                <button type="submit" id="contactClientTimelineFilterApply" name="contactClientTimelineFilterApply"
+                        class="btn btn-default btn-search btn-nospin">
+                    <i class="the-icon fa fa-search fa-fw"></i>
+                </button>
             </div>
         </div>
-    </form>
+        <div class="col-sm-2">
+            <a class="btn btn-default"
+               onclick="Mautic.contactClientTimelineExport(<?php echo $contactClient->getId(); ?>);">
+            <span>
+                <i class="fa fa-download "></i>
+                <span class="hidden-xs hidden-sm">Export</span>
+            </span>
+            </a>
+        </div>
+    </div>
 
 <!-- Export button -->
-    <div class="std-toolbar btn-group">
-        <a class="btn btn-default"
-           onclick="Mautic.contactClientTimelineExport(<?php echo $contactClient->getId(); ?>);">
-            <i class="fa fa-download "></i>
-            <span class="hidden-xs hidden-sm">Export</span>
-        </a>
-    </div>
-</div>
+
+    <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $contactClient->getId(); ?>"/>
+</form>
 
 <script>
     mauticLang['showMore'] = '<?php echo $view['translator']->trans('mautic.core.more.show'); ?>';

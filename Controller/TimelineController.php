@@ -46,7 +46,7 @@ class TimelineController extends CommonController
             return $contactClient;
         }
 
-        $timelineHelper = $this->get('mautic.clientcontact.heper.timeline');
+        $timelineHelper = $this->get('mautic.clientcontact.helper.timeline');
         $timelineHelper->setTimelineFilters();
 
         $session = $this->get('session');

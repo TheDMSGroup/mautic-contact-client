@@ -161,27 +161,19 @@ class ContactClientTimelineEvent extends Event
         $this->forTimeline = $forTimeline;
         $this->siteDomain  = $siteDomain;
 
-        if (!isset($filters['search'])) {
-            $filters['search'] = '';
+        if (isset($filters['search']) && empty($filters['search'])) {
+            unset($filters['search']);
         }
 
-        if (isset($filters['dateFrom'])) {
-            $this->dateFrom = $filters['dateFrom'] instanceof \DateTime
-                ? $filters['dateFrom']
-                : new \DateTime($filters['dateFrom']);
-        }else {
-            $this->dateFrom = new \DateTime('-1 month midnight');
+        if (!isset($filters['fromDate'])) {
+            $filters['fromDate'] = new \DateTime('-1 month');
         }
-        $filters['dateFrom'] = $this->dateFrom;
+        $this->dateFrom = $filters['fromDate'];
 
-        if (isset($filters['dateTo'])) {
-            $this->dateTo = $filters['dateTo'] instanceof \DateTime
-                ? $filters['dateTo']
-                : new \DateTime($filters['dateTo']);
-        } else {
-            $this->dateTo = new \DateTime('tomorrow -1 second');
+        if (!isset($filters['toDate'])) {
+            $filters['toDate'] = new \DateTime();
         }
-        $filters['dateTo'] = $this->dateTo;
+        $this->dateTo = $filters['toDate'];
 
         $this->filters = $filters;
     }
@@ -371,18 +363,17 @@ class ContactClientTimelineEvent extends Event
         $events = call_user_func_array('array_merge', $this->events);
 
         foreach ($events as &$e) {
-            if (!$e['timeline'] instanceof \DateTime) {
-                $dt             = new DateTimeHelper($e['timeline'], 'Y-m-d H:i:s', 'UTC');
-                $e['timeline']  = $dt->getDateTime();
-                unset($dt);
+            if (!($e['timestamp'] instanceof \DateTime)) {
+                $e['timestamp'] = new \DateTime($e['timestamp']);
             }
+            $e['timestamp'] = $e['timestamp']->format('Y-m-d H:i:s');
         }
 
         if (!empty($this->orderBy)) {
             usort(
                 $events,
                 function ($a, $b) {
-                    switch ($this->orderBy[0]) {
+                    switch ($this->orderBy['orderby']) {
                         case 'eventLabel':
                             $aLabel = '';
                             if (isset($a['eventLabel'])) {
@@ -419,12 +410,12 @@ class ContactClientTimelineEvent extends Event
 
                         default:
 
-                            return strnatcmp($a[$this->orderBy[0]], $b[$this->orderBy[0]]);
+                            return strnatcmp($a[$this->orderBy['orderby']], $b[$this->orderBy['orderby']]);
                     }
                 }
             );
 
-            if ('DESC' == $this->orderBy[1]) {
+            if ('DESC' == $this->orderBy['orderbydir']) {
                 $events = array_reverse($events);
             }
         }
@@ -491,10 +482,8 @@ class ContactClientTimelineEvent extends Event
      */
     public function getQueryOptions()
     {
-        return array_merge(
+        $options = array_merge(
             [
-                'search'     => $this->filters['search'],
-                'logs'       => isset($this->filters['logs']) ? $this->filters['logs'] : null,
                 'order'      => $this->orderBy,
                 'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
@@ -502,9 +491,14 @@ class ContactClientTimelineEvent extends Event
                 'fromDate'   => $this->dateFrom,
                 'toDate'     => $this->dateTo,
                 'chartQuery' => $this->chartQuery,
+                'logs'       => isset($this->filters['logs']) ? $this->filters['logs'] : null,
             ],
             $this->getEventLimit()
         );
+        if (isset($this->filters['search']) && !empty($this->filters['search'])) {
+            $options['search'] = $this->filters['search'];
+        }
+        return $options;
     }
 
     /**

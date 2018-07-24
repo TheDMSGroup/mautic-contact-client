@@ -76,7 +76,7 @@ class EventRepository extends CommonRepository
                 ->setParameter('contactId', $contactId);
         }
 
-        if (isset($options['search']) && $options['search']) {
+        if (isset($options['search']) && !empty($options['search'])) {
             if (is_numeric($options['search'])) {
                 $expr = $query->expr()->orX(
                     'c.utm_source = :search',
@@ -92,33 +92,34 @@ class EventRepository extends CommonRepository
                 ->setParameter('search', $options['search']);
         }
 
-        if (!empty($options['fromDate']) && !empty($options['toDate'])) {
-            $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d 23:59:59'));
-        } elseif (!empty($options['fromDate'])) {
+        if (isset($options['fromDate'])) {
             $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
                 ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
-        } elseif (!empty($options['toDate'])) {
-            $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d 23:59:59'));
+
+        } elseif (isset($options['toDate'])) {
+            $queryDate = new \DateTime($options['toDate']->getTimestamp());
+            $queryDate->setTime(0,0,0);
+            $queryDate->modify('+1 day');
+            $query->andWhere($query->expr()->lt('c.date_added', ':dateTo'))
+                ->setParameter('dateTo', $queryDate->format('Y-m-d H:i:s'));
         }
 
         if (isset($options['order']) && !empty($options['order'])) {
-            list($orderBy, $orderByDir) = $options['order'];
+            $orderBy = empty($options['order']['orderby']) ? 'date_added' : $options['order']['orderby'];
+            $orderByDir = empty($options['order']['orderbydir']) ? 'DESC' : 'ASC';
             $query->orderBy('c.'.$orderBy, $orderByDir);
         }
 
-        if (!empty($options['limit'])) {
+        if (isset($options['limit']) && !empty($options['limit'])) {
             $query->setMaxResults($options['limit']);
-            if (!empty($options['start'])) {
+            if (isset($options['start'])) {
                 $query->setFirstResult($options['start']);
             }
         }
 
         $results = $query->execute()->fetchAll();
 
-        if (!empty($options['paginated'])) {
+        if (isset($options['paginated'])) {
             // Get a total count along with results
             $query->resetQueryParts(['select', 'orderBy'])
                 ->setFirstResult(null)
@@ -158,16 +159,19 @@ class EventRepository extends CommonRepository
         )
             ->setParameter('contactClientId', $contactClientId);
 
-        if (!empty($options['fromDate']) && !empty($options['toDate'])) {
-            $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
-        } elseif (!empty($options['fromDate'])) {
-            $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
+        if (!empty($options['fromDate'])) {
+            $query->andWhere(
+                $query->expr()->gte('c.date_added', ':dateFrom')
+            )
                 ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
-        } elseif (!empty($options['toDate'])) {
-            $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+        }
+        if (!empty($options['toDate'])) {
+            $queryDate = new \DateTime($options['toDate']->getTimestamp());
+            $queryDate->modify('+1 day');
+            $query->andWhere(
+                $query->expr()->lt('c.date_added', ':dateTo')
+            )
+                ->setParameter('dateTo', $queryDate->format('Y-m-d H:i:s'));
         }
         $query->orderBy('c.date_added', 'DESC');
 

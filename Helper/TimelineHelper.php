@@ -16,6 +16,10 @@ use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 class TimelineHelper
 {
+    const DEFAULT_ORDER_COLUMN = 'timestamp';
+    const DEFAULT_ORDER_DIR = 'DESC';
+    const DEFAULT_PAGE_NUM =1 ;
+    const DEFAULT_PAGE_LIMIT = 25;
 
     /** @var \Symfony\Component\HttpFoundation\RequestStack */
     protected $requestStack;
@@ -30,19 +34,7 @@ class TimelineHelper
     protected $model;
 
     /** @var string */
-    protected $defaultOrderCol = 'timestamp';
-
-    /** @var string */
-    protected $defaultOrderDir = 'DESC';
-
-    /** @var string */
     protected $sessionKey = false;
-
-    /** @var int */
-    protected $page = 1;
-
-    /** @var int */
-    protected $limit = 25;
 
     /**
      * TimelineHelper constructor.
@@ -67,10 +59,15 @@ class TimelineHelper
     public function getTimelineParams()
     {
         $params = [
-            'page' => $this->page,
-            'limit' => $this->limit,
-            'order' => ['orderby' => 'timestamp', 'orderbydir' => 'DESC'],
-            'filters' => ['search' => ''],
+            'page' => self::DEFAULT_PAGE_NUM,
+            'limit' => self::DEFAULT_PAGE_LIMIT,
+            'order' => [
+                'orderby' => self::DEFAULT_ORDER_COLUMN,
+                'orderbydir' => self::DEFAULT_ORDER_DIR,
+            ],
+            'filters' => [
+                'search' => ''
+            ],
         ];
         $unknown = [];
 
@@ -101,7 +98,7 @@ class TimelineHelper
                                 $value = new \DateTime($value);
                             } catch (\Exception $e) {
                                 $value = ($name == 'fromDate')
-                                    ? new \DeepTime('-1 month')
+                                    ? new \DateTime($this->parameterHelper->getParameter('default_daterange_filter'))
                                     : new \DateTime();
                             }
                         }
@@ -131,7 +128,7 @@ class TimelineHelper
         //initialize the pieces if needed
         if (!$this->session->get($this->sessionKey . 'fromDate')) {
             $this->session->set($this->sessionKey . 'fromDate', $this->parameterHelper->getParameter('default_daterange_filter'));
-            $this->session->set($this->sessionKey . 'toDate', 'tomorrow midnight -1 second');
+            $this->session->set($this->sessionKey . 'toDate', 'midnight tomorrow -1 second');
         }
 
         if (!$this->session->get($this->sessionKey . 'orderby')) {
@@ -140,12 +137,18 @@ class TimelineHelper
         }
 
         if (!$this->session->get($this->sessionKey . 'limit')) {
-            $this->session->set($this->sessionKey . 'limit', 25);
+            $this->session->set($this->sessionKey . 'limit', self::DEFAULT_PAGE_LIMIT);
         }
 
-        // Apply subbmitted changes
-        $this->page = $request->attributes->get('page', 1);
+        if (!$this->session->get($this->sessionKey . 'page')) {
+            $this->session->set($this->sessionKey . 'page', self::DEFAULT_PAGE_LIMIT);
+        }
 
+        if ('POST' != $request->getMethod()) {
+            return;
+        }
+
+        // Apply submitted changes
         // combine 'GET' and 'POST' values for simple processing
         $vars = InputHelper::cleanArray(array_merge(
             $request->query->all(),
@@ -164,7 +167,6 @@ class TimelineHelper
             } else {
                 $this->session->set($this->sessionKey . 'orderbydir', 'ASC');
             }
-
             $this->session->set($this->sessionKey . 'orderby', $vars['orderby']);
         }
 
@@ -172,29 +174,35 @@ class TimelineHelper
             $this->session->set($this->sessionKey . 'limit', $vars['limit']);
         }
 
+        if (isset($vars['page'])) {
+            $this->session->set($this->sessionKey . 'page', $vars['page']);
+        }
+
         if (isset($vars['search'])) {
-            if (empty($search)) {
-                $this->session->remove($this->sessionKey . 'search');
-            } else {
-                $this->session->set($this->sessionKey . 'search', $vars['search']);
-            }
+            $this->session->set($this->sessionKey . 'search', $vars['search']);
          }
     }
 
     public function sessionKey() {
-        $id = $this->getEntityId();
-        if ($id) {
+
+        if ($id = $this->getEntityId()) {
             $this->sessionKey = "mautic.contactclient.$id.timeline.";
         }
+
         return $this->sessionKey;
     }
 
     private function getEntityId()
     {
-        $request = $this->requestStack->getCurrentRequest();
+        $attributes = $this->requestStack->getCurrentRequest()->attributes;
 
-        return $request->attributes->has('objectId')
-            ? $request->attributes->get('objectId')
-            : $request->attributes->get('contactClientId', false);
+        switch(true) {
+            case $attributes->has('contactClientId'):
+                return $attributes->get('contactClientId');
+            case $attributes->has('objectId'):
+                return $attributes->get('objectId');
+            default:
+                return false;
+        }
     }
 }

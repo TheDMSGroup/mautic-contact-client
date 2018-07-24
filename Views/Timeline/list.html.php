@@ -18,7 +18,6 @@ $baseUrl = $view['router']->path(
         'contactClientId' => $contactClient->getId(),
     ]
 );
-
 ?>
 
 <!-- timeline -->
@@ -56,17 +55,6 @@ $baseUrl = $view['router']->path(
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg timeline-utm-source">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="utm_source"
-                   title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.utm_source'
-                   ); ?>">
-                    <?php echo $view['translator']->trans(
-                        'mautic.contactclient.timeline.utm_source'
-                    ); ?>
-                    <i class="fa fa-sort"></i>
-                </a>
-            </th>
             <th class="visible-md visible-lg timeline-event-type">
                 <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
                    title="<?php echo $view['translator']->trans(
@@ -90,7 +78,6 @@ $baseUrl = $view['router']->path(
                 </a>
             </th>
         </tr>
-        </thead>
         <tbody>
         <?php foreach ($events['events'] as $counter => $event): ?>
             <?php
@@ -119,8 +106,8 @@ $baseUrl = $view['router']->path(
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="e<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
-                echo ' disabled';
-            } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
+                           echo ' disabled';
+                       } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
                         'mautic.contactclient.timeline.toggle_details'
                     ); ?>">
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>
@@ -128,7 +115,6 @@ $baseUrl = $view['router']->path(
                 </td>
                 <td class="timeline-message"><?php echo $message; ?></td>
                 <td class="timeline-contact-id"><?php echo $contact; ?></td>
-                <td class="timeline-utm-source"><?php echo isset($event['utmSource']) ? $event['utmSource'] : ''; ?></td>
                 <td class="timeline-type"><?php if (isset($event['eventType'])) {
                         echo $event['eventType'];
                     } ?></td>
@@ -142,7 +128,7 @@ $baseUrl = $view['router']->path(
             <?php if (!empty($details)): ?>
                 <tr class="timeline-row<?php echo $rowStripe; ?> timeline-details hide"
                     id="timeline-details-e<?php echo $counter; ?>">
-                    <td colspan="6">
+                    <td colspan="5">
                         <?php echo $details; ?>
                     </td>
                 </tr>
