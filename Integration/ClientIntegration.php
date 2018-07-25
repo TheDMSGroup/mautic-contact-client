@@ -537,7 +537,7 @@ class ClientIntegration extends AbstractIntegration
                 $this->logIntegrationError($exception, $this->contact);
                 // set to Client retry setting and IS an API payload
                 $clientRetryConfig = json_decode($this->contactClient->getApiPayload(), true)['settings']['autoRetry'];
-                $this->retry = empty($clientRetryConfig) ? true : $clientRetryConfig;
+                $this->retry       = empty($clientRetryConfig) ? true : $clientRetryConfig;
                 $this->setLogs($this->retry, 'retry');
             }
         }
