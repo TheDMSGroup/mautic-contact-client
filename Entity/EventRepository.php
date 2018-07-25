@@ -24,11 +24,11 @@ class EventRepository extends CommonRepository
      *
      * @param                $contactClientId
      * @param                $eventType
-     * @param \DateTime|null $dateAdded
+     * @param array|null $dateRange
      *
      * @return array
      */
-    public function getEvents($contactClientId, $eventType = null, \DateTime $dateAdded = null)
+    public function getEvents($contactClientId, $eventType = null, $dateRange = [])
     {
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
@@ -38,18 +38,41 @@ class EventRepository extends CommonRepository
         $q->where($expr)
             ->setParameter('contactClient', (int) $contactClientId);
 
-        if ($dateAdded) {
-            $expr->add(
-                $q->expr()->gte('c.date_added', ':dateAdded')
-            );
-            $q->setParameter('dateAdded', $dateAdded);
+        if (isset($dateRange['dateFrom'])) {
+            if (!($dateRange['dateFrom'] instanceof DateTime)) {
+                try {
+                    $dateRange['datefrom'] = new dateTime($dateRange['dateFrom']);
+                } catch(Exception $e) {
+                    $dateRange['datefrom'] = new DateTime('-1 month');
+                }
+            }
+            $dateRange['dateFrom']->setTime(0,0,0);
+            $q->andWhere(
+                $q->expr()->gte('c.date_added', ':dateFrom')
+            )
+                ->setParameter('dateFrom', $dateRange['dateFrom']->format('Y-m-d H:i:s'));
+        }
+        if (isset($dateRange['dateTo'])) {
+            if (!($dateRange['dateTo'] instanceof DateTime)) {
+                try {
+                    $dateRange['datefrom'] = new dateTime($dateRange['dateTo']);
+                } catch(Exception $e) {
+                    $dateRange['datefrom'] = new DateTime('-1 month');
+                }
+            }
+            $dateRange['dateTo']->setTime(0,0,0);
+            $dateRange['dateTo']->modify('+1 day');
+            $q->andWhere(
+                $q->expr()->lt('c.date_added', ':dateTo')
+            )
+                ->setParameter('dateTo', $dateRange['dateTo']->format('Y-m-d H:i:s'));
         }
 
         if ($eventType) {
-            $expr->add(
+            $q->andWhere(
                 $q->expr()->eq('c.type', ':type')
-            );
-            $q->setParameter('type', $eventType);
+            )
+                ->setParameter('type', $eventType);
         }
 
         return $q->execute()->fetchAll();
@@ -58,7 +81,7 @@ class EventRepository extends CommonRepository
     /**
      * @param       $contactClientId
      * @param array $options
-     * @param bool $countOnly
+     * @param bool  $countOnly
      *
      * @return array
      */
@@ -69,7 +92,7 @@ class EventRepository extends CommonRepository
             ->select('c.*');
 
         $query->where('c.contactclient_id = :contactclient')
-        ->setParameter('contactclient', $contactClientId);
+            ->setParameter('contactclient', $contactClientId);
 
         if (isset($options['search']) && !empty($options['search'])) {
             if (is_numeric($options['search'])) {
@@ -88,25 +111,24 @@ class EventRepository extends CommonRepository
                     )
                 )
                 ->setParameters([
-                    'search' => $options['search'],
-                    'wildcard' => '%'.$options['search'].'%'
+                    'search'   => $options['search'],
+                    'wildcard' => '%'.$options['search'].'%',
                 ]);
             }
         }
 
-        if (isset($options['fromDate'])) {
+        if (isset($options['dateFrom'])) {
             $query->andWhere('c.date_added >= :dateFrom')
-            ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
+                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
         }
         if (isset($options['toDate'])) {
-            $query->andWhere('c.date_added < :date_to')
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
-
+            $query->andWhere('c.date_added < :dateTo')
+                ->setParameter('dateTo', $options['dateTo`']->format('Y-m-d H:i:s'));
         }
 
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
-            list($optiorderBy, $orderByDir) = $options['order'];
-            $query->orderBy('c.'.$optiorderBy, $orderByDir);
+            list($orderBy, $orderByDir) = array_values($options['order']);
+            $query->orderBy('c.'.$orderBy, $orderByDir);
         }
 
         if (!empty($options['limit'])) {
@@ -249,12 +271,11 @@ class EventRepository extends CommonRepository
     }
 
     /**
-     * @return string
+     * @return array
      */
     protected function getDefaultOrder()
     {
-        return [
-            [$this->getTableAlias().'.addedDate', 'ASC'],
-        ];
+        return
+            ['date_added', 'ASC'];
     }
 }

@@ -62,6 +62,6 @@ final class ContactClientEvents
      *
      * @var string
      */
-    const TIMELINE_ON_GENERATE = 'mautic.contactclient_timeline_on_generate';
+    const TIMELINE_ON_GENERATE     = 'mautic.contactclient_timeline_on_generate';
     const TRANSACTIONS_ON_GENERATE = 'mautic.contactclient_transactions_on_generate';
 }

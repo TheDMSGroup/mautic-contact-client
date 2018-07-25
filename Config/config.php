@@ -22,34 +22,42 @@ return [
                 'controller' => 'MauticContactClientBundle:ContactClient:index',
             ],
             'mautic_contactclienttransactions_index' => [
-                'path'         => '/contactclient/{contactClientId}/timeline/{page}',
+                'path'         => '/contactclient/{contactClientId}/transactions/{page}',
                 'controller'   => 'MauticContactClientBundle:Transactions:index',
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
             ],
+            'mautic_contactclienttimeline_action' => [
+                'path'         => '/contactclient/{contactClientAction}/{contactClientId}/transaction/{page}',
+                'controller'   => 'MauticContactClientBundle:ContactClient:execute',
+                'requirements' => [
+                    'contactClientId' => '\d+',
+                ],
+            ],
             'mautic_contactclienttimeline_index' => [
-                'path'         => '/timeline/{page}',
+                'path'         => '/contactclient/{conractClientAction}/{contactClientId}/timeline/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
             ],
             'mautic_contactclient_timeline_export' => [
-                'path'       => '/contactclient/{contactClientId}/timeline/export',
-                'controller' => 'MauticContactClientBundle:Timeline:exportTimeline',
+                'path'         => '/contactclient/{contactClientId}/timeline/export',
+                'controller'   => 'MauticContactClientBundle:Timeline:exportTimeline',
                 'requirements' => [
                     'contactClientId' => '\d+',
                 ],
             ],
             'mautic_contactclient_timeline_file'   => [
-                'path'       => '/contactclient/{contactClientId}/timeline/file/{fileId}',
-                'controller' => 'MauticContactClientBundle:Timeline:file',
+                'path'         => '/contactclient/{contactClientId}/timeline/file/{fileId}',
+                'controller'   => 'MauticContactClientBundle:Timeline:file',
                 'requirements' => [
                     'contactClientId' => '\d+',
-                    'fileId' => '\w+'
+                    'fileId'          => '\w+',
                 ],
             ],
+
             'mautic_contactclient_action'          => [
                 'path'       => '/contactclient/{objectAction}/{objectId}',
                 'controller' => 'MauticContactClientBundle:ContactClient:execute',

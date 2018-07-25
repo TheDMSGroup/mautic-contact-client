@@ -3,13 +3,18 @@
  * Created by PhpStorm.
  * User: nbush
  * Date: 7/25/18
- * Time: 9:10 AM
+ * Time: 9:10 AM.
  */
 
-namespace MauticContactClientBundle\Controller;
+namespace MauticPlugin\MauticContactClientBundle\Controller;
+
+use Mautic\CoreBundle\Controller\CommonController;
+use Mautic\CoreBundle\Helper\InputHelper;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 
-class TransactionController extends CommonController
+class TransactionsController extends CommonController
 {
     use ContactClientAccessTrait;
     use ContactClientDetailsTrait;
@@ -26,21 +31,34 @@ class TransactionController extends CommonController
         }
 
         $session = $this->get('session');
-        if ('POST' === $request->getMethod() && $request->request->has('search')) {
-            $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
-            ];
-            $session->set('mautic.contactClient.'.$contactClientId.'.timeline.filters', $filters);
+        if ('POST' == $request->getMethod()) {
+            $chartFilterValues = $request->request->has('chartfilter')
+                ? $request->request->get('chartfilter')
+                : $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter');
+            $search = $request->request->has('search')
+                ? $request->request->get('search')
+                : $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
         } else {
-            $filters = null;
+            $chartFilterValues = $session->get(
+                'mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter',
+                [
+                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
+                    'date_to'   => null,
+                    'type'      => 'All Events',
+                ]
+            );
+            $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search', '');
         }
+        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter', $chartFilterValues);
+        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
 
-        $order = [
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderby'),
-            $session->get('mautic.contactClient.'.$contactClientId.'.timeline.orderbydir'),
+        $chartfilter = [
+            'type'     => $chartFilterValues['type'],
+            'dateFrom' => new \DateTime($chartFilterValues['date_from']),
+            'dateTo'   => new \DateTime($chartFilterValues['date_to']),
         ];
 
-        $events = $this->getEngagements($contactClient, $filters, $order, $page);
+        $events = $this->getModel('contactclient')->getTransactions($contactClient, $chartfilter, $search, null, $page);
 
         return $this->delegateView(
             [

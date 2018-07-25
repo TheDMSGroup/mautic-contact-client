@@ -593,15 +593,15 @@ class ContactClientModel extends FormModel
         );
 
         $payload = [
-            'events'   => $event->getEvents(),
+            'events'      => $event->getEvents(),
             'chartfilter' => $chartfilters,
-            'search' => $search,
-            'order'    => $order,
-            'types'    => $event->getEventTypes(),
-            'total'    => $event->getQueryTotal(),
-            'page'     => $page,
-            'limit'    => $limit,
-            'maxPages' => $event->getMaxPage(),
+            'search'      => $search,
+            'order'       => $order,
+            'types'       => $event->getEventTypes(),
+            'total'       => $event->getQueryTotal(),
+            'page'        => $page,
+            'limit'       => $limit,
+            'maxPages'    => $event->getMaxPage(),
         ];
 
         return ($forTransactions) ? $payload : [$payload, $event->getSerializerGroups()];

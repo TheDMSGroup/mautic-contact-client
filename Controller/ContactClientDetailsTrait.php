@@ -50,11 +50,11 @@ trait ContactClientDetailsTrait
                 'mautic.contactclient.plugin.transactions.chartfilter',
                 [
                     'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
-                    'date_to' => null,
-                    'type' => 'All Events',
+                    'date_to'   => null,
+                    'type'      => 'All Events',
                 ]
             );
-            $session->set('mautic.contactclient.plugin.transactions.chartfilter');;
+            $session->set('mautic.contactclient.plugin.transactions.chartfilter');
         }
         $chartfilters = InputHelper::cleanArray($chartfilters);
 
@@ -80,15 +80,15 @@ trait ContactClientDetailsTrait
 
         // prepare result object
         $result = [
-            'events'   => [],
+            'events'      => [],
             'chartfilter' => $chartfilters,
-            'search'   => $search,
-            'order'    => $orderBy,
-            'types'    => [],
-            'total'    => 0,
-            'page'     => $page,
-            'limit'    => $limit,
-            'maxPages' => 0,
+            'search'      => $search,
+            'order'       => $orderBy,
+            'types'       => [],
+            'total'       => 0,
+            'page'        => $page,
+            'limit'       => $limit,
+            'maxPages'    => 0,
         ];
 
         // get events for each contact
@@ -323,7 +323,7 @@ trait ContactClientDetailsTrait
         $limit = 25
     ) {
         $session = $this->get('session');
-        
+
         if (null == $filters) {
             $filters = $session->get(
                 'mautic.contactclient.'.$contactClient->getId().'.files.filters',
@@ -394,22 +394,22 @@ trait ContactClientDetailsTrait
 
         if (null == $chartfilter) {
             $storedFilters = $session->get(
-                'mautic.contactclient.' . $contactClient->getId() . '.transactions.chartfilter',
+                'mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter',
                 [
                     'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
-                    'date_to' => null,
-                    'type' => null,
+                    'date_to'   => null,
+                    'type'      => null,
                 ]
             );
-            $session->set('mautic.contactclient.' . $contactClient->getId() . '.transactions.chartfilter'. $storedFilters);
+            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter'.$storedFilters);
             $chartfilter['fromDate'] = new \DateTime($storedFilters['date_from']);
-            $chartfilter['toDate'] = new \DateTime($storedFilters['date_to']);
-            $chartfilter['type'] = $storedFilters['type'];
+            $chartfilter['toDate']   = new \DateTime($storedFilters['date_to']);
+            $chartfilter['type']     = $storedFilters['type'];
         }
 
         if (null == $search) {
-            $search = $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.search', '');
-            $session->set('mautic.contactclient.' . $contactClient->getId() . '.transactions.search', $search);
+            $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search', '');
+            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
         }
 
         if (null == $orderBy || null == $orderBy[0]) { //empty array or no fieldname in first index

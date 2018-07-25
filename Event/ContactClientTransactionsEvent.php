@@ -85,12 +85,12 @@ class ContactClientTransactionsEvent extends Event
     /**
      * @var \DateTime|null
      */
-    protected $dateFrom;
+    protected $dateFrom = false;
 
     /**
      * @var \DateTime|null
      */
-    protected $dateTo;
+    protected $dateTo = false;
 
     /**
      * Time unit to group counts by (M = month, D = day, Y = year, null = no grouping).
@@ -148,18 +148,22 @@ class ContactClientTransactionsEvent extends Event
         array $orderBy = null,
         $page = 1,
         $limit = 25,
-        $forTimeline = true,
+        $forTransactions = true,
         $siteDomain = null
     ) {
         $this->contactClient = $contactClient;
-        $this->filters       = $filters;
-        $this->orderBy       = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
         $this->page          = $page;
         $this->limit         = $limit;
-        $this->forTimeline   = $forTimeline;
+        $this->forTimeline   = $forTransactions;
         $this->siteDomain    = $siteDomain;
 
-        if (!empty($filters['fromDate'])) {
+        if (null === $orderBy) {
+            $this->orderBy = ['date_added', 'DESC'];
+        } else {
+            $this->orderBy = array_values($orderBy);
+        }
+
+        if (!empty($filters['dateFrom'])) {
             $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime)
                 ? $filters['dateFrom']
                 : new \DateTime($filters['dateFrom']);
@@ -184,7 +188,6 @@ class ContactClientTransactionsEvent extends Event
      */
     public function addEvent(array $data)
     {
-
         if ($this->countOnly) {
             // BC support for old format
             if ($this->groupUnit && $this->chartQuery) {
@@ -211,32 +214,27 @@ class ContactClientTransactionsEvent extends Event
             if (!$this->isForTimeline()) {
                 // standardize the payload
                 $keepThese = [
-                    'event'              => true,
-                    'eventId'            => true,
-                    'eventLabel'         => true,
-                    'eventType'          => true,
+                    'event'                => true,
+                    'eventId'              => true,
+                    'eventLabel'           => true,
+                    'eventType'            => true,
                     'transaction'          => true,
-                    'message'            => true,
-                    'integratonEntityId' => true,
-                    'contactId'          => true,
-                    'extra'              => true,
+                    'message'              => true,
+                    'integratonEntityId'   => true,
+                    'contactId'            => true,
+                    'extra'                => true,
                 ];
 
                 $data = array_intersect_key($data, $keepThese);
 
                 // Rename extra to details
                 if (isset($data['extra'])) {
-                    $data['details'] = $data['extra'];
-                    $data['details'] = $this->prepareDetailsForAPI($data['details']);
+                    $data['details'] = $this->prepareDetailsForAPI($data['extra']);
                     unset($data['extra']);
                 }
 
-
-
                 // Ensure a full URL
-                if ($this->siteDomain && isset($data['eventLabel']) && is_array(
-                        $data['eventLabel']
-                    ) && isset($data['eventLabel']['href'])) {
+                if ($this->siteDomain && isset($data['eventLabel']) && isset($data['eventLabel']['href'])) {
                     // If this does not have a http, then assume a Mautic URL
                     if (false === strpos($data['eventLabel']['href'], '://')) {
                         $data['eventLabel']['href'] = $this->siteDomain.$data['eventLabel']['href'];
@@ -361,7 +359,7 @@ class ContactClientTransactionsEvent extends Event
 
         foreach ($events as &$e) {
             if (!$e['transaction'] instanceof \DateTime) {
-                $dt             = new DateTimeHelper($e['transaction'], 'Y-m-d H:i:s', 'UTC');
+                $dt               = new DateTimeHelper($e['transaction'], 'Y-m-d H:i:s', 'UTC');
                 $e['transaction'] = $dt->getDateTime();
                 unset($dt);
             }
@@ -456,13 +454,13 @@ class ContactClientTransactionsEvent extends Event
     }
 
     /**
-     * Fetch the filter array for queries.
+     *
      *
      * @return array of wanted filteres. Empty == all
      */
     public function getEventFilters()
     {
-        return $this->filters['search'];
+        return $this->filters;
     }
 
     /**
