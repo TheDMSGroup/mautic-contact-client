@@ -296,7 +296,7 @@ class ClientIntegration extends AbstractIntegration
                     0,
                     null,
                     Stat::TYPE_UNPUBLISHED,
-                    false
+                    false // do not retry on unpublished clients
                 );
             }
 
@@ -535,7 +535,9 @@ class ClientIntegration extends AbstractIntegration
             if ($exception->getRetry()) {
                 // This type of exception indicates that we can requeue the contact.
                 $this->logIntegrationError($exception, $this->contact);
-                $this->retry = true;
+                // set to Client retry setting and IS an API payload
+                $clientRetryConfig = json_decode($this->contactClient->getApiPayload(), true)['settings']['autoRetry'];
+                $this->retry = empty($clientRetryConfig) ? true : $clientRetryConfig;
                 $this->setLogs($this->retry, 'retry');
             }
         }
