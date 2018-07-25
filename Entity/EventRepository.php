@@ -57,56 +57,56 @@ class EventRepository extends CommonRepository
 
     /**
      * @param       $contactClientId
-     * @param int   $contactId
      * @param array $options
+     * @param bool $countOnly
      *
      * @return array
      */
-    public function getEventsForTimeline($contactClientId, $contactId = null, array $options = [])
+    public function getEventsForTransactions($contactClientId, array $options = [], $countOnly = false)
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
             ->select('c.*');
 
-        $query->where(
-            $query->expr()->eq('c.contactclient_id', ':contactClientId')
-        )
-            ->setParameter('contactClientId', $contactClientId);
+        $query->where('c.contactclient_id = :contactclient')
+        ->setParameter('contactclient', $contactClientId);
 
-        if ($contactId) {
-            $query->andWhere('c.contact_id = '.(int) $contactId);
-        }
-
-        if (isset($options['search']) && $options['search']) {
-            if (is_numeric($options['search']) && !$contactId) {
-                $expr = $query->expr()->orX(
-                    $query->expr()->eq('c.contact_id', (int) $options['search'])
-                );
+        if (isset($options['search']) && !empty($options['search'])) {
+            if (is_numeric($options['search'])) {
+                $query->andWhere(
+                    $query->expr()->orX(
+                        'c.contact_id = :search',
+                        'c.utm_source = :search'
+                    )
+                )
+                ->setParameter('search', $options['search']);
             } else {
-                $expr = $query->expr()->orX(
-                    $query->expr()->eq('c.type', ':search'),
-                    $query->expr()->like('c.message', $query->expr()->literal('%'.$options['search'].'%'))
-                );
+                $query->andWhere(
+                    $query->expr()->orX(
+                        'c.type = :search',
+                        'c.message LIKE :wildcard'
+                    )
+                )
+                ->setParameters([
+                    'search' => $options['search'],
+                    'wildcard' => '%'.$options['search'].'%'
+                ]);
             }
-            $query->andWhere($expr);
-            $query->setParameter('search', $options['search']);
         }
 
-        if (!empty($options['fromDate']) && !empty($options['toDate'])) {
-            $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d 23:59:59'));
-        } elseif (!empty($options['fromDate'])) {
-            $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
-        } elseif (!empty($options['toDate'])) {
-            $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d 23:59:59'));
+        if (isset($options['fromDate'])) {
+            $query->andWhere('c.date_added >= :dateFrom')
+            ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
+        }
+        if (isset($options['toDate'])) {
+            $query->andWhere('c.date_added < :date_to')
+                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+
         }
 
-        if (isset($options['order']) && !empty($options['order'])) {
-            list($orderBy, $orderByDir) = $options['order'];
-            $query->orderBy('c.'.$orderBy, $orderByDir);
+        if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
+            list($optiorderBy, $orderByDir) = $options['order'];
+            $query->orderBy('c.'.$optiorderBy, $orderByDir);
         }
 
         if (!empty($options['limit'])) {

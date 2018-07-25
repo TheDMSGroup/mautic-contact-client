@@ -12,17 +12,12 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Transactions:index.html.php');
 }
 $baseUrl = $view['router']->path(
-    'mautic_contactclienttimeline_action',
+    'mautic_contactclienttransactions_index',
     [
         'contactClientId' => $contactClient->getId(),
     ]
 );
 ?>
-<script>
-    // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $order[0]; ?>';
-    var sortDirection = '<?php echo strtolower($order[1]); ?>';
-</script>
 
 <!-- timeline -->
 <div class="table-responsive">
@@ -123,7 +118,7 @@ $baseUrl = $view['router']->path(
                         echo $event['eventType'];
                     } ?></td>
                 <td class="timeline-timestamp"><?php echo $view['date']->toText(
-                        $event['timestamp'],
+                        $event['transaction'],
                         'local',
                         'Y-m-d H:i:s',
                         true
@@ -148,8 +143,8 @@ echo $view->render(
         'page'       => $events['page'],
         'fixedPages' => $events['maxPages'],
         'fixedLimit' => true,
-        'baseUrl'    => $baseurl,
-        'target'     => '',
+        'baseUrl'    => $baseUrl,
+        'target'     => '#transactions-table',
         'totalItems' => $events['total'],
     ]
 ); ?>

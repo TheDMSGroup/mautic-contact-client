@@ -24,6 +24,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientTransactionsEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -567,35 +568,35 @@ class ContactClientModel extends FormModel
      *
      * @return array
      */
-    public function getEngagements(
+    public function getTransactions(
         ContactClient $contactClient = null,
-        $filters = [],
-        $orderBy = null,
+        $chartfilters = null,
+        $search = null,
+        $order = null,
         $page = 1,
         $limit = 25,
-        $forTimeline = true
+        $forTransactions = true
     ) {
-        $orderBy = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
-        $event   = $this->dispatcher->dispatch(
-            ContactClientEvents::TIMELINE_ON_GENERATE,
-            new ContactClientTimelineEvent(
+        $filters = array_merge($chartfilters, ['search' => $search]);
+
+        $event = $this->dispatcher->dispatch(
+            ContactClientEvents::TRANSACTIONS_ON_GENERATE,
+            new ContactClientTransactionsEvent(
                 $contactClient,
                 $filters,
-                $orderBy,
+                $order,
                 $page,
                 $limit,
-                $forTimeline,
+                $forTransactions,
                 $this->coreParametersHelper->getParameter('site_url')
             )
         );
 
-        if (!isset($filters['search']) || empty($filters['search'])) {
-            $filters['search'] = null;
-        }
         $payload = [
             'events'   => $event->getEvents(),
-            'filters'  => $filters,
-            'order'    => $orderBy,
+            'chartfilter' => $chartfilters,
+            'search' => $search,
+            'order'    => $order,
             'types'    => $event->getEventTypes(),
             'total'    => $event->getQueryTotal(),
             'page'     => $page,
@@ -603,7 +604,7 @@ class ContactClientModel extends FormModel
             'maxPages' => $event->getMaxPage(),
         ];
 
-        return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];
+        return ($forTransactions) ? $payload : [$payload, $event->getSerializerGroups()];
     }
 
     /**

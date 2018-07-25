@@ -19,7 +19,7 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * Class ContactClientTimelineEvent.
  */
-class ContactClientTimelineEvent extends Event
+class ContactClientTransactionsEvent extends Event
 {
     /**
      * Container with all filtered events.
@@ -107,7 +107,7 @@ class ContactClientTimelineEvent extends Event
     /**
      * @var bool
      */
-    protected $forTimeline = true;
+    protected $forTransactions = true;
 
     /**
      * @var
@@ -177,19 +177,20 @@ class ContactClientTimelineEvent extends Event
      *
      * The data should be an associative array with the following data:
      * 'event'     => string    The event name
-     * 'timestamp' => \DateTime The timestamp of the event
+     * 'date_added' => \DateTime The timestamp of the event
      * 'extra'     => array     An optional array of extra data for the event
      *
      * @param array $data Data array for the table
      */
     public function addEvent(array $data)
     {
+
         if ($this->countOnly) {
             // BC support for old format
             if ($this->groupUnit && $this->chartQuery) {
                 $countData = [
                     [
-                        'date'  => $data['timestamp'],
+                        'date'  => $data['transaction'],
                         'count' => 1,
                     ],
                 ];
@@ -214,7 +215,7 @@ class ContactClientTimelineEvent extends Event
                     'eventId'            => true,
                     'eventLabel'         => true,
                     'eventType'          => true,
-                    'timestamp'          => true,
+                    'transaction'          => true,
                     'message'            => true,
                     'integratonEntityId' => true,
                     'contactId'          => true,
@@ -229,6 +230,8 @@ class ContactClientTimelineEvent extends Event
                     $data['details'] = $this->prepareDetailsForAPI($data['details']);
                     unset($data['extra']);
                 }
+
+
 
                 // Ensure a full URL
                 if ($this->siteDomain && isset($data['eventLabel']) && is_array(
@@ -346,7 +349,7 @@ class ContactClientTimelineEvent extends Event
     /**
      * Fetch the events.
      *
-     * @return array Events sorted by timestamp with most recent event first
+     * @return array Events sorted by transaction with most recent event first
      */
     public function getEvents()
     {
@@ -357,9 +360,9 @@ class ContactClientTimelineEvent extends Event
         $events = call_user_func_array('array_merge', $this->events);
 
         foreach ($events as &$e) {
-            if (!$e['timestamp'] instanceof \DateTime) {
-                $dt             = new DateTimeHelper($e['timestamp'], 'Y-m-d H:i:s', 'UTC');
-                $e['timestamp'] = $dt->getDateTime();
+            if (!$e['transaction'] instanceof \DateTime) {
+                $dt             = new DateTimeHelper($e['transaction'], 'Y-m-d H:i:s', 'UTC');
+                $e['transaction'] = $dt->getDateTime();
                 unset($dt);
             }
         }
@@ -383,14 +386,14 @@ class ContactClientTimelineEvent extends Event
                             return strnatcmp($aLabel, $bLabel);
 
                         case 'date_added':
-                            if ($a['timestamp'] == $b['timestamp']) {
+                            if ($a['transaction'] == $b['transaction']) {
                                 $aPriority = isset($a['eventPriority']) ? (int) $a['eventPriority'] : 0;
                                 $bPriority = isset($b['eventPriority']) ? (int) $b['eventPriority'] : 0;
 
                                 return $aPriority - $bPriority;
                             }
 
-                            return $a['timestamp'] < $b['timestamp'] ? -1 : 1;
+                            return $a['transaction'] < $b['transaction'] ? -1 : 1;
 
                         case 'contact_id':
                             if ($a['contactId'] == $b['contactId']) {

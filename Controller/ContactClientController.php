@@ -26,9 +26,9 @@ class ContactClientController extends FormController
         $this->setStandardParameters(
             'contactclient',
             'plugin:contactclient:items',
-            'mautic_contactclient',
-            'mautic_contactclient',
-            'mautic.contactclient',
+            'contactclient',
+            'contactclient',
+            '',
             'MauticContactClientBundle:ContactClient',
             null,
             'contactclient'
@@ -127,17 +127,33 @@ class ContactClientController extends FormController
     public function customizeViewArguments($args, $view)
     {
         if ('view' == $view) {
+            $session = $this->get('session');
+
             /** @var \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $item */
             $item = $args['viewParameters']['item'];
 
             // For line graphs in the view
-            $chartFilterValues = $this->request->get('chartfilter', []);
-            if (!isset($chartFilterValues['date_from'])) {
-                $from                           = new \DateTime($this->factory->getParameter('default_daterange_filter', '-1 month'));
-                $to                             = new \DateTime();
-                $chartFilterValues['date_from'] = $from->format('Y-m-d H:i:s');
-                $chartFilterValues['date_to']   = $to->format('Y-m-d H:i:s');
+            if ('POST' == $this->request->getMethod()) {
+                $chartFilterValues = $this->request->request->has('chartfilter')
+                    ? $this->request->request->get('chartfilter')
+                    : $session->get('mautic.contactclient.' . $item->getId() . '.transactions.chartfilter');
+                $search = $this->request->request->has('search')
+                    ? $this->request->request->get('search')
+                    : $session->get('mautic.contactclient.' . $item->getId() . '.transactions.search');
+            } else {
+                $chartFilterValues = $session->get(
+                    'mautic.contactclient.' . $item->getId() . '.transactions.chartfilter',
+                    [
+                        'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
+                        'date_to' => null,
+                        'type' => 'All Events',
+                    ]
+                );
+                $search = $session->get('mautic.contactclient.' . $item->getId() . '.transactions.search', '');
             }
+            $session->set('mautic.contactclient.' . $item->getId() . '.transactions.chartfilter', $chartFilterValues);
+            $session->set('mautic.contactclient.' . $item->getId() . '.transactions.search', $search);
+
             $chartFilterForm   = $this->get('form.factory')->create(
                 'chartfilter',
                 $chartFilterValues,
@@ -154,32 +170,42 @@ class ContactClientController extends FormController
 
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
-            $unit  = $model->getTimeUnitFromDateRange(new \DateTime($chartFilterForm->get('date_from')->getData()),
-                new \DateTime($chartFilterForm->get('date_to')->getData()));
 
-            if (in_array($chartFilterForm->get('type')->getData(), ['All Events', null])) {
+            $unit  = $model->getTimeUnitFromDateRange(
+                new \DateTime($chartFilterValues['date_from']),
+                new \DateTime($chartFilterValues['date_to'])
+            );
+
+            if (in_array($chartFilterValues['type'], ['All Events', null])) {
                 $stats = $model->getStats(
                     $item,
                     null,
-                    new \DateTime($chartFilterForm->get('date_from')->getData()),
-                    new \DateTime($chartFilterForm->get('date_to')->getData())
+                    new \DateTime($chartFilterValues['date_from']),
+                    new \DateTime($chartFilterValues['date_to'])
                 );
             } else {
                 $stats = $model->getStatsBySource(
                     $item,
                     null,
-                    $chartFilterForm->get('type')->getData(),
-                    new \DateTime($chartFilterForm->get('date_from')->getData()),
-                    new \DateTime($chartFilterForm->get('date_to')->getData())
+                    $chartFilterValues['type'],
+                    new \DateTime($chartFilterValues['date_from']),
+                    new \DateTime($chartFilterValues['date_to'])
                 );
             }
+
+            $chartfilter = [
+                'type' => $chartFilterValues['type'],
+                'dateFrom' => new \DateTime($chartFilterValues['date_from']),
+                'dateTo' => new \DateTime($chartFilterValues['date_to'])
+            ];
+
 
             $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
             $args['viewParameters']['files']           = $this->getFiles($item);
             $args['viewParameters']['stats']           = $stats;
-            $args['viewParameters']['events']          = $model->getEngagements($item);
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
             $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
+            $args['viewParameters']['transactions']    = $this->getTransactions($item, $chartfilter, $search);
         }
 
         return $args;

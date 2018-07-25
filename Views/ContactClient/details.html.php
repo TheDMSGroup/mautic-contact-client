@@ -138,7 +138,7 @@ $website = $item->getWebsite();
                 <li class="active">
                     <a href="#timeline-container" role="tab" data-toggle="tab">
                         <span class="label label-primary mr-sm" id="TimelineCount">
-                            <?php echo $events['total']; ?>
+                            <?php echo $transactions['total']; ?>
                         </span>
                         <?php echo $view['translator']->trans('mautic.contactclient.timeline.events'); ?>
                     </a>
@@ -162,9 +162,9 @@ $website = $item->getWebsite();
             <div class="tab-content pa-md">
                 <div class="tab-pane fade in active bdr-w-0" id="timeline-container">
                     <?php echo $view->render(
-                        'MauticContactClientBundle:Timeline:list.html.php',
+                        'MauticContactClientBundle:Transactions:list.html.php',
                         [
-                            'events'        => $events,
+                            'events'        => $transactions,
                             'contactClient' => $item,
                             'tmpl'          => 'index',
                         ]

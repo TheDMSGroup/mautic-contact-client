@@ -24,6 +24,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\EventRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientTransactionsEvent;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -115,7 +116,7 @@ class ContactClientSubscriber extends CommonSubscriber
         return [
             ContactClientEvents::POST_SAVE            => ['onContactClientPostSave', 0],
             ContactClientEvents::POST_DELETE          => ['onContactClientDelete', 0],
-            ContactClientEvents::TIMELINE_ON_GENERATE => ['onTimelineGenerate', 0],
+            ContactClientEvents::TRANSACTIONS_ON_GENERATE => ['onTransactionsGenerate', 0],
         ];
     }
 
@@ -162,33 +163,25 @@ class ContactClientSubscriber extends CommonSubscriber
     /**
      * Compile events for the lead timeline.
      *
-     * @param ContactClientTimelineEvent $event
+     * @param ContactClientTransactionsEvent $event
      */
-    public function onTimelineGenerate(ContactClientTimelineEvent $event)
+    public function onTransactionsGenerate(ContactClientTransactionsEvent $event)
     {
-        // Set available event types
-        // $event->addSerializerGroup(['formList', 'submissionEventDetails']);
 
+        $options = $event->getQueryOptions();
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->em->getRepository('MauticContactClientBundle:Event');
 
-        $stat                = new Stat();
-        $types               = $stat->getAllTypes();
-        $options             = $event->getQueryOptions();
-        $chartFilter         = $this->request->request->get('chartfilter');
-        if (isset($chartFilter['date_from'])) {
-            $options['fromDate'] = \DateTime::createFromFormat('M j, Y', $chartFilter['date_from']);
-            $options['toDate']   = \DateTime::createFromFormat('M j, Y', $chartFilter['date_to']);
-        } else {
-            $options['fromDate'] = new \DateTime($this->params['default_daterange_filter']);
-            $options['toDate']   = new \DateTime();
-        }
-        foreach ($types as $eventTypeKey) {
-            $eventTypeName = ucwords($eventTypeKey);
-            $event->addEventType($eventTypeKey, $eventTypeName);
+        // Set available event types
+        // $event->addSerializerGroup(['formList', 'submissionEventDetails']);
+        $stat   = new Stat();
+        $types  = $stat->getAllTypes();
+        foreach ($types as $type) {
+            $event->addEventType($type, $this->translator->trans('mautic.contactclient.event.'.$type));
         }
 
-        $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), null, $options);
+        $results = $eventRepository->getEventsForTransactions($event->getContactClient()->getId(), $options);
+
         $rows    = isset($results['results']) ? $results['results'] : $results;
         $total   = isset($results['total']) ? $results['total'] : count($rows);
 
@@ -219,7 +212,6 @@ class ContactClientSubscriber extends CommonSubscriber
                             ),
                         ],
                         'eventType'       => $eventTypeName,
-                        'timestamp'       => $row['date_added'],
                         'extra'           => [
                             // 'page' => $this->pageModel->getEntity($row['page_id']),
                             'logs'                => $log,
@@ -229,6 +221,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         'icon'            => 'fa-plus-square-o',
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],
+                        'transaction'     => $row['date_added'],
                     ]
                 );
             }

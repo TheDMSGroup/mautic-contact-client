@@ -72,10 +72,8 @@ class ChartFilterType extends AbstractType
         $humanFormat = 'M j, Y';
 
         $dateFrom = (empty($options['data']['date_from']))
-            ?
-            new \DateTime('-30 days')
-            :
-            new \DateTime($options['data']['date_from']);
+            ? new \DateTime('-1 month')
+            : new \DateTime($options['data']['date_from']);
         $builder->add(
             'date_from',
             'text',
@@ -89,10 +87,8 @@ class ChartFilterType extends AbstractType
         );
 
         $dateTo = (empty($options['data']['date_to']))
-            ?
-            new \DateTime()
-            :
-            new \DateTime($options['data']['date_to']);
+            ? new \DateTime()
+            : new \DateTime($options['data']['date_to']);
 
         $builder->add(
             'date_to',
