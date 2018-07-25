@@ -22,8 +22,8 @@ class EventRepository extends CommonRepository
     /**
      * Fetch the base event data from the database.
      *
-     * @param                $contactClientId
-     * @param                $eventType
+     * @param            $contactClientId
+     * @param            $eventType
      * @param array|null $dateRange
      *
      * @return array
@@ -42,11 +42,11 @@ class EventRepository extends CommonRepository
             if (!($dateRange['dateFrom'] instanceof DateTime)) {
                 try {
                     $dateRange['datefrom'] = new dateTime($dateRange['dateFrom']);
-                } catch(Exception $e) {
+                } catch (Exception $e) {
                     $dateRange['datefrom'] = new DateTime('-1 month');
                 }
             }
-            $dateRange['dateFrom']->setTime(0,0,0);
+            $dateRange['dateFrom']->setTime(0, 0, 0);
             $q->andWhere(
                 $q->expr()->gte('c.date_added', ':dateFrom')
             )
@@ -56,11 +56,11 @@ class EventRepository extends CommonRepository
             if (!($dateRange['dateTo'] instanceof DateTime)) {
                 try {
                     $dateRange['datefrom'] = new dateTime($dateRange['dateTo']);
-                } catch(Exception $e) {
+                } catch (Exception $e) {
                     $dateRange['datefrom'] = new DateTime('-1 month');
                 }
             }
-            $dateRange['dateTo']->setTime(0,0,0);
+            $dateRange['dateTo']->setTime(0, 0, 0);
             $dateRange['dateTo']->modify('+1 day');
             $q->andWhere(
                 $q->expr()->lt('c.date_added', ':dateTo')

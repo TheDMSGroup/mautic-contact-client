@@ -454,8 +454,6 @@ class ContactClientTransactionsEvent extends Event
     }
 
     /**
-     *
-     *
      * @return array of wanted filteres. Empty == all
      */
     public function getEventFilters()

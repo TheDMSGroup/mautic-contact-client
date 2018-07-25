@@ -13,7 +13,6 @@ use Mautic\CoreBundle\Helper\InputHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-
 class TransactionsController extends CommonController
 {
     use ContactClientAccessTrait;
