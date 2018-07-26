@@ -119,7 +119,7 @@ class EventRepository extends CommonRepository
 
         if (isset($options['dateFrom'])) {
             $query->andWhere('c.date_added >= :dateFrom')
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
+                ->setParameter('dateFrom', $options['dateFrom']->format('Y-m-d H:i:s'));
         }
         if (isset($options['toDate'])) {
             $query->andWhere('c.date_added < :dateTo')

@@ -163,17 +163,22 @@ class ContactClientTransactionsEvent extends Event
             $this->orderBy = array_values($orderBy);
         }
 
-        if (!empty($filters['dateFrom'])) {
+        if (key_exists('dateFrom', $filters)) {
             $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime)
                 ? $filters['dateFrom']
                 : new \DateTime($filters['dateFrom']);
         }
 
-        if (!empty($filters['dateTo'])) {
+        if (key_exists('dateTo', $filters)) {
             $this->dateTo = ($filters['dateTo'] instanceof \DateTime)
                 ? $filters['dateTo']
                 : new \DateTime($filters['dateTo']);
         }
+        if (!key_exists('logs', $filters)) {
+            $filters['logs'] = null;
+        }
+
+        $this->filters = $filters;
     }
 
     /**
@@ -478,13 +483,12 @@ class ContactClientTransactionsEvent extends Event
     {
         return array_merge(
             [
-                'options'    => $this->filters,
-                'logs'       => isset($this->filters['logs']) ? $this->filters['logs'] : null,
                 'order'      => $this->orderBy,
                 'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
                 'unit'       => $this->groupUnit,
             ],
+            $this->filters,
             $this->getEventLimit()
         );
     }

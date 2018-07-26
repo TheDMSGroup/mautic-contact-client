@@ -12,7 +12,7 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Transactions:index.html.php');
 }
 $baseUrl = $view['router']->path(
-    'mautic_contactclienttimeline_action',
+    'mautic_contactclient_transactions',
     [
         'contactClientId' => $contactClient->getId(),
     ]

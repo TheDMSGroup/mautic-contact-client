@@ -577,6 +577,7 @@ class ContactClientModel extends FormModel
         $limit = 25,
         $forTransactions = true
     ) {
+
         $filters = array_merge($chartfilters, ['search' => $search]);
 
         $event = $this->dispatcher->dispatch(

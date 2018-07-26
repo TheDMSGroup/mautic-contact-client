@@ -12,8 +12,8 @@
 
 <!-- filter form -->
 <form method="post" action="<?php echo $view['router']->path(
-    'mautic_contactclienttransactions_index',
-    ['contactClientId' => $contactClient->getId()]
+    'mautic_contactclient_transactions',
+    ['objectId' => $contactClient->getId()]
 ); ?>" id="timeline-filters" class="panel">
     <div>
         <h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>

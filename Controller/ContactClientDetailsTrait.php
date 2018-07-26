@@ -392,27 +392,27 @@ trait ContactClientDetailsTrait
     ) {
         $session = $this->get('session');
 
-        if (null == $chartfilter) {
+        if (null === $chartfilter) {
             $storedFilters = $session->get(
-                'mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter',
+                'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
                 [
                     'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
                     'date_to'   => null,
                     'type'      => null,
                 ]
             );
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter'.$storedFilters);
+            $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter'.$storedFilters);
             $chartfilter['fromDate'] = new \DateTime($storedFilters['date_from']);
             $chartfilter['toDate']   = new \DateTime($storedFilters['date_to']);
             $chartfilter['type']     = $storedFilters['type'];
         }
 
-        if (null == $search) {
+        if (null === $search) {
             $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search', '');
             $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
         }
 
-        if (null == $orderBy || null == $orderBy[0]) { //empty array or no fieldname in first index
+        if (null === $orderBy || null === $orderBy[0]) { //empty array or no fieldname in first index
             if (!$session->has('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')) {
                 $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', 'date_added');
                 $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', 'DESC');

@@ -136,13 +136,13 @@ class ContactClientController extends FormController
             if ('POST' == $this->request->getMethod()) {
                 $chartFilterValues = $this->request->request->has('chartfilter')
                     ? $this->request->request->get('chartfilter')
-                    : $session->get('mautic.contactclient.'.$item->getId().'.transactions.chartfilter');
+                    : $session->get('mautic.contactclient.'.$item->getId().'.chartfilter');
                 $search = $this->request->request->has('search')
                     ? $this->request->request->get('search')
                     : $session->get('mautic.contactclient.'.$item->getId().'.transactions.search');
             } else {
                 $chartFilterValues = $session->get(
-                    'mautic.contactclient.'.$item->getId().'.transactions.chartfilter',
+                    'mautic.contactclient.'.$item->getId().'.chartfilter',
                     [
                         'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
                         'date_to'   => null,
@@ -151,7 +151,7 @@ class ContactClientController extends FormController
                 );
                 $search = $session->get('mautic.contactclient.'.$item->getId().'.transactions.search', '');
             }
-            $session->set('mautic.contactclient.'.$item->getId().'.transactions.chartfilter', $chartFilterValues);
+            $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
 
             $chartFilterForm   = $this->get('form.factory')->create(
@@ -193,7 +193,7 @@ class ContactClientController extends FormController
                 );
             }
 
-            $chartfilter = [
+            $transactionfilter = [
                 'type'     => $chartFilterValues['type'],
                 'dateFrom' => new \DateTime($chartFilterValues['date_from']),
                 'dateTo'   => new \DateTime($chartFilterValues['date_to']),
@@ -204,7 +204,7 @@ class ContactClientController extends FormController
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
             $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
-            $args['viewParameters']['transactions']    = $this->getTransactions($item, $chartfilter, $search);
+            $args['viewParameters']['transactions']    = $this->getTransactions($item, $transactionfilter, $search);
         }
 
         return $args;

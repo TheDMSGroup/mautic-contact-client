@@ -12,9 +12,9 @@ if (isset($tmpl) && 'index' == $tmpl) {
     $view->extend('MauticContactClientBundle:Transactions:index.html.php');
 }
 $baseUrl = $view['router']->path(
-    'mautic_contactclienttransactions_index',
+    'mautic_contactclient_transactions',
     [
-        'contactClientId' => $contactClient->getId(),
+        'objectId' => $contactClient->getId(),
     ]
 );
 ?>

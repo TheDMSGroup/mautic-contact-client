@@ -21,22 +21,23 @@ return [
                 'path'       => '/contactclient/{page}',
                 'controller' => 'MauticContactClientBundle:ContactClient:index',
             ],
-            'mautic_contactclienttransactions_index' => [
-                'path'         => '/contactclient/{contactClientId}/transactions/{page}',
-                'controller'   => 'MauticContactClientBundle:Transactions:index',
+            'mautic_contactclient_action'          => [
+                'path'       => '/contactclient/{objectAction}/{objectId}',
+                'controller' => 'MauticContactClientBundle:ContactClient:view',
                 'requirements' => [
-                    'contactClientId' => '\d+',
+                    'objectAction' => '\w+',
+                    'objectId' => '\d+',
                 ],
             ],
-            'mautic_contactclienttimeline_action' => [
-                'path'         => '/contactclient/{contactClientAction}/{contactClientId}/transaction/{page}',
-                'controller'   => 'MauticContactClientBundle:ContactClient:execute',
+            'mautic_contactclient_transactions' => [
+                'path'         => '/contactclient/view/{objectId}/transactions/{page}',
+                'controller'   => 'MauticContactClientBundle:Transactions:index',
                 'requirements' => [
-                    'contactClientId' => '\d+',
+                    'objectId' => '\d+',
                 ],
             ],
             'mautic_contactclienttimeline_index' => [
-                'path'         => '/contactclient/{conractClientAction}/{contactClientId}/timeline/{page}',
+                'path'         => '/contactclient/{contactClientId}/timeline/{page}',
                 'controller'   => 'MauticContactClientBundle:Timeline:index',
                 'requirements' => [
                     'contactClientId' => '\d+',
@@ -58,10 +59,6 @@ return [
                 ],
             ],
 
-            'mautic_contactclient_action'          => [
-                'path'       => '/contactclient/{objectAction}/{objectId}',
-                'controller' => 'MauticContactClientBundle:ContactClient:execute',
-            ],
         ],
     ],
 

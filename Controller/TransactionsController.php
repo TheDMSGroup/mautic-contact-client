@@ -18,13 +18,13 @@ class TransactionsController extends CommonController
     use ContactClientAccessTrait;
     use ContactClientDetailsTrait;
 
-    public function indexAction(Request $request, $contactClientId, $page = 1)
+    public function indexAction(Request $request, $objectId, $page = 1)
     {
-        if (empty($contactClientId)) {
+        if (empty($objectId)) {
             return $this->accessDenied();
         }
 
-        $contactClient = $this->checkContactClientAccess($contactClientId, 'view');
+        $contactClient = $this->checkContactClientAccess($objectId, 'view');
         if ($contactClient instanceof Response) {
             return $contactClient;
         }
@@ -33,13 +33,13 @@ class TransactionsController extends CommonController
         if ('POST' == $request->getMethod()) {
             $chartFilterValues = $request->request->has('chartfilter')
                 ? $request->request->get('chartfilter')
-                : $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter');
+                : $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
             $search = $request->request->has('search')
                 ? $request->request->get('search')
                 : $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
         } else {
             $chartFilterValues = $session->get(
-                'mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter',
+                'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
                 [
                     'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
                     'date_to'   => null,
@@ -48,7 +48,7 @@ class TransactionsController extends CommonController
             );
             $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search', '');
         }
-        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.chartfilter', $chartFilterValues);
+        $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter', $chartFilterValues);
         $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
 
         $chartfilter = [
@@ -71,7 +71,7 @@ class TransactionsController extends CommonController
                     'mauticContent' => 'contactClientTimeline',
                     'timelineCount' => $events['total'],
                 ],
-                'contentTemplate' => 'MauticContactClientBundle:Timeline:list.html.php',
+                'contentTemplate' => 'MauticContactClientBundle:Transactions:list.html.php',
             ]
         );
     }
