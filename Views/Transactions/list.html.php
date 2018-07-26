@@ -146,6 +146,8 @@ echo $view->render(
         'baseUrl'    => $baseUrl,
         'target'     => '#transactions-table',
         'totalItems' => $events['total'],
+        'inModal'    => '',
+        'tmpl'       => 'list'
     ]
 ); ?>
 <!--/ timeline -->

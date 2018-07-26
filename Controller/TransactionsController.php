@@ -30,6 +30,8 @@ class TransactionsController extends CommonController
         }
 
         $session = $this->get('session');
+        $model = $this->getModel('contactclient');
+        
         if ('POST' == $request->getMethod()) {
             $chartFilterValues = $request->request->has('chartfilter')
                 ? $request->request->get('chartfilter')
@@ -56,6 +58,23 @@ class TransactionsController extends CommonController
             'dateFrom' => new \DateTime($chartFilterValues['date_from']),
             'dateTo'   => new \DateTime($chartFilterValues['date_to']),
         ];
+
+        if (in_array($chartFilterValues['type'], ['All Events', null])) {
+            $stats = $model->getStats(
+                $contactClient,
+                null,
+                new \DateTime($chartFilterValues['date_from']),
+                new \DateTime($chartFilterValues['date_to'])
+            );
+        } else {
+            $stats = $model->getStatsBySource(
+                $contactClient,
+                null,
+                $chartFilterValues['type'],
+                new \DateTime($chartFilterValues['date_from']),
+                new \DateTime($chartFilterValues['date_to'])
+            );
+        }
 
         $events = $this->getModel('contactclient')->getTransactions($contactClient, $chartfilter, $search, null, $page);
 
