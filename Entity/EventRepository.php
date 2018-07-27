@@ -41,7 +41,7 @@ class EventRepository extends CommonRepository
         if (isset($dateRange['dateFrom'])) {
             if (!($dateRange['dateFrom'] instanceof \DateTime)) {
                 try {
-                    $dateRange['datefrom'] = new dateTime($dateRange['dateFrom']);
+                    $dateRange['datefrom'] = new \DateTime($dateRange['dateFrom']);
                     $dateRange['dateFrom']->setTime(0, 0, 0);
                 } catch (\Exception $e) {
                     $dateRange['datefrom'] = new \DateTime('midnight -1 month');
@@ -55,7 +55,7 @@ class EventRepository extends CommonRepository
         if (isset($dateRange['dateTo'])) {
             if (!($dateRange['dateTo'] instanceof \DateTime)) {
                 try {
-                    $dateRange['datefrom'] = new dateTime($dateRange['dateTo']);
+                    $dateRange['datefrom'] = new \DateTime($dateRange['dateTo']);
                     $dateRange['dateTo']->setTime(0, 0, 0);
                 } catch (\Exception $e) {
                     $dateRange['datefrom'] = new \DateTime('midnight');
