@@ -115,7 +115,7 @@ class Event
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
 
-        $builder->addNamedField('utmSource', 'string', 'utm_source');
+        $builder->addNamedField('utmSource', 'string', 'utm_source', true);
     }
 
     /**

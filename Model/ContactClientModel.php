@@ -594,7 +594,7 @@ class ContactClientModel extends FormModel
         );
 
         $payload = [
-            'events'      => $event->getEvents(),
+            'transactions'=> $event->getEvents(),
             'chartfilter' => $chartfilters,
             'search'      => $search,
             'order'       => $order,

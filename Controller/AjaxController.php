@@ -28,45 +28,20 @@ class AjaxController extends CommonAjaxController
     use AjaxLookupControllerTrait;
 
     /**
-     * @param Request $request
+     * Used by the built-in helper
      *
      * @return mixed
      */
-    public function ajaxTimelineAction(Request $request)
+    public function ajaxTransactionAction(Request $request, $objectId, $page)
     {
-        $filters            = [];
-        $contactClientModel = $this->get('mautic.contactclient.model.contactclient');
-
-        foreach ($request->request->get('filters') as $key => $filter) {
-            $filter['name']           = str_replace(
-                '[]',
-                '',
-                $filter['name']
-            ); // the serializeArray() js method seems to add [] to the key ???
-            $filters[$filter['name']] = $filter['value'];
-        }
-        if (isset($filters['contactClientId'])) {
-            if (!$contactClient = $contactClientModel->getEntity($filters['contactClientId'])) {
-                throw new \InvalidArgumentException('Contact Client argument is Invalid.');
-            }
-        } else {
-            throw new \InvalidArgumentException('Contact Client argument is Missing.');
-        }
-        $orderBy = isset($filters['orderBy']) ? explode(':', $filters['orderBy']) : null;
-        $page    = isset($filters['page']) ? $filters['page'] : 1;
-        $limit   = isset($filters['limit']) ? $filters['limit'] : 25;
-
-        $events = $contactClientModel->getEngagements($contactClient, $filters, $orderBy, $page, $limit, true);
-        $view   = $this->render(
-            'MauticContactClientBundle:Timeline:list.html.php',
+        return $this->forward(
+            'MauticContactClientBundle:Transactions:index',
             [
-                'events'        => $events,
-                'contactClient' => $contactClient,
-                'tmpl'          => '',
-            ]
-        );
+                'page' => $page,
+                'objectId' => $objectId,
+                'request' => $request
+            ]);
 
-        return $view;
     }
 
     /**

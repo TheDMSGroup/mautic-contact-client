@@ -218,6 +218,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         'icon'            => 'fa-plus-square-o',
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],
+                        'utmSource'       => $row['utm_source'],
                         'transaction'     => $row['date_added'],
                     ]
                 );

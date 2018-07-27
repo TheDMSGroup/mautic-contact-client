@@ -23,7 +23,7 @@ return [
             ],
             'mautic_contactclient_action'          => [
                 'path'       => '/contactclient/{objectAction}/{objectId}',
-                'controller' => 'MauticContactClientBundle:ContactClient:view',
+                'controller' => 'MauticContactClientBundle:ContactClient:execute',
                 'requirements' => [
                     'objectAction' => '\w+',
                     'objectId' => '\d+',
@@ -31,6 +31,14 @@ return [
             ],
             'mautic_contactclient_transactions' => [
                 'path'         => '/contactclient/view/{objectId}/transactions/{page}',
+                'controller'   => 'MauticContactClientBundle:Transactions:index',
+                'requirements' => [
+                    'objectId' => '\d+',
+                    'page'     => '\d+',
+                ],
+            ],
+            'mautic_contactclient_transactions_search' => [
+                'path'         => '/contactclient/view/{objectId}/transactions/search',
                 'controller'   => 'MauticContactClientBundle:Transactions:index',
                 'requirements' => [
                     'objectId' => '\d+',

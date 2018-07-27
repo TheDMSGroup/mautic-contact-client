@@ -30,28 +30,18 @@ class TransactionsController extends CommonController
         }
 
         $session = $this->get('session');
-        $model = $this->getModel('contactclient');
-        
+
         if ('POST' == $request->getMethod()) {
-            $chartFilterValues = $request->request->has('chartfilter')
-                ? $request->request->get('chartfilter')
-                : $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
             $search = $request->request->has('search')
                 ? $request->request->get('search')
                 : $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
         } else {
-            $chartFilterValues = $session->get(
-                'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
-                [
-                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
-                    'date_to'   => null,
-                    'type'      => 'All Events',
-                ]
-            );
             $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search', '');
         }
-        $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter', $chartFilterValues);
         $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
+
+
+        $chartFilterValues = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
 
         $chartfilter = [
             'type'     => $chartFilterValues['type'],
@@ -59,160 +49,26 @@ class TransactionsController extends CommonController
             'dateTo'   => new \DateTime($chartFilterValues['date_to']),
         ];
 
-        if (in_array($chartFilterValues['type'], ['All Events', null])) {
-            $stats = $model->getStats(
-                $contactClient,
-                null,
-                new \DateTime($chartFilterValues['date_from']),
-                new \DateTime($chartFilterValues['date_to'])
-            );
-        } else {
-            $stats = $model->getStatsBySource(
-                $contactClient,
-                null,
-                $chartFilterValues['type'],
-                new \DateTime($chartFilterValues['date_from']),
-                new \DateTime($chartFilterValues['date_to'])
-            );
-        }
+        $order = [
+            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
+            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
+        ];
 
-        $events = $this->getModel('contactclient')->getTransactions($contactClient, $chartfilter, $search, null, $page);
+        $events = $this->getModel('contactclient')->getTransactions($contactClient, $chartfilter, $search, $order, $page);
 
         return $this->delegateView(
             [
                 'viewParameters'  => [
                     'contactClient' => $contactClient,
                     'page'          => $page,
-                    'events'        => $events,
+                    'transactions'        => $events,
                 ],
                 'passthroughVars' => [
                     'route'         => false,
-                    'mauticContent' => 'contactClientTimeline',
-                    'timelineCount' => $events['total'],
+                    'mauticContent' => 'contactClientTransactions',
+                    'transactionsCount' => $events['total'],
                 ],
                 'contentTemplate' => 'MauticContactClientBundle:Transactions:list.html.php',
-            ]
-        );
-    }
-
-    public function pluginIndexAction(Request $request)
-    {
-        $limit          = 25;
-        $contactClients = $this->checkAllAccess('view', $limit);
-
-        if ($contactClients instanceof Response) {
-            return $contactClients;
-        }
-
-        $this->setListFilters();
-
-        $session = $this->get('session');
-        if ('POST' === $request->getMethod() && $request->request->has('search')) {
-            $filters = [
-                'search' => InputHelper::clean($request->request->get('search')),
-            ];
-            $session->set('mautic.plugin.timeline.filters', $filters);
-        } else {
-            $filters = null;
-        }
-
-        $order = [
-            $session->get('mautic.plugin.timeline.orderby'),
-            $session->get('mautic.plugin.timeline.orderbydir'),
-        ];
-
-        // get all events grouped by contactClient
-        $events = $this->getAllEngagements($contactClients, $filters, $order, $page, $limit);
-
-        $str = $this->request->server->get('QUERY_STRING');
-        parse_str($str, $query);
-
-        $tmpl = 'table';
-        if (array_key_exists('from', $query) && 'iframe' === $query['from']) {
-            $tmpl = 'list';
-        }
-        if (array_key_exists('tmpl', $query)) {
-            $tmpl = $query['tmpl'];
-        }
-
-        return $this->delegateView(
-            [
-                'viewParameters'  => [
-                    'contactClients' => $contactClients,
-                    'page'           => $page,
-                    'events'         => $events,
-                    'integration'    => $integration,
-                    'tmpl'           => (!$this->request->isXmlHttpRequest()) ? 'index' : '',
-                    'newCount'       => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
-                ],
-                'passthroughVars' => [
-                    'route'         => false,
-                    'mauticContent' => 'pluginTimeline',
-                    'timelineCount' => $events['total'],
-                ],
-                'contentTemplate' => sprintf('MauticContactClientBundle:Timeline:plugin_%s.html.php', $tmpl),
-            ]
-        );
-    }
-
-    public function pluginViewAction(Request $request, $integration, $contactClientId, $page = 1)
-    {
-        if (empty($contactClientId)) {
-            return $this->notFound();
-        }
-
-        $contactClient = $this->checkContactClientAccess($contactClientId, 'view', true, $integration);
-        if ($contactClient instanceof Response) {
-            return $contactClient;
-        }
-
-        $this->setListFilters();
-
-        $session = $this->get('session');
-        if ('POST' === $request->getMethod() && $request->request->has('search')) {
-            $filters = [
-                'search'        => InputHelper::clean($request->request->get('search')),
-                'includeEvents' => InputHelper::clean($request->request->get('includeEvents', [])),
-                'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents', [])),
-            ];
-            $session->set('mautic.plugin.timeline.'.$contactClientId.'.filters', $filters);
-        } else {
-            $filters = null;
-        }
-
-        $order = [
-            $session->get('mautic.plugin.timeline.'.$contactClientId.'.orderby'),
-            $session->get('mautic.plugin.timeline.'.$contactClientId.'.orderbydir'),
-        ];
-
-        $events = $this->getEngagements($contactClient, $filters, $order, $page);
-
-        $str = $this->request->server->get('QUERY_STRING');
-        parse_str($str, $query);
-
-        $tmpl = 'table';
-        if (array_key_exists('from', $query) && 'iframe' === $query['from']) {
-            $tmpl = 'list';
-        }
-        if (array_key_exists('tmpl', $query)) {
-            $tmpl = $query['tmpl'];
-        }
-
-        return $this->delegateView(
-            [
-                'viewParameters'  => [
-                    'contactClient' => $contactClient,
-                    'page'          => $page,
-                    'integration'   => $integration,
-                    'events'        => $events,
-                    'newCount'      => (array_key_exists('count', $query) && $query['count']) ? $query['count'] : 0,
-                ],
-                'passthroughVars' => [
-                    'route'         => false,
-                    'mauticContent' => 'pluginTimeline',
-                    'timelineCount' => $events['total'],
-                ],
-                'contentTemplate' => sprintf('MauticContactClientBundle:Timeline:plugin_%s.html.php', $tmpl),
             ]
         );
     }
