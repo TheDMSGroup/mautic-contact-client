@@ -37,7 +37,8 @@
 }
 
 .api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.verify"] > div,
-.api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.autoUpdate"] > div {
+.api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.autoUpdate"] > div,
+.api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.autoRetry"] > div {
     padding-top: 20px;
 }
 
