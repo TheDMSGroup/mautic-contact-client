@@ -22,11 +22,11 @@ return [
                 'controller' => 'MauticContactClientBundle:ContactClient:index',
             ],
             'mautic_contactclient_action'          => [
-                'path'       => '/contactclient/{objectAction}/{objectId}',
-                'controller' => 'MauticContactClientBundle:ContactClient:execute',
+                'path'         => '/contactclient/{objectAction}/{objectId}',
+                'controller'   => 'MauticContactClientBundle:ContactClient:execute',
                 'requirements' => [
                     'objectAction' => '\w+',
-                    'objectId' => '\d+',
+                    'objectId'     => '\d+',
                 ],
             ],
             'mautic_contactclient_transactions' => [
@@ -66,7 +66,6 @@ return [
                     'fileId'          => '\w+',
                 ],
             ],
-
         ],
     ],
 

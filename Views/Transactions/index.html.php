@@ -16,7 +16,7 @@ $stop = 'here';
     <form method="post" id="transactions-filters" data-toggle="ajax"
           action="<?php echo $view['router']->path(
         'mautic_contactclient_action',
-        ['objectId' => $contactClient->getId(),'objectAction' => 'view']
+        ['objectId' => $contactClient->getId(), 'objectAction' => 'view']
     ); ?>">
         <div class="col-xs-1 va-m">
             <h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>

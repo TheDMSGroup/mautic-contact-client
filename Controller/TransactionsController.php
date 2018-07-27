@@ -9,7 +9,6 @@
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use Mautic\CoreBundle\Controller\CommonController;
-use Mautic\CoreBundle\Helper\InputHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -40,7 +39,6 @@ class TransactionsController extends CommonController
         }
         $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
 
-
         $chartFilterValues = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
 
         $chartfilter = [
@@ -59,13 +57,13 @@ class TransactionsController extends CommonController
         return $this->delegateView(
             [
                 'viewParameters'  => [
-                    'contactClient' => $contactClient,
-                    'page'          => $page,
+                    'contactClient'       => $contactClient,
+                    'page'                => $page,
                     'transactions'        => $events,
                 ],
                 'passthroughVars' => [
-                    'route'         => false,
-                    'mauticContent' => 'contactClientTransactions',
+                    'route'             => false,
+                    'mauticContent'     => 'contactClientTransactions',
                     'transactionsCount' => $events['total'],
                 ],
                 'contentTemplate' => 'MauticContactClientBundle:Transactions:list.html.php',

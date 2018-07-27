@@ -28,7 +28,7 @@ class AjaxController extends CommonAjaxController
     use AjaxLookupControllerTrait;
 
     /**
-     * Used by the built-in helper
+     * Used by the built-in helper.
      *
      * @return mixed
      */
@@ -37,11 +37,10 @@ class AjaxController extends CommonAjaxController
         return $this->forward(
             'MauticContactClientBundle:Transactions:index',
             [
-                'page' => $page,
+                'page'     => $page,
                 'objectId' => $objectId,
-                'request' => $request
+                'request'  => $request,
             ]);
-
     }
 
     /**

@@ -167,7 +167,7 @@ $website = $item->getWebsite();
                             'transactions'  => $transactions,
                             'contactClient' => $item,
                             'tmpl'          => 'index',
-                            'page'
+                            'page',
                         ]
                     ); ?>
                 </div>
