@@ -11,7 +11,7 @@
 $stop = 'here';
 ?>
 
-<div class="bg-white panel">
+<div class="bg-white panel pt-md pb-md">
     <!-- filter form -->
     <form method="post" id="transactions-filters" data-toggle="ajax"
           action="<?php echo $view['router']->path(
@@ -23,7 +23,7 @@ $stop = 'here';
         </div>
         <div class="col-xs-8 va-m">
             <div class="input-group">
-                <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
+                <input type="text" class="form-control bdr-w-0 search tt-input" name="search" id="search"
                        placeholder="<?php echo $view['translator']->trans(
                            'mautic.contactclient.search.placeholder'
                        ); ?>"
@@ -48,8 +48,8 @@ $stop = 'here';
             </span>
         </a>
     </div>
-</div>
 
-<div id="transactions-table" class="panel-footer">
-    <?php $view['slots']->output('_content'); ?>
+    <div id="transactions-table" class="bg-whiter">
+        <?php $view['slots']->output('_content'); ?>
+    </div>
 </div>

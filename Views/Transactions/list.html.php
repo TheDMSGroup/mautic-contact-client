@@ -109,12 +109,15 @@ $baseUrl = $view['router']->path(
                     $view->render($event['contentTemplate'], ['event' => $event, 'contactClient' => $contactClient])
                 );
             endif;
-
-            $rowStripe = (0 === $counter % 2) ? ' transactions-row-highlighted' : '';
+            $rowClasses = ['timeline'];
+            if (0 === $counter % 2) {
+                $rowClasses[] = 'timeline-row-highlighted';
+            }
+            if (!empty($row['fearuted'])) {
+                $rowClasses[] = 'timeline-featured';
+            }
             ?>
-            <tr class="transactions-row<?php echo $rowStripe; ?><?php if (!empty($event['featured'])) {
-                echo ' transactions-featured';
-            } ?>">
+            <tr class="<?php echo implode(' ', $rowClasses); ?>">
                 <td class="transactions-icon">
                     <a href="javascript:void(0);" data-activate-details="e<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
