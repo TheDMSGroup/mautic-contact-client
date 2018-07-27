@@ -282,23 +282,37 @@
       "format": "grid",
       "options": {
         "collapsed": false,
-        "disable_collapse": true
+        "disable_collapse": true,
+        "grid_columns": 12
       },
       "properties": {
         "autoUpdate": {
           "title": "Auto-Update",
           "options": {
-            "infoText": "Automatically update the Payload response headers and fields when new ones are discovered."
+            "infoText": "Automatically update the Payload response headers and fields when new ones are discovered.",
+            "grid_columns": 2
           },
           "propertyOrder": 10,
           "type": "boolean",
           "format": "checkbox",
           "default": true
         },
+        "autoRetry": {
+          "title": "Auto-Retry",
+          "options": {
+            "infoText": "Automatically Retry sending to the client on failure.",
+            "grid_columns": 3
+          },
+          "propertyOrder": 11,
+          "type": "boolean",
+          "format": "checkbox",
+          "default": false
+        },
         "verify": {
           "title": "Verify SSL",
           "options": {
-            "infoText": "If an SSL certificate is used, it will be verified as authentic."
+            "infoText": "If an SSL certificate is used, it will be verified as authentic.",
+            "grid_columns": 3
           },
           "propertyOrder": 20,
           "type": "boolean",

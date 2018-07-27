@@ -386,6 +386,14 @@ class FilePayload
     }
 
     /**
+     * @return array
+     */
+    public function getSettings()
+    {
+        return $this->settings;
+    }
+
+    /**
      * @return bool
      */
     public function getTest()
