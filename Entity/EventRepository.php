@@ -123,7 +123,7 @@ class EventRepository extends CommonRepository
         }
         if (isset($options['toDate'])) {
             $query->andWhere('c.date_added < :dateTo')
-                ->setParameter('dateTo', $options['dateTo`']->format('Y-m-d H:i:s'));
+                ->setParameter('dateTo', $options['dateTo']->format('Y-m-d H:i:s'));
         }
 
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
@@ -276,6 +276,6 @@ class EventRepository extends CommonRepository
     protected function getDefaultOrder()
     {
         return
-            ['date_added', 'ASC'];
+            ['date_added', 'DESC'];
     }
 }

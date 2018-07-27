@@ -86,10 +86,17 @@ $baseUrl = $view['router']->path(
         <?php foreach ($events['events'] as $counter => $event): ?>
             <?php
             ++$counter; // prevent 0
-            $icon       = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
-            $eventLabel = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
-            $message    = (isset($event['message'])) ? $event['message'] : null;
-            $contact    = (isset($event['contactId'])) ? "<a href=\"/s/contacts/view/{$event['contactId']}\" data-toggle=\"ajax\">{$event['contactId']}</a>" : null;
+            $icon        = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
+            $eventLabel  = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
+            $message     = (isset($event['message'])) ? $event['message'] : null;
+            $contactPath = $view['router']->path(
+                'mautic_contact_action',
+                [
+                    'objectAction' => 'view',
+                    'objectId'     => $event['contactId'],
+                ]
+            );
+            $contact     = (isset($event['contactId'])) ? "<a href=\"{$contactPath}\" data-toggle=\"ajax\">{$event['contactId']}</a>" : null;
             if (is_array($eventLabel)):
                 $linkType   = empty($eventLabel['isExternal']) ? 'data-toggle="ajax"' : 'target="_new"';
                 $eventLabel = isset($eventLabel['href']) ? "<a href=\"{$eventLabel['href']}\" $linkType>{$eventLabel['label']}</a>" : "{$eventLabel['label']}";
