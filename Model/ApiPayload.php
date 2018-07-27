@@ -30,6 +30,8 @@ class ApiPayload
 
     const SETTING_DEF_AUTOUPDATE      = true;
 
+    const SETTING_DEF_AUTORETRY       = false;
+
     const SETTING_DEF_CONNECT_TIMEOUT = 10;
 
     const SETTING_DEF_DELAY           = 15;
@@ -50,6 +52,7 @@ class ApiPayload
         'attempts'        => self::SETTING_DEF_ATTEMPTS,
         'delay'           => self::SETTING_DEF_DELAY,
         'autoUpdate'      => self::SETTING_DEF_AUTOUPDATE,
+        'autoRetry'       => self::SETTING_DEF_AUTORETRY,
     ];
 
     /** @var ContactClient */
@@ -267,6 +270,14 @@ class ApiPayload
                 }
             }
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getSettings()
+    {
+        return $this->settings;
     }
 
     /**
