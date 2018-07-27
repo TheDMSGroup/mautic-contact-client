@@ -144,7 +144,7 @@ class ContactClientTimelineEvent extends Event
      */
     public function __construct(
         ContactClient $contactClient = null,
-        array $filters = [],
+        array $filters = null,
         array $orderBy = null,
         $page = 1,
         $limit = 25,
@@ -152,23 +152,23 @@ class ContactClientTimelineEvent extends Event
         $siteDomain = null
     ) {
         $this->contactClient = $contactClient;
-        $this->filters       = !empty($filters) ? $filters : ['search' => ''];
+        $this->filters       = $filters;
         $this->orderBy       = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
         $this->page          = $page;
         $this->limit         = $limit;
         $this->forTimeline   = $forTimeline;
         $this->siteDomain    = $siteDomain;
 
-        if (!empty($filters['dateFrom'])) {
-            $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime) ? $filters['dateFrom'] : new \DateTime(
-                $filters['dateFrom']
-            );
+        if (!empty($filters['fromDate'])) {
+            $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime)
+                ? $filters['dateFrom']
+                : new \DateTime($filters['dateFrom']);
         }
 
         if (!empty($filters['dateTo'])) {
-            $this->dateTo = ($filters['dateTo'] instanceof \DateTime) ? $filters['dateTo'] : new \DateTime(
-                $filters['dateTo']
-            );
+            $this->dateTo = ($filters['dateTo'] instanceof \DateTime)
+                ? $filters['dateTo']
+                : new \DateTime($filters['dateTo']);
         }
     }
 
@@ -479,15 +479,12 @@ class ContactClientTimelineEvent extends Event
     {
         return array_merge(
             [
-                'search'     => $this->filters['search'],
+                'options'    => $this->filters,
                 'logs'       => isset($this->filters['logs']) ? $this->filters['logs'] : null,
                 'order'      => $this->orderBy,
                 'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
                 'unit'       => $this->groupUnit,
-                'fromDate'   => $this->dateFrom,
-                'toDate'     => $this->dateTo,
-                'chartQuery' => $this->chartQuery,
             ],
             $this->getEventLimit()
         );

@@ -569,19 +569,21 @@ class ContactClientModel extends FormModel
      */
     public function getEngagements(
         ContactClient $contactClient = null,
-        $filters = [],
-        $orderBy = null,
+        $chartfilters = null,
+        $search = null,
+        $order = null,
         $page = 1,
         $limit = 25,
         $forTimeline = true
     ) {
-        $orderBy = empty($orderBy) ? ['date_added', 'DESC'] : $orderBy;
-        $event   = $this->dispatcher->dispatch(
+        $filters = array_merge($chartfilters, ['search' => $search]);
+
+        $event = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,
             new ContactClientTimelineEvent(
                 $contactClient,
                 $filters,
-                $orderBy,
+                $order,
                 $page,
                 $limit,
                 $forTimeline,
@@ -589,18 +591,16 @@ class ContactClientModel extends FormModel
             )
         );
 
-        if (!isset($filters['search']) || empty($filters['search'])) {
-            $filters['search'] = null;
-        }
         $payload = [
-            'events'   => $event->getEvents(),
-            'filters'  => $filters,
-            'order'    => $orderBy,
-            'types'    => $event->getEventTypes(),
-            'total'    => $event->getQueryTotal(),
-            'page'     => $page,
-            'limit'    => $limit,
-            'maxPages' => $event->getMaxPage(),
+            'events'      => $event->getEvents(),
+            'chartfilter' => $chartfilters,
+            'search'      => $search,
+            'order'       => $order,
+            'types'       => $event->getEventTypes(),
+            'total'       => $event->getQueryTotal(),
+            'page'        => $page,
+            'limit'       => $limit,
+            'maxPages'    => $event->getMaxPage(),
         ];
 
         return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];

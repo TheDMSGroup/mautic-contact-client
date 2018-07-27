@@ -113,9 +113,9 @@ class ContactClientSubscriber extends CommonSubscriber
     public static function getSubscribedEvents()
     {
         return [
-            ContactClientEvents::POST_SAVE            => ['onContactClientPostSave', 0],
-            ContactClientEvents::POST_DELETE          => ['onContactClientDelete', 0],
-            ContactClientEvents::TIMELINE_ON_GENERATE => ['onTimelineGenerate', 0],
+            ContactClientEvents::POST_SAVE                => ['onContactClientPostSave', 0],
+            ContactClientEvents::POST_DELETE              => ['onContactClientDelete', 0],
+            ContactClientEvents::TIMELINE_ON_GENERATE     => ['onTimelineGenerate', 0],
         ];
     }
 
@@ -162,33 +162,23 @@ class ContactClientSubscriber extends CommonSubscriber
     /**
      * Compile events for the lead timeline.
      *
-     * @param ContactClientTimelineEvent $event
+     * @param ContactClientTransactionsEvent $event
      */
     public function onTimelineGenerate(ContactClientTimelineEvent $event)
     {
-        // Set available event types
-        // $event->addSerializerGroup(['formList', 'submissionEventDetails']);
-
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->em->getRepository('MauticContactClientBundle:Event');
 
-        $stat                = new Stat();
-        $types               = $stat->getAllTypes();
-        $options             = $event->getQueryOptions();
-        $chartFilter         = $this->request->request->get('chartfilter');
-        if (isset($chartFilter['date_from'])) {
-            $options['fromDate'] = \DateTime::createFromFormat('M j, Y', $chartFilter['date_from']);
-            $options['toDate']   = \DateTime::createFromFormat('M j, Y', $chartFilter['date_to']);
-        } else {
-            $options['fromDate'] = new \DateTime($this->params['default_daterange_filter']);
-            $options['toDate']   = new \DateTime();
+        // Set available event types
+        // $event->addSerializerGroup(['formList', 'submissionEventDetails']);
+        $stat   = new Stat();
+        $types  = $stat->getAllTypes();
+        foreach ($types as $type) {
+            // TODO: $event->addEventType($type, $this->translator->trans('mautic.contactclient.event.'.$type));
+            $event->addEventType($type, ucfirst($type));
         }
-        foreach ($types as $eventTypeKey) {
-            $eventTypeName = ucwords($eventTypeKey);
-            $event->addEventType($eventTypeKey, $eventTypeName);
-        }
+        $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), $event->getQueryOptions());
 
-        $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), null, $options);
         $rows    = isset($results['results']) ? $results['results'] : $results;
         $total   = isset($results['total']) ? $results['total'] : count($rows);
 
@@ -198,15 +188,11 @@ class ContactClientSubscriber extends CommonSubscriber
 
             // Add total to counter
             $event->setQueryTotal($total);
-            //$event->addToCounter($eventTypeKey, 1);
+            $event->addToCounter($eventTypeKey, 1);
 
             $log = $row['logs'][0] === '{' ? json_encode(json_decode($row['logs']), JSON_PRETTY_PRINT) : $row['logs'];
 
             if (!$event->isEngagementCount()) {
-//                if (!$this->pageModel) {
-//                    $this->pageModel = new PageModel();
-//                }
-
                 $event->addEvent(
                     [
                         'event'           => $eventTypeKey,
@@ -219,16 +205,16 @@ class ContactClientSubscriber extends CommonSubscriber
                             ),
                         ],
                         'eventType'       => $eventTypeName,
-                        'timestamp'       => $row['date_added'],
                         'extra'           => [
-                            // 'page' => $this->pageModel->getEntity($row['page_id']),
                             'logs'                => $log,
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],
-                        'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents\Timeline:eventdetails.html.php',
+                        'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents:Transactions:eventdetails.html.php',
                         'icon'            => 'fa-plus-square-o',
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],
+                        'utmSource'       => $row['utm_source'],
+                        'timestamp'       => $row['date_added'],
                     ]
                 );
             }

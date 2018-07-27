@@ -136,11 +136,11 @@ $website = $item->getWebsite();
             <!-- tabs controls -->
             <ul class="nav nav-tabs pr-md pl-md mt-10">
                 <li class="active">
-                    <a href="#timeline-container" role="tab" data-toggle="tab">
-                        <span class="label label-primary mr-sm" id="TimelineCount">
-                            <?php echo $events['total']; ?>
+                    <a href="#transactions-container" role="tab" data-toggle="tab">
+                        <span class="label label-primary mr-sm" id="TransactionsCount">
+                            <?php echo $transactions['total']; ?>
                         </span>
-                        <?php echo $view['translator']->trans('mautic.contactclient.timeline.events'); ?>
+                        <?php echo $view['translator']->trans('mautic.contactclient.transactions.events'); ?>
                     </a>
                 </li>
                 <?php if ($files['total']): ?>
@@ -149,7 +149,7 @@ $website = $item->getWebsite();
                     <span class="label label-primary mr-sm" id="FileCount">
                         <?php echo $files['total']; ?>
                     </span>
-                            <?php echo $view['translator']->trans('mautic.contactclient.timeline.files'); ?>
+                            <?php echo $view['translator']->trans('mautic.contactclient.transactions.files'); ?>
                         </a>
                     </li>
                 <?php endif; ?>
@@ -159,14 +159,15 @@ $website = $item->getWebsite();
             <!--/ tabs controls -->
 
             <!-- start: tab-content -->
-            <div class="tab-content pa-md">
-                <div class="tab-pane fade in active bdr-w-0" id="timeline-container">
+            <div class="tab-content pl-md pr-md pb-md">
+                <div class="tab-pane fade in active bdr-w-0" id="transactions-container">
                     <?php echo $view->render(
-                        'MauticContactClientBundle:Timeline:list.html.php',
+                        'MauticContactClientBundle:Transactions:list.html.php',
                         [
-                            'events'        => $events,
+                            'transactions'  => $transactions,
                             'contactClient' => $item,
                             'tmpl'          => 'index',
+                            'page',
                         ]
                     ); ?>
                 </div>
