@@ -24,7 +24,6 @@ use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
-use MauticPlugin\MauticContactClientBundle\Event\ContactClientTransactionsEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -568,32 +567,32 @@ class ContactClientModel extends FormModel
      *
      * @return array
      */
-    public function getTransactions(
+    public function getEngagements(
         ContactClient $contactClient = null,
         $chartfilters = null,
         $search = null,
         $order = null,
         $page = 1,
         $limit = 25,
-        $forTransactions = true
+        $forTimeline = true
     ) {
         $filters = array_merge($chartfilters, ['search' => $search]);
 
         $event = $this->dispatcher->dispatch(
-            ContactClientEvents::TRANSACTIONS_ON_GENERATE,
-            new ContactClientTransactionsEvent(
+            ContactClientEvents::TIMELINE_ON_GENERATE,
+            new ContactClientTimelineEvent(
                 $contactClient,
                 $filters,
                 $order,
                 $page,
                 $limit,
-                $forTransactions,
+                $forTimeline,
                 $this->coreParametersHelper->getParameter('site_url')
             )
         );
 
         $payload = [
-            'transactions'=> $event->getEvents(),
+            'events'      => $event->getEvents(),
             'chartfilter' => $chartfilters,
             'search'      => $search,
             'order'       => $order,
@@ -604,7 +603,7 @@ class ContactClientModel extends FormModel
             'maxPages'    => $event->getMaxPage(),
         ];
 
-        return ($forTransactions) ? $payload : [$payload, $event->getSerializerGroups()];
+        return ($forTimeline) ? $payload : [$payload, $event->getSerializerGroups()];
     }
 
     /**

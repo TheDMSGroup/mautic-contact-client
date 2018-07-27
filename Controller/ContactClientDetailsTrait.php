@@ -382,7 +382,7 @@ trait ContactClientDetailsTrait
      *
      * @return array
      */
-    protected function getTransactions(
+    protected function getEngagements(
         ContactClient $contactClient,
         array $chartfilter = null,
         $search = null,
@@ -426,7 +426,7 @@ trait ContactClientDetailsTrait
         /** @var ContactClientModel $model */
         $model = $this->getModel('contactclient');
 
-        return $model->getTransactions($contactClient, $chartfilter, $search, $orderBy, $page, $limit);
+        return $model->getEngagements($contactClient, $chartfilter, $search, $orderBy, $page, $limit);
     }
 
     /**

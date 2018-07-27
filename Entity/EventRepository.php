@@ -39,29 +39,29 @@ class EventRepository extends CommonRepository
             ->setParameter('contactClient', (int) $contactClientId);
 
         if (isset($dateRange['dateFrom'])) {
-            if (!($dateRange['dateFrom'] instanceof DateTime)) {
+            if (!($dateRange['dateFrom'] instanceof \DateTime)) {
                 try {
                     $dateRange['datefrom'] = new dateTime($dateRange['dateFrom']);
-                } catch (Exception $e) {
-                    $dateRange['datefrom'] = new DateTime('-1 month');
+                    $dateRange['dateFrom']->setTime(0, 0, 0);
+                } catch (\Exception $e) {
+                    $dateRange['datefrom'] = new \DateTime('midnight -1 month');
                 }
             }
-            $dateRange['dateFrom']->setTime(0, 0, 0);
             $q->andWhere(
                 $q->expr()->gte('c.date_added', ':dateFrom')
             )
                 ->setParameter('dateFrom', $dateRange['dateFrom']->format('Y-m-d H:i:s'));
         }
         if (isset($dateRange['dateTo'])) {
-            if (!($dateRange['dateTo'] instanceof DateTime)) {
+            if (!($dateRange['dateTo'] instanceof \DateTime)) {
                 try {
                     $dateRange['datefrom'] = new dateTime($dateRange['dateTo']);
-                } catch (Exception $e) {
-                    $dateRange['datefrom'] = new DateTime('-1 month');
+                    $dateRange['dateTo']->setTime(0, 0, 0);
+                } catch (\Exception $e) {
+                    $dateRange['datefrom'] = new \DateTime('midnight');
                 }
+                $dateRange['dateTo']->modify('+1 day');
             }
-            $dateRange['dateTo']->setTime(0, 0, 0);
-            $dateRange['dateTo']->modify('+1 day');
             $q->andWhere(
                 $q->expr()->lt('c.date_added', ':dateTo')
             )
@@ -85,7 +85,7 @@ class EventRepository extends CommonRepository
      *
      * @return array
      */
-    public function getEventsForTransactions($contactClientId, array $options = [], $countOnly = false)
+    public function getEventsForTimeline($contactClientId, array $options = [], $countOnly = false)
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')

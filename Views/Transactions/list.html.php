@@ -90,7 +90,7 @@ $baseUrl = $view['router']->path(
             </th>
         </tr>
         <tbody>
-        <?php foreach ($transactions['transactions'] as $counter => $event): ?>
+        <?php foreach ($transactions['events'] as $counter => $event): ?>
             <?php
             ++$counter; // prevent 0
             $icon       = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
@@ -135,7 +135,7 @@ $baseUrl = $view['router']->path(
                         echo $event['eventType'];
                     } ?></td>
                 <td class="transactions-timestamp"><?php echo $view['date']->toText(
-                        $event['transaction'],
+                        $event['timestamp'],
                         'local',
                         'Y-m-d H:i:s',
                         true

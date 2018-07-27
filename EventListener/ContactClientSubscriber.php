@@ -23,7 +23,7 @@ use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use MauticPlugin\MauticContactClientBundle\Entity\EventRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
-use MauticPlugin\MauticContactClientBundle\Event\ContactClientTransactionsEvent;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -115,7 +115,7 @@ class ContactClientSubscriber extends CommonSubscriber
         return [
             ContactClientEvents::POST_SAVE                => ['onContactClientPostSave', 0],
             ContactClientEvents::POST_DELETE              => ['onContactClientDelete', 0],
-            ContactClientEvents::TRANSACTIONS_ON_GENERATE => ['onTransactionsGenerate', 0],
+            ContactClientEvents::TIMELINE_ON_GENERATE     => ['onTimelineGenerate', 0],
         ];
     }
 
@@ -164,7 +164,7 @@ class ContactClientSubscriber extends CommonSubscriber
      *
      * @param ContactClientTransactionsEvent $event
      */
-    public function onTransactionsGenerate(ContactClientTransactionsEvent $event)
+    public function onTimelineGenerate(ContactClientTimelineEvent $event)
     {
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->em->getRepository('MauticContactClientBundle:Event');
@@ -177,7 +177,7 @@ class ContactClientSubscriber extends CommonSubscriber
             // TODO: $event->addEventType($type, $this->translator->trans('mautic.contactclient.event.'.$type));
             $event->addEventType($type, ucfirst($type));
         }
-        $results = $eventRepository->getEventsForTransactions($event->getContactClient()->getId(), $event->getQueryOptions());
+        $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), $event->getQueryOptions());
 
         $rows    = isset($results['results']) ? $results['results'] : $results;
         $total   = isset($results['total']) ? $results['total'] : count($rows);
@@ -193,10 +193,6 @@ class ContactClientSubscriber extends CommonSubscriber
             $log = $row['logs'][0] === '{' ? json_encode(json_decode($row['logs']), JSON_PRETTY_PRINT) : $row['logs'];
 
             if (!$event->isEngagementCount()) {
-//                if (!$this->pageModel) {
-//                    $this->pageModel = new PageModel();
-//                }
-
                 $event->addEvent(
                     [
                         'event'           => $eventTypeKey,
@@ -210,7 +206,6 @@ class ContactClientSubscriber extends CommonSubscriber
                         ],
                         'eventType'       => $eventTypeName,
                         'extra'           => [
-                            // 'page' => $this->pageModel->getEntity($row['page_id']),
                             'logs'                => $log,
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],
@@ -219,7 +214,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],
                         'utmSource'       => $row['utm_source'],
-                        'transaction'     => $row['date_added'],
+                        'timestamp'       => $row['date_added'],
                     ]
                 );
             }
