@@ -40,7 +40,8 @@ class AjaxController extends CommonAjaxController
                 'page'     => $page,
                 'objectId' => $objectId,
                 'request'  => $request,
-            ]);
+            ]
+        );
     }
 
     /**
@@ -213,10 +214,11 @@ class AjaxController extends CommonAjaxController
                 $dataArray['types'] = $types;
             }
             $dataArray['formats'] = [
-                'date'       => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
-                'datetime'   => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
-                'time'       => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
-                'number'     => $tokenHelper->getFormatNumber(),
+                'date'     => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
+                'datetime' => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
+                'time'     => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
+                'number'   => $tokenHelper->getFormatNumber(),
+                'boolean'  => $tokenHelper->getFormatBoolean(),
             ];
         }
 

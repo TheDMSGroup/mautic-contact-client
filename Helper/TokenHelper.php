@@ -53,6 +53,21 @@ class TokenHelper
         'rpad.4' => 'Pad up to 4 zeros on the right.',
     ];
 
+    /** @var array */
+    private $formatBoolean = [
+        'bool.YesNo'     => 'Expresses as Yes or No.',
+        'bool.YESNO'     => 'Expresses as YES or NO.',
+        'bool.yesno'     => 'Expresses as yes or no.',
+        'bool.YN'        => 'Expresses as Y or N.',
+        'bool.yn'        => 'Expresses as y or n.',
+        'bool.10'        => 'Expresses as 1 or 0',
+        'bool.TrueFalse' => 'Expresses as True or False.',
+        'bool.TRUEFALSE' => 'Expresses as TRUE or FALSE.',
+        'bool.truefalse' => 'Expresses as true or false.',
+        'bool.TF'        => 'Expresses as T or F.',
+        'bool.tf'        => 'Expresses as t or f.',
+    ];
+
     /**
      * TokenHelper constructor.
      *
@@ -64,28 +79,8 @@ class TokenHelper
     {
         try {
             $this->engine = new Engine(['pragmas' => [Engine::PRAGMA_FILTERS]]);
-            $this->engine->addHelper(
-                'lpad',
-                [
-                    '2' => function ($value) {
-                        return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
-                    },
-                    '4' => function ($value) {
-                        return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
-                    },
-                ]
-            );
-            $this->engine->addHelper(
-                'rpad',
-                [
-                    '2' => function ($value) {
-                        return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
-                    },
-                    '4' => function ($value) {
-                        return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
-                    },
-                ]
-            );
+            $this->addHelper('number');
+            $this->addHelper('boolean');
         } catch (\Exception $e) {
             throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
         }
@@ -94,11 +89,99 @@ class TokenHelper
     }
 
     /**
+     * Add token helpers/filters to the engine.
+     *
+     * @param $type
+     */
+    private function addHelper($type)
+    {
+        switch ($type) {
+            case 'number':
+                $this->engine->addHelper(
+                    'lpad',
+                    [
+                        '2' => function ($value) {
+                            return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
+                        },
+                        '4' => function ($value) {
+                            return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
+                        },
+                    ]
+                );
+                $this->engine->addHelper(
+                    'rpad',
+                    [
+                        '2' => function ($value) {
+                            return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
+                        },
+                        '4' => function ($value) {
+                            return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
+                        },
+                    ]
+                );
+                break;
+
+            case 'date':
+                $this->engine->addHelper('date', $this->dateFormatHelper);
+                break;
+
+            case 'boolean':
+                $this->engine->addHelper(
+                    'bool',
+                    [
+                        'YesNo'     => function ($value) {
+                            return $value ? 'Yes' : 'No';
+                        },
+                        'YESNO'     => function ($value) {
+                            return $value ? 'YES' : 'NO';
+                        },
+                        'yesno'     => function ($value) {
+                            return $value ? 'yes' : 'no';
+                        },
+                        'YN'        => function ($value) {
+                            return $value ? 'Y' : 'N';
+                        },
+                        'yn'        => function ($value) {
+                            return $value ? 'y' : 'n';
+                        },
+                        '10'        => function ($value) {
+                            return $value ? '1' : '0';
+                        },
+                        'TrueFalse' => function ($value) {
+                            return $value ? 'True' : 'False';
+                        },
+                        'TRUEFALSE' => function ($value) {
+                            return $value ? 'TRUE' : 'FALSE';
+                        },
+                        'truefalse' => function ($value) {
+                            return $value ? 'true' : 'false';
+                        },
+                        'TF'        => function ($value) {
+                            return $value ? 'T' : 'F';
+                        },
+                        'tf'        => function ($value) {
+                            return $value ? 't' : 'f';
+                        },
+                    ]
+                );
+                break;
+        }
+    }
+
+    /**
      * @return array
      */
     public function getFormatNumber()
     {
         return $this->formatNumber;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormatBoolean()
+    {
+        return $this->formatBoolean;
     }
 
     /**
@@ -168,7 +251,7 @@ class TokenHelper
     public function setTimezones($timezoneSource = 'UTC', $timezoneDestination = 'UTC')
     {
         $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
-        $this->engine->addHelper('date', $this->dateFormatHelper);
+        $this->addHelper('date');
 
         return $this;
     }
@@ -671,6 +754,8 @@ class TokenHelper
     /**
      * Take a string from eventTokenEncode and reverse it to an array.
      *
+     * NOTE: Not currently in use, but likely to be used in the future.
+     *
      * @param $string
      *
      * @return array
@@ -687,8 +772,7 @@ class TokenHelper
     }
 
     /**
-     * @param     $string
-     * @param int $b
+     * @param   $string
      *
      * @return bool|float|int
      */
