@@ -159,7 +159,7 @@ class ContactClientTimelineEvent extends Event
         $this->forTimeline   = $forTimeline;
         $this->siteDomain    = $siteDomain;
 
-        if (!empty($filters['fromDate'])) {
+        if (!empty($filters['dateFrom'])) {
             $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime)
                 ? $filters['dateFrom']
                 : new \DateTime($filters['dateFrom']);
@@ -478,9 +478,8 @@ class ContactClientTimelineEvent extends Event
     public function getQueryOptions()
     {
         return array_merge(
+            $this->filters,
             [
-                'options'    => $this->filters,
-                'logs'       => isset($this->filters['logs']) ? $this->filters['logs'] : null,
                 'order'      => $this->orderBy,
                 'paginated'  => !$this->countOnly,
                 'unitCounts' => $this->countOnly && $this->groupUnit,
