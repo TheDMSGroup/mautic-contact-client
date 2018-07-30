@@ -83,7 +83,7 @@ class Event
             ->addIndex(['type', 'contact_id'], 'type_contact')
             ->addIndex(['type', 'message'], 'type_message')
             ->addIndex(['contact_id'], 'contact_id')
-            ->addIndex(['contactclient_id', 'date_added'], 'contactclient_id_date_added')
+            ->addIndex(['contactclient_id', 'date_added', 'utm_source'], 'contactclient_id_date_added_utmsource')
             ->addIndex(['date_added'], 'date_added');
 
         $builder->addId();
@@ -286,7 +286,7 @@ class Event
     }
 
     /**
-     * @param string $utmSource
+     * @param $this
      */
     public function setUtmSource($utmSource)
     {
