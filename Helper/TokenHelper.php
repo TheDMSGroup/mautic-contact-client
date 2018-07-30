@@ -47,25 +47,44 @@ class TokenHelper
 
     /** @var array */
     private $formatNumber = [
-        'lpad.2' => 'Pad up to 2 zeros on the left.',
-        'lpad.4' => 'Pad up to 4 zeros on the left.',
-        'rpad.2' => 'Pad up to 2 zeros on the right.',
-        'rpad.4' => 'Pad up to 4 zeros on the right.',
+        'lpad.2' => 'At least 2 digits, zeros on the left',
+        'lpad.4' => 'At least 4 digits, zeros on the left',
+        'rpad.2' => 'At least 2 digits, zeros on the right',
+        'rpad.4' => 'At least 4 digits, zeros on the right',
     ];
 
     /** @var array */
     private $formatBoolean = [
-        'bool.YesNo'     => 'Expresses as Yes or No.',
-        'bool.YESNO'     => 'Expresses as YES or NO.',
-        'bool.yesno'     => 'Expresses as yes or no.',
-        'bool.YN'        => 'Expresses as Y or N.',
-        'bool.yn'        => 'Expresses as y or n.',
-        'bool.10'        => 'Expresses as 1 or 0',
-        'bool.TrueFalse' => 'Expresses as True or False.',
-        'bool.TRUEFALSE' => 'Expresses as TRUE or FALSE.',
-        'bool.truefalse' => 'Expresses as true or false.',
-        'bool.TF'        => 'Expresses as T or F.',
-        'bool.tf'        => 'Expresses as t or f.',
+        'bool.YesNo'     => 'Yes or No',
+        'bool.YESNO'     => 'YES or NO',
+        'bool.yesno'     => 'yes or no',
+        'bool.YN'        => 'Y or N',
+        'bool.yn'        => 'y or n',
+        'bool.10'        => '1 or ',
+        'bool.TrueFalse' => 'True or False',
+        'bool.TRUEFALSE' => 'TRUE or FALSE',
+        'bool.truefalse' => 'true or false',
+        'bool.TF'        => 'T or F',
+        'bool.tf'        => 't or f',
+    ];
+
+    /** @var array */
+    private $formatString = [
+        'zip.short' => 'Exclude zipcode +4',
+        'trim.255'  => 'Trim to 255 characters (varchar)',
+    ];
+
+    /** @var array */
+    private $formatText = [
+        'zip.short'  => 'Exclude zipcode +4',
+        'trim.255'   => 'Trim to 255 characters (varchar)',
+        'trim.65535' => 'Trim to 65535 characters (text/blog)',
+    ];
+
+    /** @var array */
+    private $formatEmail = [
+        'trim.255'   => 'Trim to 255 characters (varchar)',
+        'trim.65535' => 'Trim to 65535 characters (text/blob)',
     ];
 
     /**
@@ -81,6 +100,7 @@ class TokenHelper
             $this->engine = new Engine(['pragmas' => [Engine::PRAGMA_FILTERS]]);
             $this->addHelper('number');
             $this->addHelper('boolean');
+            $this->addHelper('string');
         } catch (\Exception $e) {
             throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
         }
@@ -165,23 +185,77 @@ class TokenHelper
                     ]
                 );
                 break;
+
+            case 'string':
+            case 'text':
+                $this->engine->addHelper(
+                    'zip',
+                    [
+                        'short' => function ($value) {
+                            $dash = strpos((string) $value, '-');
+
+                            return $dash ? substr((string) $value, 0, $dash) : $value;
+                        },
+                    ],
+                    'trim',
+                    [
+                        // Currently undocumented.
+                        'ws'    => function ($value) {
+                            return trim((string) $value);
+                        },
+                        '255'   => function ($value) {
+                            if (strlen((string) $value) > 255) {
+                                $value = trim($value);
+                            }
+
+                            return substr((string) $value, 0, 255);
+                        },
+                        '65535' => function ($value) {
+                            if (strlen((string) $value) > 255) {
+                                $value = trim($value);
+                            }
+
+                            return substr((string) $value, 0, 255);
+                        },
+                    ]
+                );
+                break;
         }
     }
 
     /**
+     * Outputs an array of formats by field type for the front-end tokenization.
+     *
      * @return array
      */
-    public function getFormatNumber()
+    public function getFormats()
     {
-        return $this->formatNumber;
+        return [
+            'date'     => $this->getDateFormatHelper()->getFormatsDate(),
+            'datetime' => $this->getDateFormatHelper()->getFormatsDateTime(),
+            'time'     => $this->getDateFormatHelper()->getFormatsTime(),
+            'number'   => $this->formatNumber,
+            'boolean'  => $this->formatBoolean,
+            'string'   => $this->formatString,
+            'text'     => $this->formatText,
+            'email'    => $this->formatEmail,
+        ];
+    }
+
+    /**
+     * @return DateFormatHelper
+     */
+    public function getDateFormatHelper()
+    {
+        return $this->dateFormatHelper;
     }
 
     /**
      * @return array
      */
-    public function getFormatBoolean()
+    public function getFormatString()
     {
-        return $this->formatBoolean;
+        return $this->formatString;
     }
 
     /**
@@ -498,9 +572,9 @@ class TokenHelper
     private function eventTokenEncode($values)
     {
         list($campaignId, $eventId, $contactId) = $values;
-        $campaignIdString                       = $this->baseEncode((int) $campaignId);
-        $eventIdString                          = $this->baseEncode((int) $eventId);
-        $contactIdString                        = $this->baseEncode((int) $contactId);
+        $campaignIdString = $this->baseEncode((int) $campaignId);
+        $eventIdString    = $this->baseEncode((int) $eventId);
+        $contactIdString  = $this->baseEncode((int) $contactId);
 
         return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
     }
@@ -572,14 +646,6 @@ class TokenHelper
     }
 
     /**
-     * @return DateFormatHelper
-     */
-    public function getDateFormatHelper()
-    {
-        return $this->dateFormatHelper;
-    }
-
-    /**
      * Recursively replaces tokens using an array for context.
      *
      * @param array $array
@@ -605,7 +671,7 @@ class TokenHelper
      * Replace Tokens in a simple string using an array for context.
      *
      * @param      $string
-     * @param bool $force  skip checking for a token
+     * @param bool $force skip checking for a token
      *
      * @return string
      */

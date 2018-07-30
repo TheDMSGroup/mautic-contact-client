@@ -340,6 +340,13 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                                         value = 'Example: ' + now.format(value) + delimiter + '(' + value.replace(/\\/g, '') + ')';
                                                                     }
                                                                 }
+                                                                if (
+                                                                    key.indexOf('zip.') > -1
+                                                                    && word.indexOf('zip') === -1
+                                                                ) {
+                                                                    // Do not include the zip filter for fields that do not contain the word zip.
+                                                                    return true;
+                                                                }
                                                                 delimitedKey = key.indexOf('.') !== -1 ? key : type + '.' + key;
                                                                 addMatch(matches, word + ' | ' + delimitedKey, value, (filter.length && delimitedKey.substr(0, filter.length) === filter));
                                                                 formatsFound = true;
