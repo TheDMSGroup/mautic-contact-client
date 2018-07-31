@@ -42,6 +42,17 @@ class ContactClientController extends FormController
      */
     public function indexAction($page = 1)
     {
+        // When the user inserts a numeric value, assume they want to find the entity by ID.
+        $session = $this->get('session');
+        $search  = $this->request->get('search', $session->get('mautic.'.$this->getSessionBase().'.filter', ''));
+        if (isset($search) && is_numeric(trim($search))) {
+            $search = 'ids:'.trim($search);
+            $query = $this->request->query->all();
+            $query['search'] = $search;
+            $this->request = $this->request->duplicate($query);
+            $session->set('mautic.'.$this->getSessionBase().'.filter', $search);
+        }
+
         return parent::indexStandard($page);
     }
 
