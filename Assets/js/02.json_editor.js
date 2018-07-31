@@ -527,6 +527,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     completeSingle: false
                                 });
                             });
+                            $input.on('cmUpdate', function(){
+                                if (cm.getValue() !== $(this).val()){
+                                    cm.setValue($(this).val());
+                                    cm.refresh();
+                                }
+                            });
                             $input.addClass('codeMirror-active');
                             // @todo - Remove this hack.
                             if (isTextarea) {
