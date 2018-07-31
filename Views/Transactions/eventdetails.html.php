@@ -9,8 +9,8 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-$logs                = (isset($event['details']['logs'])) ? $event['extra']['logs'] : null;
-$integrationEntityId = (isset($event['details']['integrationEntityId'])) ? $event['extra']['integrationEntityId'] : null;
+$logs                = (isset($event['extra']['logs'])) ? $event['extra']['logs'] : null;
+$integrationEntityId = (isset($event['extra']['integrationEntityId'])) ? $event['extra']['integrationEntityId'] : null;
 ?>
 <?php if ($integrationEntityId): ?>
     <dl class="dl-horizontal">
