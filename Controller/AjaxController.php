@@ -40,7 +40,8 @@ class AjaxController extends CommonAjaxController
                 'page'     => $page,
                 'objectId' => $objectId,
                 'request'  => $request,
-            ]);
+            ]
+        );
     }
 
     /**
@@ -206,18 +207,10 @@ class AjaxController extends CommonAjaxController
 
         $tokens = $tokenHelper->getContextLabeled();
         if ($tokens) {
-            $dataArray['tokens']  = $tokens;
             $dataArray['success'] = true;
-            $types                = $tokenHelper->getContextTypes();
-            if ($types) {
-                $dataArray['types'] = $types;
-            }
-            $dataArray['formats'] = [
-                'date'       => $tokenHelper->getDateFormatHelper()->getFormatsDate(),
-                'datetime'   => $tokenHelper->getDateFormatHelper()->getFormatsDateTime(),
-                'time'       => $tokenHelper->getDateFormatHelper()->getFormatsTime(),
-                'number'     => $tokenHelper->getFormatNumber(),
-            ];
+            $dataArray['tokens']  = $tokens;
+            $dataArray['types']   = $tokenHelper->getContextTypes();
+            $dataArray['formats'] = $tokenHelper->getFormats();
         }
 
         return $this->sendJsonResponse($dataArray);

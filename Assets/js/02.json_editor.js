@@ -300,16 +300,17 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         var parts = line.slice(start, end).split('|'),
                                             word = parts[0].replace(/[\s|{|}]/g, ''),
                                             len = word.length,
-                                            matches = [];
+                                            matches = [],
+                                            type, filter, delimitedKey, now;
                                         if (len >= 2) {
                                             // Exact matching keys.
                                             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                 if (key.length === len && key === word) {
                                                     addMatch(matches, key, value);
-                                                    var filter = parts.length === 2 ? parts[1].replace(/[\s|{|}]/g, '') : '';
+                                                    filter = parts.length === 2 ? parts[1].replace(/[\s|{|}]/g, '') : '';
                                                     // Check for format options.
                                                     if (typeof window.JSONEditor.tokenCacheTypes[tokenSource][word] !== 'undefined') {
-                                                        var type = window.JSONEditor.tokenCacheTypes[tokenSource][word];
+                                                        type = window.JSONEditor.tokenCacheTypes[tokenSource][word];
                                                         if (typeof window.JSONEditor.tokenCacheFormats[tokenSource][type] !== 'undefined') {
                                                             mQuery.each(window.JSONEditor.tokenCacheFormats[tokenSource][type], function (key, value) {
                                                                 if (type === 'date' || type === 'datetime' || type === 'time') {
@@ -335,11 +336,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                                         value = 'Example: 55' + delimiter + '(' + value + ')';
                                                                     }
                                                                     else {
-                                                                        var now = new Date();
+                                                                        now = new Date();
                                                                         value = 'Example: ' + now.format(value) + delimiter + '(' + value.replace(/\\/g, '') + ')';
                                                                     }
                                                                 }
-                                                                var delimitedKey = key.indexOf('.') !== -1 ? key : type + '.' + key;
+                                                                if (
+                                                                    key.indexOf('zip.') > -1
+                                                                    && word.indexOf('zip') === -1
+                                                                ) {
+                                                                    // Do not include the zip filter for fields that do not contain the word zip.
+                                                                    return true;
+                                                                }
+                                                                delimitedKey = key.indexOf('.') !== -1 ? key : type + '.' + key;
                                                                 addMatch(matches, word + ' | ' + delimitedKey, value, (filter.length && delimitedKey.substr(0, filter.length) === filter));
                                                                 formatsFound = true;
                                                             });
@@ -498,7 +506,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     pollVisibility = setInterval(function () {
                         if (!$input.length) {
                             clearInterval(pollVisibility);
-                        } else if ($input.is(':visible')) {
+                        }
+                        else if ($input.is(':visible')) {
                             clearInterval(pollVisibility);
                             var cm = CodeMirror.fromTextArea($input[0], options);
                             cm.on('change', function (cm) {
@@ -606,11 +615,13 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                             changed = false;
                         }
                     });
-                } else {
+                }
+                else {
                     // Need to re-instantiate chosen.
                     $select.trigger('chosen:updated');
                 }
-            } else {
+            }
+            else {
                 // If chosen was previously used drop it.
                 $select.trigger('chosen:updated');
             }

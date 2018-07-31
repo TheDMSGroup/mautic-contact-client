@@ -47,10 +47,44 @@ class TokenHelper
 
     /** @var array */
     private $formatNumber = [
-        'lpad.2' => 'Pad up to 2 zeros on the left.',
-        'lpad.4' => 'Pad up to 4 zeros on the left.',
-        'rpad.2' => 'Pad up to 2 zeros on the right.',
-        'rpad.4' => 'Pad up to 4 zeros on the right.',
+        'lpad.2' => 'At least 2 digits, zeros on the left',
+        'lpad.4' => 'At least 4 digits, zeros on the left',
+        'rpad.2' => 'At least 2 digits, zeros on the right',
+        'rpad.4' => 'At least 4 digits, zeros on the right',
+    ];
+
+    /** @var array */
+    private $formatBoolean = [
+        'bool.YesNo'     => 'Yes or No',
+        'bool.YESNO'     => 'YES or NO',
+        'bool.yesno'     => 'yes or no',
+        'bool.YN'        => 'Y or N',
+        'bool.yn'        => 'y or n',
+        'bool.10'        => '1 or ',
+        'bool.TrueFalse' => 'True or False',
+        'bool.TRUEFALSE' => 'TRUE or FALSE',
+        'bool.truefalse' => 'true or false',
+        'bool.TF'        => 'T or F',
+        'bool.tf'        => 't or f',
+    ];
+
+    /** @var array */
+    private $formatString = [
+        'zip.short' => 'Exclude zipcode +4',
+        'trim.255'  => 'Trim to 255 characters (varchar)',
+    ];
+
+    /** @var array */
+    private $formatText = [
+        'zip.short'  => 'Exclude zipcode +4',
+        'trim.255'   => 'Trim to 255 characters (varchar)',
+        'trim.65535' => 'Trim to 65535 characters (text/blog)',
+    ];
+
+    /** @var array */
+    private $formatEmail = [
+        'trim.255'   => 'Trim to 255 characters (varchar)',
+        'trim.65535' => 'Trim to 65535 characters (text/blob)',
     ];
 
     /**
@@ -64,28 +98,9 @@ class TokenHelper
     {
         try {
             $this->engine = new Engine(['pragmas' => [Engine::PRAGMA_FILTERS]]);
-            $this->engine->addHelper(
-                'lpad',
-                [
-                    '2' => function ($value) {
-                        return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
-                    },
-                    '4' => function ($value) {
-                        return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
-                    },
-                ]
-            );
-            $this->engine->addHelper(
-                'rpad',
-                [
-                    '2' => function ($value) {
-                        return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
-                    },
-                    '4' => function ($value) {
-                        return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
-                    },
-                ]
-            );
+            $this->addHelper('number');
+            $this->addHelper('boolean');
+            $this->addHelper('string');
         } catch (\Exception $e) {
             throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
         }
@@ -94,11 +109,153 @@ class TokenHelper
     }
 
     /**
+     * Add token helpers/filters to the engine.
+     *
+     * @param $type
+     */
+    private function addHelper($type)
+    {
+        switch ($type) {
+            case 'number':
+                $this->engine->addHelper(
+                    'lpad',
+                    [
+                        '2' => function ($value) {
+                            return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
+                        },
+                        '4' => function ($value) {
+                            return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
+                        },
+                    ]
+                );
+                $this->engine->addHelper(
+                    'rpad',
+                    [
+                        '2' => function ($value) {
+                            return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
+                        },
+                        '4' => function ($value) {
+                            return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
+                        },
+                    ]
+                );
+                break;
+
+            case 'date':
+                $this->engine->addHelper('date', $this->dateFormatHelper);
+                break;
+
+            case 'boolean':
+                $this->engine->addHelper(
+                    'bool',
+                    [
+                        'YesNo'     => function ($value) {
+                            return $value ? 'Yes' : 'No';
+                        },
+                        'YESNO'     => function ($value) {
+                            return $value ? 'YES' : 'NO';
+                        },
+                        'yesno'     => function ($value) {
+                            return $value ? 'yes' : 'no';
+                        },
+                        'YN'        => function ($value) {
+                            return $value ? 'Y' : 'N';
+                        },
+                        'yn'        => function ($value) {
+                            return $value ? 'y' : 'n';
+                        },
+                        '10'        => function ($value) {
+                            return $value ? '1' : '0';
+                        },
+                        'TrueFalse' => function ($value) {
+                            return $value ? 'True' : 'False';
+                        },
+                        'TRUEFALSE' => function ($value) {
+                            return $value ? 'TRUE' : 'FALSE';
+                        },
+                        'truefalse' => function ($value) {
+                            return $value ? 'true' : 'false';
+                        },
+                        'TF'        => function ($value) {
+                            return $value ? 'T' : 'F';
+                        },
+                        'tf'        => function ($value) {
+                            return $value ? 't' : 'f';
+                        },
+                    ]
+                );
+                break;
+
+            case 'string':
+            case 'text':
+                $this->engine->addHelper(
+                    'zip',
+                    [
+                        'short' => function ($value) {
+                            $dash = strpos((string) $value, '-');
+
+                            return $dash ? substr((string) $value, 0, $dash) : $value;
+                        },
+                    ],
+                    'trim',
+                    [
+                        // Currently undocumented.
+                        'ws'    => function ($value) {
+                            return trim((string) $value);
+                        },
+                        '255'   => function ($value) {
+                            if (strlen((string) $value) > 255) {
+                                $value = trim($value);
+                            }
+
+                            return substr((string) $value, 0, 255);
+                        },
+                        '65535' => function ($value) {
+                            if (strlen((string) $value) > 255) {
+                                $value = trim($value);
+                            }
+
+                            return substr((string) $value, 0, 255);
+                        },
+                    ]
+                );
+                break;
+        }
+    }
+
+    /**
+     * Outputs an array of formats by field type for the front-end tokenization.
+     *
      * @return array
      */
-    public function getFormatNumber()
+    public function getFormats()
     {
-        return $this->formatNumber;
+        return [
+            'date'     => $this->getDateFormatHelper()->getFormatsDate(),
+            'datetime' => $this->getDateFormatHelper()->getFormatsDateTime(),
+            'time'     => $this->getDateFormatHelper()->getFormatsTime(),
+            'number'   => $this->formatNumber,
+            'boolean'  => $this->formatBoolean,
+            'string'   => $this->formatString,
+            'text'     => $this->formatText,
+            'email'    => $this->formatEmail,
+        ];
+    }
+
+    /**
+     * @return DateFormatHelper
+     */
+    public function getDateFormatHelper()
+    {
+        return $this->dateFormatHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFormatString()
+    {
+        return $this->formatString;
     }
 
     /**
@@ -168,7 +325,7 @@ class TokenHelper
     public function setTimezones($timezoneSource = 'UTC', $timezoneDestination = 'UTC')
     {
         $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
-        $this->engine->addHelper('date', $this->dateFormatHelper);
+        $this->addHelper('date');
 
         return $this;
     }
@@ -489,14 +646,6 @@ class TokenHelper
     }
 
     /**
-     * @return DateFormatHelper
-     */
-    public function getDateFormatHelper()
-    {
-        return $this->dateFormatHelper;
-    }
-
-    /**
      * Recursively replaces tokens using an array for context.
      *
      * @param array $array
@@ -671,6 +820,8 @@ class TokenHelper
     /**
      * Take a string from eventTokenEncode and reverse it to an array.
      *
+     * NOTE: Not currently in use, but likely to be used in the future.
+     *
      * @param $string
      *
      * @return array
@@ -687,8 +838,7 @@ class TokenHelper
     }
 
     /**
-     * @param     $string
-     * @param int $b
+     * @param   $string
      *
      * @return bool|float|int
      */
