@@ -220,6 +220,13 @@ class Cache
             'contactclient_cache_exclusive_scope'
         );
 
+        $builder->addIndex(
+            [
+                'utm_source',
+            ],
+            'contactclient_cache_utmsource'
+        );
+
         $builder->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\CacheRepository');
     }
 
