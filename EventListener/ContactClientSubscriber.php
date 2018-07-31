@@ -171,9 +171,7 @@ class ContactClientSubscriber extends CommonSubscriber
 
         // Set available event types
         // $event->addSerializerGroup(['formList', 'submissionEventDetails']);
-        $stat   = new Stat();
-        $types  = $stat->getAllTypes();
-        foreach ($types as $type) {
+        foreach (Stat::getAllTypes() as $type) {
             // TODO: $event->addEventType($type, $this->translator->trans('mautic.contactclient.event.'.$type));
             $event->addEventType($type, ucfirst($type));
         }
@@ -209,7 +207,7 @@ class ContactClientSubscriber extends CommonSubscriber
                             'logs'                => $log,
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],
-                        'contentTemplate' => 'MauticContactClientBundle:SubscribedEvents:Transactions:eventdetails.html.php',
+                        'contentTemplate' => 'MauticContactClientBundle:Transactions:eventdetails.html.php',
                         'icon'            => 'fa-plus-square-o',
                         'message'         => $row['message'],
                         'contactId'       => $row['contact_id'],

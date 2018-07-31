@@ -22,19 +22,19 @@ $baseUrl = $view['router']->path(
 
 <!-- transactions -->
 <div class="table-responsive">
-    <table class="table table-hover table-bordered contactclient-transactions" style="z-index: 2; position: relative;">
+    <table class="table table-hover table-bordered contactclient-timeline" style="z-index: 2; position: relative;">
         <thead>
         <tr>
-            <th class="visible-md visible-lg transactions-icon">
+            <th class="visible-md visible-lg timeline-icon">
                 <a class="btn btn-sm btn-nospin btn-default" data-activate-details="all" data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.transactions.toggle_all_details'
+                       'mautic.contactclient.timeline.toggle_all_details'
                    ); ?>">
                     <span class="fa fa-fw fa-level-down"></span>
                 </a>
             </th>
-            <th class="visible-md visible-lg transactions-message">
-                <a class="transactions-header-sort" data-toggle="tooltip" data-sort="message"
+            <th class="visible-md visible-lg timeline-message">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="message"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.message'
                    ); ?>">
@@ -44,8 +44,8 @@ $baseUrl = $view['router']->path(
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg transactions-contact-id">
-                <a class="transactions-header-sort" data-toggle="tooltip" data-sort="contact_id"
+            <th class="visible-md visible-lg timeline-contact-id">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="contact_id"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.contact_id'
                    ); ?>">
@@ -55,8 +55,8 @@ $baseUrl = $view['router']->path(
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg transactions-utm-source">
-                <a class="transactions-header-sort" data-toggle="tooltip" data-sort="utm_source"
+            <th class="visible-md visible-lg timeline-utm-source">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="utm_source"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.utm_source'
                    ); ?>">
@@ -66,8 +66,8 @@ $baseUrl = $view['router']->path(
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg transactions.event-type">
-                <a class="transactions-header-sort" data-toggle="tooltip" data-sort="type"
+            <th class="visible-md visible-lg timeline event-type">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.event_type'
                    ); ?>">
@@ -77,8 +77,8 @@ $baseUrl = $view['router']->path(
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg transactions-timestamp">
-                <a class="transactions-header-sort" data-toggle="tooltip" data-sort="date_added"
+            <th class="visible-md visible-lg timeline-timestamp">
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="date_added"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.event_timestamp'
                    ); ?>">
@@ -120,12 +120,12 @@ $baseUrl = $view['router']->path(
             if (0 === $counter % 2) {
                 $rowClasses[] = 'timeline-row-highlighted';
             }
-            if (!empty($row['fearuted'])) {
+            if (!empty($row['featured'])) {
                 $rowClasses[] = 'timeline-featured';
             }
             ?>
             <tr class="<?php echo implode(' ', $rowClasses); ?>">
-                <td class="transactions-icon">
+                <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="e<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
                 echo ' disabled';
@@ -135,13 +135,11 @@ $baseUrl = $view['router']->path(
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>
                     </a>
                 </td>
-                <td class="transactions-message"><?php echo $message; ?></td>
-                <td class="transactions-contact-id"><?php echo $contact; ?></td>
-                <td class="transactions-utm-source"><?php echo isset($event['utmSource']) ? $event['utmSource'] : ''; ?></td>
-                <td class="transactions-type"><?php if (isset($event['eventType'])) {
-                        echo $event['eventType'];
-                    } ?></td>
-                <td class="transactions-timestamp"><?php echo $view['date']->toText(
+                <td class="timeline-message"><?php echo $message; ?></td>
+                <td class="timeline-contact-id"><?php echo $contact; ?></td>
+                <td class="timeline-utm-source"><?php echo isset($event['utmSource']) ? $event['utmSource'] : ''; ?></td>
+                <td class="timeline-type"><?php echo isset($event['eventType']) ? $event['eventType'] : ''; ?></td>
+                <td class="timeline-timestamp"><?php echo $view['date']->toText(
                         $event['timestamp'],
                         'local',
                         'Y-m-d H:i:s',
@@ -149,9 +147,9 @@ $baseUrl = $view['router']->path(
                     ); ?></td>
             </tr>
             <?php if (!empty($details)): ?>
-                <tr class="transactions-row<?php echo $rowStripe; ?> transactions-details hide"
-                    id="transactions-details-e<?php echo $counter; ?>">
-                    <td colspan="5">
+                <tr class="<?php echo implode(' ', $rowClasses); ?> timeline-details hide"
+                    id="timeline-details-e<?php echo $counter; ?>">
+                    <td colspan="6">
                         <?php echo $details; ?>
                     </td>
                 </tr>

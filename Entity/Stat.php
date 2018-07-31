@@ -242,7 +242,7 @@ class Stat
     /**
      * @return array
      */
-    public function getAllTypes()
+    public static function getAllTypes()
     {
         $result = [];
         try {
