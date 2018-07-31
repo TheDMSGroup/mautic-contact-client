@@ -68,7 +68,8 @@ Mautic.contactclientApiPayload = function () {
     if ($apiPayload.length) {
 
         var apiPayloadCodeMirror,
-            apiPayloadJSONEditor;
+            apiPayloadJSONEditor,
+            $apiPayloadJSONEditor;
 
         function setJSONEditorValue (raw) {
             var result = true;
@@ -79,6 +80,9 @@ Mautic.contactclientApiPayload = function () {
                         if (apiPayloadJSONEditor.getValue() !== obj) {
                             // console.log('Set value to JSON editor');
                             apiPayloadJSONEditor.setValue(obj);
+                            setTimeout(function(){
+                                $apiPayloadJSONEditor.find('.codeMirror-active').trigger('cmUpdate');
+                            }, 50);
                         }
                     }
                 }
@@ -129,7 +133,7 @@ Mautic.contactclientApiPayload = function () {
                 }
 
                 // Create our widget container for the JSON Editor.
-                var $apiPayloadJSONEditor = mQuery('<div>', {
+                $apiPayloadJSONEditor = mQuery('<div>', {
                     class: 'contactclient_jsoneditor',
                     id: 'api_payload_jsoneditor'
                 }).insertBefore($apiPayload);
