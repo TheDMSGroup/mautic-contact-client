@@ -161,7 +161,7 @@ class ContactClientController extends FormController
                         ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
                         : 'ASC';
                     if ($new == $current) {
-                        $dir === 'DESC'
+                        'DESC' === $dir
                             ? 'ASC'
                             : 'DESC';
                     }

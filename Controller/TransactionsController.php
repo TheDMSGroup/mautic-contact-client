@@ -1,9 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nbush
- * Date: 7/25/18
- * Time: 9:10 AM.
+
+/*
+ * @copyright   2018 Mautic Contributors. All rights reserved
+ * @author      Digital Media Solutions, LLC
+ *
+ * @link        http://mautic.org
+ *
+ * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
@@ -12,6 +15,7 @@ use Mautic\CoreBundle\Controller\AbstractFormController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Yaml\Yaml;
 
 class TransactionsController extends AbstractFormController
 {
@@ -42,11 +46,11 @@ class TransactionsController extends AbstractFormController
             $current = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
                 ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
                 : 'date_added';
-            $dir = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
+            $dir     = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
                 ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
                 : 'ASC';
             if ($new == $current) {
-                $dir === 'DESC'
+                'DESC' === $dir
                     ? 'ASC'
                     : 'DESC';
             }
@@ -58,19 +62,21 @@ class TransactionsController extends AbstractFormController
 
         return $this->delegateView(
             [
-                'viewParameters' => [
+                'viewParameters'  => [
                     'contactClient' => $contactClient,
                     'page'          => $page,
                     'transactions'  => $engagements,
-                    'search'        => $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search'),
+                    'search'        => $session->get(
+                        'mautic.contactclient.'.$contactClient->getId().'.transactions.search'
+                    ),
                     'order'         => [
                         $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
                         $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
                     ],
                 ],
                 'passthroughVars' => [
-                    'route'         => false,
-                    'mauticContent' => 'contactClient',
+                    'route'             => false,
+                    'mauticContent'     => 'contactClient',
                     //'mauticContent' => 'contactClientTransactions',
                     'transactionsCount' => $engagements['total'],
                 ],
@@ -89,8 +95,8 @@ class TransactionsController extends AbstractFormController
             return $contactClient;
         }
         // send a stream csv file of the timeline
-        $name    = 'ContactClientExport';
-        $headers = [
+        $name        = 'ContactClientExport';
+        $headers     = [
             'type',
             'message',
             'date_added',
@@ -127,7 +133,11 @@ class TransactionsController extends AbstractFormController
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
                 while ($params['start'] < $count[0]['count']) {
-                    $timelineData    = $eventRepository->getEventsForTimelineExport($contactClient->getId(), $params, false);
+                    $timelineData = $eventRepository->getEventsForTimelineExport(
+                        $contactClient->getId(),
+                        $params,
+                        false
+                    );
                     foreach ($timelineData as $data) {
                         // depracating use of YAML for event logs, but need to be backward compatible
                         $csvRows = $data['logs'][0] === '{' ?
@@ -195,9 +205,9 @@ class TransactionsController extends AbstractFormController
                         }
                         $row['request_body'] = $string;
                     }
-                    $row['request_duration'] = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
-                    $row['response_status']  = isset($operation['response']['status']) ? $operation['response']['status'] : '';
-                    $row['response_headers'] = isset($operation['response']['headers']) ? implode(
+                    $row['request_duration']  = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
+                    $row['response_status']   = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['response_headers']  = isset($operation['response']['headers']) ? implode(
                         '; ',
                         $operation['response']['headers']
                     ) : '';
@@ -251,13 +261,13 @@ class TransactionsController extends AbstractFormController
 
                         $string = '';
                         foreach ($operation['request']['options'] as $key => $option) {
-                            $string .= "$key: ".implode(',', $option).'; ';
+                            $string .= $key.': '.implode(',', $option).'; ';
                         }
                         $row['request_body'] = $string;
                     }
-                    $row['request_duration'] = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
-                    $row['response_status']  = isset($operation['response']['status']) ? $operation['response']['status'] : '';
-                    $row['response_headers'] = isset($operation['response']['headers']) ? implode(
+                    $row['request_duration']  = isset($operation['request']['duration']) ? $operation['request']['duration'] : '';
+                    $row['response_status']   = isset($operation['response']['status']) ? $operation['response']['status'] : '';
+                    $row['response_headers']  = isset($operation['response']['headers']) ? implode(
                         '; ',
                         $operation['response']['headers']
                     ) : '';
