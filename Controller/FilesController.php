@@ -63,13 +63,14 @@ class FilesController extends AbstractFormController
      *
      * @throws \Exception
      */
-    public function fileAction($contactClientId = null, $fileId = null)
+    public function fileAction($objectId, $fileId)
     {
-        if (empty($contactClientId) || empty($fileId)) {
+        $stop = 'here';
+        if (empty($objectId) || empty($fileId)) {
             return $this->accessDenied();
         }
 
-        $contactClient = $this->checkContactClientAccess($contactClientId, 'view');
+        $contactClient = $this->checkContactClientAccess($objectId, 'view');
         if ($contactClient instanceof Response) {
             return $contactClient;
         }
