@@ -147,18 +147,18 @@ class ContactClientController extends FormController
             if ('POST' == $this->request->getMethod()) {
                 $chartFilterValues = $this->request->request->has('chartfilter')
                     ? $this->request->request->get('chartfilter')
-                    : $session->get('mautic.contactclient.' . $item->getId() . '.chartfilter');
+                    : $session->get('mautic.contactclient.'.$item->getId().'.chartfilter');
                 $search = $this->request->request->has('search')
                     ? $this->request->request->get('search')
-                    : $session->get('mautic.contactclient.' . $item->getId() . '.transactions.search', '');
+                    : $session->get('mautic.contactclient.'.$item->getId().'.transactions.search', '');
                 $order = [];
                 if ($this->request->query->has('orderby')) {
-                    $new = $this->request->query->get('orderby');
-                    $current = $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderby')
-                        ? $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderby')
+                    $new     = $this->request->query->get('orderby');
+                    $current = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
                         : 'date_added';
-                    $dir = $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderbydir')
-                        ? $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderbydir')
+                    $dir = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
                         : 'ASC';
                     if ($new == $current) {
                         $dir === 'DESC'
@@ -167,37 +167,35 @@ class ContactClientController extends FormController
                     }
                     $order = [$new, $dir];
                 } else {
-                    $order[] = $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderby');
-                    $order[] = $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderbydir');
+                    $order[] = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby');
+                    $order[] = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir');
                 }
-
             } else {
-                $chartFilterValues = $session->get('mautic.contactclient.' . $item->getId() . '.chartfilter')
-                    ? $session->get('mautic.contactclient.' . $item->getId() . '.chartfilter')
+                $chartFilterValues = $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
+                    ? $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
                     : [
                         'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
-                        'date_to' => 'midnight tomorrow -1 second',
-                        'type' => '',
+                        'date_to'   => 'midnight tomorrow -1 second',
+                        'type'      => '',
                     ];
 
-                $search = $session->get('mautic.contactclient.' . $item->getId() . '.transactions.search')
-                    ? $session->get('mautic.contactclient.' . $item->getId() . '.transactions.search')
+                $search = $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
+                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
                     : '';
 
                 $order = [
-                    $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderby')
-                        ? $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderby')
+                    $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
                         : 'date_added',
-                    $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderbydir')
-                        ? $session->get('mautic.contactclient.' . $item->getId() . '.transactions.orderbydir')
+                    $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
                         : 'DESC',
                 ];
             }
-            $session->set('mautic.contactclient.' . $item->getId() . '.chartfilter', $chartFilterValues);
-            $session->set('mautic.contactclient.' . $item->getId() . '.transactions.search', $search);
-            $session->set('mautic.contactclient.' . $item->getId() . '.transactions.orderby', $order[0]);
-            $session->set('mautic.contactclient.' . $item->getId() . '.transactions.orderbydir', $order[1]);
-
+            $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
+            $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
+            $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderby', $order[0]);
+            $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderbydir', $order[1]);
 
             //Setup for the chart and stats datatable
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
@@ -233,20 +231,20 @@ class ContactClientController extends FormController
                         'mautic_contactclient_action',
                         [
                             'objectAction' => 'view',
-                            'objectId' => $item->getId(),
+                            'objectId'     => $item->getId(),
                         ]
                     ),
                 ]
             );
 
-            $args['viewParameters']['auditlog'] = $this->getAuditlogs($item);
-            $args['viewParameters']['files'] = $this->getFiles($item);
-            $args['viewParameters']['stats'] = $stats;
+            $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
+            $args['viewParameters']['files']           = $this->getFiles($item);
+            $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-            $args['viewParameters']['tableData'] = $this->convertChartStatsToDatatable($stats, $unit);
-            $args['viewParameters']['transactions'] = $this->getEngagements($item);
-            $args['viewParameters']['search'] = $search;
-            $args['viewParameters']['order'] = $order;
+            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
+            $args['viewParameters']['transactions']    = $this->getEngagements($item);
+            $args['viewParameters']['search']          = $search;
+            $args['viewParameters']['order']           = $order;
         }
 
         return $args;
@@ -275,8 +273,8 @@ class ContactClientController extends FormController
                         $passthrough,
                         [
                             'updateSelect' => $updateSelect,
-                            'id' => $args['entity']->getId(),
-                            'name' => $args['entity']->getName(),
+                            'id'           => $args['entity']->getId(),
+                            'name'         => $args['entity']->getName(),
                         ]
                     );
                     $args['passthroughVars'] = $passthrough;
@@ -308,8 +306,8 @@ class ContactClientController extends FormController
      *
      * @param string $updateSelect HTML id of the select
      * @param object $entity
-     * @param string $nameMethod name of the entity method holding the name
-     * @param string $groupMethod name of the entity method holding the select group
+     * @param string $nameMethod   name of the entity method holding the name
+     * @param string $groupMethod  name of the entity method holding the select group
      *
      * @return array
      */
@@ -318,12 +316,11 @@ class ContactClientController extends FormController
         $entity,
         $nameMethod = 'getName',
         $groupMethod = 'getLanguage'
-    )
-    {
+    ) {
         $options = [
             'updateSelect' => $updateSelect,
-            'id' => $entity->getId(),
-            'name' => $entity->$nameMethod(),
+            'id'           => $entity->getId(),
+            'name'         => $entity->$nameMethod(),
         ];
 
         return $options;
@@ -333,47 +330,47 @@ class ContactClientController extends FormController
     {
         $tableData = [
             'labels' => [],
-            'data' => [],
+            'data'   => [],
         ];
 
         if (!empty($stats)) {
             $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
-            $row = [];
+            $row                   = [];
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
                     $dateStr = $stats['labels'][$key];
-                    $date = null;
+                    $date    = null;
                     switch ($unit) {
                         case 'd': // M j, y
-                            $date = date_create_from_format('M j, y', $dateStr);
+                            $date    = date_create_from_format('M j, y', $dateStr);
                             $dateStr = $date->format('Y-m-d');
                             break;
                         case 'H': // M j ga
-                            $date = date_create_from_format('M j ga', $dateStr);
-                            $dateStr = $date->format('Y-m-d - H:00');
+                            $date                   = date_create_from_format('M j ga', $dateStr);
+                            $dateStr                = $date->format('Y-m-d - H:00');
                             $tableData['labels'][0] = ['title' => 'Date/Time'];
                             break;
                         case 'm': // M j ga
-                            $date = date_create_from_format('M Y', $dateStr);
-                            $dateStr = $date->format('Y-m');
+                            $date                   = date_create_from_format('M Y', $dateStr);
+                            $dateStr                = $date->format('Y-m');
                             $tableData['labels'][0] = ['title' => 'Date (Y-m)'];
                             break;
                         case 'Y': // Y
-                            $date = date_create_from_format('Y', $dateStr);
-                            $dateStr = $date->format('Y');
+                            $date                   = date_create_from_format('Y', $dateStr);
+                            $dateStr                = $date->format('Y');
                             $tableData['labels'][0] = ['title' => 'Year'];
                             break;
                         case 'W': // W
                             $date = new \DateTime();
                             $date->setISODate(date('Y'), str_replace('Week ', '', $dateStr));
-                            $dateStr = 'Week ' . $date->format('W');
+                            $dateStr                = 'Week '.$date->format('W');
                             $tableData['labels'][0] = ['title' => 'Week #'];
                             break;
                         default:
                             break;
                     }
-                    $row[$key][0] = $dateStr;
+                    $row[$key][0]           = $dateStr;
                     $row[$key][$column + 1] = $data;
                 }
             }

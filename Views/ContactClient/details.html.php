@@ -180,7 +180,7 @@ $website = $item->getWebsite();
                                 'contactClient' => $item,
                                 'files'         => $files,
                                 'order'         => $order,
-                                'tmpl'          => 'index'
+                                'tmpl'          => 'index',
                             ]
                         ); ?>
                     </div>

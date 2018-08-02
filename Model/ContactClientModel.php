@@ -14,7 +14,6 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\LeadBundle\Model\LeadModel as ContactModel;
@@ -27,7 +26,6 @@ use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
@@ -65,8 +63,7 @@ class ContactClientModel extends FormModel
         TemplatingHelper $templating,
         EventDispatcherInterface $dispatcher,
         ContactModel $contactModel
-    )
-    {
+    ) {
         $this->formModel      = $formModel;
         $this->trackableModel = $trackableModel;
         $this->templating     = $templating;
@@ -564,10 +561,9 @@ class ContactClientModel extends FormModel
         array $orderBy = [],
         $page = 1,
         $limit = 25
-    )
-    {
-        $args = array_merge($filters, $orderBy);
-        $args['page'] = $page;
+    ) {
+        $args          = array_merge($filters, $orderBy);
+        $args['page']  = $page;
         $args['limit'] = $limit;
 
         /** @var \MauticPlugin\MauticContactClientBundle\Entity\FileRepository $repo */
@@ -575,6 +571,7 @@ class ContactClientModel extends FormModel
 
         return $repo->getEntities($args);
     }
+
     /**
      * Get timeline/engagement data.
      *
@@ -594,8 +591,7 @@ class ContactClientModel extends FormModel
         $page = 1,
         $limit = 25,
         $forTimeline = true
-    )
-    {
+    ) {
         /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $event */
         $event = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,

@@ -12,13 +12,10 @@
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use Mautic\CoreBundle\Controller\AbstractFormController;
-use Mautic\CoreBundle\Helper\InputHelper;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class TimelineController.
@@ -43,13 +40,13 @@ class FilesController extends AbstractFormController
 
         if ('POST' === $request->getMethod()) {
             if ($request->query->has('orderby')) {
-                $session->set('mautic.contactclient.' . $contactClient->getId() . '.files.orderby', $request->query->get('orderby'));
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderby', $request->query->get('orderby'));
             }
             if ($request->query->has('orderbydir')) {
-                $session->set('mautic.contactclient.' . $contactClient->getId() . '.files.orderbydir', $request->query->get('orderbydir'));
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderbydir', $request->query->get('orderbydir'));
             }
             if ($request->query->has('limit')) {
-                $session->set('mautic.contactclient.' . $contactClient->getId() . '.files.limit', $request->query->get('limit'));
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.limit', $request->query->get('limit'));
             }
         }
 
