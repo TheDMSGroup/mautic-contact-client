@@ -164,18 +164,24 @@ $website = $item->getWebsite();
                     <?php echo $view->render(
                         'MauticContactClientBundle:Transactions:list.html.php',
                         [
-                            'transactions'  => $transactions,
                             'contactClient' => $item,
+                            'transactions'  => $transactions,
+                            'order'         => $order,
+                            'search'        => $search,
                             'tmpl'          => 'index',
-                            'page',
                         ]
                     ); ?>
                 </div>
                 <?php if ($files['total']): ?>
                     <div class="tab-pane fade in bdr-w-0" id="files-container">
                         <?php echo $view->render(
-                            'MauticContactClientBundle:Timeline:file.html.php',
-                            ['contactClient' => $item, 'files' => $files]
+                            'MauticContactClientBundle:Files:list.html.php',
+                            [
+                                'contactClient' => $item,
+                                'files'         => $files,
+                                'order'         => $order,
+                                'tmpl'          => 'index',
+                            ]
                         ); ?>
                     </div>
                 <?php endif; ?>

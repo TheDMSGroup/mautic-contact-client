@@ -44,26 +44,27 @@ return [
                     'objectId' => '\d+',
                 ],
             ],
-            'mautic_contactclienttimeline_index' => [
-                'path'         => '/contactclient/{contactClientId}/timeline/{page}',
-                'controller'   => 'MauticContactClientBundle:Timeline:index',
+            'mautic_contactclient_transactions_export' => [
+                'path'         => '/contactclient/view/{objectId}/transactions/export',
+                'controller'   => 'MauticContactClientBundle:Transactions:export',
                 'requirements' => [
-                    'contactClientId' => '\d+',
+                    'objectId' => '\d+',
                 ],
             ],
-            'mautic_contactclient_timeline_export' => [
-                'path'         => '/contactclient/{contactClientId}/timeline/export',
-                'controller'   => 'MauticContactClientBundle:Timeline:exportTimeline',
+            'mautic_contactclient_files' => [
+                'path'         => '/contactclient/view/{objectId}/files/{page}',
+                'controller'   => 'MauticContactClientBundle:Files:index',
                 'requirements' => [
-                    'contactClientId' => '\d+',
+                    'objectId' => '\d+',
+                    'page'     => '\d+',
                 ],
             ],
-            'mautic_contactclient_timeline_file'   => [
-                'path'         => '/contactclient/{contactClientId}/timeline/file/{fileId}',
-                'controller'   => 'MauticContactClientBundle:Timeline:file',
+            'mautic_contactclient_files_file'   => [
+                'path'         => '/contactclient/view/{objectId}/files/file/{fileId}',
+                'controller'   => 'MauticContactClientBundle:Files:file',
                 'requirements' => [
-                    'contactClientId' => '\d+',
-                    'fileId'          => '\w+',
+                    'objectId' => '\d+',
+                    'fileId'   => '\d+',
                 ],
             ],
         ],

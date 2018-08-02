@@ -89,7 +89,14 @@ class EventRepository extends CommonRepository
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->select('c.*');
+            ->join('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id=s.contact_id AND c.contactclient_id=s.contactclient_id');
+
+        if ($countOnly) {
+            $query->select('COUNT(*)');
+        } else {
+//            $query->select('c.id, c.type, c.message, c.contact_id, s.utm_source, c.date_added, c.integration_entity_id, c.logs');
+            $query->select('c.*, s.utm_source');
+        }
 
         $query->where('c.contactclient_id = :contactclient')
             ->setParameter('contactclient', $contactClientId);
@@ -99,7 +106,7 @@ class EventRepository extends CommonRepository
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
-                        'c.utm_source = :search'
+                        's.utm_source = :search'
                     )
                 )
                 ->setParameter('search', $options['search']);
@@ -168,11 +175,12 @@ class EventRepository extends CommonRepository
     public function getEventsForTimelineExport($contactClientId, array $options = [], $count)
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
-            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c');
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
+            ->join('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id=s.contact_id AND c.contactclient_id=s.contactclient_id');
         if ($count) {
             $query->select('COUNT(c.id) as count');
         } else {
-            $query->select('c.type, c.message, c.logs, c.date_added, c.contact_id');
+            $query->select('c.type, c.message, c.logs, c.date_added, c.contact_id, s.utm_source');
         }
 
         $query->where(
@@ -275,7 +283,6 @@ class EventRepository extends CommonRepository
      */
     protected function getDefaultOrder()
     {
-        return
-            ['date_added', 'DESC'];
+        return ['date_added', 'DESC'];
     }
 }

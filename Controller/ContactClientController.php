@@ -143,32 +143,65 @@ class ContactClientController extends FormController
             /** @var \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $item */
             $item = $args['viewParameters']['item'];
 
-            // For line graphs in the view
+            // Setup page forms in session
             if ('POST' == $this->request->getMethod()) {
                 $chartFilterValues = $this->request->request->has('chartfilter')
                     ? $this->request->request->get('chartfilter')
                     : $session->get('mautic.contactclient.'.$item->getId().'.chartfilter');
                 $search = $this->request->request->has('search')
                     ? $this->request->request->get('search')
-                    : $session->get('mautic.contactclient.'.$item->getId().'.transactions.search');
+                    : $session->get('mautic.contactclient.'.$item->getId().'.transactions.search', '');
+                $order = [];
+                if ($this->request->query->has('orderby')) {
+                    $new     = $this->request->query->get('orderby');
+                    $current = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                        : 'date_added';
+                    $dir = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                        : 'ASC';
+                    if ($new == $current) {
+                        'DESC' === $dir
+                            ? 'ASC'
+                            : 'DESC';
+                    }
+                    $order = [$new, $dir];
+                } else {
+                    $order[] = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby');
+                    $order[] = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir');
+                }
             } else {
-                $chartFilterValues = $session->get(
-                    'mautic.contactclient.'.$item->getId().'.chartfilter',
-                    [
+                $chartFilterValues = $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
+                    ? $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
+                    : [
                         'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
                         'date_to'   => 'midnight tomorrow -1 second',
                         'type'      => '',
-                    ]
-                );
-                $search = $session->get('mautic.contactclient.'.$item->getId().'.transactions.search', '');
+                    ];
+
+                $search = $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
+                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
+                    : '';
+
+                $order = [
+                    $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                        : 'date_added',
+                    $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                        : 'DESC',
+                ];
             }
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
+            $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderby', $order[0]);
+            $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderbydir', $order[1]);
 
+            //Setup for the chart and stats datatable
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
             $model = $this->getModel('contactclient');
 
-            $unit  = $model->getTimeUnitFromDateRange(
+            $unit = $model->getTimeUnitFromDateRange(
                 new \DateTime($chartFilterValues['date_from']),
                 new \DateTime($chartFilterValues['date_to'])
             );
@@ -176,27 +209,21 @@ class ContactClientController extends FormController
             if (in_array($chartFilterValues['type'], [''])) {
                 $stats = $model->getStats(
                     $item,
-                    null,
+                    $unit,
                     new \DateTime($chartFilterValues['date_from']),
                     new \DateTime($chartFilterValues['date_to'])
                 );
             } else {
                 $stats = $model->getStatsBySource(
                     $item,
-                    null,
+                    $unit,
                     $chartFilterValues['type'],
                     new \DateTime($chartFilterValues['date_from']),
                     new \DateTime($chartFilterValues['date_to'])
                 );
             }
 
-            $transactionfilter = [
-                'type'     => $chartFilterValues['type'],
-                'dateFrom' => new \DateTime($chartFilterValues['date_from']),
-                'dateTo'   => new \DateTime($chartFilterValues['date_to']),
-            ];
-
-            $chartFilterForm   = $this->get('form.factory')->create(
+            $chartFilterForm = $this->get('form.factory')->create(
                 'chartfilter',
                 $chartFilterValues,
                 [
@@ -215,8 +242,9 @@ class ContactClientController extends FormController
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
             $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
-            $args['viewParameters']['transactions']    = $this->getEngagements($item, $transactionfilter, $search);
+            $args['viewParameters']['transactions']    = $this->getEngagements($item);
             $args['viewParameters']['search']          = $search;
+            $args['viewParameters']['order']           = $order;
         }
 
         return $args;
@@ -240,8 +268,8 @@ class ContactClientController extends FormController
             switch ($action) {
                 case 'new':
                 case 'edit':
-                    $passthrough             = $args['passthroughVars'];
-                    $passthrough             = array_merge(
+                    $passthrough = $args['passthroughVars'];
+                    $passthrough = array_merge(
                         $passthrough,
                         [
                             'updateSelect' => $updateSelect,
@@ -307,12 +335,12 @@ class ContactClientController extends FormController
 
         if (!empty($stats)) {
             $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
-            $row                   =[];
+            $row                   = [];
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
-                    $dateStr                = $stats['labels'][$key];
-                    $date                   = null;
+                    $dateStr = $stats['labels'][$key];
+                    $date    = null;
                     switch ($unit) {
                         case 'd': // M j, y
                             $date    = date_create_from_format('M j, y', $dateStr);

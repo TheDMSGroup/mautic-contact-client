@@ -62,9 +62,9 @@ class Event
      */
     private $dateAdded;
 
-    /** @var string */
-    protected $utmSource;
-
+    /**
+     * Event constructor.
+     */
     public function __construct()
     {
         $this->dateAdded = new \Datetime();
@@ -83,7 +83,7 @@ class Event
             ->addIndex(['type', 'contact_id'], 'type_contact')
             ->addIndex(['type', 'message'], 'type_message')
             ->addIndex(['contact_id'], 'contact_id')
-            ->addIndex(['contactclient_id', 'date_added', 'utm_source'], 'contactclient_id_date_added_utmsource')
+            ->addIndex(['contactclient_id', 'date_added'], 'contactclient_id_date_added')
             ->addIndex(['date_added'], 'date_added');
 
         $builder->addId();
@@ -114,8 +114,6 @@ class Event
         $builder->addDateAdded();
 
         $builder->addNamedField('contact', 'integer', 'contact_id', true);
-
-        $builder->addNamedField('utmSource', 'string', 'utm_source', true);
     }
 
     /**
@@ -273,24 +271,6 @@ class Event
     public function setDateAdded($dateAdded)
     {
         $this->dateAdded = $dateAdded;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUtmSource()
-    {
-        return $this->utmSource;
-    }
-
-    /**
-     * @param $this
-     */
-    public function setUtmSource($utmSource)
-    {
-        $this->utmSource = $utmSource;
 
         return $this;
     }
