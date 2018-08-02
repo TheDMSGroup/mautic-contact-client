@@ -11,6 +11,7 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 use Mautic\CoreBundle\Controller\AbstractFormController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionsController extends AbstractFormController
 {
@@ -83,17 +84,12 @@ class TransactionsController extends AbstractFormController
         if (empty($objectId)) {
             return $this->accessDenied();
         }
-
         $contactClient = $this->checkContactClientAccess($objectId, 'view');
         if ($contactClient instanceof Response) {
             return $contactClient;
         }
-
-        /** @var \MauticPlugin\MauticContactClientBundle\Controller\TransactionsController $controller */
-        $controller = $this;
-
         // send a stream csv file of the timeline
-        $name = 'ContactClientExport';
+        $name    = 'ContactClientExport';
         $headers = [
             'type',
             'message',
@@ -110,46 +106,51 @@ class TransactionsController extends AbstractFormController
             'response_format',
             'valid',
         ];
+        $session = $this->get('session');
+        $chartFilter = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
+        $params = [
+            'dateTo' => new \DateTime($chartFilter['date_to']),
+            'dateFrom' => new \DateTime($chartFilter['date_from']),
+            'type' => $chartFilter['type'],
+            'start' => 0,
+            'limit' => 1000,
+        ];
+        /** @var EventRepository $eventRepository */
+        $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(
+            'MauticContactClientBundle:Event'
+        );
+        $count           = $eventRepository->getEventsForTimelineExport($contactClient->getId(), $params, true);
         ini_set('max_execution_time', 0);
-
         $response = new StreamedResponse();
         $response->setCallback(
-            function () use ($controller, $contactClient, $name, $headers) {
+            function () use ($params, $headers, $contactClient, $count, $eventRepository) {
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
-                $engagements = $controller->getEngagements($contactClient);
-                /** @var \MauticPlugin\MauticContactClientBundle\Entity\Event $transaction */
-                foreach ($engagements->getEvents() as $transaction) {
-                    $row = [
-                        $transaction->getType(),
-                        $transaction->getMessage(),
-                        $transaction->getDateAdded(),
-                        $transaction->getContact()->getId(),
-                        '', '', '', '', '',   //request vars
-                        '',               //status
-                        '', '', '',         //resonse vars
-                        ''                //valid
-                    ];
-                    // depracating use of YAML for event logs, but need to be backward compatible
-                    $logs = $transaction->getLogs();
-                    $csvRows = $logs[0] === '{'
-                        ? $this->parseLogJSONBlob($logs)
-                        : $this->parseLogYAMLBlob($logs);
-
-                    // a single data row can be multiple operations and subsequent rows
-                    foreach ($csvRows as $csvRow) {
-                        fputcsv($handle, array_values($csvRow));
+                while ($params['start'] < $count[0]['count']) {
+                    $timelineData    = $eventRepository->getEventsForTimelineExport($contactClient->getId(), $params, false);
+                    foreach ($timelineData as $data) {
+                        // depracating use of YAML for event logs, but need to be backward compatible
+                        $csvRows = $data['logs'][0] === '{' ?
+                            $this->parseLogJSONBlob(
+                                $data
+                            ) :
+                            $this->parseLogYAMLBlob(
+                                $data
+                            );
+                        // a single data row can be multiple operations and subsequent rows
+                        foreach ($csvRows as $csvRow) {
+                            fputcsv($handle, array_values($csvRow));
+                        }
                     }
-
+                    $params['start'] += $params['limit'];
                 }
                 fclose($handle);
             }
         );
-        $fileName = $name . '.csv';
+        $fileName = $name.'.csv';
         $response->setStatusCode(200);
         $response->headers->set('Content-Type', 'application/csv; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $fileName . '"');
-
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$fileName.'"');
         return $response;
     }
 

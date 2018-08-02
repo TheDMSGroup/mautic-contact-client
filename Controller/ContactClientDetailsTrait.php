@@ -387,15 +387,16 @@ trait ContactClientDetailsTrait
         $session = $this->get('session');
 
         if (null === $filters) {
-            $chartFilters = $session->get(
-                'mautic.contactclient.' . $contactClient->getId() . '.chartfilter',
-                [
-                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
-                    'date_to' => 'midnight tomorrow -1 second',
-                    'type' => '',
-                ]
-            );
-            $search = $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.search', '');
+            $chartFilters = $session->get('mautic.contactclient.' . $contactClient->getId() . '.chartfilter');
+                //? $session->get('mautic.contactclient.' . $contactClient->getId() . '.chartfilter')
+                //: [
+                //    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
+                //    'date_to' => 'midnight tomorrow -1 second',
+                //    'type' => '',
+                //];
+            $search = $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.search');
+                //? $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.search')
+                //: '';
             $filters = [
                 'dateFrom' => new \DateTime($chartFilters['date_from']),
                 'dateTo' => new \DateTime($chartFilters['date_to']),

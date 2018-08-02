@@ -149,7 +149,7 @@ mQuery(function () {
 
 Mautic.contactClientTimelineExport = function (contactClientId) {
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/timeline/export/' + contactClientId;
+    var src = mauticBaseUrl + 's/contactclient/view/' + contactClientId + '/transactions/export';
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
@@ -157,7 +157,7 @@ Mautic.contactClientTimelineExport = function (contactClientId) {
 
 Mautic.contactClientTimelineFile = function (contactClientId, fileId) {
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/timeline/file/' + contactClientId + '/' + fileId;
+    var src = mauticBaseUrl + 's/contactclient/view/' + contactClientId + '/files/file/' + fileId;
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
