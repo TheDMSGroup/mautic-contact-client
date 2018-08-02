@@ -32,7 +32,7 @@ class AjaxController extends CommonAjaxController
      *
      * @return mixed
      */
-    public function ajaxTransactionAction(Request $request, $objectId, $page)
+    public function ajaxTransactionsAction(Request $request, $objectId, $page)
     {
         return $this->forward(
             'MauticContactClientBundle:Transactions:index',

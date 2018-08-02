@@ -145,7 +145,7 @@ if ('index' == $tmpl) {
                 'totalItems' => count($items),
                 'page'       => $page,
                 'limits'     => $limit,
-                'baseUrl'    => $view['router']->path('mautic_contactclient_transactions'),
+                'baseUrl'    => $view['router']->path('mautic_contactclient_index'),
                 'sessionVar' => 'contactclient',
             ]
         ); ?>

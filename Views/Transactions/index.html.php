@@ -18,12 +18,12 @@
         'mautic_contactclient_action',
         ['objectId' => $contactClient->getId(), 'objectAction' => 'view']
     ); ?>">
-        <div class="col-xs-1 va-m">
+        <div class="col-xs-1 va-m pb-md">
             <h4><?php echo $view['translator']->trans('mautic.contactclient.search.header'); ?></h4>
         </div>
-        <div class="col-xs-8 va-m">
+        <div class="col-xs-8 va-m pb-md">
             <div class="input-group">
-                <input type="text" class="form-control bdr-w-0 search tt-input" name="search" id="search"
+                <input type="text" class="form-control bdr-w-1 search tt-input" name="search" id="search"
                        placeholder="<?php echo $view['translator']->trans(
                            'mautic.contactclient.search.placeholder'
                        ); ?>"
@@ -40,7 +40,7 @@
         <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $view->escape($contactClient->getId()); ?>" />
     </form>
     <!-- Export button -->
-    <div class="btn-group col-xs-2" >
+    <div class="btn-group col-xs-2 pb-md" >
         <a class="btn btn-default"
            onclick="Mautic.contactClientTimelineExport(<?php echo $contactClient->getId(); ?>);">
             <span>

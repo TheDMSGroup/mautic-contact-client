@@ -21,6 +21,11 @@ $baseUrl = $view['router']->path(
 ?>
 
 <!-- transactions -->
+<script>
+    // put correct sort icons on timeline table headers
+    var sortField = '<?php echo $order[0]; ?>';
+    var sortDirection = '<?php echo strtolower($order[1]); ?>';
+</script>
 <div class="table-responsive">
     <table class="table table-hover table-bordered contactclient-timeline" style="z-index: 2; position: relative;">
         <thead>
@@ -66,7 +71,7 @@ $baseUrl = $view['router']->path(
                     <i class="fa fa-sort"></i>
                 </a>
             </th>
-            <th class="visible-md visible-lg timeline event-type">
+            <th class="visible-md visible-lg timeline-event-type">
                 <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.event_type'
@@ -90,8 +95,10 @@ $baseUrl = $view['router']->path(
             </th>
         </tr>
         <tbody>
-        <?php foreach ($transactions['events'] as $counter => $event): ?>
-            <?php
+        <?php
+        $counter = 0;
+        /** @var \MauticPlugin\MauticContactClientBundle\Entity\Event $event */
+        foreach ($transactions['events'] as $event):
             ++$counter; // prevent 0
             $icon        = (isset($event['icon'])) ? $event['icon'] : 'fa-history';
             $eventLabel  = (isset($event['eventLabel'])) ? $event['eventLabel'] : $event['eventType'];
@@ -116,7 +123,7 @@ $baseUrl = $view['router']->path(
                     $view->render($event['contentTemplate'], ['event' => $event, 'contactClient' => $contactClient])
                 );
             endif;
-            $rowClasses = ['timeline'];
+            $rowClasses = [];
             if (0 === $counter % 2) {
                 $rowClasses[] = 'timeline-row-highlighted';
             }

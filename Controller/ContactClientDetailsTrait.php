@@ -37,15 +37,14 @@ trait ContactClientDetailsTrait
      */
     protected function getAllEngagements(
         array $contactClients,
-        array $chartfilters = null,
-        $search = null,
+        array $filters = null,
         array $orderBy = null,
         $page = 1,
         $limit = 25
     ) {
         $session = $this->get('session');
 
-        if (null === $chartfilters) {
+        if (null === $filters) {
             $chartfilters = $session->get(
                 'mautic.contactclient.plugin.transactions.chartfilter',
                 [
@@ -55,16 +54,10 @@ trait ContactClientDetailsTrait
                 ]
             );
             $session->set('mautic.contactclient.plugin.transactions.chartfilter');
-        }
-        $chartfilters = InputHelper::cleanArray($chartfilters);
-
-        if (null === $search) {
             $search = $session->get('mautic.contactclient.plugin.transactions.search', '');
             $session->set('mautic.contactclient.plugin.transactions.search', '');
         }
-        $search = InputHelper::clean($search);
-
-        $filters = array_merge($chartfilters, $search);
+        $filters = InputHelper::cleanArray(array_merge($chartfilters, ['search' => $search]));
 
         if (null == $orderBy) {
             if (!$session->has('mautic.contactclient.plugin.transactions.orderby')) {
@@ -324,30 +317,31 @@ trait ContactClientDetailsTrait
     ) {
         $session = $this->get('session');
 
-        if (null == $filters) {
-            $filters = $session->get(
-                'mautic.contactclient.'.$contactClient->getId().'.files.filters',
+        if (null === $filters) {
+            $storedFilters = $session->get(
+                'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
                 [
-                    'search' => '',
+                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
+                    'date_to'   => null,
+                    'type'      => '',
                 ]
             );
+            $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter', $storedFilters);
+            $filters['fromDate'] = new \DateTime($storedFilters['date_from']);
+            $filters['toDate']   = new \DateTime($storedFilters['date_to']);
         }
-        $filters['force'][] = [
-            'column' => 'f.contactClient',
-            'expr'   => 'eq',
-            'value'  => (int) $contactClient->getId(),
-        ];
 
-        if (null == $orderBy) {
-            if (!$session->has('mautic.contactclient.'.$contactClient->getId().'.files.orderby')) {
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderby', 'date_added');
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderbydir', 'DESC');
+        if (null === $orderBy || null === $orderBy[0]) { //empty array or no fieldname in first index
+            if (!$session->has('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')) {
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', 'date_added');
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', 'DESC');
             }
+
+            $orderBy = [
+                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
+                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
+            ];
         }
-        $orderBy = [
-            $session->get('mautic.contactclient.'.$contactClient->getId().'.files.orderby'),
-            $session->get('mautic.contactclient.'.$contactClient->getId().'.files.orderbydir'),
-        ];
 
         /** @var FileRepository $fileRepository */
         $fileRepository = $this->getDoctrine()->getManager()->getRepository('MauticContactClientBundle:File');
@@ -384,49 +378,61 @@ trait ContactClientDetailsTrait
      */
     protected function getEngagements(
         ContactClient $contactClient,
-        array $chartfilter = null,
-        $search = null,
+        array $filters = null,
         array $orderBy = null,
         $page = 1,
-        $limit = 25
+        $limit = 25,
+        $forTimeline = true
     ) {
         $session = $this->get('session');
 
-        if (null === $chartfilter) {
-            $storedFilters = $session->get(
-                'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
+        if (null === $filters) {
+            $chartFilters = $session->get(
+                'mautic.contactclient.' . $contactClient->getId() . '.chartfilter',
                 [
-                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
-                    'date_to'   => null,
-                    'type'      => null,
+                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
+                    'date_to' => 'midnight tomorrow -1 second',
+                    'type' => '',
                 ]
             );
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter'.$storedFilters);
-            $chartfilter['fromDate'] = new \DateTime($storedFilters['date_from']);
-            $chartfilter['toDate']   = new \DateTime($storedFilters['date_to']);
-            $chartfilter['type']     = $storedFilters['type'];
-        }
-
-        if (null === $search) {
-            $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search', '');
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.search', $search);
-        }
-
-        if (null === $orderBy || null === $orderBy[0]) { //empty array or no fieldname in first index
-            if (!$session->has('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')) {
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', 'date_added');
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', 'DESC');
-            }
-
-            $orderBy = [
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
+            $search = $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.search', '');
+            $filters = [
+                'dateFrom' => new \DateTime($chartFilters['date_from']),
+                'dateTo' => new \DateTime($chartFilters['date_to']),
+                'type' => $chartFilters['type'],
+                'search' => $search,
             ];
         }
-        /** @var ContactClientModel $model */
-        $model = $this->getModel('contactclient');
+        if (null === $orderBy) {
+            $orderBy = [
+                $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.orderby'),
+                $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.orderbydir'),
+            ];
+        }
 
-        return $model->getEngagements($contactClient, $chartfilter, $search, $orderBy, $page, $limit);
+        /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $engagements */
+        $engagements = $this->getModel('contactclient')->getEngagements($contactClient, $filters, $orderBy, $page, $limit);
+
+        $payload = [
+            'events'      => $engagements->getEvents(),
+            'chartfilter' => [
+                'date_from' => $filters['dateFrom']->format('M j, Y'),
+                'date_to'   => $filters['dateTo']->format('M j, Y'),
+                'type'      => $filters['type'],
+            ],
+            'search'      => $filters['search'],
+            'order'       => $orderBy,
+            'types'       => $engagements->getEventTypes(),
+            'total'       => $engagements->getQueryTotal(),
+            'page'        => $page,
+            'limit'       => $limit,
+            'maxPages'    => $engagements->getMaxPage(),
+        ];
+
+        return ($forTimeline)
+            ? $payload
+            : [$payload, $engagements->getSerializerGroups()];
+
     }
 
     /**
