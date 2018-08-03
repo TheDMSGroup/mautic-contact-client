@@ -324,8 +324,10 @@ class TokenHelper
      */
     public function setTimezones($timezoneSource = 'UTC', $timezoneDestination = 'UTC')
     {
-        $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
-        $this->addHelper('date');
+        if (!$this->dateFormatHelper) {
+            $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
+            $this->addHelper('date');
+        }
 
         return $this;
     }
@@ -670,31 +672,34 @@ class TokenHelper
     /**
      * Replace Tokens in a simple string using an array for context.
      *
-     * @param string $string
+     * @param string $input
      *
      * @return mixed|string
      */
-    public function render($string = '')
+    public function render($input = '')
     {
-        if (
-            empty($string)
-            || is_array($string)
-            || strlen($string) < 4
-            || false == strpos($string, self::TOKEN_KEY)
-        ) {
-            // Nothing to do here.
-            return $string;
+        $result = $input;
+        if (is_array($input) || is_object($input)) {
+            foreach ($input as $key => &$value) {
+                $value = $this->render($value);
+            }
+        } else {
+            if (
+                strlen($input) > 3
+                && false !== strpos($input, self::TOKEN_KEY)
+            ) {
+                $key = $input;
+                if (isset($this->renderCache[$key])) {
+                    // Already tokenized this exact string.
+                    return $this->renderCache[$key];
+                }
+                $this->setTimezones();
+                $result                  = $this->engine->render($input, $this->context);
+                $this->renderCache[$key] = $result;
+            }
         }
-        $key = $string;
-        if (isset($this->renderCache[$key])) {
-            // Already tokenized this exact string.
-            return $this->renderCache[$key];
-        }
-        $this->setTimezones();
-        $string                  = $this->engine->render($string, $this->context);
-        $this->renderCache[$key] = $string;
 
-        return $string;
+        return $result;
     }
 
     /**
