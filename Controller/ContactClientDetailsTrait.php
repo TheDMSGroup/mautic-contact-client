@@ -316,7 +316,6 @@ trait ContactClientDetailsTrait
         $limit = 25
     ) {
         $session = $this->get('session');
-
         if (null === $filters) {
             $storedFilters = $session->get(
                 'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
@@ -329,17 +328,37 @@ trait ContactClientDetailsTrait
             $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter', $storedFilters);
             $filters['fromDate'] = new \DateTime($storedFilters['date_from']);
             $filters['toDate']   = new \DateTime($storedFilters['date_to']);
+            $filters['type']     = $storedFilters['type'];
         }
 
+        $filters['contactClient'] = $contactClient->getId();
+
+        foreach ($filters as $name => $value) {
+            switch ($name) {
+                case 'fromDate':
+                    $criteria[] = ['col' => 'dateAdded', 'expr' => 'gte', 'val' => $value];
+                    break;
+                case 'toDate':
+                    $criteria[] = ['col' => 'dateAdded', 'expr' => 'lt', 'val' => $value];
+                    break;
+                default:
+                    if (!empty($value)) {
+                        $criteria[] = ['col' => $name, 'expr' => 'eq', 'val' =>  $value];
+                    }
+            }
+        }
+
+        $start = ($page - 1) * $limit;
+
         if (null === $orderBy || null === $orderBy[0]) { //empty array or no fieldname in first index
-            if (!$session->has('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')) {
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', 'date_added');
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', 'DESC');
+            if (!$session->has('mautic.contactclient.'.$contactClient->getId().'.files.orderby')) {
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderby', 'date_added');
+                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderbydir', 'DESC');
             }
 
             $orderBy = [
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
+                $session->get('mautic.contactclient.'.$contactClient->getId().'.files.orderby'),
+                $session->get('mautic.contactclient.'.$contactClient->getId().'.files.orderbydir'),
             ];
         }
 
@@ -347,11 +366,11 @@ trait ContactClientDetailsTrait
         $fileRepository = $this->getDoctrine()->getManager()->getRepository('MauticContactClientBundle:File');
         $files          = $fileRepository->getEntities(
             [
-                'filter' => $filters,
+                'filter' => ['where' => $criteria],
+                'start'  => $start,
                 'limit'  => $limit,
-                'page'   => $page,
-            ],
-            $orderBy
+                'order'  => $orderBy,
+            ]
         );
 
         $fileCount = count($files);
