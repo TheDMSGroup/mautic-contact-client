@@ -657,7 +657,7 @@ class TokenHelper
         $result = [];
         foreach ($array as $key => $value) {
             if (is_string($value)) {
-                $value = $this->render($value, true);
+                $value = $this->render($value);
             } elseif (is_array($value) || is_object($value)) {
                 $value = $this->renderArray($value);
             }
@@ -670,23 +670,29 @@ class TokenHelper
     /**
      * Replace Tokens in a simple string using an array for context.
      *
-     * @param      $string
-     * @param bool $force  skip checking for a token
+     * @param string $string
      *
-     * @return string
+     * @return mixed|string
      */
-    public function render($string, $force = false)
+    public function render($string = '')
     {
-        if (isset($this->renderCache[$string])) {
-            return $this->renderCache[$string];
+        if (
+            empty($string)
+            || is_array($string)
+            || strlen($string) < 4
+            || false == strpos($string, self::TOKEN_KEY)
+        ) {
+            // Nothing to do here.
+            return $string;
         }
-        if ($force || false !== strpos($string, self::TOKEN_KEY)) {
-            $this->setTimezones();
-            $string = $this->engine->render($string, $this->context);
+        $key = $string;
+        if (isset($this->renderCache[$key])) {
+            // Already tokenized this exact string.
+            return $this->renderCache[$key];
         }
-        if (!empty($string)) {
-            $this->renderCache[$string] = $string;
-        }
+        $this->setTimezones();
+        $string                  = $this->engine->render($string, $this->context);
+        $this->renderCache[$key] = $string;
 
         return $string;
     }
