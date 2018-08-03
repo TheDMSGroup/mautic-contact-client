@@ -315,9 +315,8 @@ trait ContactClientDetailsTrait
         $page = 1,
         $limit = 25
     ) {
+        $session = $this->get('session');
         if (null === $filters) {
-            $session = $this->get('session');
-
             $storedFilters = $session->get(
                 'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
                 [
