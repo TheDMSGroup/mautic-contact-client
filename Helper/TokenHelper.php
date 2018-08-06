@@ -324,8 +324,10 @@ class TokenHelper
      */
     public function setTimezones($timezoneSource = 'UTC', $timezoneDestination = 'UTC')
     {
-        $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
-        $this->addHelper('date');
+        if (!$this->dateFormatHelper) {
+            $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
+            $this->addHelper('date');
+        }
 
         return $this;
     }
@@ -646,55 +648,37 @@ class TokenHelper
     }
 
     /**
-     * Recursively replaces tokens using an array for context.
+     * Replace Tokens in a simple string using an array for context.
      *
-     * @param array $array
+     * @param string|array $input
      *
-     * @return array
+     * @return string|array
      */
-    public function renderArray($array = [])
+    public function render($input = '')
     {
-        $result = [];
-        foreach ($array as $key => $value) {
-            if (is_string($value)) {
+        $result = $input;
+        if (is_array($input) || is_object($input)) {
+            foreach ($input as $key => &$value) {
                 $value = $this->render($value);
-            } elseif (is_array($value) || is_object($value)) {
-                $value = $this->renderArray($value);
             }
-            $result[$key] = $value;
+        } else {
+            if (
+                strlen($input) > 3
+                && false !== strpos($input, self::TOKEN_KEY)
+            ) {
+                if (isset($this->renderCache[$input])) {
+                    // Already tokenized this exact string.
+                    $result = $this->renderCache[$input];
+                } else {
+                    $this->setTimezones();
+                    $key                     = $input;
+                    $result                  = $this->engine->render($input, $this->context);
+                    $this->renderCache[$key] = $result;
+                }
+            }
         }
 
         return $result;
-    }
-
-    /**
-     * Replace Tokens in a simple string using an array for context.
-     *
-     * @param string $string
-     *
-     * @return mixed|string
-     */
-    public function render($string = '')
-    {
-        if (
-            empty($string)
-            || is_array($string)
-            || strlen($string) < 4
-            || false == strpos($string, self::TOKEN_KEY)
-        ) {
-            // Nothing to do here.
-            return $string;
-        }
-        $key = $string;
-        if (isset($this->renderCache[$key])) {
-            // Already tokenized this exact string.
-            return $this->renderCache[$key];
-        }
-        $this->setTimezones();
-        $string                  = $this->engine->render($string, $this->context);
-        $this->renderCache[$key] = $string;
-
-        return $string;
     }
 
     /**
