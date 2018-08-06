@@ -650,35 +650,36 @@ class TokenHelper
     /**
      * Replace Tokens in a simple string using an array for context.
      *
-     * @param string|array $input
+     * @param string|array|object $template
      *
      * @return string|array
      */
-    public function render($input = '')
+    public function render($template = '')
     {
-        $result = $input;
-        if (is_array($input) || is_object($input)) {
-            foreach ($input as $key => &$value) {
+        if (is_array($template) || is_object($template)) {
+            foreach ($template as $key => &$value) {
                 $value = $this->render($value);
             }
         } else {
             if (
-                strlen($input) > 3
-                && false !== strpos($input, self::TOKEN_KEY)
+                strlen($template) > 3
+                && false !== strpos($template, self::TOKEN_KEY)
             ) {
-                if (isset($this->renderCache[$input])) {
+                if (isset($this->renderCache[$template])) {
                     // Already tokenized this exact string.
-                    $result = $this->renderCache[$input];
+                    $template = $this->renderCache[$template];
                 } else {
                     $this->setTimezones();
-                    $key                     = $input;
-                    $result                  = $this->engine->render($input, $this->context);
-                    $this->renderCache[$key] = $result;
+                    $key      = $template;
+                    $template = $this->engine->render($template, $this->context);
+                    if (!empty($result)) {
+                        $this->renderCache[$key] = $result;
+                    }
                 }
             }
         }
 
-        return $result;
+        return $template;
     }
 
     /**

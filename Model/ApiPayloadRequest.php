@@ -248,18 +248,18 @@ class ApiPayloadRequest
     }
 
     /**
-     * @param string $string
-     * @param array  $context
+     * @param string|array|object $template
+     * @param array               $context
      *
      * @return string
      */
-    private function renderTokens($string = '', $context = [])
+    private function renderTokens($template = '', $context = [])
     {
         if ($context) {
             $this->tokenHelper->addContext($context);
         }
 
-        return $this->tokenHelper->render($string);
+        return $this->tokenHelper->render($template);
     }
 
     /**
