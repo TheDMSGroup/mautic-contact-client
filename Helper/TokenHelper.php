@@ -672,8 +672,8 @@ class TokenHelper
                     $this->setTimezones();
                     $key      = $template;
                     $template = $this->engine->render($template, $this->context);
-                    if (!empty($result)) {
-                        $this->renderCache[$key] = $result;
+                    if (!empty($template)) {
+                        $this->renderCache[$key] = $template;
                     }
                 }
             }
