@@ -135,7 +135,9 @@ class EventRepository extends CommonRepository
 
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
             list($orderBy, $orderByDir) = array_values($options['order']);
-            $query->orderBy('c.'.$orderBy, $orderByDir);
+            if ($orderBy && $orderByDir) {
+                $query->orderBy('c.'.$orderBy, $orderByDir);
+            }
         }
 
         if (!empty($options['limit'])) {
