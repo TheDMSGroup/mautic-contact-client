@@ -112,6 +112,22 @@ class DateFormatHelper
     }
 
     /**
+     * @return string
+     */
+    public function getTimezoneSource()
+    {
+        return $this->timezoneSource;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimezoneDestination()
+    {
+        return $this->timezoneDestination;
+    }
+
+    /**
      * @param $key
      *
      * @return bool
