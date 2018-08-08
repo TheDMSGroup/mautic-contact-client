@@ -144,7 +144,7 @@ class ApiPayloadResponse
                 $this->setLogs($contentType, 'bodyFormat');
                 break;
             }
-            $this->setLogs('bodyFormatsAttempted', $contentType);
+            $this->setLogs($contentType, 'bodyFormatsAttempted');
             // If in test-mode do not cycle through all types unless we are truly in auto mode.
             if (!$this->test && 'auto' === $responseExpectedFormat) {
                 break;

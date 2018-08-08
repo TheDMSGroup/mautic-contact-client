@@ -30,6 +30,9 @@ class TokenHelper
     /** @var array context of tokens for replacement */
     private $context = [];
 
+    /** @var string|array */
+    private $template;
+
     /** @var DateFormatHelper */
     private $dateFormatHelper;
 
@@ -87,6 +90,12 @@ class TokenHelper
         'trim.65535' => 'Trim to 65535 characters (text/blob)',
     ];
 
+    /** @var string */
+    private $timezoneSource = 'UTC';
+
+    /** @var string */
+    private $timezoneDestination = 'UTC';
+
     /**
      * TokenHelper constructor.
      *
@@ -117,6 +126,9 @@ class TokenHelper
     {
         switch ($type) {
             case 'number':
+                if ($this->engine->hasHelper('number')) {
+                    break;
+                }
                 $this->engine->addHelper(
                     'lpad',
                     [
@@ -142,10 +154,25 @@ class TokenHelper
                 break;
 
             case 'date':
+                // If there are new timezones, recreate the helper.
+                if (
+                    $this->engine->hasHelper('date')
+                    && $this->timezoneSource !== $this->dateFormatHelper->getTimezoneSource()
+                    && $this->timezoneDestination !== $this->dateFormatHelper->getTimezoneDestination()
+                ) {
+                    $this->engine->removeHelper('date');
+                }
+                if ($this->engine->hasHelper('date')) {
+                    break;
+                }
+                $this->dateFormatHelper = new DateFormatHelper($this->timezoneSource, $this->timezoneDestination);
                 $this->engine->addHelper('date', $this->dateFormatHelper);
                 break;
 
             case 'boolean':
+                if ($this->engine->hasHelper('bool')) {
+                    break;
+                }
                 $this->engine->addHelper(
                     'bool',
                     [
@@ -188,37 +215,43 @@ class TokenHelper
 
             case 'string':
             case 'text':
-                $this->engine->addHelper(
-                    'zip',
-                    [
-                        'short' => function ($value) {
-                            $dash = strpos((string) $value, '-');
+                if (!$this->engine->hasHelper('zip')) {
+                    $this->engine->addHelper(
+                        'zip',
+                        [
+                            'short' => function ($value) {
+                                $dash = strpos((string) $value, '-');
 
-                            return $dash ? substr((string) $value, 0, $dash) : $value;
-                        },
-                    ],
-                    'trim',
-                    [
-                        // Currently undocumented.
-                        'ws'    => function ($value) {
-                            return trim((string) $value);
-                        },
-                        '255'   => function ($value) {
-                            if (strlen((string) $value) > 255) {
-                                $value = trim($value);
-                            }
+                                return $dash ? substr((string) $value, 0, $dash) : $value;
+                            },
+                        ]
+                    );
+                }
+                if (!$this->engine->hasHelper('trim')) {
+                    $this->engine->addHelper(
+                        'trim',
+                        [
+                            // Currently undocumented.
+                            'ws'    => function ($value) {
+                                return trim((string) $value);
+                            },
+                            '255'   => function ($value) {
+                                if (strlen((string) $value) > 255) {
+                                    $value = trim($value);
+                                }
 
-                            return substr((string) $value, 0, 255);
-                        },
-                        '65535' => function ($value) {
-                            if (strlen((string) $value) > 255) {
-                                $value = trim($value);
-                            }
+                                return substr((string) $value, 0, 255);
+                            },
+                            '65535' => function ($value) {
+                                if (strlen((string) $value) > 255) {
+                                    $value = trim($value);
+                                }
 
-                            return substr((string) $value, 0, 255);
-                        },
-                    ]
-                );
+                                return substr((string) $value, 0, 255);
+                            },
+                        ]
+                    );
+                }
                 break;
         }
     }
@@ -276,9 +309,6 @@ class TokenHelper
     ) {
         $this->context     = [];
         $this->renderCache = [];
-        if ($this->engine->hasHelper('date')) {
-            $this->engine->removeHelper('date');
-        }
         $this->setContactClient($contactClient);
         $this->addContextContact($contact);
         $this->addContextPayload($payload);
@@ -299,35 +329,16 @@ class TokenHelper
             $this->contactClient = $contactClient;
 
             // Set the timezones for date/time conversion.
-            $tza = $this->coreParametersHelper->getParameter(
+            $tza                  = $this->coreParametersHelper->getParameter(
                 'default_timezone'
             );
-            $tza = !empty($tza) ? $tza : date_default_timezone_get();
+            $this->timezoneSource = !empty($tza) ? $tza : date_default_timezone_get();
             if ($this->contactClient) {
                 $tzb = $this->contactClient->getScheduleTimezone();
             }
-            $tzb = !empty($tzb) ? $tzb : date_default_timezone_get();
-            $this->setTimezones($tza, $tzb);
-        } else {
-            // Assume UTC for all (for the sake of token list by ajax)
-            $this->setTimezones();
+            $this->timezoneDestination = !empty($tzb) ? $tzb : date_default_timezone_get();
         }
-
-        return $this;
-    }
-
-    /**
-     * @param string $timezoneSource
-     * @param string $timezoneDestination
-     *
-     * @return $this
-     */
-    public function setTimezones($timezoneSource = 'UTC', $timezoneDestination = 'UTC')
-    {
-        if (!$this->dateFormatHelper) {
-            $this->dateFormatHelper = new DateFormatHelper($timezoneSource, $timezoneDestination);
-            $this->addHelper('date');
-        }
+        $this->addHelper('date');
 
         return $this;
     }
@@ -656,30 +667,33 @@ class TokenHelper
      */
     public function render($template = '')
     {
-        if (is_array($template) || is_object($template)) {
-            foreach ($template as $key => &$value) {
+        $this->template = $template;
+        if (is_array($this->template) || is_object($this->template)) {
+            foreach ($this->template as $key => &$value) {
                 $value = $this->render($value);
             }
         } else {
             if (
-                strlen($template) > 3
-                && false !== strpos($template, self::TOKEN_KEY)
+                strlen($this->template) > 3
+                && false !== strpos($this->template, self::TOKEN_KEY)
             ) {
-                if (isset($this->renderCache[$template])) {
+                if (isset($this->renderCache[$this->template])) {
                     // Already tokenized this exact string.
-                    $template = $this->renderCache[$template];
+                    $this->template = $this->renderCache[$this->template];
                 } else {
-                    $this->setTimezones();
-                    $key      = $template;
-                    $template = $this->engine->render($template, $this->context);
-                    if (!empty($template)) {
-                        $this->renderCache[$key] = $template;
+                    // The following line should be irrelevant in the future.
+                    $this->addHelper('date');
+                    set_error_handler([$this, 'handleMustacheErrors'], E_WARNING);
+                    $this->template = $this->engine->render($this->template, $this->context);
+                    restore_error_handler();
+                    if (!empty($this->template)) {
+                        $this->renderCache[$template] = $this->template;
                     }
                 }
             }
         }
 
-        return $template;
+        return $this->template;
     }
 
     /**
@@ -806,6 +820,36 @@ class TokenHelper
         $this->flattenArray($types, $result);
 
         return $result;
+    }
+
+    /**
+     * Capture Mustache warnings to be logged for debugging.
+     *
+     * @param $errno
+     * @param $errstr
+     * @param $errfile
+     * @param $errline
+     *
+     * @return bool
+     */
+    private function handleMustacheErrors($errno, $errstr, $errfile, $errline)
+    {
+        if (!empty($this->template)) {
+            call_user_func(
+                'newrelic_add_custom_parameter',
+                'contactclientToken',
+                $this->template
+            );
+        }
+        if (!empty($this->context)) {
+            call_user_func(
+                'newrelic_add_custom_parameter',
+                'contactclientContext',
+                json_encode($this->context)
+            );
+        }
+
+        return true;
     }
 
     /**
