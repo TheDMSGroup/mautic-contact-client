@@ -65,7 +65,6 @@ class FilesController extends AbstractFormController
      */
     public function fileAction($objectId, $fileId)
     {
-        $stop = 'here';
         if (empty($objectId) || empty($fileId)) {
             return $this->accessDenied();
         }

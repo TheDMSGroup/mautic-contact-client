@@ -89,27 +89,26 @@ class EventRepository extends CommonRepository
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->join('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id=s.contact_id AND c.contactclient_id=s.contactclient_id');
+            ->join('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id');
 
         if ($countOnly) {
             $query->select('COUNT(*)');
         } else {
-//            $query->select('c.id, c.type, c.message, c.contact_id, s.utm_source, c.date_added, c.integration_entity_id, c.logs');
             $query->select('c.*, s.utm_source');
         }
 
-        $query->where('c.contactclient_id = :contactclient')
-            ->setParameter('contactclient', $contactClientId);
+        $query->where('c.contactclient_id = :contactClientId')
+            ->setParameter('contactClientId', $contactClientId);
 
-        if (isset($options['search']) && !empty($options['search'])) {
-            if (is_numeric($options['search'])) {
+        if (isset($options['search']) && !empty(trim($options['search']))) {
+            if (is_integer(trim($options['search']))) {
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
                         's.utm_source = :search'
                     )
                 )
-                ->setParameter('search', $options['search']);
+                ->setParameter('search', (int) $options['search']);
             } else {
                 $query->andWhere(
                     $query->expr()->orX(
@@ -117,10 +116,8 @@ class EventRepository extends CommonRepository
                         'c.message LIKE :wildcard'
                     )
                 )
-                ->setParameters([
-                    'search'   => $options['search'],
-                    'wildcard' => '%'.$options['search'].'%',
-                ]);
+                ->setParameter('search', trim($options['search']))
+                ->setParameter('wildcard', '%'.trim($options['search']).'%');
             }
         }
 

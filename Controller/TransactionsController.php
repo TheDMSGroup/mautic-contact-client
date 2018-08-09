@@ -17,11 +17,21 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Class TransactionsController.
+ */
 class TransactionsController extends AbstractFormController
 {
     use ContactClientAccessTrait;
     use ContactClientDetailsTrait;
 
+    /**
+     * @param Request $request
+     * @param         $objectId
+     * @param int     $page
+     *
+     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     */
     public function indexAction(Request $request, $objectId, $page = 1)
     {
         if (empty($objectId)) {

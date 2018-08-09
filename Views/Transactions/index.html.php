@@ -38,6 +38,7 @@
             </div>
         </div>
         <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $view->escape($contactClient->getId()); ?>" />
+        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $transactions['order'][0].':'.$transactions['order'][1]; ?>"/>
     </form>
     <!-- Export button -->
     <div class="btn-group col-xs-2 pb-md" >
