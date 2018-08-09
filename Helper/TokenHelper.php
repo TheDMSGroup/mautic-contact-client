@@ -113,7 +113,14 @@ class TokenHelper
         $this->logger               = $logger;
         $this->coreParametersHelper = $coreParametersHelper;
         try {
-            $this->engine = new Engine(['pragmas' => [Engine::PRAGMA_FILTERS]]);
+            $this->engine = new Engine(
+                [
+                    'pragmas' => [Engine::PRAGMA_FILTERS],
+                    'escape'  => function ($value) {
+                        return $value;
+                    },
+                ]
+            );
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');
