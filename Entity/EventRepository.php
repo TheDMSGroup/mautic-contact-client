@@ -101,7 +101,7 @@ class EventRepository extends CommonRepository
             ->setParameter('contactClientId', $contactClientId);
 
         if (isset($options['search']) && !empty(trim($options['search']))) {
-            if (is_integer(trim($options['search']))) {
+            if (is_numeric(trim($options['search']))) {
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
