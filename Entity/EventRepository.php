@@ -143,6 +143,7 @@ class EventRepository extends CommonRepository
                 $query->setFirstResult($options['start']);
             }
         }
+        $query->groupBy('c.id');
 
         $results = $query->execute()->fetchAll();
 
