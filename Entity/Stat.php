@@ -169,6 +169,11 @@ class Stat
             ['contactclient_id', 'utm_source'],
             'contactclient_utm_source'
         );
+
+        $builder->addIndex(
+            ['contactclient_id', 'contact_id'],
+            'contactclient_id_contact_id'
+        );
     }
 
     /**
