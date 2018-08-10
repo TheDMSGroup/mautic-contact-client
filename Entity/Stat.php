@@ -171,8 +171,8 @@ class Stat
         );
 
         $builder->addIndex(
-            ['contactclient_id', 'contact_id'],
-            'contactclient_id_contact_id'
+            ['contact_id', 'contactclient_id'],
+            'contact_id_contactclient_id'
         );
     }
 
