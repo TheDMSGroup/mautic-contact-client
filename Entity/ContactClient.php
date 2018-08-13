@@ -177,6 +177,16 @@ class ContactClient extends FormEntity
     }
 
     /**
+     * Allow these entities to be cloned like core entities.
+     */
+    public function __clone()
+    {
+        $this->id = null;
+
+        parent::__clone();
+    }
+
+    /**
      * @param ORM\ClassMetadata $metadata
      */
     public static function loadMetadata(ORM\ClassMetadata $metadata)

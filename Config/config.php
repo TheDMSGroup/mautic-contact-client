@@ -178,6 +178,7 @@ return [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Helper\TokenHelper',
                 'arguments' => [
                     'mautic.helper.core_parameters',
+                    'monolog.logger.mautic',
                 ],
             ],
             'mautic.contactclient.helper.utmsource'  => [
