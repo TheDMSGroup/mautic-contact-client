@@ -13,8 +13,12 @@
 
 <div class="bg-white panel pt-md pb-md">
     <!-- filter form -->
-    <form method="post" id="transactions-filters" data-toggle="ajax"
-          action="<?php echo $view['router']->path(
+    <form method="post" id="transactions-filters"
+          data-toggle="ajax"
+          data-target="#transactions-table"
+          data-overlay="true"
+          data-overlay-target="#transactions-table"
+          data-action="<?php echo $view['router']->path(
         'mautic_contactclient_action',
         ['objectId' => $contactClient->getId(), 'objectAction' => 'view']
     ); ?>">
@@ -37,8 +41,9 @@
                 </div>
             </div>
         </div>
-        <input type="hidden" name="contactClientId" id="contactClientId" value="<?php echo $view->escape($contactClient->getId()); ?>" />
-        <input type="hidden" name="orderBy" id="orderBy" value="<?php echo $transactions['order'][0].':'.$transactions['order'][1]; ?>"/>
+        <input type="hidden" name="objectId" id="objectId" value="<?php echo $view->escape($contactClient->getId()); ?>" />
+        <input type="hidden" name="orderby" id="orderby" value="<?php echo $transactions['order'][0]; ?>">
+        <input type="hidden" name="orderbydir" id="orderbydir" value="<?php echo $transactions['order'][1]; ?>">
     </form>
     <!-- Export button -->
     <div class="btn-group col-xs-2 pb-md" >

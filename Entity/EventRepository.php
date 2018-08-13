@@ -133,7 +133,11 @@ class EventRepository extends CommonRepository
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
             list($orderBy, $orderByDir) = array_values($options['order']);
             if ($orderBy && $orderByDir) {
-                $query->orderBy('c.'.$orderBy, $orderByDir);
+                if ($orderBy !== 'utm_source') {
+                    $query->orderBy('c.'.$orderBy, $orderByDir);
+                } else {
+                    $query->orderBy('s.'.$orderBy, $orderByDir);
+                }
             }
         }
 
@@ -144,7 +148,8 @@ class EventRepository extends CommonRepository
             }
         }
 
-        $query->groupBy('c.id');
+        // Not currently needed.
+        // $query->groupBy('c.id');
 
         $results = $query->execute()->fetchAll();
 

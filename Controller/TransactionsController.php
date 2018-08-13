@@ -51,31 +51,33 @@ class TransactionsController extends AbstractFormController
                 $request->request->get('search')
             );
         }
-        if ($request->query->has('orderby')) {
-            $new     = $request->query->get('orderby');
-            $current = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
+        $order = [
+            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
                 ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
-                : 'date_added';
-            $dir     = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
+                : 'date_added',
+            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
                 ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
-                : 'ASC';
-            if ($new == $current) {
-                'DESC' === $dir
-                    ? 'ASC'
-                    : 'DESC';
-            }
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', $new);
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', $dir);
+                : 'DESC',
+        ];
+
+        if ($request->request->has('orderby')) {
+            $order[0] = $request->request->get('orderby');
+        }
+        if ($request->request->has('orderbydir')) {
+            $order[1] = $request->request->get('orderbydir');
         }
 
-        $engagements = $this->getEngagements($contactClient, null, null, $page);
+        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', $order[0]);
+        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', $order[1]);
+
+        $transactions = $this->getEngagements($contactClient, null, null, $page);
 
         return $this->delegateView(
             [
                 'viewParameters'  => [
                     'contactClient' => $contactClient,
                     'page'          => $page,
-                    'transactions'  => $engagements,
+                    'transactions'  => $transactions,
                     'search'        => $session->get(
                         'mautic.contactclient.'.$contactClient->getId().'.transactions.search'
                     ),
@@ -87,14 +89,20 @@ class TransactionsController extends AbstractFormController
                 'passthroughVars' => [
                     'route'             => false,
                     'mauticContent'     => 'contactClient',
-                    //'mauticContent' => 'contactClientTransactions',
-                    'transactionsCount' => $engagements['total'],
+                    'transactions'      => $transactions,
+                    'transactionsCount' => $transactions['total'],
                 ],
                 'contentTemplate' => 'MauticContactClientBundle:Transactions:list.html.php',
             ]
         );
     }
 
+    /**
+     * @param Request $request
+     * @param         $objectId
+     *
+     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|StreamedResponse
+     */
     public function exportAction(Request $request, $objectId)
     {
         if (empty($objectId)) {

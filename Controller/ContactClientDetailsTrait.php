@@ -392,10 +392,11 @@ trait ContactClientDetailsTrait
      * @param array|null    $orderBy
      * @param int           $page
      * @param int           $limit
+     * @param bool          $forTimeline
      *
      * @return array
      */
-    protected function getEngagements(
+    public function getEngagements(
         ContactClient $contactClient,
         array $filters = null,
         array $orderBy = null,
@@ -407,15 +408,7 @@ trait ContactClientDetailsTrait
 
         if (null === $filters) {
             $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
-            //? $session->get('mautic.contactclient.' . $contactClient->getId() . '.chartfilter')
-            //: [
-            //    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
-            //    'date_to' => 'midnight tomorrow -1 second',
-            //    'type' => '',
-            //];
             $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
-            //? $session->get('mautic.contactclient.' . $contactClient->getId() . '.transactions.search')
-            //: '';
             $filters = [
                 'dateFrom' => new \DateTime($chartFilters['date_from']),
                 'dateTo'   => new \DateTime($chartFilters['date_to']),
