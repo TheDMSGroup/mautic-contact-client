@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mustache_Engine as Engine;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class TokenHelper.
@@ -96,25 +97,36 @@ class TokenHelper
     /** @var string */
     private $timezoneDestination = 'UTC';
 
+    /** @var LoggerInterface */
+    private $logger;
+
     /**
      * TokenHelper constructor.
      *
      * @param CoreParametersHelper $coreParametersHelper
+     * @param LoggerInterface      $logger
      *
      * @throws \Exception
      */
-    public function __construct(CoreParametersHelper $coreParametersHelper)
+    public function __construct(CoreParametersHelper $coreParametersHelper, LoggerInterface $logger)
     {
+        $this->logger               = $logger;
+        $this->coreParametersHelper = $coreParametersHelper;
         try {
-            $this->engine = new Engine(['pragmas' => [Engine::PRAGMA_FILTERS]]);
+            $this->engine = new Engine(
+                [
+                    'pragmas' => [Engine::PRAGMA_FILTERS],
+                    'escape'  => function ($value) {
+                        return $value;
+                    },
+                ]
+            );
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');
         } catch (\Exception $e) {
             throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
         }
-
-        $this->coreParametersHelper = $coreParametersHelper;
     }
 
     /**
@@ -835,19 +847,27 @@ class TokenHelper
     private function handleMustacheErrors($errno, $errstr, $errfile, $errline)
     {
         if (!empty($this->template)) {
-            call_user_func(
-                'newrelic_add_custom_parameter',
-                'contactclientToken',
-                $this->template
-            );
+            if (function_exists('newrelic_add_custom_parameter')) {
+                call_user_func(
+                    'newrelic_add_custom_parameter',
+                    'contactclientToken',
+                    $this->template
+                );
+            }
         }
         if (!empty($this->context)) {
-            call_user_func(
-                'newrelic_add_custom_parameter',
-                'contactclientContext',
-                json_encode($this->context)
-            );
+            if (function_exists('newrelic_add_custom_parameter')) {
+                call_user_func(
+                    'newrelic_add_custom_parameter',
+                    'contactclientContext',
+                    json_encode($this->context)
+                );
+            }
         }
+        $this->logger->error(
+            'Contact Client '.$this->contactClient->getId().
+            ': Warning issued with Template: '.$this->template.' Context: '.json_encode($this->context)
+        );
 
         return true;
     }
