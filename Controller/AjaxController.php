@@ -34,6 +34,7 @@ class AjaxController extends CommonAjaxController
      * @param Request $request
      *
      * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *
      * @throws \Exception
      */
     public function transactionsAction(Request $request)
@@ -93,7 +94,6 @@ class AjaxController extends CommonAjaxController
         $dataArray['success'] = 1;
 
         return $this->sendJsonResponse($dataArray);
-
     }
 
     /**

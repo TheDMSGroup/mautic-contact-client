@@ -133,7 +133,7 @@ class EventRepository extends CommonRepository
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
             list($orderBy, $orderByDir) = array_values($options['order']);
             if ($orderBy && $orderByDir) {
-                if ($orderBy !== 'utm_source') {
+                if ('utm_source' !== $orderBy) {
                     $query->orderBy('c.'.$orderBy, $orderByDir);
                 } else {
                     $query->orderBy('s.'.$orderBy, $orderByDir);

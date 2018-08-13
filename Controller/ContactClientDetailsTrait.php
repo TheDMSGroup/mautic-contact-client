@@ -408,8 +408,8 @@ trait ContactClientDetailsTrait
 
         if (null === $filters) {
             $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
-            $search = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
-            $filters = [
+            $search       = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
+            $filters      = [
                 'dateFrom' => new \DateTime($chartFilters['date_from']),
                 'dateTo'   => new \DateTime($chartFilters['date_to']),
                 'type'     => $chartFilters['type'],
