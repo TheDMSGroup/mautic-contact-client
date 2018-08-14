@@ -31,7 +31,7 @@ class FileRepository extends CommonRepository
     public function getCountByDate(
         \DateTime $date = null,
         $contactClientId,
-        $statuses = [File::STATUS_READY, File::STATUS_SENT],
+        $statuses = [File::STATUS_READY, File::STATUS_SENT, File::STATUS_ERROR],
         $test = false
     ) {
         $start = clone $date;
