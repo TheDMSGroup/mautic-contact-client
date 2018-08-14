@@ -144,6 +144,14 @@ class ContactClientController extends FormController
             $item = $args['viewParameters']['item'];
 
             // Setup page forms in session
+            $order = [
+                $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
+                    : 'date_added',
+                $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
+                    : 'DESC',
+            ];
             if ('POST' == $this->request->getMethod()) {
                 $chartFilterValues = $this->request->request->has('chartfilter')
                     ? $this->request->request->get('chartfilter')
@@ -151,24 +159,11 @@ class ContactClientController extends FormController
                 $search = $this->request->request->has('search')
                     ? $this->request->request->get('search')
                     : $session->get('mautic.contactclient.'.$item->getId().'.transactions.search', '');
-                $order = [];
-                if ($this->request->query->has('orderby')) {
-                    $new     = $this->request->query->get('orderby');
-                    $current = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
-                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
-                        : 'date_added';
-                    $dir = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
-                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
-                        : 'ASC';
-                    if ($new == $current) {
-                        'DESC' === $dir
-                            ? 'ASC'
-                            : 'DESC';
-                    }
-                    $order = [$new, $dir];
-                } else {
-                    $order[] = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby');
-                    $order[] = $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir');
+                if ($this->request->request->has('orderby')) {
+                    $order[0] = $this->request->request->get('orderby');
+                }
+                if ($this->request->request->has('orderbydir')) {
+                    $order[1] = $this->request->request->get('orderbydir');
                 }
             } else {
                 $chartFilterValues = $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
@@ -182,15 +177,6 @@ class ContactClientController extends FormController
                 $search = $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
                     ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
                     : '';
-
-                $order = [
-                    $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
-                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
-                        : 'date_added',
-                    $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
-                        ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
-                        : 'DESC',
-                ];
             }
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
@@ -251,6 +237,66 @@ class ContactClientController extends FormController
     }
 
     /**
+     * @param $stats
+     * @param $unit
+     *
+     * @return array
+     */
+    protected function convertChartStatsToDatatable($stats, $unit)
+    {
+        $tableData = [
+            'labels' => [],
+            'data'   => [],
+        ];
+
+        if (!empty($stats)) {
+            $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
+            $row                   = [];
+            foreach ($stats['datasets'] as $column => $dataset) {
+                $tableData['labels'][] = ['title' => $dataset['label']];
+                foreach ($dataset['data'] as $key => $data) {
+                    $dateStr = $stats['labels'][$key];
+                    $date    = null;
+                    switch ($unit) {
+                        case 'd': // M j, y
+                            $date    = date_create_from_format('M j, y', $dateStr);
+                            $dateStr = $date->format('Y-m-d');
+                            break;
+                        case 'H': // M j ga
+                            $date                   = date_create_from_format('M j ga', $dateStr);
+                            $dateStr                = $date->format('Y-m-d - H:00');
+                            $tableData['labels'][0] = ['title' => 'Date/Time'];
+                            break;
+                        case 'm': // M j ga
+                            $date                   = date_create_from_format('M Y', $dateStr);
+                            $dateStr                = $date->format('Y-m');
+                            $tableData['labels'][0] = ['title' => 'Date (Y-m)'];
+                            break;
+                        case 'Y': // Y
+                            $date                   = date_create_from_format('Y', $dateStr);
+                            $dateStr                = $date->format('Y');
+                            $tableData['labels'][0] = ['title' => 'Year'];
+                            break;
+                        case 'W': // W
+                            $date = new \DateTime();
+                            $date->setISODate(date('Y'), str_replace('Week ', '', $dateStr));
+                            $dateStr                = 'Week '.$date->format('W');
+                            $tableData['labels'][0] = ['title' => 'Week #'];
+                            break;
+                        default:
+                            break;
+                    }
+                    $row[$key][0]           = $dateStr;
+                    $row[$key][$column + 1] = $data;
+                }
+            }
+            $tableData['data'] = $row;
+        }
+
+        return $tableData;
+    }
+
+    /**
      * @param array $args
      * @param       $action
      *
@@ -268,8 +314,8 @@ class ContactClientController extends FormController
             switch ($action) {
                 case 'new':
                 case 'edit':
-                    $passthrough = $args['passthroughVars'];
-                    $passthrough = array_merge(
+                    $passthrough             = $args['passthroughVars'];
+                    $passthrough             = array_merge(
                         $passthrough,
                         [
                             'updateSelect' => $updateSelect,
@@ -324,59 +370,5 @@ class ContactClientController extends FormController
         ];
 
         return $options;
-    }
-
-    protected function convertChartStatsToDatatable($stats, $unit)
-    {
-        $tableData = [
-            'labels' => [],
-            'data'   => [],
-        ];
-
-        if (!empty($stats)) {
-            $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
-            $row                   = [];
-            foreach ($stats['datasets'] as $column => $dataset) {
-                $tableData['labels'][] = ['title' => $dataset['label']];
-                foreach ($dataset['data'] as $key => $data) {
-                    $dateStr = $stats['labels'][$key];
-                    $date    = null;
-                    switch ($unit) {
-                        case 'd': // M j, y
-                            $date    = date_create_from_format('M j, y', $dateStr);
-                            $dateStr = $date->format('Y-m-d');
-                            break;
-                        case 'H': // M j ga
-                            $date                   = date_create_from_format('M j ga', $dateStr);
-                            $dateStr                = $date->format('Y-m-d - H:00');
-                            $tableData['labels'][0] = ['title' => 'Date/Time'];
-                            break;
-                        case 'm': // M j ga
-                            $date                   = date_create_from_format('M Y', $dateStr);
-                            $dateStr                = $date->format('Y-m');
-                            $tableData['labels'][0] = ['title' => 'Date (Y-m)'];
-                            break;
-                        case 'Y': // Y
-                            $date                   = date_create_from_format('Y', $dateStr);
-                            $dateStr                = $date->format('Y');
-                            $tableData['labels'][0] = ['title' => 'Year'];
-                            break;
-                        case 'W': // W
-                            $date = new \DateTime();
-                            $date->setISODate(date('Y'), str_replace('Week ', '', $dateStr));
-                            $dateStr                = 'Week '.$date->format('W');
-                            $tableData['labels'][0] = ['title' => 'Week #'];
-                            break;
-                        default:
-                            break;
-                    }
-                    $row[$key][0]           = $dateStr;
-                    $row[$key][$column + 1] = $data;
-                }
-            }
-            $tableData['data'] = $row;
-        }
-
-        return $tableData;
     }
 }

@@ -465,7 +465,13 @@ class FilePayload
     {
         $requestFields = [];
         if (!empty($this->payload->body) && !is_string($this->payload->body)) {
-            $this->tokenHelper->newSession($this->contactClient, $this->contact, $this->payload, $this->campaign, $this->event);
+            $this->tokenHelper->newSession(
+                $this->contactClient,
+                $this->contact,
+                $this->payload,
+                $this->campaign,
+                $this->event
+            );
             $requestFields = $this->fieldValues($this->payload->body);
             if ($this->file) {
                 $nullCsv = $this->file->getCsvNull();
@@ -1506,6 +1512,8 @@ class FilePayload
 
             return false;
         } else {
+            // Remove schema/port/etc from the host.
+            $config['host'] = parse_url($config['host'], PHP_URL_HOST);
             $this->setLogs($config['host'], 'host');
         }
         $config['username'] = isset($operation->user) ? trim($operation->user) : null;

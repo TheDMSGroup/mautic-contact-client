@@ -89,27 +89,26 @@ class EventRepository extends CommonRepository
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->join('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id=s.contact_id AND c.contactclient_id=s.contactclient_id');
+            ->leftJoin('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id AND s.utm_source IS NOT NULL AND s.utm_source != ""');
 
         if ($countOnly) {
-            $query->select('COUNT(*)');
+            $query->select('COUNT(c.id)');
         } else {
-//            $query->select('c.id, c.type, c.message, c.contact_id, s.utm_source, c.date_added, c.integration_entity_id, c.logs');
             $query->select('c.*, s.utm_source');
         }
 
-        $query->where('c.contactclient_id = :contactclient')
-            ->setParameter('contactclient', $contactClientId);
+        $query->where('c.contactclient_id = :contactClientId')
+            ->setParameter('contactClientId', $contactClientId);
 
-        if (isset($options['search']) && !empty($options['search'])) {
-            if (is_numeric($options['search'])) {
+        if (isset($options['search']) && !empty(trim($options['search']))) {
+            if (is_numeric(trim($options['search']))) {
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
                         's.utm_source = :search'
                     )
                 )
-                ->setParameter('search', $options['search']);
+                ->setParameter('search', (int) $options['search']);
             } else {
                 $query->andWhere(
                     $query->expr()->orX(
@@ -117,10 +116,8 @@ class EventRepository extends CommonRepository
                         'c.message LIKE :wildcard'
                     )
                 )
-                ->setParameters([
-                    'search'   => $options['search'],
-                    'wildcard' => '%'.$options['search'].'%',
-                ]);
+                ->setParameter('search', trim($options['search']))
+                ->setParameter('wildcard', '%'.trim($options['search']).'%');
             }
         }
 
@@ -136,7 +133,11 @@ class EventRepository extends CommonRepository
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
             list($orderBy, $orderByDir) = array_values($options['order']);
             if ($orderBy && $orderByDir) {
-                $query->orderBy('c.'.$orderBy, $orderByDir);
+                if ('utm_source' !== $orderBy) {
+                    $query->orderBy('c.'.$orderBy, $orderByDir);
+                } else {
+                    $query->orderBy('s.'.$orderBy, $orderByDir);
+                }
             }
         }
 
@@ -147,14 +148,17 @@ class EventRepository extends CommonRepository
             }
         }
 
+        // Not currently needed.
+        // $query->groupBy('c.id');
+
         $results = $query->execute()->fetchAll();
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
-            $query->resetQueryParts(['select', 'orderBy'])
+            $query->resetQueryParts(['select', 'orderBy', 'groupBy'])
                 ->setFirstResult(null)
                 ->setMaxResults(null)
-                ->select('count(*)');
+                ->select('COUNT(c.id)');
 
             $total = $query->execute()->fetchColumn();
 

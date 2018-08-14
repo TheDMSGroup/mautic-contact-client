@@ -19,6 +19,7 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class AjaxController.
@@ -26,22 +27,73 @@ use Symfony\Component\HttpFoundation\Request;
 class AjaxController extends CommonAjaxController
 {
     use AjaxLookupControllerTrait;
+    use ContactClientAccessTrait;
+    use ContactClientDetailsTrait;
 
     /**
-     * Used by the built-in helper.
+     * @param Request $request
      *
-     * @return mixed
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *
+     * @throws \Exception
      */
-    public function ajaxTransactionsAction(Request $request, $objectId, $page)
+    public function transactionsAction(Request $request)
     {
-        return $this->forward(
-            'MauticContactClientBundle:Transactions:index',
+        $dataArray = [
+            'html'    => '',
+            'success' => 0,
+        ];
+
+        $objectId = InputHelper::clean($request->request->get('objectId'));
+        if (empty($objectId)) {
+            return $dataArray;
+        }
+
+        $contactClient = $this->checkContactClientAccess($objectId, 'view');
+        if ($contactClient instanceof Response) {
+            return $dataArray;
+        }
+
+        $session = $this->get('session');
+
+        if ($request->request->has('search')) {
+            $session->set(
+                'mautic.contactclient.'.$contactClient->getId().'.transactions.search',
+                $request->request->get('search')
+            );
+        }
+        $order = [
+            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
+                ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
+                : 'date_added',
+            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
+                ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
+                : 'DESC',
+        ];
+
+        if ($request->request->has('orderby')) {
+            $order[0] = $request->request->get('orderby');
+            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', $order[0]);
+        }
+        if ($request->request->has('orderbydir')) {
+            $order[1] = $request->request->get('orderbydir');
+            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', $order[1]);
+        }
+
+        $transactions = $this->getEngagements($contactClient, null, null, 1);
+
+        $dataArray['html']    = $this->renderView(
+            'MauticContactClientBundle:Transactions:list.html.php',
             [
-                'page'     => $page,
-                'objectId' => $objectId,
-                'request'  => $request,
+                'page'          => 1,
+                'contactClient' => $contactClient,
+                'transactions'  => $transactions,
+                'order'         => $order,
             ]
         );
+        $dataArray['success'] = 1;
+
+        return $this->sendJsonResponse($dataArray);
     }
 
     /**

@@ -173,6 +173,11 @@ class Stat
             ['contact_id'],
             'contact_id'
         );
+
+        $builder->addIndex(
+            ['contact_id', 'contactclient_id'],
+            'contact_id_contactclient_id'
+        );
     }
 
     /**

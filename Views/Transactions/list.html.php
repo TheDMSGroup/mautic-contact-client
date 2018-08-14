@@ -39,25 +39,23 @@ $baseUrl = $view['router']->path(
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-message">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="message"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.message'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.message'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-contact-id">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="contact_id"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.contact_id'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.contact_id'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-utm-source">
@@ -68,18 +66,17 @@ $baseUrl = $view['router']->path(
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.utm_source'
                     ); ?>
-                    <i class="fa fa-sort"></i>
+                    <i class="fa fa-sort<?php echo 'utm_source' === $order[0] ? '-amount-'.strtolower($order[1]) : ''; ?>"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-event-type">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.event_type'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.event_type'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-timestamp">
@@ -90,7 +87,7 @@ $baseUrl = $view['router']->path(
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.event_timestamp'
                     ); ?>
-                    <i class="fa fa-sort"></i>
+                    <i class="fa fa-sort<?php echo 'date_added' === $order[0] ? '-amount-'.strtolower($order[1]) : ''; ?>"></i>
                 </a>
             </th>
         </tr>
@@ -154,13 +151,13 @@ $baseUrl = $view['router']->path(
                     ); ?></td>
             </tr>
             <?php if (!empty($details)): ?>
-                <tr class="<?php echo implode(' ', $rowClasses); ?> timeline-details hide"
-                    id="timeline-details-e<?php echo $counter; ?>">
-                    <td colspan="6">
-                        <?php echo $details; ?>
-                    </td>
-                </tr>
-            <?php endif; ?>
+            <tr class="<?php echo implode(' ', $rowClasses); ?> timeline-details hide"
+                id="timeline-details-e<?php echo $counter; ?>">
+                <td colspan="6">
+                    <?php echo $details; ?>
+                </td>
+            </tr>
+        <?php endif; ?>
         <?php endforeach; ?>
         </tbody>
     </table>
@@ -177,4 +174,3 @@ echo $view->render(
         'totalItems' => $transactions['total'],
     ]
 ); ?>
-<!--/ transactions -->

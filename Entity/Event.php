@@ -84,6 +84,7 @@ class Event
             ->addIndex(['type', 'message'], 'type_message')
             ->addIndex(['contact_id'], 'contact_id')
             ->addIndex(['contactclient_id', 'date_added'], 'contactclient_id_date_added')
+            ->addIndex(['id', 'contactclient_id', 'contact_id', 'date_added'], 'transaction_view')
             ->addIndex(['date_added'], 'date_added');
 
         $builder->addId();
