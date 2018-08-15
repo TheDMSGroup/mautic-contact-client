@@ -54,11 +54,11 @@ class ChartFilterType extends AbstractType
                 'choices'     => $typeChoices,
                 'attr'        => [
                     'class'   => 'form-control',
-                    'tooltip' => 'mautic.contactclient.timeline.event_type_tooltip',
+                    'tooltip' => 'mautic.contactclient.transactions.event_type_tooltip',
                 ],
                 'expanded'    => false,
                 'multiple'    => false,
-                'label'       => 'mautic.contactclient.timeline.event_type',
+                'label'       => 'mautic.contactclient.transactions.event_type',
                 'empty_data'  => 'All Events',
                 'required'    => false,
                 'disabled'    => false,
