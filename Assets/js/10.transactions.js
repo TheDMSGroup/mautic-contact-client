@@ -1,4 +1,4 @@
-Mautic.contactclientTimelineOnLoad = function (container, response) {
+Mautic.contactclientTransactionsOnLoad = function (container, response) {
     // Function for activating Codemirror in transactions
     var codeMirror = function ($el) {
         if (!$el.hasClass('codemirror-active')) {
@@ -112,7 +112,7 @@ Mautic.contactclientTimelineOnLoad = function (container, response) {
                 .addClass('search');
             Mautic.stopPageLoadingBar();
             setTimeout(function () {
-                Mautic.contactclientTimelineOnLoad();
+                Mautic.contactclientTransactionsOnLoad();
             }, 500);
         }).fail(function (data) {
             console.error('Something went wrong with the transaction form ajax.');

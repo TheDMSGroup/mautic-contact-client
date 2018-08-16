@@ -34,75 +34,69 @@ $baseUrl = $view['router']->path(
             <th class="visible-md visible-lg timeline-icon">
                 <a class="btn btn-sm btn-nospin btn-default" data-activate-details="all" data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.toggle_all_details'
+                       'mautic.contactclient.transactions.toggle_all_details'
                    ); ?>">
                     <span class="fa fa-fw fa-level-down"></span>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-name">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="name"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.files.name'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.files.name'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-type">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.files.type'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.files.type'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-status">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="status"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.files.status'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.files.status'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-count">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="count"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.files.count'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.files.count'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-crc32">
-                <a class="timeline-header-sort" data-toggle="tooltip"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.files.crc32'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.files.crc32'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-timestamp">
-                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="timestamp"
+                <a data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.files.event_timestamp'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.files.event_timestamp'
                     ); ?>
-                    <i class="fa fa-sort"></i>
                 </a>
             </th>
         </tr>
@@ -117,7 +111,7 @@ $baseUrl = $view['router']->path(
             $status   = ucwords($file->getStatus());
             $count    = $file->getCount();
             $crc32    = $file->getCrc32();
-            $logs     = $file->getLogs();
+            $details  = $file->getLogs();
             $icon     = 'fa-plus-square-o';
             ++$counter;
             $rowStripe = (0 === $counter % 2) ? ' timeline-row-highlighted' : '';
@@ -127,10 +121,10 @@ $baseUrl = $view['router']->path(
             } ?>">
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="f<?php echo $counter; ?>"
-                       class="btn btn-sm btn-nospin btn-default<?php if (empty($logs)) {
+                       class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
                 echo ' disabled';
             } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
-                        'mautic.contactclient.timeline.toggle_details'
+                        'mautic.contactclient.transactions.toggle_details'
                     ); ?>">
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>
                     </a>
@@ -161,6 +155,14 @@ $baseUrl = $view['router']->path(
                         true
                     ); ?></td>
             </tr>
+            <?php if (!empty($details)): ?>
+                <tr class="timeline-details hide"
+                    id="timeline-details-e<?php echo $counter; ?>">
+                    <td colspan="6">
+                        <?php echo $details; ?>
+                    </td>
+                </tr>
+            <?php endif; ?>
         <?php endforeach; ?>
         </tbody>
     </table>

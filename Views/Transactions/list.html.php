@@ -33,7 +33,7 @@ $baseUrl = $view['router']->path(
             <th class="visible-md visible-lg timeline-icon">
                 <a class="btn btn-sm btn-nospin btn-default" data-activate-details="all" data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
-                       'mautic.contactclient.timeline.toggle_all_details'
+                       'mautic.contactclient.transactions.toggle_all_details'
                    ); ?>">
                     <span class="fa fa-fw fa-level-down"></span>
                 </a>
