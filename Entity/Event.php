@@ -67,7 +67,7 @@ class Event
      */
     public function __construct()
     {
-        $this->dateAdded = new \Datetime();
+        $this->dateAdded = new \DateTime();
         $this->type      = 'undefined';
     }
 
