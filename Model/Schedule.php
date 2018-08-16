@@ -27,7 +27,7 @@ class Schedule
     /** @var \DateTimeZone */
     protected $timezone;
 
-    /** @var \Datetime $now */
+    /** @var \DateTime $now */
     protected $now;
 
     /** @var ContactClient $contactClient */
@@ -377,7 +377,7 @@ class Schedule
     }
 
     /**
-     * @return \Datetime
+     * @return \DateTime
      */
     public function getNow()
     {
@@ -392,7 +392,7 @@ class Schedule
     public function setNow(\DateTime $now = null)
     {
         if (!$now) {
-            $now = new \Datetime();
+            $now = new \DateTime();
         }
 
         $this->now = $now;
