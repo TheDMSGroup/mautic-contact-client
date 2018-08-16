@@ -41,7 +41,7 @@
           },
           {
             "key": "zipcode",
-            "value": "{{ zipcode }}",
+            "value": "{{ zipcode | zip.short }}",
             "test_value": "90210",
             "required": true
           },

@@ -640,7 +640,7 @@ class FilePayload
                     $this->file->setCsvNull($this->settings['type']['null']);
                 }
             }
-            if (!empty($this->settings['compression'])) {
+            if (isset($this->settings['compression'])) {
                 $this->file->setCompression($this->settings['compression']);
             }
             if (!empty($this->settings['headers'])) {
@@ -1029,7 +1029,8 @@ class FilePayload
      */
     private function fileGenerateTmp($compression = null)
     {
-        $fileTmp = null;
+        $fileTmp     = null;
+        $compression = 'none' == $compression ? null : $compression;
         while (true) {
             $fileTmpName = uniqid($this->getFileName($compression), true);
             $fileTmp     = sys_get_temp_dir().'/'.$fileTmpName;
@@ -1054,6 +1055,7 @@ class FilePayload
      */
     private function getFileName($compression = null)
     {
+        $compression = 'none' == $compression ? null : $compression;
         $this->tokenHelper->newSession($this->contactClient, null, $this->payload, $this->campaign, $this->event);
         $type      = $this->file->getType();
         $extension = $type.($compression ? '.'.$compression : '');
@@ -1111,7 +1113,7 @@ class FilePayload
     {
         if ($this->file && $this->file->getTmp()) {
             $compression = $this->file->getCompression();
-            if ($compression) {
+            if ($compression && in_array($compression, ['tar.gz', 'tar.bz2', 'zip'])) {
                 // Discern new tmp file name (with compression applied).
                 $target   = $this->fileGenerateTmp($compression);
                 $fileName = $this->getFileName();

@@ -2,55 +2,55 @@
   "body": [
     {
       "key": "firstname",
-      "value": "{{firstname}}",
+      "value": "{{ firstname }}",
       "test_value": "Test",
       "required": true
     },
     {
       "key": "lastname",
-      "value": "{{lastname}}",
+      "value": "{{ lastname }}",
       "test_value": "Testerson",
       "required": true
     },
     {
       "key": "address1",
-      "value": "{{address1}}",
+      "value": "{{ address1 }}",
       "test_value": "1234 Test St.",
       "required": true
     },
     {
       "key": "address2",
-      "value": "{{address2}}",
+      "value": "{{ address2 }}",
       "test_value": "Apt. 123",
       "required": false
     },
     {
       "key": "city",
-      "value": "{{city}}",
+      "value": "{{ city }}",
       "test_value": "Testopolis",
       "required": true
     },
     {
       "key": "state",
-      "value": "{{state}}",
+      "value": "{{ state }}",
       "test_value": "CA",
       "required": true
     },
     {
       "key": "zipcode",
-      "value": "{{zipcode}}",
+      "value": "{{ zipcode | zip.short }}",
       "test_value": "90210",
       "required": true
     },
     {
       "key": "email",
-      "value": "{{email}}",
+      "value": "{{ email }}",
       "test_value": "test.testerson@testing.com",
       "required": true
     },
     {
       "key": "phone",
-      "value": "{{phone}}",
+      "value": "{{ phone }}",
       "test_value": "+15555555555",
       "required": true
     }
