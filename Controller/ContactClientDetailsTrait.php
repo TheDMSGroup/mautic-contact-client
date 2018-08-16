@@ -326,8 +326,8 @@ trait ContactClientDetailsTrait
                 ]
             );
             $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter', $storedFilters);
-            $filters['fromDate'] = new \DateTime($storedFilters['date_from']);
-            $filters['toDate']   = new \DateTime($storedFilters['date_to']);
+            // $filters['fromDate'] = new \DateTime($storedFilters['date_from']);
+            // $filters['toDate']   = new \DateTime($storedFilters['date_to']);
             $filters['type']     = $storedFilters['type'];
         }
 
@@ -335,12 +335,12 @@ trait ContactClientDetailsTrait
 
         foreach ($filters as $name => $value) {
             switch ($name) {
-                case 'fromDate':
-                    $criteria[] = ['col' => 'dateAdded', 'expr' => 'gte', 'val' => $value];
-                    break;
-                case 'toDate':
-                    $criteria[] = ['col' => 'dateAdded', 'expr' => 'lt', 'val' => $value];
-                    break;
+                // case 'fromDate':
+                //     $criteria[] = ['col' => 'dateAdded', 'expr' => 'gte', 'val' => $value];
+                //     break;
+                // case 'toDate':
+                //     $criteria[] = ['col' => 'dateAdded', 'expr' => 'lt', 'val' => $value];
+                //     break;
                 default:
                     if (!empty($value)) {
                         $criteria[] = ['col' => $name, 'expr' => 'eq', 'val' =>  $value];
