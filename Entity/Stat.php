@@ -112,7 +112,7 @@ class Stat
     /** @var int $id */
     private $id;
 
-    /** @var integer $contactClientId */
+    /** @var int $contactClientId */
     private $contactClientId;
 
     /** @var string $type */
@@ -344,7 +344,7 @@ class Stat
      */
     public function setContactClient(ContactClient $contactClient)
     {
-        $this->contactClient = $contactClient;
+        $this->contactClient   = $contactClient;
         $this->contactClientId = $contactClient->getId();
 
         return $this;
