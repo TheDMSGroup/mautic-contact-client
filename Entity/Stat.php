@@ -112,8 +112,8 @@ class Stat
     /** @var int $id */
     private $id;
 
-    /** @var ContactClient $contactClient */
-    private $contactClient;
+    /** @var integer $contactClientId */
+    private $contactClientId;
 
     /** @var string $type */
     private $type;
@@ -130,6 +130,9 @@ class Stat
     /** @var string $utmSource */
     private $utm_source;
 
+    /** @var ContactClient */
+    private $contactClient = null;
+
     /**
      * @param ORM\ClassMetadata $metadata
      */
@@ -142,9 +145,7 @@ class Stat
 
         $builder->addId();
 
-        $builder->createManyToOne('contactClient', 'ContactClient')
-            ->addJoinColumn('contactclient_id', 'id', true, false, null)
-            ->build();
+        $builder->addNamedField('contactClientId', 'integer', 'contactclient_id');
 
         $builder->addField('type', 'string');
 
@@ -189,21 +190,21 @@ class Stat
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getContactClient()
+    public function getContactClientId()
     {
-        return $this->contactClient;
+        return $this->contactClientId;
     }
 
     /**
-     * @param mixed $contactClient
+     * @param int $contactClientId
      *
      * @return Stat
      */
-    public function setContactClient($contactClient)
+    public function setContactClientId($contactClientId)
     {
-        $this->contactClient = $contactClient;
+        $this->contactClientId = $contactClientId;
 
         return $this;
     }
@@ -322,6 +323,29 @@ class Stat
     public function setUtmSource($utmSource)
     {
         $this->utm_source = $utmSource;
+
+        return $this;
+    }
+
+    /**
+     * @return ContactClient|int
+     */
+    public function getContactClient()
+    {
+        return isset($this->contactClient)
+            ? $this->contactClient
+            : $this->contactClientId;
+    }
+
+    /**
+     * @param ContactClient $contactClient
+     *
+     * @return $this
+     */
+    public function setContactClient(ContactClient $contactClient)
+    {
+        $this->contactClient = $contactClient;
+        $this->contactClientId = $contactClient->getId();
 
         return $this;
     }
