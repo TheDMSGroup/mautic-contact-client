@@ -145,13 +145,12 @@ class Stat
 
         $builder->addId();
 
-        // This schema change needs to be made manually prior to a deployment:
-        //    ALTER TABLE contactclient_stats CHANGE contactclient_id contactclient_id INT NOT NULL;
-        // $builder->addNamedField('contactClientId', 'integer', 'contactclient_id');
+        $builder->addNamedField('contactClientId', 'integer', 'contactclient_id', true);
 
-        $builder->createManyToOne('contactClient', 'ContactClient')
-            ->addJoinColumn('contactclient_id', 'id', true, false, null)
-        ->build();
+        // Previous version:
+        // $builder->createManyToOne('contactClient', 'ContactClient')
+        //     ->addJoinColumn('contactclient_id', 'id', true, false, null)
+        // ->build();
 
         $builder->addField('type', 'string');
 
