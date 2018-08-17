@@ -1515,7 +1515,10 @@ class FilePayload
             return false;
         } else {
             // Remove schema/port/etc from the host.
-            $config['host'] = parse_url($config['host'], PHP_URL_HOST);
+            $host = parse_url($config['host'], PHP_URL_HOST);
+            if ($host) {
+                $config['host'] = $host;
+            }
             $this->setLogs($config['host'], 'host');
         }
         $config['username'] = isset($operation->user) ? trim($operation->user) : null;
