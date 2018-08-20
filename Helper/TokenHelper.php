@@ -74,15 +74,21 @@ class TokenHelper
 
     /** @var array */
     private $formatString = [
-        'zip.short' => 'Exclude zipcode +4',
-        'trim.255'  => 'Trim to 255 characters (varchar)',
+        'strip.comma'       => 'Exclude commas',
+        'strip.doublequote' => 'Exclude double quotes',
+        'strip.singlequote' => 'Exclude single quotes',
+        'trim.255'          => 'Trim to 255 characters (varchar)',
+        'zip.short'         => 'Exclude zipcode +4',
     ];
 
     /** @var array */
     private $formatText = [
-        'zip.short'  => 'Exclude zipcode +4',
-        'trim.255'   => 'Trim to 255 characters (varchar)',
-        'trim.65535' => 'Trim to 65535 characters (text/blog)',
+        'strip.comma'       => 'Exclude commas',
+        'strip.doublequote' => 'Exclude double quotes',
+        'strip.singlequote' => 'Exclude single quotes',
+        'trim.255'          => 'Trim to 255 characters (varchar)',
+        'trim.65535'        => 'Trim to 65535 characters (text/blog)',
+        'zip.short'         => 'Exclude zipcode +4',
     ];
 
     /** @var array */
@@ -260,6 +266,23 @@ class TokenHelper
                                 }
 
                                 return substr((string) $value, 0, 255);
+                            },
+                        ]
+                    );
+                }
+                if (!$this->engine->hasHelper('strip')) {
+                    $this->engine->addHelper(
+                        'strip',
+                        [
+                            // Currently undocumented.
+                            'comma'       => function ($value) {
+                                return str_replace(',', '', $value);
+                            },
+                            'doublequote' => function ($value) {
+                                return str_replace('"', '', $value);
+                            },
+                            'singlequote' => function ($value) {
+                                return str_replace("'", '', $value);
                             },
                         ]
                     );
