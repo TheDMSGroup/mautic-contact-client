@@ -120,6 +120,9 @@ class File extends FormEntity
     /** @var bool */
     private $test;
 
+    /** @var string */
+    private $exclusions;
+
     /**
      * File constructor.
      */
@@ -150,6 +153,7 @@ class File extends FormEntity
                 [
                     'type',
                     'headers',
+                    'exclusions',
                     'test',
                     'compression',
                     'dateAdded',
@@ -229,6 +233,12 @@ class File extends FormEntity
 
         $builder->createField('headers', 'boolean')
             ->columnName('headers')
+            ->build();
+
+        $builder->createField('exclusions', 'string')
+            ->columnName('exclusions')
+            ->length(255)
+            ->nullable()
             ->build();
 
         $builder->createField('test', 'boolean')
@@ -505,6 +515,27 @@ class File extends FormEntity
     {
         $this->isChanged('headers', $headers);
         $this->headers = $headers;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExclusions()
+    {
+        return $this->exclusions;
+    }
+
+    /**
+     * @param $exclusions
+     *
+     * @return $this
+     */
+    public function setExclusions($exclusions)
+    {
+        $this->isChanged('exclusions', $exclusions);
+        $this->exclusions = $exclusions;
 
         return $this;
     }

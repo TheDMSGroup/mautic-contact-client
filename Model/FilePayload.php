@@ -74,6 +74,7 @@ class FilePayload
         'headers'     => true,
         'rate'        => 1,
         'required'    => true,
+        'exclusions'  => '',
         'type'        => [
             'key'       => 'csv',
             'delimiter' => ',',
@@ -482,6 +483,14 @@ class FilePayload
                         }
                     }
                 }
+                // Filter out exclusion characters.
+                $exclusions = $this->file->getExclusions();
+                if (!empty($exclusions)) {
+                    $exclusionArray = array_unique(str_split($exclusions));
+                    foreach ($requestFields as $field => &$value) {
+                        $value = str_replace($exclusionArray, ' ', $value);
+                    }
+                }
             }
         }
 
@@ -642,6 +651,9 @@ class FilePayload
             }
             if (isset($this->settings['compression'])) {
                 $this->file->setCompression($this->settings['compression']);
+            }
+            if (isset($this->settings['exclusions'])) {
+                $this->file->setExclusions($this->settings['exclusions']);
             }
             if (!empty($this->settings['headers'])) {
                 $this->file->setHeaders((bool) $this->settings['headers']);

@@ -248,6 +248,14 @@
               }
             }
           ]
+        },
+        "exclusions": {
+          "type": "string",
+          "title": "Exclusions",
+          "default": "",
+          "options": {
+            "infoText": "Optionally specify a list of characters to exclude from the contents of every field before sending. These will be replaced with a space. This can be useful if there are specific characters a client can not handle in their file payload."
+          },
         }
       }
     },
