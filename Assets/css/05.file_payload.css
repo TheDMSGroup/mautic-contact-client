@@ -3,9 +3,12 @@
     margin-top: 42px;
 }
 
-.file_payload .CodeMirror,
-#contactclient_file_payload_codemirror .CodeMirror {
-    border: 0;
+.file_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath^="root.body."] .CodeMirror {
+    max-width: 500px;
+}
+
+.file_payload .contactclient_jsoneditor div[data-schematype="boolean"][data-schemapath="root.settings.headers"] {
+    padding-top: 20px;
 }
 
 #file_payload_buttons {

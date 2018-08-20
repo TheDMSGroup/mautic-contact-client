@@ -20,16 +20,28 @@
           "type": "string",
           "title": "File name",
           "options": {
-            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}}, {{test}} and {{extension}}."
+            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}}, {{test}} and {{extension}}.",
+            "grid_columns": 12
           },
           "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}.{{extension}}"
+        },
+        "headers": {
+          "title": "Headers",
+          "type": "boolean",
+          "format": "checkbox",
+          "default": true,
+          "options": {
+            "infoText": "A row of headers will be sent based on the field keys provided.",
+            "grid_columns": 3
+          }
         },
         "compression": {
           "title": "Compression",
           "type": "string",
           "default": "zip",
           "options": {
-            "infoText": "It is strongly advised that a form of compression is chosen, especially for email transfers."
+            "infoText": "It is strongly advised that a form of compression is chosen, especially for email transfers.",
+            "grid_columns": 3
           },
           "enumSource": [
             {
@@ -56,15 +68,6 @@
             }
           ]
         },
-        "headers": {
-          "title": "Headers",
-          "type": "boolean",
-          "format": "checkbox",
-          "default": true,
-          "options": {
-            "infoText": "A row of headers will be sent based on the field keys provided."
-          }
-        },
         "rate": {
           "title": "Rate",
           "type": "integer",
@@ -72,7 +75,17 @@
           "minimum": 1,
           "maximum": 24,
           "options": {
-            "infoText": "The maximum number of files to be prepared per day. Default: 1"
+            "infoText": "The maximum number of files to be prepared per day. Default: 1",
+            "grid_columns": 3
+          }
+        },
+        "exclusions": {
+          "type": "string",
+          "title": "Exclusions",
+          "default": "",
+          "options": {
+            "infoText": "Optionally specify a list of characters to exclude from the contents of every field before sending. These will be replaced with a space. This can be useful if there are specific characters a client can not handle in their file payload.",
+            "grid_columns": 3
           }
         },
         "type": {
@@ -83,7 +96,8 @@
               "type": "object",
               "options": {
                 "collapsed": true,
-                "disable_collapse": true
+                "disable_collapse": true,
+                "grid_columns": 12
               },
               "properties": {
                 "key": {
@@ -101,7 +115,8 @@
               "format": "grid",
               "options": {
                 "collapsed": false,
-                "disable_collapse": true
+                "disable_collapse": true,
+                "grid_columns": 12
               },
               "properties": {
                 "key": {
@@ -235,7 +250,8 @@
               "type": "object",
               "options": {
                 "collapsed": true,
-                "disable_collapse": true
+                "disable_collapse": true,
+                "grid_columns": 12
               },
               "properties": {
                 "key": {
@@ -248,14 +264,6 @@
               }
             }
           ]
-        },
-        "exclusions": {
-          "type": "string",
-          "title": "Exclusions",
-          "default": "",
-          "options": {
-            "infoText": "Optionally specify a list of characters to exclude from the contents of every field before sending. These will be replaced with a space. This can be useful if there are specific characters a client can not handle in their file payload."
-          },
         }
       }
     },
