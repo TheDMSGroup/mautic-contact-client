@@ -485,7 +485,7 @@ class TokenHelper
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
                     $value = !empty($field['value']) ? $field['value'] : null;
-                    $type  = !empty($field['type']) ? $field['type'] : null;
+                    $type = !empty($field['type']) ? $field['type'] : null;
                     if ($value && in_array($type, ['datetime', 'date', 'time'])) {
                         // Soft support for labels/values as dates/times.
                         @$newValue = $this->dateFormatHelper->format($value);
@@ -493,22 +493,10 @@ class TokenHelper
                             $value = $newValue;
                         }
                     }
-                    if ('core' == $fgKey) {
-                        $context[$fkey] = $value;
-                        if ($type) {
-                            $conType[$fkey] = $type;
-                        }
-                    } else {
-                        if (!isset($context[$fgKey])) {
-                            $context[$fgKey] = [];
-                        }
-                        $context[$fgKey][$fkey] = $value;
-                        if ($type) {
-                            if (!isset($conType[$fgKey])) {
-                                $conType[$fgKey] = [];
-                            }
-                            $conType[$fgKey][$fkey] = $type;
-                        }
+                    $stop = 'here';
+                    $context[$fkey] = $value;
+                    if ($type) {
+                        $conType[$fkey] = $type;
                     }
                 }
             }
