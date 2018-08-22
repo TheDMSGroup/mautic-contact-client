@@ -493,22 +493,10 @@ class TokenHelper
                             $value = $newValue;
                         }
                     }
-                    if ('core' == $fgKey) {
-                        $context[$fkey] = $value;
-                        if ($type) {
-                            $conType[$fkey] = $type;
-                        }
-                    } else {
-                        if (!isset($context[$fgKey])) {
-                            $context[$fgKey] = [];
-                        }
-                        $context[$fgKey][$fkey] = $value;
-                        if ($type) {
-                            if (!isset($conType[$fgKey])) {
-                                $conType[$fgKey] = [];
-                            }
-                            $conType[$fgKey][$fkey] = $type;
-                        }
+                    $stop           = 'here';
+                    $context[$fkey] = $value;
+                    if ($type) {
+                        $conType[$fkey] = $type;
                     }
                 }
             }
