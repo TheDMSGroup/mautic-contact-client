@@ -1070,6 +1070,7 @@ class FilePayload
         $compression = 'none' == $compression ? null : $compression;
         $this->tokenHelper->newSession($this->contactClient, null, $this->payload, $this->campaign, $this->event);
         $type      = $this->file->getType();
+        $type      = str_ireplace('custom', '', $type);
         $extension = $type.($compression ? '.'.$compression : '');
         $this->tokenHelper->addContext(
             [

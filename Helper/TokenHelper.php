@@ -493,7 +493,6 @@ class TokenHelper
                             $value = $newValue;
                         }
                     }
-                    $stop           = 'here';
                     $context[$fkey] = $value;
                     if ($type) {
                         $conType[$fkey] = $type;
