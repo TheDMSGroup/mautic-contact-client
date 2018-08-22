@@ -25,6 +25,103 @@ use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 trait ContactClientDetailsTrait
 {
     /**
+     * Makes sure that the event filter array is in the right format.
+     *
+     * @param mixed $filters
+     *
+     * @return array
+     *
+     * @throws \InvalidArgumentException if not an array
+     */
+    public function sanitizeEventFilter($filters)
+    {
+        if (!is_array($filters)) {
+            throw new \InvalidArgumentException('filters parameter must be an array');
+        }
+
+        if (!isset($filters['search'])) {
+            $filters['search'] = '';
+        }
+
+        if (!isset($filters['includeEvents'])) {
+            $filters['includeEvents'] = [];
+        }
+
+        if (!isset($filters['excludeEvents'])) {
+            $filters['excludeEvents'] = [];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * @param ContactClient $contactClient
+     * @param array|null    $filters
+     * @param array|null    $orderBy
+     * @param int           $page
+     * @param int           $limit
+     * @param bool          $forTimeline
+     *
+     * @return array
+     */
+    public function getEngagements(
+        ContactClient $contactClient,
+        array $filters = null,
+        array $orderBy = null,
+        $page = 1,
+        $limit = 25,
+        $forTimeline = true
+    ) {
+        $session = $this->get('session');
+
+        if (null === $filters) {
+            $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
+            $search       = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
+            $filters      = [
+                'dateFrom' => new \DateTime($chartFilters['date_from']),
+                'dateTo'   => new \DateTime($chartFilters['date_to']),
+                'type'     => $chartFilters['type'],
+                'search'   => $search,
+            ];
+        }
+        if (null === $orderBy) {
+            $orderBy = [
+                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
+                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
+            ];
+        }
+
+        /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $engagements */
+        $engagements = $this->getModel('contactclient')->getEngagements(
+            $contactClient,
+            $filters,
+            $orderBy,
+            $page,
+            $limit
+        );
+
+        $payload = [
+            'events'      => $engagements->getEvents(),
+            'chartfilter' => [
+                'date_from' => $filters['dateFrom']->format('M j, Y'),
+                'date_to'   => $filters['dateTo']->format('M j, Y'),
+                'type'      => $filters['type'],
+            ],
+            'search'      => $filters['search'],
+            'order'       => $orderBy,
+            'types'       => $engagements->getEventTypes(),
+            'total'       => $engagements->getQueryTotal(),
+            'page'        => $page,
+            'limit'       => $limit,
+            'maxPages'    => $engagements->getMaxPage(),
+        ];
+
+        return ($forTimeline)
+            ? $payload
+            : [$payload, $engagements->getSerializerGroups()];
+    }
+
+    /**
      * @param array      $contactClients
      * @param array|null $filters
      * @param array|null $orderBy
@@ -48,7 +145,10 @@ trait ContactClientDetailsTrait
             $chartfilters = $session->get(
                 'mautic.contactclient.plugin.transactions.chartfilter',
                 [
-                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
+                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter(
+                        'default_daterange_filter',
+                        '-1 month'
+                    ),
                     'date_to'   => null,
                     'type'      => 'All Events',
                 ]
@@ -117,36 +217,6 @@ trait ContactClientDetailsTrait
         $result['total'] = count($result['events']);
 
         return $result;
-    }
-
-    /**
-     * Makes sure that the event filter array is in the right format.
-     *
-     * @param mixed $filters
-     *
-     * @return array
-     *
-     * @throws \InvalidArgumentException if not an array
-     */
-    public function sanitizeEventFilter($filters)
-    {
-        if (!is_array($filters)) {
-            throw new \InvalidArgumentException('filters parameter must be an array');
-        }
-
-        if (!isset($filters['search'])) {
-            $filters['search'] = '';
-        }
-
-        if (!isset($filters['includeEvents'])) {
-            $filters['includeEvents'] = [];
-        }
-
-        if (!isset($filters['excludeEvents'])) {
-            $filters['excludeEvents'] = [];
-        }
-
-        return $filters;
     }
 
     /**
@@ -315,12 +385,16 @@ trait ContactClientDetailsTrait
         $page = 1,
         $limit = 25
     ) {
-        $session = $this->get('session');
+        $session  = $this->get('session');
+        $criteria = [];
         if (null === $filters) {
             $storedFilters = $session->get(
                 'mautic.contactclient.'.$contactClient->getId().'.chartfilter',
                 [
-                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', '-1 month'),
+                    'date_from' => $this->get('mautic.helper.core_parameters')->getParameter(
+                        'default_daterange_filter',
+                        '-1 month'
+                    ),
                     'date_to'   => null,
                     'type'      => '',
                 ]
@@ -328,7 +402,7 @@ trait ContactClientDetailsTrait
             $session->set('mautic.contactclient.'.$contactClient->getId().'.chartfilter', $storedFilters);
             // $filters['fromDate'] = new \DateTime($storedFilters['date_from']);
             // $filters['toDate']   = new \DateTime($storedFilters['date_to']);
-            $filters['type']     = $storedFilters['type'];
+            $filters['type'] = $storedFilters['type'];
         }
 
         $filters['contactClient'] = $contactClient->getId();
@@ -343,7 +417,7 @@ trait ContactClientDetailsTrait
                 //     break;
                 default:
                     if (!empty($value)) {
-                        $criteria[] = ['col' => $name, 'expr' => 'eq', 'val' =>  $value];
+                        $criteria[] = ['col' => $name, 'expr' => 'eq', 'val' => $value];
                     }
             }
         }
@@ -366,10 +440,11 @@ trait ContactClientDetailsTrait
         $fileRepository = $this->getDoctrine()->getManager()->getRepository('MauticContactClientBundle:File');
         $files          = $fileRepository->getEntities(
             [
-                'filter' => ['where' => $criteria],
-                'start'  => $start,
-                'limit'  => $limit,
-                'order'  => $orderBy,
+                'filter'     => ['where' => $criteria],
+                'start'      => $start,
+                'limit'      => $limit,
+                'orderBy'    => 'f.'.lcfirst(str_replace('_', '', ucwords($orderBy[0], '_'))),
+                'orderByDir' => $orderBy[1],
             ]
         );
 
@@ -384,67 +459,6 @@ trait ContactClientDetailsTrait
             'limit'    => $limit,
             'maxPages' => ceil($fileCount / $limit),
         ];
-    }
-
-    /**
-     * @param ContactClient $contactClient
-     * @param array|null    $filters
-     * @param array|null    $orderBy
-     * @param int           $page
-     * @param int           $limit
-     * @param bool          $forTimeline
-     *
-     * @return array
-     */
-    public function getEngagements(
-        ContactClient $contactClient,
-        array $filters = null,
-        array $orderBy = null,
-        $page = 1,
-        $limit = 25,
-        $forTimeline = true
-    ) {
-        $session = $this->get('session');
-
-        if (null === $filters) {
-            $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
-            $search       = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
-            $filters      = [
-                'dateFrom' => new \DateTime($chartFilters['date_from']),
-                'dateTo'   => new \DateTime($chartFilters['date_to']),
-                'type'     => $chartFilters['type'],
-                'search'   => $search,
-            ];
-        }
-        if (null === $orderBy) {
-            $orderBy = [
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
-            ];
-        }
-
-        /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $engagements */
-        $engagements = $this->getModel('contactclient')->getEngagements($contactClient, $filters, $orderBy, $page, $limit);
-
-        $payload = [
-            'events'      => $engagements->getEvents(),
-            'chartfilter' => [
-                'date_from' => $filters['dateFrom']->format('M j, Y'),
-                'date_to'   => $filters['dateTo']->format('M j, Y'),
-                'type'      => $filters['type'],
-            ],
-            'search'      => $filters['search'],
-            'order'       => $orderBy,
-            'types'       => $engagements->getEventTypes(),
-            'total'       => $engagements->getQueryTotal(),
-            'page'        => $page,
-            'limit'       => $limit,
-            'maxPages'    => $engagements->getMaxPage(),
-        ];
-
-        return ($forTimeline)
-            ? $payload
-            : [$payload, $engagements->getSerializerGroups()];
     }
 
     /**
