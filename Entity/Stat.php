@@ -172,6 +172,11 @@ class Stat
         );
 
         $builder->addIndex(
+            ['contactclient_id', 'type', 'utm_source', 'date_added'],
+            'contactclient_type_utm_source_date_added'
+        );
+
+        $builder->addIndex(
             ['contactclient_id', 'utm_source'],
             'contactclient_utm_source'
         );
