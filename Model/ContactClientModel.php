@@ -543,10 +543,8 @@ class ContactClientModel extends FormModel
             ->select('DISTINCT cc.utm_source');
 
         $q->where(
-            $q->expr()->eq('cc.contactClient', ':contactClientId')
+            $q->expr()->eq('cc.contactClientId', (int) $id)
         );
-
-        $q->setParameter('contactClientId', $id);
 
         foreach ($q->getQuery()->getScalarResult() as $row) {
             $utmSources[] = $row['utm_source'];
