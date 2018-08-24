@@ -144,91 +144,91 @@ class TokenHelper
     {
         switch ($type) {
             case 'number':
-                if ($this->engine->hasHelper('number')) {
-                    break;
+                if (!$this->engine->hasHelper('lpad')) {
+                    $this->engine->addHelper(
+                        'lpad',
+                        [
+                            '2' => function ($value) {
+                                return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
+                            },
+                            '4' => function ($value) {
+                                return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
+                            },
+                        ]
+                    );
                 }
-                $this->engine->addHelper(
-                    'lpad',
-                    [
-                        '2' => function ($value) {
-                            return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
-                        },
-                        '4' => function ($value) {
-                            return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
-                        },
-                    ]
-                );
-                $this->engine->addHelper(
-                    'rpad',
-                    [
-                        '2' => function ($value) {
-                            return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
-                        },
-                        '4' => function ($value) {
-                            return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
-                        },
-                    ]
-                );
+                if (!$this->engine->hasHelper('rpad')) {
+                    $this->engine->addHelper(
+                        'rpad',
+                        [
+                            '2' => function ($value) {
+                                return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
+                            },
+                            '4' => function ($value) {
+                                return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
+                            },
+                        ]
+                    );
+                }
                 break;
 
             case 'date':
                 // If there are new timezones, recreate the helper.
                 if (
-                    $this->engine->hasHelper('date')
-                    && $this->timezoneSource !== $this->dateFormatHelper->getTimezoneSource()
-                    && $this->timezoneDestination !== $this->dateFormatHelper->getTimezoneDestination()
+                    !$this->engine->hasHelper('date')
+                    || ($this->engine->hasHelper('date')
+                        && (
+                            $this->timezoneSource !== $this->dateFormatHelper->getTimezoneSource()
+                            || $this->timezoneDestination !== $this->dateFormatHelper->getTimezoneDestination()
+                        )
+                    )
                 ) {
-                    $this->engine->removeHelper('date');
+                    $this->dateFormatHelper = new DateFormatHelper($this->timezoneSource, $this->timezoneDestination);
+                    $this->engine->addHelper('date', $this->dateFormatHelper);
                 }
-                if ($this->engine->hasHelper('date')) {
-                    break;
-                }
-                $this->dateFormatHelper = new DateFormatHelper($this->timezoneSource, $this->timezoneDestination);
-                $this->engine->addHelper('date', $this->dateFormatHelper);
                 break;
 
             case 'boolean':
-                if ($this->engine->hasHelper('bool')) {
-                    break;
+                if (!$this->engine->hasHelper('bool')) {
+                    $this->engine->addHelper(
+                        'bool',
+                        [
+                            'YesNo'     => function ($value) {
+                                return $value ? 'Yes' : 'No';
+                            },
+                            'YESNO'     => function ($value) {
+                                return $value ? 'YES' : 'NO';
+                            },
+                            'yesno'     => function ($value) {
+                                return $value ? 'yes' : 'no';
+                            },
+                            'YN'        => function ($value) {
+                                return $value ? 'Y' : 'N';
+                            },
+                            'yn'        => function ($value) {
+                                return $value ? 'y' : 'n';
+                            },
+                            '10'        => function ($value) {
+                                return $value ? '1' : '0';
+                            },
+                            'TrueFalse' => function ($value) {
+                                return $value ? 'True' : 'False';
+                            },
+                            'TRUEFALSE' => function ($value) {
+                                return $value ? 'TRUE' : 'FALSE';
+                            },
+                            'truefalse' => function ($value) {
+                                return $value ? 'true' : 'false';
+                            },
+                            'TF'        => function ($value) {
+                                return $value ? 'T' : 'F';
+                            },
+                            'tf'        => function ($value) {
+                                return $value ? 't' : 'f';
+                            },
+                        ]
+                    );
                 }
-                $this->engine->addHelper(
-                    'bool',
-                    [
-                        'YesNo'     => function ($value) {
-                            return $value ? 'Yes' : 'No';
-                        },
-                        'YESNO'     => function ($value) {
-                            return $value ? 'YES' : 'NO';
-                        },
-                        'yesno'     => function ($value) {
-                            return $value ? 'yes' : 'no';
-                        },
-                        'YN'        => function ($value) {
-                            return $value ? 'Y' : 'N';
-                        },
-                        'yn'        => function ($value) {
-                            return $value ? 'y' : 'n';
-                        },
-                        '10'        => function ($value) {
-                            return $value ? '1' : '0';
-                        },
-                        'TrueFalse' => function ($value) {
-                            return $value ? 'True' : 'False';
-                        },
-                        'TRUEFALSE' => function ($value) {
-                            return $value ? 'TRUE' : 'FALSE';
-                        },
-                        'truefalse' => function ($value) {
-                            return $value ? 'true' : 'false';
-                        },
-                        'TF'        => function ($value) {
-                            return $value ? 'T' : 'F';
-                        },
-                        'tf'        => function ($value) {
-                            return $value ? 't' : 'f';
-                        },
-                    ]
-                );
                 break;
 
             case 'string':
