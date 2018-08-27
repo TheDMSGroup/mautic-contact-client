@@ -516,8 +516,8 @@ class FilePayload
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = isset($field->key) ? trim($field->key) : null;
-            if (empty($key)) {
+            $key = isset($field->key) ? trim($field->key) : '';
+            if ('' === $key) {
                 // Skip if we have an empty key.
                 continue;
             }
@@ -528,15 +528,15 @@ class FilePayload
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
-                if (!empty($field->{$valueSource})) {
+                if (isset($field->{$valueSource}) && null !== $field->{$valueSource} && '' !== $field->{$valueSource}) {
                     $value = $this->tokenHelper->render($field->{$valueSource});
-                    if (!empty($value)) {
+                    if (null !== $value && '' !== $value) {
                         break;
                     }
                 }
             }
-            if (empty($value) && 0 !== $value) {
-                // The field value is empty.
+            if (null === $value || '' === $value) {
+                // The field value is empty and not 0/false.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(

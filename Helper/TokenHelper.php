@@ -495,12 +495,12 @@ class TokenHelper
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
-                    $value = null !== $field['value'] ? $field['value'] : null;
-                    $type  = null !== $field['type'] ? $field['type'] : null;
-                    if ($value && in_array($type, ['datetime', 'date', 'time'])) {
+                    $value = isset($field['value']) ? $field['value'] : '';
+                    $type  = isset($field['type']) ? $field['type'] : '';
+                    if ('' !== $value && in_array($type, ['datetime', 'date', 'time'])) {
                         // Soft support for labels/values as dates/times.
                         @$newValue = $this->dateFormatHelper->format($value);
-                        if (null !== $newValue) {
+                        if (null !== $newValue && '' !== $newValue) {
                             $value = $newValue;
                         }
                     }
@@ -731,7 +731,7 @@ class TokenHelper
                     set_error_handler([$this, 'handleMustacheErrors'], E_WARNING);
                     $this->template = $this->engine->render($this->template, $this->context);
                     restore_error_handler();
-                    if (null !== $this->template) {
+                    if (null !== $this->template && '' !== $this->template) {
                         $this->renderCache[$template] = $this->template;
                     }
                 }
