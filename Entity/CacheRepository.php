@@ -117,7 +117,7 @@ class CacheRepository extends CommonRepository
      */
     public function oldestDateAdded($duration, string $timezone = null, \DateTime $dateSend = null)
     {
-        $oldest = $dateSend ? $dateSend : new \DateTime();
+        $oldest = $dateSend ? clone $dateSend : new \DateTime();
         if (!$timezone) {
             $timezone = date_default_timezone_get();
         }
