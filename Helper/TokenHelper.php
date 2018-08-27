@@ -97,6 +97,17 @@ class TokenHelper
         'trim.65535' => 'Trim to 65535 characters (text/blob)',
     ];
 
+    /** @var array List of all helpers we utilize, used to sanitize context to prevent filter exceptions. */
+    private $helpers = [
+        'bool',
+        'date',
+        'lpad',
+        'rpad',
+        'strip',
+        'trim',
+        'zip',
+    ];
+
     /** @var string */
     private $timezoneSource = 'UTC';
 
@@ -144,91 +155,91 @@ class TokenHelper
     {
         switch ($type) {
             case 'number':
-                if ($this->engine->hasHelper('number')) {
-                    break;
+                if (!$this->engine->hasHelper('lpad')) {
+                    $this->engine->addHelper(
+                        'lpad',
+                        [
+                            '2' => function ($value) {
+                                return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
+                            },
+                            '4' => function ($value) {
+                                return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
+                            },
+                        ]
+                    );
                 }
-                $this->engine->addHelper(
-                    'lpad',
-                    [
-                        '2' => function ($value) {
-                            return str_pad((string) $value, 2, '0', STR_PAD_LEFT);
-                        },
-                        '4' => function ($value) {
-                            return str_pad((string) $value, 4, '0', STR_PAD_LEFT);
-                        },
-                    ]
-                );
-                $this->engine->addHelper(
-                    'rpad',
-                    [
-                        '2' => function ($value) {
-                            return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
-                        },
-                        '4' => function ($value) {
-                            return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
-                        },
-                    ]
-                );
+                if (!$this->engine->hasHelper('rpad')) {
+                    $this->engine->addHelper(
+                        'rpad',
+                        [
+                            '2' => function ($value) {
+                                return str_pad((string) $value, 2, '0', STR_PAD_RIGHT);
+                            },
+                            '4' => function ($value) {
+                                return str_pad((string) $value, 4, '0', STR_PAD_RIGHT);
+                            },
+                        ]
+                    );
+                }
                 break;
 
             case 'date':
                 // If there are new timezones, recreate the helper.
                 if (
-                    $this->engine->hasHelper('date')
-                    && $this->timezoneSource !== $this->dateFormatHelper->getTimezoneSource()
-                    && $this->timezoneDestination !== $this->dateFormatHelper->getTimezoneDestination()
+                    !$this->engine->hasHelper('date')
+                    || ($this->engine->hasHelper('date')
+                        && (
+                            $this->timezoneSource !== $this->dateFormatHelper->getTimezoneSource()
+                            || $this->timezoneDestination !== $this->dateFormatHelper->getTimezoneDestination()
+                        )
+                    )
                 ) {
-                    $this->engine->removeHelper('date');
+                    $this->dateFormatHelper = new DateFormatHelper($this->timezoneSource, $this->timezoneDestination);
+                    $this->engine->addHelper('date', $this->dateFormatHelper);
                 }
-                if ($this->engine->hasHelper('date')) {
-                    break;
-                }
-                $this->dateFormatHelper = new DateFormatHelper($this->timezoneSource, $this->timezoneDestination);
-                $this->engine->addHelper('date', $this->dateFormatHelper);
                 break;
 
             case 'boolean':
-                if ($this->engine->hasHelper('bool')) {
-                    break;
+                if (!$this->engine->hasHelper('bool')) {
+                    $this->engine->addHelper(
+                        'bool',
+                        [
+                            'YesNo'     => function ($value) {
+                                return $value ? 'Yes' : 'No';
+                            },
+                            'YESNO'     => function ($value) {
+                                return $value ? 'YES' : 'NO';
+                            },
+                            'yesno'     => function ($value) {
+                                return $value ? 'yes' : 'no';
+                            },
+                            'YN'        => function ($value) {
+                                return $value ? 'Y' : 'N';
+                            },
+                            'yn'        => function ($value) {
+                                return $value ? 'y' : 'n';
+                            },
+                            '10'        => function ($value) {
+                                return $value ? '1' : '0';
+                            },
+                            'TrueFalse' => function ($value) {
+                                return $value ? 'True' : 'False';
+                            },
+                            'TRUEFALSE' => function ($value) {
+                                return $value ? 'TRUE' : 'FALSE';
+                            },
+                            'truefalse' => function ($value) {
+                                return $value ? 'true' : 'false';
+                            },
+                            'TF'        => function ($value) {
+                                return $value ? 'T' : 'F';
+                            },
+                            'tf'        => function ($value) {
+                                return $value ? 't' : 'f';
+                            },
+                        ]
+                    );
                 }
-                $this->engine->addHelper(
-                    'bool',
-                    [
-                        'YesNo'     => function ($value) {
-                            return $value ? 'Yes' : 'No';
-                        },
-                        'YESNO'     => function ($value) {
-                            return $value ? 'YES' : 'NO';
-                        },
-                        'yesno'     => function ($value) {
-                            return $value ? 'yes' : 'no';
-                        },
-                        'YN'        => function ($value) {
-                            return $value ? 'Y' : 'N';
-                        },
-                        'yn'        => function ($value) {
-                            return $value ? 'y' : 'n';
-                        },
-                        '10'        => function ($value) {
-                            return $value ? '1' : '0';
-                        },
-                        'TrueFalse' => function ($value) {
-                            return $value ? 'True' : 'False';
-                        },
-                        'TRUEFALSE' => function ($value) {
-                            return $value ? 'TRUE' : 'FALSE';
-                        },
-                        'truefalse' => function ($value) {
-                            return $value ? 'true' : 'false';
-                        },
-                        'TF'        => function ($value) {
-                            return $value ? 'T' : 'F';
-                        },
-                        'tf'        => function ($value) {
-                            return $value ? 't' : 'f';
-                        },
-                    ]
-                );
                 break;
 
             case 'string':
@@ -505,6 +516,7 @@ class TokenHelper
         // $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
+        $this->sanitizeContext($context);
         $this->context = array_merge($this->context, $context);
         $this->conType = array_merge($this->conType, $conType);
 
@@ -513,6 +525,16 @@ class TokenHelper
         // $this->context['contacts'][$context['id']] = $context;
 
         return $this;
+    }
+
+    /**
+     * Contextual field values cannot exactly match filters, or an exception will occur when rendering.
+     *
+     * @param $context
+     */
+    private function sanitizeContext(&$context)
+    {
+        $context = array_diff_key($context, array_flip($this->helpers));
     }
 
     /**
@@ -542,8 +564,8 @@ class TokenHelper
                                 $fieldSet = [];
                                 if ('request' === $opType) {
                                     foreach ($operation[$opType][$fieldType] as $field) {
-                                        if (!empty($field['key'])) {
-                                            if (!empty($field['value'])) {
+                                        if (null !== $field['key']) {
+                                            if (null !== $field['value']) {
                                                 $fieldSet[$field['key']] = $field['value'];
                                             }
                                         }
@@ -551,7 +573,7 @@ class TokenHelper
                                 } elseif ('response' === $opType) {
                                     if (
                                         $id === $operationId
-                                        && !empty($responseActual[$fieldType])
+                                        && null !== $responseActual[$fieldType]
                                     ) {
                                         $fieldSet = $responseActual[$fieldType];
                                     }
@@ -647,6 +669,7 @@ class TokenHelper
             return $this;
         }
         $this->nestContext($context);
+        $this->sanitizeContext($context);
         $this->context = array_merge($this->context, $context);
 
         return $this;
@@ -768,13 +791,24 @@ class TokenHelper
     /**
      * Get the context array labels instead of values for use in token suggestions.
      *
+     * @param bool $fileName
+     *
      * @return array
      */
-    public function getContextLabeled()
+    public function getContextLabeled($fileName = false)
     {
         $result = [];
         $labels = $this->describe($this->context);
         $this->flattenArray($labels, $result);
+
+        if ($fileName) {
+            $result['file_count']       = 'File Name: Number of contacts in this file';
+            $result['file_test']        = 'File Name: Inserts ".test" if testing';
+            $result['file_date']        = 'File Name: Date/time of file creation';
+            $result['file_type']        = 'File Name: Type of file, such as csv/xsl';
+            $result['file_compression'] = 'File Name: Compression of the file, such as zip/gz';
+            $result['file_extension']   = 'File Name: Automatic extension such as xsl/zip/csv';
+        }
 
         return $result;
     }
@@ -831,15 +865,20 @@ class TokenHelper
     }
 
     /**
-     * Get the context data types (that are not text) for use in token suggestions.
+     * @param bool $fileName
      *
      * @return array
      */
-    public function getContextTypes()
+    public function getContextTypes($fileName = false)
     {
         $result = [];
         $types  = $this->describe($this->conType);
         $this->flattenArray($types, $result);
+
+        if ($fileName) {
+            $result['file_count']       = 'number';
+            $result['file_date']        = 'datetime';
+        }
 
         return $result;
     }

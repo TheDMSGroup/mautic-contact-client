@@ -20,10 +20,12 @@
           "type": "string",
           "title": "File name",
           "options": {
-            "infoText": "The file name. Supports tokens {{date}}, {{time}}, {{count}}, {{type}}, {{compression}}, {{test}} and {{extension}}.",
+            "infoText": "The file name. Supports tokens from the first/last contact in the file as well as special tokens for file names only, such as file_date, file_count, file_test and file_extension.",
+            "codeMirror": true,
+            "tokenSource": "plugin:mauticContactClient:getTokens",
             "grid_columns": 12
           },
-          "default": "Contacts-{{date}}-{{time}}-{{count}}{{test}}.{{extension}}"
+          "default": "Contacts-{{ file_date | date.mm-dd-yyyy }}-{{ file_count }}{{ file_test }}.{{ file_extension }}"
         },
         "headers": {
           "title": "Headers",
