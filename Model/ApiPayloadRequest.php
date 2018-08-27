@@ -342,7 +342,7 @@ class ApiPayloadRequest
                 continue;
             }
             // Exclude default_value (may add this functionality in the future if desired).
-            $valueSources = ['value'];
+            $valueSources = ['value', 'default_value'];
             if ($this->test) {
                 array_unshift($valueSources, 'test_value');
             }
