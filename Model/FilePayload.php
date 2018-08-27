@@ -1400,7 +1400,7 @@ class FilePayload
     private function operationEmail($operation)
     {
         if ($this->test) {
-            $to = !empty($operation->test) ? $operation->test : !empty($operation->to) ? $operation->to : '';
+            $to = !empty($operation->test) ? $operation->test : (!empty($operation->to) ? $operation->to : '');
         } else {
             $to = !empty($operation->to) ? $operation->to : '';
         }
@@ -1433,9 +1433,11 @@ class FilePayload
         $email->setContent($body);
         $email->setCustomHtml(htmlentities($body));
 
+        /** @var MailHelper $mailer */
         $mailer = $this->mailHelper->getMailer();
         $mailer->setLead(null, true);
         $mailer->setTokens([]);
+        $to = (!empty($to)) ? array_fill_keys(array_map('trim', explode(',', $to)), null) : [];
         $mailer->setTo($to);
         $mailer->setFrom($from);
         $mailer->setEmail($email);
