@@ -1068,24 +1068,53 @@ class FilePayload
     private function getFileName($compression = null)
     {
         $compression = 'none' == $compression ? null : $compression;
-        $this->tokenHelper->newSession($this->contactClient, null, $this->payload, $this->campaign, $this->event);
+        $this->tokenHelper->newSession(
+            $this->contactClient,
+            $this->contact, // Context of the first/last client in the file will be used if available
+            $this->payload,
+            $this->campaign,
+            $this->event
+        );
         $type      = $this->file->getType();
         $type      = str_ireplace('custom', '', $type);
         $extension = $type.($compression ? '.'.$compression : '');
+        // Prevent BC break for old token values here.
+        $this->settings['name'] = str_replace(
+            [
+                '{{count}}',
+                '{{test}}',
+                '{{date}}',
+                '{{time}}',
+                '{{type}}',
+                '{{compression}}',
+                '{{extension}}',
+            ],
+            [
+                '{{file_count}}',
+                '{{file_test}}',
+                '{{file_date|date.yyyy-mm-dd}}',
+                '{{file_date|date.hh-mm-ss}}',
+                '{{file_type}}',
+                '{{file_compression}}',
+                '{{file_extension}}',
+            ],
+            $this->settings['name']
+        );
         $this->tokenHelper->addContext(
             [
-                'count'       => $this->count,
-                'test'        => $this->test ? '.test' : '',
-                'date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'Y-m-d', false),
-                'time'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'H-i-s', false),
-                'type'        => $type,
-                'compression' => $compression,
-                'extension'   => $extension,
+                'file_count'       => ($this->count ? $this->count : 0),
+                'file_test'        => $this->test ? '.test' : '',
+                'file_date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime()),
+                'file_type'        => $type,
+                'file_compression' => $compression,
+                'file_extension'   => $extension,
             ]
         );
 
         // Update the name of the output file to represent latest token data.
-        return trim($this->tokenHelper->render($this->settings['name']));
+        $result = $this->tokenHelper->render($this->settings['name']);
+
+        return trim($result);
     }
 
     /**

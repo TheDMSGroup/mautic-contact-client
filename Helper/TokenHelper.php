@@ -97,6 +97,17 @@ class TokenHelper
         'trim.65535' => 'Trim to 65535 characters (text/blob)',
     ];
 
+    /** @var array List of all helpers we utilize, used to sanitize context to prevent filter exceptions. */
+    private $helpers = [
+        'bool',
+        'date',
+        'lpad',
+        'rpad',
+        'strip',
+        'trim',
+        'zip',
+    ];
+
     /** @var string */
     private $timezoneSource = 'UTC';
 
@@ -484,12 +495,12 @@ class TokenHelper
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
                 foreach ($fieldGroup as $fkey => $field) {
-                    $value = !empty($field['value']) ? $field['value'] : null;
-                    $type  = !empty($field['type']) ? $field['type'] : null;
+                    $value = null !== $field['value'] ? $field['value'] : null;
+                    $type  = null !== $field['type'] ? $field['type'] : null;
                     if ($value && in_array($type, ['datetime', 'date', 'time'])) {
                         // Soft support for labels/values as dates/times.
                         @$newValue = $this->dateFormatHelper->format($value);
-                        if (!empty($newValue)) {
+                        if (null !== $newValue) {
                             $value = $newValue;
                         }
                     }
@@ -505,6 +516,7 @@ class TokenHelper
         // $contacts = !empty($this->context['contacts']) ? $this->context['contacts'] : [];
 
         // Set the context to this contact.
+        $this->sanitizeContext($context);
         $this->context = array_merge($this->context, $context);
         $this->conType = array_merge($this->conType, $conType);
 
@@ -513,6 +525,16 @@ class TokenHelper
         // $this->context['contacts'][$context['id']] = $context;
 
         return $this;
+    }
+
+    /**
+     * Contextual field values cannot exactly match filters, or an exception will occur when rendering.
+     *
+     * @param $context
+     */
+    private function sanitizeContext(&$context)
+    {
+        $context = array_diff_key($context, array_flip($this->helpers));
     }
 
     /**
@@ -542,8 +564,8 @@ class TokenHelper
                                 $fieldSet = [];
                                 if ('request' === $opType) {
                                     foreach ($operation[$opType][$fieldType] as $field) {
-                                        if (!empty($field['key'])) {
-                                            if (!empty($field['value'])) {
+                                        if (null !== $field['key']) {
+                                            if (null !== $field['value']) {
                                                 $fieldSet[$field['key']] = $field['value'];
                                             }
                                         }
@@ -551,7 +573,7 @@ class TokenHelper
                                 } elseif ('response' === $opType) {
                                     if (
                                         $id === $operationId
-                                        && !empty($responseActual[$fieldType])
+                                        && null !== $responseActual[$fieldType]
                                     ) {
                                         $fieldSet = $responseActual[$fieldType];
                                     }
@@ -647,6 +669,7 @@ class TokenHelper
             return $this;
         }
         $this->nestContext($context);
+        $this->sanitizeContext($context);
         $this->context = array_merge($this->context, $context);
 
         return $this;
@@ -708,7 +731,7 @@ class TokenHelper
                     set_error_handler([$this, 'handleMustacheErrors'], E_WARNING);
                     $this->template = $this->engine->render($this->template, $this->context);
                     restore_error_handler();
-                    if (!empty($this->template)) {
+                    if (null !== $this->template) {
                         $this->renderCache[$template] = $this->template;
                     }
                 }
@@ -768,13 +791,24 @@ class TokenHelper
     /**
      * Get the context array labels instead of values for use in token suggestions.
      *
+     * @param bool $fileName
+     *
      * @return array
      */
-    public function getContextLabeled()
+    public function getContextLabeled($fileName = false)
     {
         $result = [];
         $labels = $this->describe($this->context);
         $this->flattenArray($labels, $result);
+
+        if ($fileName) {
+            $result['file_count']       = 'File Name: Number of contacts in this file';
+            $result['file_test']        = 'File Name: Inserts ".test" if testing';
+            $result['file_date']        = 'File Name: Date/time of file creation';
+            $result['file_type']        = 'File Name: Type of file, such as csv/xsl';
+            $result['file_compression'] = 'File Name: Compression of the file, such as zip/gz';
+            $result['file_extension']   = 'File Name: Automatic extension such as xsl/zip/csv';
+        }
 
         return $result;
     }
@@ -831,15 +865,20 @@ class TokenHelper
     }
 
     /**
-     * Get the context data types (that are not text) for use in token suggestions.
+     * @param bool $fileName
      *
      * @return array
      */
-    public function getContextTypes()
+    public function getContextTypes($fileName = false)
     {
         $result = [];
         $types  = $this->describe($this->conType);
         $this->flattenArray($types, $result);
+
+        if ($fileName) {
+            $result['file_count']       = 'number';
+            $result['file_date']        = 'datetime';
+        }
 
         return $result;
     }

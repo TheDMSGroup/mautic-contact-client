@@ -257,11 +257,12 @@ class AjaxController extends CommonAjaxController
         $tokenHelper = $this->get('mautic.contactclient.helper.token');
         $tokenHelper->newSession(null, $contact, $payload);
 
-        $tokens = $tokenHelper->getContextLabeled();
+        $fileName = (bool) $request->request->get('fileName');
+        $tokens   = $tokenHelper->getContextLabeled($fileName);
         if ($tokens) {
             $dataArray['success'] = true;
             $dataArray['tokens']  = $tokens;
-            $dataArray['types']   = $tokenHelper->getContextTypes();
+            $dataArray['types']   = $tokenHelper->getContextTypes($fileName);
             $dataArray['formats'] = $tokenHelper->getFormats();
         }
 
