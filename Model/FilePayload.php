@@ -516,8 +516,8 @@ class FilePayload
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = isset($field->key) ? trim($field->key) : null;
-            if (!isset($key) || null === $key || '' === $key) {
+            $key = isset($field->key) ? trim($field->key) : '';
+            if ('' === $key) {
                 // Skip if we have an empty key.
                 continue;
             }
@@ -528,7 +528,7 @@ class FilePayload
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
-                if (isset($field->{$valueSource}) && null != $field->{$valueSource}) {
+                if (isset($field->{$valueSource}) && null !== $field->{$valueSource} && '' !== $field->{$valueSource}) {
                     $value = $this->tokenHelper->render($field->{$valueSource});
                     if (null !== $value && '' !== $value) {
                         break;
