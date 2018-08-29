@@ -376,7 +376,7 @@ class FilterHelper
         if (isset($context[$key]) && count($parts)) {
             $context = $context[$key];
             $key     = implode('.', $parts);
-        } elseif (isset($context[$rule->field])) {
+        } else {
             $key = $rule->field;
         }
 
