@@ -373,11 +373,11 @@ class FilterHelper
         // Fields are only nested one level deep and flattened thereafter.
         $parts = explode('.', $rule->field);
         $key   = array_shift($parts);
-        if (isset($context[$key])) {
+        if (isset($context[$key]) && count($parts)) {
             $context = $context[$key];
-            if (count($parts)) {
-                $key = implode('.', $parts);
-            }
+            $key = implode('.', $parts);
+        } elseif (isset($context[$rule->field])) {
+            $key = $rule->field;
         }
 
         return isset($context[$key]) ? $context[$key] : false;
