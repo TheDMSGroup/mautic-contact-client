@@ -375,7 +375,7 @@ class FilterHelper
         $key   = array_shift($parts);
         if (isset($context[$key]) && count($parts)) {
             $context = $context[$key];
-            $key = implode('.', $parts);
+            $key     = implode('.', $parts);
         } elseif (isset($context[$rule->field])) {
             $key = $rule->field;
         }
