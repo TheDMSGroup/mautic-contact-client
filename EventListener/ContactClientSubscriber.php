@@ -166,6 +166,8 @@ class ContactClientSubscriber extends CommonSubscriber
      */
     public function onTimelineGenerate(ContactClientTimelineEvent $event)
     {
+        $stop = 'here';
+
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->em->getRepository('MauticContactClientBundle:Event');
 

@@ -306,14 +306,19 @@ class ContactClientModel extends FormModel
         $dateFormat = null,
         $canViewOthers = true
     ) {
-        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
-        $dateToAdjusted = clone $dateTo;
-        if (in_array($unit, ['H', 'i', 's'])) {
-            // draw the chart with the correct intervals for intra-day
-            $dateToAdjusted->setTime(23, 59, 59);
+        if ($dateFrom->getTimezone()->getName() !== 'UTC') {
+            $dateFrom->setTimezone(new \DateTimeZone('UTC'));
         }
-        $chart = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
-        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
+        $dateFrom->modify('midnight');
+
+        if ($dateTo->getTimezone()->getName() !== 'UTC') {
+            $dateTo->setTimezone(new \DateTimeZone('UTC'));
+        }
+        $dateTo->modify('tomorrow midnight -1 sec');
+
+        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
+        $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
+        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
         $stat  = new Stat();
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery(
@@ -322,6 +327,7 @@ class ContactClientModel extends FormModel
                 ['contactclient_id' => $contactClient->getId(), 'type' => $type]
             );
 
+            /*
             if (!in_array($unit, ['H', 'i', 's'])) {
                 // For some reason, Mautic only sets UTC in Query Date builder
                 // if its an intra-day date range ¯\_(ツ)_/¯
@@ -347,6 +353,7 @@ class ContactClientModel extends FormModel
                 $q->resetQueryPart('groupBy');
                 $q->groupBy($newGroupBy);
             }
+            */
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }

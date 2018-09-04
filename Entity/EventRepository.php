@@ -89,7 +89,7 @@ class EventRepository extends CommonRepository
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->leftJoin('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id AND s.utm_source IS NOT NULL AND s.utm_source != ""');
+            ->leftJoin('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id');
 
         if ($countOnly) {
             $query->select('COUNT(c.id)');
@@ -155,12 +155,13 @@ class EventRepository extends CommonRepository
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
-            $query->resetQueryParts(['select', 'orderBy', 'groupBy'])
-                ->setFirstResult(null)
-                ->setMaxResults(null)
+            $query->resetQueryParts(['select', 'orderBy']) //groupBy
+//                ->setFirstResult(null)
+//                ->setMaxResults(null)
                 ->select('COUNT(c.id)');
 
-            $total = $query->execute()->fetchColumn();
+            $counter = $query->execute();
+            $total = $counter->fetchColumn();
 
             return [
                 'total'   => $total,

@@ -393,7 +393,7 @@ trait ContactClientDetailsTrait
                 [
                     'date_from' => $this->get('mautic.helper.core_parameters')->getParameter(
                         'default_daterange_filter',
-                        '-1 month'
+                        '-1 month midnight'
                     ),
                     'date_to'   => null,
                     'type'      => '',
