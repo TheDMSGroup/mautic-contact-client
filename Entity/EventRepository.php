@@ -161,7 +161,7 @@ class EventRepository extends CommonRepository
                 ->select('COUNT(*)');
 
             $counter = $query->execute();
-            $total = $counter->fetchColumn();
+            $total   = $counter->fetchColumn();
 
             return [
                 'total'   => $total,

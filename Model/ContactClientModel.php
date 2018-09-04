@@ -317,9 +317,9 @@ class ContactClientModel extends FormModel
         $dateTo->modify('tomorrow midnight -1 sec');
 
         $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
-        $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
-        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
-        $stat  = new Stat();
+        $chart          = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
+        $query          = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
+        $stat           = new Stat();
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',

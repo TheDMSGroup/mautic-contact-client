@@ -192,7 +192,6 @@ class ContactClientController extends FormController
                 new \DateTime($chartFilterValues['date_to'])
             );
 
-
             $auditLog    = $this->getAuditlogs($item);
             $files       = $this->getFiles($item);
             if (in_array($chartFilterValues['type'], [''])) {
