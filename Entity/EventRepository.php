@@ -155,10 +155,10 @@ class EventRepository extends CommonRepository
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
-            $query->resetQueryParts(['select', 'orderBy']) //groupBy
+            $query->resetQueryParts(['select', 'orderBy', 'join']) //groupBy
 //                ->setFirstResult(null)
 //                ->setMaxResults(null)
-                ->select('COUNT(c.id)');
+                ->select('COUNT(*)');
 
             $counter = $query->execute();
             $total = $counter->fetchColumn();
