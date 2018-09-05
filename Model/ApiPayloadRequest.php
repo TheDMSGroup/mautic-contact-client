@@ -280,8 +280,8 @@ class ApiPayloadRequest
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = isset($field->key) ? trim($field->key) : null;
-            if (empty($key)) {
+            $key = isset($field->key) ? trim($field->key) : '';
+            if ('' === $key) {
                 // Skip if we have an empty key.
                 continue;
             }
@@ -292,15 +292,15 @@ class ApiPayloadRequest
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
-                if (!empty($field->{$valueSource})) {
+                if (isset($field->{$valueSource}) && null !== $field->{$valueSource} && '' !== $field->{$valueSource}) {
                     $value = $this->renderTokens($field->{$valueSource});
-                    if (!empty($value)) {
+                    if (null !== $value && '' !== $value) {
                         break;
                     }
                 }
             }
-            if (empty($value) && 0 !== $value) {
-                // The field value is empty.
+            if (null === $value || '' === $value) {
+                // The field value is empty and not 0/false.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
@@ -336,26 +336,26 @@ class ApiPayloadRequest
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = isset($field->key) ? trim($field->key) : null;
+            $key = isset($field->key) ? trim($field->key) : '';
+            if ('' === $key) {
+                // Skip if we have an empty key.
+                continue;
+            }
             // Exclude default_value (may add this functionality in the future if desired).
-            $valueSources = ['value'];
+            $valueSources = ['value', 'default_value'];
             if ($this->test) {
                 array_unshift($valueSources, 'test_value');
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
-                if (!empty($field->{$valueSource})) {
+                if (isset($field->{$valueSource}) && null !== $field->{$valueSource} && '' !== $field->{$valueSource}) {
                     $value = $this->renderTokens($field->{$valueSource});
-                    if (!empty($value)) {
+                    if (null !== $value && '' !== $value) {
                         break;
                     }
                 }
             }
-            if (empty($value) && 0 !== $value) {
-                if (empty($key)) {
-                    // Skip if we have an empty key as well (nothing useful).
-                    continue;
-                }
+            if (null === $value || '' === $value) {
                 // The field value is empty.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
@@ -370,7 +370,8 @@ class ApiPayloadRequest
                 }
             }
             $result[$key] = $value;
-            // Support pure mustache tags as keys as well.
+
+            // Support pure mustache tags as keys as well (for templates only).
             if (1 === preg_match('/^{{\s*[\w\.]+\s*}}$/', trim($field->value))) {
                 $mustacheTag = trim(str_replace(['{', '}'], '', $field->value));
                 if (empty($result[$mustacheTag])) {

@@ -123,11 +123,11 @@ class EventRepository extends CommonRepository
 
         if (isset($options['dateFrom'])) {
             $query->andWhere('c.date_added >= :dateFrom')
-                ->setParameter('dateFrom', $options['dateFrom']->format('Y-m-d H:i:s'));
+                ->setParameter('dateFrom', $options['dateFrom']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'));
         }
         if (isset($options['dateTo'])) {
             $query->andWhere('c.date_added < :dateTo')
-                ->setParameter('dateTo', $options['dateTo']->format('Y-m-d H:i:s'));
+                ->setParameter('dateTo', $options['dateTo']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'));
         }
 
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
