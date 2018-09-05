@@ -184,8 +184,6 @@ class ContactClientTimelineEvent extends Event
      */
     public function addEvent(array $data)
     {
-        $stop = 'here';
-
         if ($this->countOnly) {
             // BC support for old format
             if ($this->groupUnit && $this->chartQuery) {
