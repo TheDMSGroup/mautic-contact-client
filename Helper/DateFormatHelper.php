@@ -23,6 +23,7 @@ class DateFormatHelper
         '24hr'      => 'H:i:s',
         '24hrshort' => 'G:i',
         'hhmmss'    => 'His',
+        'hh-mm-ss'  => 'H-i-s',
         'a'         => 'a',
         'A'         => 'A',
         'B'         => 'B',
@@ -75,6 +76,9 @@ class DateFormatHelper
         'rfc7231'    => 'D, d M Y H:i:s \G\M\T',
         'rss'        => 'D, d M Y H:i:s O',
         'w3c'        => 'Y-m-d\TH:i:sP',
+        'dd-mm-yyyy' => 'd-m-Y',
+        'mm-dd-yyyy' => 'm-d-Y',
+        'yyyy-dd-mm' => 'Y-d-m',
     ];
 
     /** @var array */

@@ -516,8 +516,8 @@ class FilePayload
                 // Skip this field as it is for test mode only.
                 continue;
             }
-            $key = isset($field->key) ? trim($field->key) : null;
-            if (empty($key)) {
+            $key = isset($field->key) ? trim($field->key) : '';
+            if ('' === $key) {
                 // Skip if we have an empty key.
                 continue;
             }
@@ -528,15 +528,15 @@ class FilePayload
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
-                if (!empty($field->{$valueSource})) {
+                if (isset($field->{$valueSource}) && null !== $field->{$valueSource} && '' !== $field->{$valueSource}) {
                     $value = $this->tokenHelper->render($field->{$valueSource});
-                    if (!empty($value)) {
+                    if (null !== $value && '' !== $value) {
                         break;
                     }
                 }
             }
-            if (empty($value) && 0 !== $value) {
-                // The field value is empty.
+            if (null === $value || '' === $value) {
+                // The field value is empty and not 0/false.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
                     throw new ContactClientException(
@@ -1068,24 +1068,53 @@ class FilePayload
     private function getFileName($compression = null)
     {
         $compression = 'none' == $compression ? null : $compression;
-        $this->tokenHelper->newSession($this->contactClient, null, $this->payload, $this->campaign, $this->event);
+        $this->tokenHelper->newSession(
+            $this->contactClient,
+            $this->contact, // Context of the first/last client in the file will be used if available
+            $this->payload,
+            $this->campaign,
+            $this->event
+        );
         $type      = $this->file->getType();
         $type      = str_ireplace('custom', '', $type);
         $extension = $type.($compression ? '.'.$compression : '');
+        // Prevent BC break for old token values here.
+        $this->settings['name'] = str_replace(
+            [
+                '{{count}}',
+                '{{test}}',
+                '{{date}}',
+                '{{time}}',
+                '{{type}}',
+                '{{compression}}',
+                '{{extension}}',
+            ],
+            [
+                '{{file_count}}',
+                '{{file_test}}',
+                '{{file_date|date.yyyy-mm-dd}}',
+                '{{file_date|date.hh-mm-ss}}',
+                '{{file_type}}',
+                '{{file_compression}}',
+                '{{file_extension}}',
+            ],
+            $this->settings['name']
+        );
         $this->tokenHelper->addContext(
             [
-                'count'       => $this->count,
-                'test'        => $this->test ? '.test' : '',
-                'date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'Y-m-d', false),
-                'time'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime(), 'H-i-s', false),
-                'type'        => $type,
-                'compression' => $compression,
-                'extension'   => $extension,
+                'file_count'       => ($this->count ? $this->count : 0),
+                'file_test'        => $this->test ? '.test' : '',
+                'file_date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime()),
+                'file_type'        => $type,
+                'file_compression' => $compression,
+                'file_extension'   => $extension,
             ]
         );
 
         // Update the name of the output file to represent latest token data.
-        return trim($this->tokenHelper->render($this->settings['name']));
+        $result = $this->tokenHelper->render($this->settings['name']);
+
+        return trim($result);
     }
 
     /**
@@ -1400,7 +1429,7 @@ class FilePayload
     private function operationEmail($operation)
     {
         if ($this->test) {
-            $to = !empty($operation->test) ? $operation->test : !empty($operation->to) ? $operation->to : '';
+            $to = !empty($operation->test) ? $operation->test : (!empty($operation->to) ? $operation->to : '');
         } else {
             $to = !empty($operation->to) ? $operation->to : '';
         }
@@ -1433,9 +1462,11 @@ class FilePayload
         $email->setContent($body);
         $email->setCustomHtml(htmlentities($body));
 
+        /** @var MailHelper $mailer */
         $mailer = $this->mailHelper->getMailer();
         $mailer->setLead(null, true);
         $mailer->setTokens([]);
+        $to = (!empty($to)) ? array_fill_keys(array_map('trim', explode(',', $to)), null) : [];
         $mailer->setTo($to);
         $mailer->setFrom($from);
         $mailer->setEmail($email);

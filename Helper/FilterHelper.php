@@ -370,16 +370,17 @@ class FilterHelper
      */
     protected function getValueFromContext($rule, $context)
     {
-        $segments = explode('.', $rule->field);
-        foreach ($segments as $segment) {
-            if (!isset($context[$segment])) {
-                $context = false;
-                break;
-            }
-            $context = $context[$segment];
+        // Fields are only nested one level deep and flattened thereafter.
+        $parts = explode('.', $rule->field);
+        $key   = array_shift($parts);
+        if (isset($context[$key]) && count($parts)) {
+            $context = $context[$key];
+            $key     = implode('.', $parts);
+        } else {
+            $key = $rule->field;
         }
 
-        return $context;
+        return isset($context[$key]) ? $context[$key] : false;
     }
 
     /**
@@ -477,5 +478,32 @@ class FilterHelper
         }
 
         return false;
+    }
+
+    /*
+     * Kept for posterity. A mechanism to expound the dot-notated fields to a nested array recursively.
+     * Not currently used because our contextual arrays are flattened externally after the first level.
+     *
+     * @param $context
+     */
+    private function expoundContext(&$context)
+    {
+        foreach ($context as $key => &$value) {
+            if (is_array($value) || is_object($value)) {
+                $this->expoundContext($value);
+            }
+            $t    = &$context;
+            $keys = explode('.', $key);
+            if (count($keys) > 1) {
+                foreach ($keys as $subKey) {
+                    if (!isset($t[$subKey])) {
+                        $t[$subKey] = [];
+                    }
+                    $t = &$t[$subKey];
+                }
+                $t = $value;
+                unset($context[$key]);
+            }
+        }
     }
 }
