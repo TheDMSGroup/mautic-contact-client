@@ -306,9 +306,17 @@ class ContactClientModel extends FormModel
         $dateFormat = null,
         $canViewOthers = true
     ) {
-        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
-        $chart          = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
-        $query          = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
+        $localDateFrom = date_modify($dateFrom, 'midnight');
+        $utcDateFrom   = clone $localDateFrom;
+        $utcDateFrom->setTimezone(new \DateTimeZone('UTC'));
+
+        $localDateTo = date_modify($dateTo, 'midnight +1 day -1 sec');
+        $utcDateTo   = clone $localDateTo;
+        $utcDateTo->setTimezone(new \DateTimeZone('UTC'));
+
+        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($utcDateFrom, $utcDateTo) : $unit;
+        $chart          = new LineChart($unit, $localDateFrom, $localDateTo, $dateFormat);
+        $query          = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
         $stat           = new Stat();
 
         foreach ($stat->getAllTypes() as $type) {
@@ -321,7 +329,6 @@ class ContactClientModel extends FormModel
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
-
             $data = $query->loadAndBuildTimeData($q);
             foreach ($data as $val) {
                 if (0 !== $val) {
