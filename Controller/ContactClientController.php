@@ -192,6 +192,8 @@ class ContactClientController extends FormController
                 new \DateTime($chartFilterValues['date_to'])
             );
 
+            $auditLog    = $this->getAuditlogs($item);
+            $files       = $this->getFiles($item);
             if (in_array($chartFilterValues['type'], [''])) {
                 $stats = $model->getStats(
                     $item,
@@ -208,6 +210,7 @@ class ContactClientController extends FormController
                     new \DateTime($chartFilterValues['date_to'])
                 );
             }
+            $transactions = $this->getEngagements($item);
 
             $chartFilterForm = $this->get('form.factory')->create(
                 'chartfilter',
@@ -223,12 +226,12 @@ class ContactClientController extends FormController
                 ]
             );
 
-            $args['viewParameters']['auditlog']        = $this->getAuditlogs($item);
-            $args['viewParameters']['files']           = $this->getFiles($item);
+            $args['viewParameters']['auditlog']        = $auditLog;
+            $args['viewParameters']['files']           = $files;
             $args['viewParameters']['stats']           = $stats;
+            $args['viewParameters']['transactions']    = $transactions;
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
             $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
-            $args['viewParameters']['transactions']    = $this->getEngagements($item);
             $args['viewParameters']['search']          = $search;
             $args['viewParameters']['order']           = $order;
         }
