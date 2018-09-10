@@ -306,15 +306,19 @@ class ContactClientModel extends FormModel
         $dateFormat = null,
         $canViewOthers = true
     ) {
-        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
-        $dateToAdjusted = clone $dateTo;
-        if (in_array($unit, ['H', 'i', 's'])) {
-            // draw the chart with the correct intervals for intra-day
-            $dateToAdjusted->setTime(23, 59, 59);
-        }
-        $chart = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
-        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
-        $stat  = new Stat();
+        $localDateFrom = date_modify($dateFrom, 'midnight');
+        $utcDateFrom   = clone $localDateFrom;
+        $utcDateFrom->setTimezone(new \DateTimeZone('UTC'));
+
+        $localDateTo = date_modify($dateTo, 'midnight +1 day -1 sec');
+        $utcDateTo   = clone $localDateTo;
+        $utcDateTo->setTimezone(new \DateTimeZone('UTC'));
+
+        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($utcDateFrom, $utcDateTo) : $unit;
+        $chart          = new LineChart($unit, $localDateFrom, $localDateTo, $dateFormat);
+        $query          = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
+        $stat           = new Stat();
+
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',
@@ -322,31 +326,6 @@ class ContactClientModel extends FormModel
                 ['contactclient_id' => $contactClient->getId(), 'type' => $type]
             );
 
-            if (!in_array($unit, ['H', 'i', 's'])) {
-                // For some reason, Mautic only sets UTC in Query Date builder
-                // if its an intra-day date range ¯\_(ツ)_/¯
-                // so we have to do it here.
-                $paramDateTo   = $q->getParameter('dateTo');
-                $paramDateFrom = $q->getParameter('dateFrom');
-                $paramDateTo   = new \DateTime($paramDateTo);
-                $paramDateTo->setTimeZone(new \DateTimeZone('UTC'));
-                $q->setParameter('dateTo', $paramDateTo->format('Y-m-d H:i:s'));
-                $paramDateFrom = new \DateTime($paramDateFrom);
-                $paramDateFrom->setTimeZone(new \DateTimeZone('UTC'));
-                $q->setParameter('dateFrom', $paramDateFrom->format('Y-m-d H:i:s'));
-
-                // AND adjust the group By, since its using db timezone Date values
-                $userTZ     = new \DateTime('now');
-                $interval   = abs($userTZ->getOffset() / 3600);
-                $groupBy    = $q->getQueryPart('groupBy')[0];
-                $newGroupBy = str_replace(
-                    'DATE_FORMAT(t.date_added,',
-                    "DATE_FORMAT(DATE_SUB(t.date_added, INTERVAL $interval HOUR),",
-                    $groupBy
-                );
-                $q->resetQueryPart('groupBy');
-                $q->groupBy($newGroupBy);
-            }
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
