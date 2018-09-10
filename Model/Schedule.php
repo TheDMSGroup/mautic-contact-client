@@ -149,7 +149,7 @@ class Schedule
                 if ($fileCount > 0 && $fileRate > 1) {
                     // Push the start time to the next available slot in this day.
                     $daySeconds = $end->format('U') - $start->format('U');
-                    if ($timeFrom === '00:00' && $timeTill === '23:59') {
+                    if ('00:00' === $timeFrom && '23:59' === $timeTill) {
                         // Avoid sending 2 files at midnight.
                         $segmentSeconds = intval($daySeconds / $fileRate);
                     } else {
@@ -351,6 +351,7 @@ class Schedule
      * @param int $fileRate
      *
      * @return int
+     *
      * @throws ContactClientException
      */
     private function evaluateFileRate($fileRate = 1)
