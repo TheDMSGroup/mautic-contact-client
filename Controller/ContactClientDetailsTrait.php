@@ -77,11 +77,16 @@ trait ContactClientDetailsTrait
         if (null === $filters) {
             $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
             $search       = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
+
             $dateFrom     = new \DateTime($chartFilters['date_from']);
             $dateFrom->setTime(00, 00, 00); // set to beginning of day, Timezone should be OK.
+
+            $dateTo       = new \DateTime($chartFilters['date_to']);
+            $dateTo->setTime(23, 59, 59);
+
             $filters      = [
                 'dateFrom' => $dateFrom,
-                'dateTo'   => new \DateTime($chartFilters['date_to']),
+                'dateTo'   => $dateTo,
                 'type'     => $chartFilters['type'],
                 'search'   => $search,
             ];
@@ -395,7 +400,7 @@ trait ContactClientDetailsTrait
                 [
                     'date_from' => $this->get('mautic.helper.core_parameters')->getParameter(
                         'default_daterange_filter',
-                        '-1 month'
+                        '-1 month midnight'
                     ),
                     'date_to'   => null,
                     'type'      => '',
