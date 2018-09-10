@@ -181,6 +181,18 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             $input[0].fireEvent('onchange');
                                         }
                                     }
+
+                                    $input.siblings().find('input[type="text"]').each(function() {
+                                        mQuery(this).on('keypress', function (e) {
+                                            var charCode = (typeof e.which === 'number') ? e.which : e.keyCode;
+                                            alert('text input found on keypress:'+charCode);
+                                            if (charCode === 13) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                return false;
+                                            }
+                                        });
+                                    });
                                 }, 50);
                             });
                         $input.addClass('queryBuilder-checked');
@@ -218,6 +230,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 if (schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
                     var tokenSource = schema.options.tokenSource;
                 }
+
                 var $input = mQuery(this),
                     isTextarea = $input.is('textarea'),
                     hintTimer,
@@ -686,6 +699,19 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     if (schema.type === 'string' && typeof schema.options !== 'undefined' && typeof schema.options.placeholder !== 'undefined') {
         mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not([placeholder])').each(function () {
             mQuery(this).prop('placeholder', schema.options.placeholder);
+        });
+    }
+
+    if (schema.type === 'string') {
+        mQuery('input[type=\'text\'][name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']').each(function () {
+            mQuery(this).on('keypress', function (e) {
+                var charCode = (typeof e.which === 'number') ? e.which : e.keyCode;
+                if (charCode === 13) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
         });
     }
 
