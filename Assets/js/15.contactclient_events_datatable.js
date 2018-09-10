@@ -1,10 +1,11 @@
 Mautic.contactclientEventsDatatable = function () {
-    var $sourceTarget = mQuery('#contactClientEventsTable');
+    var $sourceTarget = mQuery('#contactClientEventsTable:first:not(.table-initialized)');
     if ($sourceTarget.length && typeof tableData !== 'undefined') {
-        mQuery('#contactClientEventsTable:first:not(.table-initialized)').addClass('table-initialized').each(function () {
+        $sourceTarget.each(function () {
             // dependent files loaded, now get the data and render
-            var sortCol = (tableData.labels[1] ? 1 : 0);
-            mQuery('#contactClientEventsTable').DataTable({
+            var $table = mQuery(this),
+                sortCol = (tableData.labels[1] ? 1 : 0);
+            $table.DataTable({
                 language: {
                     emptyTable: 'No results found for this date range and filters.'
                 },
@@ -21,17 +22,16 @@ Mautic.contactclientEventsDatatable = function () {
                 ],
                 footerCallback: function (row, data, start, end, display) {
                     if (data && data.length === 0 || typeof data[0] === 'undefined') {
-                        mQuery('#contactClientEventsTable').hide();
+                        $table.hide();
                         return;
                     }
                     try {
                         // Add table footer if it doesnt exist
-                        var container = mQuery('#contactClientEventsTable');
                         var columns = data[0].length;
                         if (mQuery('tr.pageTotal').length === 0) {
-                            var footer = mQuery('<tfoot></tfoot>');
-                            var tr = mQuery('<tr class=\'pageTotal\' style=\'font-weight: 600; background: #fafafa;\'></tr>');
-                            var tr2 = mQuery('<tr class=\'grandTotal\' style=\'font-weight: 600; background: #fafafa;\'></tr>');
+                            var footer = mQuery('<tfoot></tfoot>'),
+                                tr = mQuery('<tr class=\'pageTotal\' style=\'font-weight: 600; background: #fafafa;\'></tr>'),
+                                tr2 = mQuery('<tr class=\'grandTotal\' style=\'font-weight: 600; background: #fafafa;\'></tr>');
                             tr.append(mQuery('<td colspan=\'1\'>Page totals</td>'));
                             tr2.append(mQuery('<td colspan=\'1\'>Grand totals</td>'));
                             for (var i = 1; i < columns; i++) {
@@ -40,7 +40,7 @@ Mautic.contactclientEventsDatatable = function () {
                             }
                             footer.append(tr);
                             footer.append(tr2);
-                            container.append(footer);
+                            $table.append(footer);
                         }
 
                         var api = this.api();
@@ -51,30 +51,30 @@ Mautic.contactclientEventsDatatable = function () {
                             return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
                         };
 
-                        var total = mQuery('#' + container[0].id + ' thead th').length;
-                        var footer1 = mQuery(container).find('tfoot tr:nth-child(1)');
-                        var footer2 = mQuery(container).find('tfoot tr:nth-child(2)');
-                        for (var i = 1; i < total; i++) {
+                        var total = $table.find('thead th').length,
+                            footer1 = $table.find('tfoot tr:nth-child(1)'),
+                            footer2 = $table.find('tfoot tr:nth-child(2)');
+                        for (var j = 1; j < total; j++) {
                             var pageSum = api
-                                .column(i, {page: 'current'})
+                                .column(j, {page: 'current'})
                                 .data()
                                 .reduce(function (a, b) {
                                     return intVal(a) + intVal(b);
                                 }, 0);
                             var sum = api
-                                .column(i)
+                                .column(j)
                                 .data()
                                 .reduce(function (a, b) {
                                     return intVal(a) + intVal(b);
                                 }, 0);
-                            footer1.find('td:nth-child(' + (i + 1) + ')').html(pageSum);
-                            footer2.find('td:nth-child(' + (i + 1) + ')').html(sum);
+                            footer1.find('td:nth-child(' + (j + 1) + ')').html(pageSum);
+                            footer2.find('td:nth-child(' + (j + 1) + ')').html(sum);
                         }
                         mQuery('#global-builder-overlay').hide();
 
                     }
                     catch (e) {
-                        console.log(e);
+                        console.warn(e);
                     }
                 } // FooterCallback
             });
@@ -82,6 +82,6 @@ Mautic.contactclientEventsDatatable = function () {
                 float: 'right',
                 marginLeft: '10px'
             });
-        });
+        }).addClass('table-initialized');
     }
 };

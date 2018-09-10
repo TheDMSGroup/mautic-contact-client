@@ -1,7 +1,7 @@
 // General helpers for the Contact Client editor form.
 Mautic.contactclientOnLoad = function () {
-    // Default behavior for Contact Client edit/details screens:
-    if (mQuery('input[name="contactclient[type]"]').length) {
+    // Edit screen:
+    if (mQuery('input[name="contactclient[type]"]:first').length) {
         Mautic.contactclientType();
         Mautic.contactclientDuplicate();
         Mautic.contactclientExclusive();
@@ -12,10 +12,9 @@ Mautic.contactclientOnLoad = function () {
         return;
     }
 
-    if (mQuery('.contactclient-timeline').length) {
+    // View screen:
+    if (mQuery('.contactclient-timeline:first').length) {
         Mautic.contactclientTransactionsOnLoad();
-    }
-    if (mQuery('#contactClientEventsTable').length) {
         Mautic.contactclientEventsDatatable();
     }
 };
