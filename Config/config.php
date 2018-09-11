@@ -26,7 +26,7 @@ return [
                 'controller'   => 'MauticContactClientBundle:ContactClient:execute',
                 'requirements' => [
                     'objectAction' => '\w+',
-                    'objectId'     => '\d+',
+                    'objectId'     => '\w+',
                 ],
             ],
             'mautic_contactclient_transactions' => [

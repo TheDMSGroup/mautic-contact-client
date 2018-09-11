@@ -258,6 +258,10 @@ class ContactClientController extends FormController
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
+                    //utc may produce an extra result outside of the locale date labels
+                    if (!isset($stats['labels'][$key])) {
+                        continue;
+                    }
                     $dateStr = $stats['labels'][$key];
                     $date    = null;
                     switch ($unit) {
