@@ -346,7 +346,6 @@ class Schedule
 
     /**
      * Test if we can send/build another file for the day in question.
-     * Returns the number of files remaining allowed in this day if not exceeded.
      *
      * @param int $fileRate
      *
