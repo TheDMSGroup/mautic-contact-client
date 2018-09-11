@@ -75,6 +75,12 @@ class FilesCommand extends ModeratedCommand
             return 0;
         }
 
+        if (!empty($options['client']) && !is_numeric($options['client'])) {
+            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client').'</error>');
+
+            return 1;
+        }
+
         $mode = isset($options['mode']) ? strtolower(trim($options['mode'])) : 'both';
         if (!in_array($mode, ['both', 'build', 'send'])) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.files.error.mode').'</error>');
@@ -84,10 +90,10 @@ class FilesCommand extends ModeratedCommand
 
         $filter = [];
         if (!empty($options['client'])) {
-            $filter['force'][] = [
+            $filter['where'][] = [
                 'column' => 'f.id',
-                'expr'   => 'in',
-                'value'  => explode(',', $options['client']),
+                'expr'   => 'eq',
+                'value'  => (int) $options['client'],
             ];
         }
         $filter['where'][] = [
