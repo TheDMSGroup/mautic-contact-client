@@ -258,34 +258,30 @@ class ContactClientController extends FormController
             foreach ($stats['datasets'] as $column => $dataset) {
                 $tableData['labels'][] = ['title' => $dataset['label']];
                 foreach ($dataset['data'] as $key => $data) {
-                    $dateStr = isset($stats['labels'][$key]) ? $stats['labels'][$key] : null;
+                    //utc may produce an extra result outside of the locale date labels
+                    if (!isset($stats['labels'][$key])) {
+                        continue;
+                    }
+                    $dateStr = $stats['labels'][$key];
                     $date    = null;
                     switch ($unit) {
                         case 'd': // M j, y
-                            if ($date) {
-                                $date    = date_create_from_format('M j, y', $dateStr);
-                                $dateStr = $date->format('Y-m-d');
-                            }
+                            $date    = date_create_from_format('M j, y', $dateStr);
+                            $dateStr = $date->format('Y-m-d');
                             break;
                         case 'H': // M j ga
-                            if ($date) {
-                                $date                   = date_create_from_format('M j ga', $dateStr);
-                                $dateStr                = $date->format('Y-m-d - H:00');
-                            }
+                            $date                   = date_create_from_format('M j ga', $dateStr);
+                            $dateStr                = $date->format('Y-m-d - H:00');
                             $tableData['labels'][0] = ['title' => 'Date/Time'];
                             break;
                         case 'm': // M j ga
-                            if ($date) {
-                                $date    = date_create_from_format('M Y', $dateStr);
-                                $dateStr = $date->format('Y-m');
-                            }
+                            $date                   = date_create_from_format('M Y', $dateStr);
+                            $dateStr                = $date->format('Y-m');
                             $tableData['labels'][0] = ['title' => 'Date (Y-m)'];
                             break;
                         case 'Y': // Y
-                            if ($date) {
-                                $date    = date_create_from_format('Y', $dateStr);
-                                $dateStr = $date->format('Y');
-                            }
+                            $date                   = date_create_from_format('Y', $dateStr);
+                            $dateStr                = $date->format('Y');
                             $tableData['labels'][0] = ['title' => 'Year'];
                             break;
                         case 'W': // W

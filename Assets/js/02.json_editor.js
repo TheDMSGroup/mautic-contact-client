@@ -185,7 +185,6 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     $input.siblings().find('input[type="text"]').each(function() {
                                         mQuery(this).on('keypress', function (e) {
                                             var charCode = (typeof e.which === 'number') ? e.which : e.keyCode;
-                                            alert('text input found on keypress:'+charCode);
                                             if (charCode === 13) {
                                                 e.preventDefault();
                                                 e.stopPropagation();
