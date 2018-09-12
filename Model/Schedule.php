@@ -39,9 +39,6 @@ class Schedule
     /** @var array */
     protected $scheduleHours;
 
-    /** @var int */
-    protected $nextOpeningDay;
-
     /** @var EntityManager */
     protected $em;
 
@@ -107,63 +104,69 @@ class Schedule
      */
     public function nextOpening($fileRate, $seekDays)
     {
+        // During this evaluation the $this->now property will shift forward in time till the next opening.
         $realNow = new \DateTime();
-        // Seek up to a year in the future for an opening date.
-        if (!isset($this->nextOpeningDay)) {
-            $this->nextOpeningDay = 0;
-        }
-        for ($day = $this->nextOpeningDay; $day < $seekDays; ++$day) {
+
+        for ($day = 0; $day < $seekDays; ++$day) {
             if (0 === $day) {
-                $this->now = new \DateTime('+'.$day.' day');
+                // Current day.
+                $this->now = clone $realNow;
             } else {
-                // Use noon to evaluate days to not worry about timezones.
+                // Future days. Use noon to begin to evaluate days in the future while avoiding timezone concerns.
                 $this->now = new \DateTime('noon +'.$day.' day');
             }
             try {
+                // Initialize the range (will expand as appropriate later).
                 $start = clone $this->now;
                 $end   = clone $this->now;
-                $hours = $this->evaluateDay(true);
-                $this->evaluateExclusions();
-                if (0 == $day) {
-                    // Is *now* a good time?
-                    $this->evaluateTime();
-                }
 
-                // Check if there is time left in the day.
+                // Evaluate that the client is open this day of the week.
+                $hours = $this->evaluateDay(true);
+
+                // Evaluate that the client isn't closed by an excluded date rule.
+                $this->evaluateExclusions();
+
+                // Push the end time to the correct time for this client's hours.
                 $timeTill = !empty($hours->timeTill) ? $hours->timeTill : '23:59';
                 $end->setTimezone($this->timezone);
                 $end->modify($timeTill.':59');
-                // Give breathing room.
-                $end->modify('+1 minute');
-                if (0 == $day && $realNow >= $end) {
-                    // No time left today, try tomorrow.
+
+                // Current day: Evaluate that there is still time today to send.
+                if (0 == $day && $realNow > $end) {
+                    // Continue to the next day.
                     continue;
                 }
 
+                // Pull the start time to the correct time for this day and schedule.
                 $timeFrom = !empty($hours->timeFrom) ? $hours->timeFrom : '00:00';
                 $start->setTimezone($this->timezone);
                 $start->modify($timeFrom);
 
-                // Start time should not be less than this second.
-                if (0 == $day && $start < $realNow) {
+                // Evaluate if we have exceeded allowed file count for this day.
+                $fileCount = $this->evaluateFileRate($fileRate);
+
+                // If we have already built a file in this day and can send more...
+                if ($fileCount > 0 && $fileRate > 1) {
+                    // Push the start time to the next available slot in this day.
+                    $daySeconds = $end->format('U') - $start->format('U');
+                    if ('00:00' === $timeFrom && '23:59' === $timeTill) {
+                        // Avoid sending 2 files at midnight.
+                        $segmentSeconds = intval($daySeconds / $fileRate);
+                    } else {
+                        // Send at opening and closing times, spreading the rest of the day evenly.
+                        $segmentSeconds = intval($daySeconds / ($fileRate - 1));
+                    }
+                    // Push start time to the next segment.
+                    $start->modify('+'.($segmentSeconds * $fileCount).' seconds');
+                }
+
+                // Start time should not be in the past.
+                if (0 === $day && $start < $realNow) {
+                    // Must be done after rate has been applied.
                     $start = $realNow;
                 }
 
-                // Check if there is an open slot today given the range (file limit).
-                if ($fileRate) {
-                    // Ensure we have not exceeded the amount for this day.
-                    $fileCount = $this->evaluateFileRate($fileRate);
-
-                    // Spread the rate over the day, by setting the start time to the next segment of time.
-                    if ($fileRate > 1 && $fileCount > 1) {
-                        $daySeconds   = $end->format('U') - $start->format('U');
-                        $rangeSeconds = $daySeconds / ($fileRate - 1);
-                        $addSeconds   = $rangeSeconds * ($fileCount - 1);
-                        $start->modify('+'.$addSeconds.' seconds');
-                    }
-                }
-                $this->nextOpeningDay = $day + 1;
-
+                // Return the next appropriate window to send contacts.
                 return [$start, $end];
                 break;
             } catch (\Exception $e) {
@@ -346,7 +349,7 @@ class Schedule
      *
      * @param int $fileRate
      *
-     * @return bool|string
+     * @return int
      *
      * @throws ContactClientException
      */
@@ -356,6 +359,7 @@ class Schedule
         $date->setTimezone($this->timezone);
         $repo      = $this->getFileRepository();
         $fileCount = $repo->getCountByDate($date, $this->contactClient->getId());
+
         if ($fileCount >= $fileRate) {
             throw new ContactClientException(
                 'This client has reached the maximum number of files they can receive per day.',
