@@ -105,9 +105,10 @@ class EventRepository extends CommonRepository
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
-                        's.utm_source = :search'
-                    )
+                        's.utm_source LIKE :wildcard'
+                        )
                 )
+                ->setParameter('wildcard', '%'.trim($options['search']).'%')
                 ->setParameter('search', (int) $options['search']);
             } else {
                 $query->andWhere(
@@ -155,7 +156,7 @@ class EventRepository extends CommonRepository
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
-            $query->resetQueryParts(['select', 'orderBy', 'join']) //groupBy
+            $query->resetQueryParts(['select', 'orderBy', 'groupBy'])
 //                ->setFirstResult(null)
 //                ->setMaxResults(null)
                 ->select('COUNT(*)');
