@@ -194,7 +194,7 @@ class ClientIntegration extends AbstractIntegration
                 $this->event['config'] = array_merge($this->settings->getFeatureSettings(), $event['config']);
             }
             // If the campaign event ID is missing, backfill it.
-            if (!is_numeric($this->event['id'])) {
+            if (!isset($this->event['id']) || !is_numeric($this->event['id'])) {
                 try {
                     $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Event'])) {
@@ -745,7 +745,7 @@ class ClientIntegration extends AbstractIntegration
 
         // Add log entry for statistics / charts.
         $eventId = isset($this->event['id']) ? $this->event['id'] : 0;
-        $campaignId = $this->campaign ? $this->campaign->getId() : 0;
+        $campaignId = $this->event['campaignId'] ? $this->event['campaignId'] : 0;
         $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $this->attribution, $utmSource, $campaignId, $eventId);
         $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
 
