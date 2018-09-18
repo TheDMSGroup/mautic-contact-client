@@ -89,7 +89,12 @@ class EventRepository extends CommonRepository
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->leftJoin('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id');
+            ->leftJoin(
+                'c',
+                MAUTIC_TABLE_PREFIX.'contactclient_stats',
+                's',
+                'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+            );
 
         if ($countOnly) {
             $query->select('COUNT(c.id)');
@@ -106,9 +111,9 @@ class EventRepository extends CommonRepository
                     $query->expr()->orX(
                         'c.contact_id = :search',
                         's.utm_source = :search'
-                        )
+                    )
                 )
-                ->setParameter('search', (int) $options['search']);
+                    ->setParameter('search', (int) $options['search']);
             } else {
                 $query->andWhere(
                     $query->expr()->orX(
@@ -117,18 +122,24 @@ class EventRepository extends CommonRepository
                         's.utm_source = :search'
                     )
                 )
-                ->setParameter('search', trim($options['search']))
-                ->setParameter('wildcard', '%'.trim($options['search']).'%');
+                    ->setParameter('search', trim($options['search']))
+                    ->setParameter('wildcard', '%'.trim($options['search']).'%');
             }
         }
 
         if (isset($options['dateFrom'])) {
             $query->andWhere('c.date_added >= :dateFrom')
-                ->setParameter('dateFrom', $options['dateFrom']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'));
+                ->setParameter(
+                    'dateFrom',
+                    $options['dateFrom']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')
+                );
         }
         if (isset($options['dateTo'])) {
             $query->andWhere('c.date_added < :dateTo')
-                ->setParameter('dateTo', $options['dateTo']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'));
+                ->setParameter(
+                    'dateTo',
+                    $options['dateTo']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')
+                );
         }
 
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
@@ -165,7 +176,7 @@ class EventRepository extends CommonRepository
             $total   = $counter->fetchColumn();
 
             return [
-                'total'   => $total,
+                'total' => $total,
                 'results' => $results,
             ];
         }
@@ -184,7 +195,12 @@ class EventRepository extends CommonRepository
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->join('c', MAUTIC_TABLE_PREFIX.'contactclient_stats', 's', 'c.contact_id=s.contact_id AND c.contactclient_id=s.contactclient_id');
+            ->join(
+                'c',
+                MAUTIC_TABLE_PREFIX.'contactclient_stats',
+                's',
+                'c.contact_id=s.contact_id AND c.contactclient_id=s.contactclient_id'
+            );
         if ($count) {
             $query->select('COUNT(c.id) as count');
         } else {
