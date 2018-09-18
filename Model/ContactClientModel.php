@@ -203,7 +203,7 @@ class ContactClientModel extends FormModel
      * @param int           $attribution
      * @param string        $utmSource
      */
-    public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '')
+    public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '', $campaignId = 0, $eventId = 0)
     {
         $stat = new Stat();
         $stat->setContactClient($contactClient)
@@ -218,6 +218,8 @@ class ContactClientModel extends FormModel
         if ($utmSource) {
             $stat->setUtmSource($utmSource);
         }
+        $stat->setCampaignId($campaignId);
+        $stat->setEventId($eventId);
 
         $this->getStatRepository()->saveEntity($stat);
     }

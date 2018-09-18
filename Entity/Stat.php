@@ -133,6 +133,12 @@ class Stat
     /** @var ContactClient */
     private $contactClient = null;
 
+    /** @var integer $campaign_id*/
+    private $campaign_id;
+
+    /** @var integer $event_id */
+    private $event_id;
+
     /**
      * @param ORM\ClassMetadata $metadata
      */
@@ -166,6 +172,9 @@ class Stat
 
         $builder->addNamedField('utm_source', 'string', 'utm_source', true);
 
+        $builder->addNamedField('campaign_id', 'integer','campaign_id', false);
+        $builder->addNamedField('event_id', 'integer','event_id', false);
+
         $builder->addIndex(
             ['contactclient_id', 'type', 'date_added'],
             'contactclient_type_date_added'
@@ -188,6 +197,11 @@ class Stat
         $builder->addIndex(
             ['contact_id', 'contactclient_id'],
             'contact_id_contactclient_id'
+        );
+
+        $builder->addIndex(
+            ['campaign_id', 'date_added'],
+            'campaign_id_date_added'
         );
     }
 
@@ -356,6 +370,46 @@ class Stat
     {
         $this->contactClient   = $contactClient;
         $this->contactClientId = $contactClient->getId();
+
+        return $this;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getCampaignId()
+    {
+        return $this->campaign_id;
+    }
+
+    /**
+     * @param integer $campaign_id
+     *
+     * @return Stat
+     */
+    public function setCampaignId($campaign_id)
+    {
+        $this->campaign_id = $campaign_id;
+
+        return $this;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getEventId()
+    {
+        return $this->event_id;
+    }
+
+    /**
+     * @param integer $event_id
+     *
+     * @return Stat
+     */
+    public function setEventId($event_id)
+    {
+        $this->event_id = $event_id;
 
         return $this;
     }
