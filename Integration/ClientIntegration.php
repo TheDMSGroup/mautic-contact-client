@@ -199,19 +199,21 @@ class ClientIntegration extends AbstractIntegration
                     $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Event'])) {
                         if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
-                            $campaignId = end($identityMap['Mautic\CampaignBundle\Entity\Campaign'])->getId();
-                        }
-                        /** @var \Mautic\CampaignBundle\Entity\Event $leadEvent */
-                        foreach ($identityMap['Mautic\CampaignBundle\Entity\Event'] as $leadEvent) {
-                            $properties = $leadEvent->getProperties();
-                            $campaign = $leadEvent->getCampaign();
-                            if (
-                                $properties['_token'] === $this->event['_token']
-                                && $campaignId = $campaign->getId()
-                            ) {
-                                $this->event['id'] = $leadEvent->getId();
-                                $this->event['campaignId'] = $campaignId;
-                                break;
+                            $memoryCampaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
+                            $campaignId     = $memoryCampaign->getId();
+
+                            /** @var \Mautic\CampaignBundle\Entity\Event $leadEvent */
+                            foreach ($identityMap['Mautic\CampaignBundle\Entity\Event'] as $leadEvent) {
+                                $properties = $leadEvent->getProperties();
+                                $campaign   = $leadEvent->getCampaign();
+                                if (
+                                    $properties['_token'] === $this->event['_token']
+                                    && $campaignId == $campaign->getId()
+                                ) {
+                                    $this->event['id']         = $leadEvent->getId();
+                                    $this->event['campaignId'] = $campaign->getId();
+                                    break;
+                                }
                             }
                         }
                     }
@@ -481,18 +483,8 @@ class ClientIntegration extends AbstractIntegration
             if (!$this->campaign) {
                 try {
                     $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
-                    if (isset($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'])) {
-                        /** @var \Mautic\CampaignBundle\Entity\LeadEventLog $leadEventLog */
-                        foreach ($identityMap['Mautic\CampaignBundle\Entity\LeadEventLog'] as $leadEventLog) {
-                            $properties = $leadEventLog->getEvent()->getProperties();
-                            if (
-                                $properties['_token'] === $this->event['_token']
-                                && $properties['campaignId'] === $this->event['campaignId']
-                            ) {
-                                $this->campaign = $leadEventLog->getCampaign();
-                                break;
-                            }
-                        }
+                    if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
+                        $this->campaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                     }
                 } catch (\Exception $e) {
                 }
@@ -744,9 +736,17 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Add log entry for statistics / charts.
-        $eventId = isset($this->event['id']) ? $this->event['id'] : 0;
+        $eventId    = isset($this->event['id']) ? $this->event['id'] : 0;
         $campaignId = $this->event['campaignId'] ? $this->event['campaignId'] : 0;
-        $clientModel->addStat($this->contactClient, $this->statType, $this->contact, $this->attribution, $utmSource, $campaignId, $eventId);
+        $clientModel->addStat(
+            $this->contactClient,
+            $this->statType,
+            $this->contact,
+            $this->attribution,
+            $utmSource,
+            $campaignId,
+            $eventId
+        );
         $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
 
         // Add transactional event for deep dive into logs.
