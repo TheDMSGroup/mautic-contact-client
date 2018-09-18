@@ -109,13 +109,13 @@ Mautic.contactclientTransactionsOnLoad = function (container, response) {
             $form.find('#contactClientTimelineFilterApply i')
                 .removeClass('fa-spin')
                 .removeClass('fa-spinner')
-                .addClass('search');
+                .addClass('fa-search');
             Mautic.stopPageLoadingBar();
             setTimeout(function () {
                 Mautic.contactclientTransactionsOnLoad();
             }, 500);
         }).fail(function (data) {
-            console.error('Something went wrong with the transaction form ajax.');
+            console.error('Something went wrong with the transaction form ajax.', data);
         });
     });
 };
