@@ -176,7 +176,7 @@ class EventRepository extends CommonRepository
             $total   = $counter->fetchColumn();
 
             return [
-                'total' => $total,
+                'total'   => $total,
                 'results' => $results,
             ];
         }
