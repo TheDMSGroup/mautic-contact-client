@@ -105,16 +105,16 @@ class EventRepository extends CommonRepository
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
-                        's.utm_source LIKE :wildcard'
+                        's.utm_source LIKE :search'
                         )
                 )
-                ->setParameter('wildcard', '%'.trim($options['search']).'%')
                 ->setParameter('search', (int) $options['search']);
             } else {
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.type = :search',
-                        'c.message LIKE :wildcard'
+                        'c.message LIKE :wildcard',
+                        's.utm_source = :search'
                     )
                 )
                 ->setParameter('search', trim($options['search']))
