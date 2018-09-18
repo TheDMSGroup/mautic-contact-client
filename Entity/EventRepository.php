@@ -105,7 +105,7 @@ class EventRepository extends CommonRepository
                 $query->andWhere(
                     $query->expr()->orX(
                         'c.contact_id = :search',
-                        's.utm_source LIKE :search'
+                        's.utm_source = :search'
                         )
                 )
                 ->setParameter('search', (int) $options['search']);
