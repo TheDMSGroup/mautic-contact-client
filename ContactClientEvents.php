@@ -64,4 +64,13 @@ final class ContactClientEvents
      */
     const TIMELINE_ON_GENERATE     = 'mautic.contactclient_timeline_on_generate';
     const TRANSACTIONS_ON_GENERATE = 'mautic.contactclient_transactions_on_generate';
+
+    /**
+     * The mautic.contactclient_stat_save event is dispatched after a Contact Client Stat is saved.
+     *
+     * The event listener receives a MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent instance.
+     *
+     * @var string
+     */
+    const StatSave = 'mautic.contactclient_stat_save';
 }

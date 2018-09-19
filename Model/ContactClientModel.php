@@ -23,6 +23,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -222,6 +223,15 @@ class ContactClientModel extends FormModel
         $stat->setEventId($eventId);
 
         $this->getStatRepository()->saveEntity($stat);
+
+        // dispatch Stat PostSave event
+        $event    = new ContactClientStatEvent(
+            $contactClient, $campaignId, $eventId
+        );
+        $this->dispatcher->dispatch(
+            'mautic.contactclient_stat_save',
+            $event
+        );
     }
 
     /**

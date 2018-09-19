@@ -133,10 +133,10 @@ class Stat
     /** @var ContactClient */
     private $contactClient = null;
 
-    /** @var integer $campaign_id*/
+    /** @var int $campaign_id */
     private $campaign_id;
 
-    /** @var integer $event_id */
+    /** @var int $event_id */
     private $event_id;
 
     /**
@@ -172,8 +172,8 @@ class Stat
 
         $builder->addNamedField('utm_source', 'string', 'utm_source', true);
 
-        $builder->addNamedField('campaign_id', 'integer','campaign_id', false);
-        $builder->addNamedField('event_id', 'integer','event_id', false);
+        $builder->addNamedField('campaign_id', 'integer', 'campaign_id', false);
+        $builder->addNamedField('event_id', 'integer', 'event_id', false);
 
         $builder->addIndex(
             ['contactclient_id', 'type', 'date_added'],
@@ -375,7 +375,7 @@ class Stat
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getCampaignId()
     {
@@ -383,7 +383,7 @@ class Stat
     }
 
     /**
-     * @param integer $campaign_id
+     * @param int $campaign_id
      *
      * @return Stat
      */
@@ -395,7 +395,7 @@ class Stat
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getEventId()
     {
@@ -403,7 +403,7 @@ class Stat
     }
 
     /**
-     * @param integer $event_id
+     * @param int $event_id
      *
      * @return Stat
      */
