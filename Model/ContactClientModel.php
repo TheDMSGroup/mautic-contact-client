@@ -23,6 +23,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -203,7 +204,7 @@ class ContactClientModel extends FormModel
      * @param int           $attribution
      * @param string        $utmSource
      */
-    public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '')
+    public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '', $campaignId = 0, $eventId = 0)
     {
         $stat = new Stat();
         $stat->setContactClient($contactClient)
@@ -218,8 +219,19 @@ class ContactClientModel extends FormModel
         if ($utmSource) {
             $stat->setUtmSource($utmSource);
         }
+        $stat->setCampaignId($campaignId);
+        $stat->setEventId($eventId);
 
         $this->getStatRepository()->saveEntity($stat);
+
+        // dispatch Stat PostSave event
+        $event    = new ContactClientStatEvent(
+            $contactClient, $campaignId, $eventId, $contact
+        );
+        $this->dispatcher->dispatch(
+            'mautic.contactclient_stat_save',
+            $event
+        );
     }
 
     /**
