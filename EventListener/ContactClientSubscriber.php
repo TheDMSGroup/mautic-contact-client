@@ -204,7 +204,7 @@ class ContactClientSubscriber extends CommonSubscriber
                         ],
                         'eventType'       => $eventTypeName,
                         'extra'           => [
-                            'logs'                => $log,
+                            'logs'                => strip_tags($log),
                             'integrationEntityId' => $row['integration_entity_id'],
                         ],
                         'contentTemplate' => 'MauticContactClientBundle:Transactions:eventdetails.html.php',
