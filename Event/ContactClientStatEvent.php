@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticSocialBundle\Entity\Lead;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -46,15 +47,18 @@ class ContactClientStatEvent extends Event
      * @param ContactClient $contactClient
      * @param int           $campaignId
      * @param int           $eventId
+     * @param Lead          $contact
      */
     public function __construct(
         ContactClient $contactClient,
         $campaignId,
-        $eventId
+        $eventId,
+        $contact
     ) {
         $this->contactClient = $contactClient;
         $this->campaignId    = $campaignId;
         $this->eventId       = $eventId;
+        $this->contact       = $contact;
     }
 
     /**
@@ -79,5 +83,13 @@ class ContactClientStatEvent extends Event
     public function getEventId()
     {
         return $this->eventId;
+    }
+
+    /**
+     * @return Lead
+     */
+    public function getContact()
+    {
+        return $this->contact;
     }
 }
