@@ -42,6 +42,12 @@ class ContactClientStatEvent extends Event
     protected $contactClient;
 
     /**
+     * @var EntityManager
+     */
+    protected $em;
+
+
+    /**
      * ContactClientStatEvent constructor.
      *
      * @param ContactClient $contactClient
@@ -53,18 +59,22 @@ class ContactClientStatEvent extends Event
         ContactClient $contactClient,
         $campaignId,
         $eventId,
-        $contact
+        $contact,
+        $em
+
     ) {
         $this->contactClient = $contactClient;
         $this->campaignId    = $campaignId;
         $this->eventId       = $eventId;
         $this->contact       = $contact;
+        $this->em            = $em;
     }
 
     /**
      * @return ContactClient
      */
-    public function getContactClient()
+    public
+    function getContactClient()
     {
         return $this->contactClient;
     }
@@ -72,7 +82,8 @@ class ContactClientStatEvent extends Event
     /**
      * @return int
      */
-    public function getCampaignId()
+    public
+    function getCampaignId()
     {
         return $this->campaignId;
     }
@@ -80,7 +91,8 @@ class ContactClientStatEvent extends Event
     /**
      * @return int|int
      */
-    public function getEventId()
+    public
+    function getEventId()
     {
         return $this->eventId;
     }
@@ -88,8 +100,17 @@ class ContactClientStatEvent extends Event
     /**
      * @return Lead
      */
-    public function getContact()
+    public
+    function getContact()
     {
         return $this->contact;
+    }
+
+    /**
+     * @return EntityManager
+     */
+    public function getEntityManager()
+    {
+        return $this->em;
     }
 }
