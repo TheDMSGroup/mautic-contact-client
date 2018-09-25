@@ -11,9 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
-use Doctrine\ORM\EntityManager;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticSocialBundle\Entity\Lead;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -21,26 +20,17 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class ContactClientStatEvent extends Event
 {
-    /**
-     * Campaign Event Id.
-     *
-     * @var int
-     */
+    /** @var int */
     protected $eventId;
 
-    /**
-     * Container with all registered events types.
-     *
-     * @var int
-     */
+    /** @var int */
     protected $campaignId;
 
-    /**
-     * ContactClient entity for the contactClient the timeline is being generated for.
-     *
-     * @var ContactClient
-     */
+    /** @var ContactClient */
     protected $contactClient;
+
+    /** @var Contact */
+    protected $contact;
 
     /**
      * @var EntityManager
@@ -53,7 +43,7 @@ class ContactClientStatEvent extends Event
      * @param ContactClient $contactClient
      * @param int           $campaignId
      * @param int           $eventId
-     * @param Lead          $contact
+     * @param Contact       $contact
      */
     public function __construct(
         ContactClient $contactClient,
@@ -94,7 +84,7 @@ class ContactClientStatEvent extends Event
     }
 
     /**
-     * @return Lead
+     * @return Contact
      */
     public function getContact()
     {
