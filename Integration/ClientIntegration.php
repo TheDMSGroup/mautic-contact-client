@@ -194,9 +194,8 @@ class ClientIntegration extends AbstractIntegration
                 $this->event['config'] = array_merge($this->settings->getFeatureSettings(), $event['config']);
             }
 
-            if(isset($this->event['campaignEvent']) && !empty($this->event['campaignEvent']) )
-            {
-                $campaignEvent = $this->event['campaignEvent'];
+            if (isset($this->event['campaignEvent']) && !empty($this->event['campaignEvent'])) {
+                $campaignEvent             = $this->event['campaignEvent'];
                 $this->event['id']         = $campaignEvent['id'];
                 $this->event['campaignId'] = $campaignEvent['campaign']['id'];
             }
