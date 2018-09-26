@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
+use Doctrine\ORM\EntityManager;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Symfony\Component\EventDispatcher\Event;
