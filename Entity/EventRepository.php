@@ -171,8 +171,7 @@ class EventRepository extends CommonRepository
                 ->setFirstResult(null)
                 ->setMaxResults(null)
                 ->select('COUNT(*)');
-            if (empty(trim($options['search'])))
-            {
+            if (empty(trim($options['search']))) {
                 //remove the join if there is no search, for performance
                 $query->resetQueryParts(['join']);
             }
