@@ -114,6 +114,10 @@ Mautic.contactclientTransactionsOnLoad = function (container, response) {
             setTimeout(function () {
                 Mautic.contactclientTransactionsOnLoad();
             }, 500);
+            mQuery("#transactions-table a[data-toggle='ajax']").click(function (event) {
+                event.preventDefault();
+                return Mautic.ajaxifyLink(this, event);
+            });
         }).fail(function (data) {
             console.error('Something went wrong with the transaction form ajax.', data);
         });
