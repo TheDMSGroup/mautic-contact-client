@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
+use Doctrine\ORM\EntityManager;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Symfony\Component\EventDispatcher\Event;
@@ -33,6 +34,11 @@ class ContactClientStatEvent extends Event
     protected $contact;
 
     /**
+     * @var EntityManager
+     */
+    protected $em;
+
+    /**
      * ContactClientStatEvent constructor.
      *
      * @param ContactClient $contactClient
@@ -44,12 +50,14 @@ class ContactClientStatEvent extends Event
         ContactClient $contactClient,
         $campaignId,
         $eventId,
-        $contact
+        $contact,
+        $em
     ) {
         $this->contactClient = $contactClient;
         $this->campaignId    = $campaignId;
         $this->eventId       = $eventId;
         $this->contact       = $contact;
+        $this->em            = $em;
     }
 
     /**
@@ -82,5 +90,13 @@ class ContactClientStatEvent extends Event
     public function getContact()
     {
         return $this->contact;
+    }
+
+    /**
+     * @return EntityManager
+     */
+    public function getEntityManager()
+    {
+        return $this->em;
     }
 }
