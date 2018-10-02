@@ -46,7 +46,14 @@ class ContactClientController extends FormController
         $session = $this->get('session');
         $search  = $this->request->get('search', $session->get('mautic.'.$this->getSessionBase().'.filter', ''));
         if (isset($search) && is_numeric(trim($search))) {
-            $search          = 'ids:'.trim($search);
+            $search          = trim($search).' OR id:'.trim($search);
+            $query           = $this->request->query->all();
+            $query['search'] = $search;
+            $this->request   = $this->request->duplicate($query);
+            $session->set('mautic.'.$this->getSessionBase().'.filter', $search);
+        } elseif (false === strpos($search, '%')) {
+            $search          = '%'.trim($search, ' \t\n\r\0\x0B"%').'%';
+            $search          = strpos($search, ' ') ? '"'.$search.'"' : $search;
             $query           = $this->request->query->all();
             $query['search'] = $search;
             $this->request   = $this->request->duplicate($query);
