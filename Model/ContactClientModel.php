@@ -226,7 +226,7 @@ class ContactClientModel extends FormModel
 
         // dispatch Stat PostSave event
         $event    = new ContactClientStatEvent(
-            $contactClient, $campaignId, $eventId, $contact
+            $contactClient, $campaignId, $eventId, $contact, $this->em
         );
         $this->dispatcher->dispatch(
             'mautic.contactclient_stat_save',

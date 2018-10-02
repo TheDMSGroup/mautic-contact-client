@@ -88,18 +88,18 @@ class EventRepository extends CommonRepository
     public function getEventsForTimeline($contactClientId, array $options = [], $countOnly = false)
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
-            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->leftJoin(
-                'c',
-                MAUTIC_TABLE_PREFIX.'contactclient_stats',
-                's',
-                'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
-            );
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c');
 
         if ($countOnly) {
             $query->select('COUNT(c.id)');
         } else {
-            $query->select('c.*, s.utm_source');
+            $query->select('c.*, s.utm_source')
+                ->leftJoin(
+                    'c',
+                    MAUTIC_TABLE_PREFIX.'contactclient_stats',
+                    's',
+                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+                );
         }
 
         $query->where('c.contactclient_id = :contactClientId')
@@ -167,10 +167,14 @@ class EventRepository extends CommonRepository
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
-            $query->resetQueryParts(['select', 'orderBy', 'groupBy'])
-//                ->setFirstResult(null)
-//                ->setMaxResults(null)
+            $query->resetQueryParts(['select', 'orderBy'])//, 'groupBy'
+                ->setFirstResult(null)
+                ->setMaxResults(null)
                 ->select('COUNT(*)');
+            if (empty(trim($options['search']))) {
+                //remove the join if there is no search, for performance
+                $query->resetQueryParts(['join']);
+            }
 
             $counter = $query->execute();
             $total   = $counter->fetchColumn();
