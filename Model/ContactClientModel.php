@@ -199,10 +199,12 @@ class ContactClientModel extends FormModel
      * Add a stat entry.
      *
      * @param ContactClient $contactClient
-     * @param               $type
+     * @param string        $type
      * @param int           $contact
      * @param int           $attribution
      * @param string        $utmSource
+     * @param int           $campaignId
+     * @param int           $eventId
      */
     public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '', $campaignId = 0, $eventId = 0)
     {
@@ -221,7 +223,6 @@ class ContactClientModel extends FormModel
         }
         $stat->setCampaignId($campaignId);
         $stat->setEventId($eventId);
-
         $this->getStatRepository()->saveEntity($stat);
 
         // dispatch Stat PostSave event

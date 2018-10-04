@@ -30,7 +30,7 @@ class ContactClientStatEvent extends Event
     /** @var ContactClient */
     protected $contactClient;
 
-    /** @var Contact */
+    /** @var int */
     protected $contact;
 
     /**
@@ -44,7 +44,7 @@ class ContactClientStatEvent extends Event
      * @param ContactClient $contactClient
      * @param int           $campaignId
      * @param int           $eventId
-     * @param Contact       $contact
+     * @param int           $contact
      */
     public function __construct(
         ContactClient $contactClient,
@@ -56,8 +56,12 @@ class ContactClientStatEvent extends Event
         $this->contactClient = $contactClient;
         $this->campaignId    = $campaignId;
         $this->eventId       = $eventId;
-        $this->contact       = $contact;
-        $this->em            = $em;
+        if ($contact instanceof Contact) {
+            $this->contact = $contact->getId();
+        } else {
+            $this->contact = $contact;
+        }
+        $this->em = $em;
     }
 
     /**
@@ -85,7 +89,7 @@ class ContactClientStatEvent extends Event
     }
 
     /**
-     * @return Contact
+     * @return int
      */
     public function getContact()
     {
