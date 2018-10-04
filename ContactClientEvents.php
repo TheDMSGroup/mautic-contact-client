@@ -72,5 +72,5 @@ final class ContactClientEvents
      *
      * @var string
      */
-    const StatSave = 'mautic.contactclient_stat_save';
+    const STAT_SAVE = 'mautic.contactclient_stat_save';
 }
