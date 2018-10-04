@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
 use Mautic\CoreBundle\Model\FormModel;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use Mautic\PageBundle\Model\TrackableModel;
 use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
@@ -199,12 +200,14 @@ class ContactClientModel extends FormModel
      * Add a stat entry.
      *
      * @param ContactClient $contactClient
-     * @param               $type
-     * @param int           $contact
+     * @param string        $type
+     * @param Contact       $contact
      * @param int           $attribution
      * @param string        $utmSource
+     * @param int           $campaignId
+     * @param int           $eventId
      */
-    public function addStat(ContactClient $contactClient, $type, $contact = 0, $attribution = 0, $utmSource = '', $campaignId = 0, $eventId = 0)
+    public function addStat(ContactClient $contactClient, $type, $contact = null, $attribution = 0, $utmSource = '', $campaignId = 0, $eventId = 0)
     {
         $stat = new Stat();
         $stat->setContactClient($contactClient)
@@ -221,17 +224,19 @@ class ContactClientModel extends FormModel
         }
         $stat->setCampaignId($campaignId);
         $stat->setEventId($eventId);
-
         $this->getStatRepository()->saveEntity($stat);
 
         // dispatch Stat PostSave event
-        $event    = new ContactClientStatEvent(
-            $contactClient, $campaignId, $eventId, $contact, $this->em
-        );
-        $this->dispatcher->dispatch(
-            'mautic.contactclient_stat_save',
-            $event
-        );
+        try {
+            $event = new ContactClientStatEvent(
+                $contactClient, $campaignId, $eventId, $contact, $this->em
+            );
+            $this->dispatcher->dispatch(
+                ContactClientEvents::STAT_SAVE,
+                $event
+            );
+        } catch (\Exception $e) {
+        }
     }
 
     /**

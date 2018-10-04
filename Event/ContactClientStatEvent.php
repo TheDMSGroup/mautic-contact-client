@@ -30,7 +30,7 @@ class ContactClientStatEvent extends Event
     /** @var ContactClient */
     protected $contactClient;
 
-    /** @var Contact */
+    /** @var int */
     protected $contact;
 
     /**
@@ -85,7 +85,7 @@ class ContactClientStatEvent extends Event
     }
 
     /**
-     * @return Contact
+     * @return int
      */
     public function getContact()
     {

@@ -116,7 +116,7 @@ class Stat
     private $contactClientId;
 
     /** @var string $type */
-    private $type;
+    private $type = '';
 
     /** @var \DateTime $dateAdded */
     private $dateAdded;
@@ -134,10 +134,10 @@ class Stat
     private $contactClient = null;
 
     /** @var int $campaign_id */
-    private $campaign_id;
+    private $campaign_id = 0;
 
     /** @var int $event_id */
-    private $event_id;
+    private $event_id = 0;
 
     /**
      * @param ORM\ClassMetadata $metadata

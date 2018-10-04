@@ -106,7 +106,7 @@ class ClientIntegration extends AbstractIntegration
      */
     public function getSupportedFeatures()
     {
-        return ['push_lead', 'push_leads'];
+        return ['push_lead'];
     }
 
     /**
@@ -743,8 +743,8 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Add log entry for statistics / charts.
-        $eventId    = isset($this->event['id']) ? $this->event['id'] : 0;
-        $campaignId = $this->event['campaignId'] ? $this->event['campaignId'] : 0;
+        $eventId    = (isset($this->event['id']) && $this->event['id']) ? $this->event['id'] : 0;
+        $campaignId = (isset($this->event['campaignId']) && $this->event['campaignId']) ? $this->event['campaignId'] : 0;
         $clientModel->addStat(
             $this->contactClient,
             $this->statType,
@@ -1182,24 +1182,6 @@ class ClientIntegration extends AbstractIntegration
         $this->statType = $statType;
 
         return $this;
-    }
-
-    /**
-     * @todo - Push multiple contacts by Campaign Action.
-     *
-     * @param array $params
-     *
-     * @return mixed
-     */
-    public function pushLeads($params = [])
-    {
-        // $limit = (isset($params['limit'])) ? $params['limit'] : 100;
-        $totalUpdated = 0;
-        $totalCreated = 0;
-        $totalErrors  = 0;
-        $totalIgnored = 0;
-
-        return [$totalUpdated, $totalCreated, $totalErrors, $totalIgnored];
     }
 
     /**
