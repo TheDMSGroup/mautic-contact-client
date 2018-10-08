@@ -91,6 +91,7 @@ class Event
 
         $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', true, false, null)
+            ->cascadePersist()
             ->build();
 
         $builder->createField('type', 'string')
