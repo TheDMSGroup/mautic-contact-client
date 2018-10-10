@@ -38,9 +38,9 @@ class Event
     protected $type;
 
     /**
-     * @var ContactClient
+     * @var int
      */
-    protected $contactClient;
+    protected $contactClientId;
 
     /**
      * @var array
@@ -89,10 +89,7 @@ class Event
 
         $builder->addId();
 
-        $builder->createManyToOne('contactClient', 'ContactClient')
-            ->addJoinColumn('contactclient_id', 'id', true, false, null)
-            ->cascadePersist()
-            ->build();
+        $builder->addNamedField('contactClientId', 'integer', 'contactclient_id', true);
 
         $builder->createField('type', 'string')
             ->columnName('type')
@@ -180,19 +177,19 @@ class Event
     /**
      * @return mixed
      */
-    public function getContactClient()
+    public function getContactClientId()
     {
-        return $this->contactClient;
+        return $this->contactClientId;
     }
 
     /**
-     * @param $contactClient
+     * @param int $contactClientId
      *
      * @return $this
      */
-    public function setContactClient($contactClient)
+    public function setContactClientId($contactClientId)
     {
-        $this->contactClient = $contactClient;
+        $this->contactClientId = $contactClientId;
 
         return $this;
     }
