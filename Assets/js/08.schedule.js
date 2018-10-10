@@ -71,12 +71,16 @@ Mautic.contactclientSchedule = function () {
                 });
             },
             dayTmpl: '<div class="dayContainer">' +
-            '<div data-original-title="" class="colorBox"><input type="checkbox" class="invisible operationState"></div>' +
-            '<div class="weekday"></div>' +
-            '<div class="operationDayTimeContainer">' +
-            '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-sun-o"></i></span><input type="text" name="startTime" class="mini-time form-control operationTimeFrom" value=""></div>' +
-            '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-moon-o"></i></span><input type="text" name="endTime" class="mini-time form-control operationTimeTill" value=""></div>' +
-            '</div></div>'
+                '<div class="weekday"></div>' +
+                '<div data-original-title="" style="padding:2px; width: 103%; height:auto;" class="colorBox schedule-toggle">' +
+                    '<input type="checkbox" class="invisible operationState">' +
+                    '<div class="operationDayTimeContainer">' +
+                        '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-sun-o"></i></span><input type="text" name="startTime" class="mini-time form-control operationTimeFrom" value=""></div>' +
+                        '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-moon-o"></i></span><input type="text" name="endTime" class="mini-time form-control operationTimeTill" value=""></div>' +
+                    '</div>' +
+                '</div>' +
+
+            '</div>'
         });
         $scheduleHoursSource.addClass('schedule-checked');
         mQuery('#contactclient_schedule_hours_widget .operationState, #contactclient_schedule_hours_widget input').change(function () {
