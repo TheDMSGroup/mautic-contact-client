@@ -199,22 +199,33 @@ class ContactClientModel extends FormModel
     /**
      * Add a stat entry.
      *
-     * @param ContactClient $contactClient
-     * @param string        $type
-     * @param Contact       $contact
-     * @param int           $attribution
-     * @param string        $utmSource
-     * @param int           $campaignId
-     * @param int           $eventId
+     * @param ContactClient|null $contactClient
+     * @param null               $type
+     * @param Contact|null       $contact
+     * @param int                $attribution
+     * @param string             $utmSource
+     * @param int                $campaignId
+     * @param int                $eventId
      */
-    public function addStat(ContactClient $contactClient, $type, $contact = null, $attribution = 0, $utmSource = '', $campaignId = 0, $eventId = 0)
-    {
+    public function addStat(
+        ContactClient $contactClient = null,
+        $type = null,
+        Contact $contact = null,
+        $attribution = 0,
+        $utmSource = '',
+        $campaignId = 0,
+        $eventId = 0
+    ) {
         $stat = new Stat();
-        $stat->setContactClient($contactClient)
-            ->setDateAdded(new \DateTime())
-            ->setType($type);
+        $stat->setDateAdded(new \DateTime());
+        if ($type) {
+            $stat->setType($type);
+        }
+        if ($contactClient) {
+            $stat->setContactClientId($contactClient->getId());
+        }
         if ($contact) {
-            $stat->setContact($contact);
+            $stat->setContactId($contact->getId());
         }
         if ($attribution) {
             $stat->setAttribution($attribution);
@@ -260,25 +271,29 @@ class ContactClientModel extends FormModel
     /**
      * Add transactional log in contactclient_events.
      *
-     * @param ContactClient $contactClient
-     * @param               $type
-     * @param null          $contact
-     * @param null          $logs
-     * @param null          $message
-     * @param null          $integration_entity_id
+     * @param ContactClient|null $contactClient
+     * @param string             $type
+     * @param Contact|null       $contact
+     * @param null               $logs
+     * @param null               $message
+     * @param null               $integrationEntityId
      */
     public function addEvent(
-        ContactClient $contactClient,
-        $type,
-        $contact = null,
+        ContactClient $contactClient = null,
+        $type = null,
+        Contact $contact = null,
         $logs = null,
         $message = null,
-        $integration_entity_id = null
+        $integrationEntityId = null
     ) {
         $event = new EventEntity();
-        $event->setContactClient($contactClient)
-            ->setDateAdded(new \DateTime())
-            ->setType($type);
+        $event->setDateAdded(new \DateTime());
+        if ($type) {
+            $event->setType($type);
+        }
+        if ($contactClient) {
+            $event->setContactClientId($contactClient->getId());
+        }
         if ($contact) {
             $event->setContact($contact);
         }
@@ -288,8 +303,8 @@ class ContactClientModel extends FormModel
         if ($message) {
             $event->setMessage($message);
         }
-        if ($integration_entity_id) {
-            $event->setIntegrationEntityId($integration_entity_id);
+        if ($integrationEntityId) {
+            $event->setIntegrationEntityId($integrationEntityId);
         }
 
         $this->getEventRepository()->saveEntity($event);
@@ -331,10 +346,10 @@ class ContactClientModel extends FormModel
         $utcDateTo   = clone $localDateTo;
         $utcDateTo->setTimezone(new \DateTimeZone('UTC'));
 
-        $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($utcDateFrom, $utcDateTo) : $unit;
-        $chart          = new LineChart($unit, $localDateFrom, $localDateTo, $dateFormat);
-        $query          = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
-        $stat           = new Stat();
+        $unit  = (null === $unit) ? $this->getTimeUnitFromDateRange($utcDateFrom, $utcDateTo) : $unit;
+        $chart = new LineChart($unit, $localDateFrom, $localDateTo, $dateFormat);
+        $query = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
+        $stat  = new Stat();
 
         foreach ($stat->getAllTypes() as $type) {
             $q = $query->prepareTimeDataQuery(

@@ -33,9 +33,7 @@ class ContactClientStatEvent extends Event
     /** @var int */
     protected $contact;
 
-    /**
-     * @var EntityManager
-     */
+    /** @var EntityManager */
     protected $em;
 
     /**

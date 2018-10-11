@@ -13,7 +13,6 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
-use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
  * Class Stat.
@@ -112,8 +111,8 @@ class Stat
     /** @var int $id */
     private $id;
 
-    /** @var int $contactClientId */
-    private $contactClientId;
+    /** @var int contactClientId */
+    private $contactClientId = 0;
 
     /** @var string $type */
     private $type = '';
@@ -121,23 +120,20 @@ class Stat
     /** @var \DateTime $dateAdded */
     private $dateAdded;
 
-    /** @var Contact $contact */
-    private $contact;
+    /** @var int $contactId */
+    private $contactId;
 
     /** @var float $attribution */
     private $attribution;
 
     /** @var string $utmSource */
-    private $utm_source;
+    private $utmSource;
 
-    /** @var ContactClient */
-    private $contactClient = null;
+    /** @var int $campaignId */
+    private $campaignId = 0;
 
-    /** @var int $campaign_id */
-    private $campaign_id = 0;
-
-    /** @var int $event_id */
-    private $event_id = 0;
+    /** @var int $eventId */
+    private $eventId = 0;
 
     /**
      * @param ORM\ClassMetadata $metadata
@@ -153,11 +149,6 @@ class Stat
 
         $builder->addNamedField('contactClientId', 'integer', 'contactclient_id', true);
 
-        // Previous version:
-        // $builder->createManyToOne('contactClient', 'ContactClient')
-        //     ->addJoinColumn('contactclient_id', 'id', true, false, null)
-        // ->build();
-
         $builder->addField('type', 'string');
 
         $builder->addDateAdded();
@@ -168,12 +159,10 @@ class Stat
             ->nullable()
             ->build();
 
-        $builder->addNamedField('contact', 'integer', 'contact_id', true);
-
-        $builder->addNamedField('utm_source', 'string', 'utm_source', true);
-
-        $builder->addNamedField('campaign_id', 'integer', 'campaign_id', false);
-        $builder->addNamedField('event_id', 'integer', 'event_id', false);
+        $builder->addNamedField('contactId', 'integer', 'contact_id', true);
+        $builder->addNamedField('utmSource', 'string', 'utm_source', true);
+        $builder->addNamedField('campaignId', 'integer', 'campaign_id', false);
+        $builder->addNamedField('eventId', 'integer', 'event_id', false);
 
         $builder->addIndex(
             ['contactclient_id', 'type', 'date_added'],
@@ -206,31 +195,26 @@ class Stat
     }
 
     /**
+     * @return array
+     */
+    public static function getAllTypes()
+    {
+        $result = [];
+        try {
+            $reflection = new \ReflectionClass(__CLASS__);
+            $result     = $reflection->getConstants();
+        } catch (\ReflectionException $e) {
+        }
+
+        return $result;
+    }
+
+    /**
      * @return mixed
      */
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @return int
-     */
-    public function getContactClientId()
-    {
-        return $this->contactClientId;
-    }
-
-    /**
-     * @param int $contactClientId
-     *
-     * @return Stat
-     */
-    public function setContactClientId($contactClientId)
-    {
-        $this->contactClientId = $contactClientId;
-
-        return $this;
     }
 
     /**
@@ -262,7 +246,7 @@ class Stat
     }
 
     /**
-     * @param $attribution
+     * @param float $attribution
      *
      * @return $this
      */
@@ -271,21 +255,6 @@ class Stat
         $this->attribution = $attribution;
 
         return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public static function getAllTypes()
-    {
-        $result = [];
-        try {
-            $reflection = new \ReflectionClass(__CLASS__);
-            $result     = $reflection->getConstants();
-        } catch (\ReflectionException $e) {
-        }
-
-        return $result;
     }
 
     /**
@@ -309,24 +278,21 @@ class Stat
     }
 
     /**
-     * @return Contact
+     * @return int
      */
-    public function getContact()
+    public function getContactId()
     {
-        return $this->contact;
+        return $this->contactId;
     }
 
     /**
-     * @param Contact|int $contact
+     * @param int $contactId
      *
      * @return Stat
      */
-    public function setContact($contact)
+    public function setContactId($contactId)
     {
-        if ($contact instanceof Contact) {
-            $contact = $contact->getId();
-        }
-        $this->contact = $contact;
+        $this->contactId = $contactId;
 
         return $this;
     }
@@ -336,7 +302,7 @@ class Stat
      */
     public function getUtmSource()
     {
-        return $this->utm_source;
+        return $this->utmSource;
     }
 
     /**
@@ -346,30 +312,27 @@ class Stat
      */
     public function setUtmSource($utmSource)
     {
-        $this->utm_source = $utmSource;
+        $this->utmSource = $utmSource;
 
         return $this;
     }
 
     /**
-     * @return ContactClient|int
+     * @return int
      */
-    public function getContactClient()
+    public function getContactClientId()
     {
-        return isset($this->contactClient)
-            ? $this->contactClient
-            : $this->contactClientId;
+        return $this->contactClientId;
     }
 
     /**
-     * @param ContactClient $contactClient
+     * @param int $contactClientId
      *
      * @return $this
      */
-    public function setContactClient(ContactClient $contactClient)
+    public function setContactClientId($contactClientId)
     {
-        $this->contactClient   = $contactClient;
-        $this->contactClientId = $contactClient->getId();
+        $this->contactClientId = $contactClientId;
 
         return $this;
     }
@@ -379,17 +342,17 @@ class Stat
      */
     public function getCampaignId()
     {
-        return $this->campaign_id;
+        return $this->campaignId;
     }
 
     /**
-     * @param int $campaign_id
+     * @param int $campaignId
      *
      * @return Stat
      */
-    public function setCampaignId($campaign_id)
+    public function setCampaignId($campaignId)
     {
-        $this->campaign_id = $campaign_id;
+        $this->campaignId = $campaignId;
 
         return $this;
     }
@@ -399,17 +362,17 @@ class Stat
      */
     public function getEventId()
     {
-        return $this->event_id;
+        return $this->eventId;
     }
 
     /**
-     * @param int $event_id
+     * @param int $eventId
      *
      * @return Stat
      */
-    public function setEventId($event_id)
+    public function setEventId($eventId)
     {
-        $this->event_id = $event_id;
+        $this->eventId = $eventId;
 
         return $this;
     }

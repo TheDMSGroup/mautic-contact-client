@@ -693,7 +693,7 @@ class ClientIntegration extends AbstractIntegration
         if ($this->test) {
             return;
         }
-        $integration_entity_id = !empty($this->payloadModel) ? $this->payloadModel->getExternalId() : null;
+        $integrationEntityId = !empty($this->payloadModel) ? $this->payloadModel->getExternalId() : null;
 
         /** @var contactClientModel $clientModel */
         $clientModel = $this->getContactClientModel();
@@ -702,6 +702,7 @@ class ClientIntegration extends AbstractIntegration
         $errors         = $this->getLogs('error');
         $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
         $this->addTrace('contactClientStatType', $this->statType);
+        $message = '';
         if ($this->valid) {
             $statLevel = 'INFO';
             switch ($this->contactClient->getType()) {
@@ -761,10 +762,9 @@ class ClientIntegration extends AbstractIntegration
             $this->contactClient,
             $this->statType,
             $this->contact,
-            //$this->getLogsYAML(),
             $this->getLogsJSON(),
             $message,
-            $integration_entity_id
+            $integrationEntityId
         );
         $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Event');
 
