@@ -21,19 +21,19 @@ class StatRepository extends CommonRepository
     /**
      * Fetch the base stat data from the database.
      *
-     * @param      $id
+     * @param      $contactClientId
      * @param      $type
      * @param null $fromDate
      * @param null $toDate
      *
      * @return array
      */
-    public function getStats($id, $type, $fromDate = null, $toDate = null)
+    public function getStats($contactClientId, $type, $fromDate = null, $toDate = null)
     {
         $q = $this->createQueryBuilder('s');
 
         $expr = $q->expr()->andX(
-            $q->expr()->eq('IDENTITY(s.contactclient)', (int) $id),
+            $q->expr()->eq('IDENTITY(s.contactclient)', (int) $contactClientId),
             $q->expr()->eq('s.type', ':type')
         );
 
@@ -54,5 +54,36 @@ class StatRepository extends CommonRepository
             ->setParameter('type', $type);
 
         return $q->getQuery()->getArrayResult();
+    }
+
+    /**
+     * @param                $contactClientId
+     * @param \DateTime|null $dateFrom
+     * @param \DateTime|null $dateTo
+     *
+     * @return array
+     */
+    public function getSourcesByClient($contactClientId, \DateTime $dateFrom = null, \DateTime $dateTo = null)
+    {
+        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
+
+        $q->select('distinct(s.utm_source)')
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_stats', 's')
+            ->where(
+                $q->expr()->eq('s.contactclient_id', (int) $contactClientId)
+            );
+
+        if ($dateFrom && $dateTo) {
+            $q->andWhere('s.date_added BETWEEN FROM_UNIXTIME(:dateFrom) AND FROM_UNIXTIME(:dateTo)')
+                ->setParameter('dateFrom', $dateFrom->getTimestamp(), \PDO::PARAM_INT)
+                ->setParameter('dateTo', $dateTo->getTimestamp(), \PDO::PARAM_INT);
+        }
+
+        $utmSources = [];
+        foreach ($q->execute()->fetchAll() as $row) {
+            $utmSources[] = $row['utm_source'];
+        }
+
+        return $utmSources;
     }
 }

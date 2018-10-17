@@ -452,7 +452,7 @@ class ContactClientModel extends FormModel
         }
         $chart      = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
         $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
-        $utmSources = $this->getSourcesByClient($contactClient);
+        $utmSources = $this->getStatRepository()->getSourcesByClient($contactClient->getId(), $dateFrom, $dateToAdjusted);
 
         if ('revenue' != $type) {
             foreach ($utmSources as $utmSource) {
@@ -541,29 +541,13 @@ class ContactClientModel extends FormModel
 
     /**
      * @param ContactClient $contactClient
+     * @param array         $filters
+     * @param array         $orderBy
+     * @param int           $page
+     * @param int           $limit
      *
-     * @return mixed
+     * @return array|\Doctrine\ORM\Internal\Hydration\IterableResult|\Doctrine\ORM\Tools\Pagination\Paginator
      */
-    private function getSourcesByClient(ContactClient $contactClient)
-    {
-        $utmSources = [];
-        $id         = $contactClient->getId();
-
-        $q = $this->em->createQueryBuilder()
-            ->from('MauticContactClientBundle:Stat', 'cc')
-            ->select('DISTINCT cc.utm_source');
-
-        $q->where(
-            $q->expr()->eq('cc.contactClientId', (int) $id)
-        );
-
-        foreach ($q->getQuery()->getScalarResult() as $row) {
-            $utmSources[] = $row['utm_source'];
-        }
-
-        return $utmSources;
-    }
-
     public function getFiles(
         ContactClient $contactClient,
         array $filters = [],
