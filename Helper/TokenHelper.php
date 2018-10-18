@@ -64,7 +64,7 @@ class TokenHelper
         'bool.yesno'     => 'yes or no',
         'bool.YN'        => 'Y or N',
         'bool.yn'        => 'y or n',
-        'bool.10'        => '1 or ',
+        'bool.10'        => '1 or 0',
         'bool.TrueFalse' => 'True or False',
         'bool.TRUEFALSE' => 'TRUE or FALSE',
         'bool.truefalse' => 'true or false',
@@ -74,20 +74,38 @@ class TokenHelper
 
     /** @var array */
     private $formatString = [
+        'case.lower'        => 'Lowercase',
+        'case.upper'        => 'Uppercase',
+        'case.first'        => 'Uppercase first letters',
         'strip.comma'       => 'Exclude commas',
+        'strip.html'        => 'Exclude HTML',
         'strip.doublequote' => 'Exclude double quotes',
         'strip.singlequote' => 'Exclude single quotes',
+        'strip.nonascii'    => 'Exclude non ASCII',
+        'strip.nonnumeric'  => 'Exclude non numeric',
+        'strip.numeric'     => 'Exclude numeric',
+        'trim.ws'           => 'Trim whitespace',
         'trim.255'          => 'Trim to 255 characters (varchar)',
+        'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
     ];
 
     /** @var array */
     private $formatText = [
+        'case.lower'        => 'Lowercase',
+        'case.upper'        => 'Uppercase',
+        'case.first'        => 'Uppercase first letters',
         'strip.comma'       => 'Exclude commas',
+        'strip.html'        => 'Exclude HTML',
         'strip.doublequote' => 'Exclude double quotes',
         'strip.singlequote' => 'Exclude single quotes',
+        'strip.nonascii'    => 'Exclude non ASCII',
+        'strip.nonnumeric'  => 'Exclude non numeric',
+        'strip.numeric'     => 'Exclude numeric',
+        'trim.ws'           => 'Trim whitespace',
         'trim.255'          => 'Trim to 255 characters (varchar)',
         'trim.65535'        => 'Trim to 65535 characters (text/blog)',
+        'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
     ];
 
@@ -100,11 +118,13 @@ class TokenHelper
     /** @var array List of all helpers we utilize, used to sanitize context to prevent filter exceptions. */
     private $helpers = [
         'bool',
+        'case',
         'date',
         'lpad',
         'rpad',
         'strip',
         'trim',
+        'url',
         'zip',
     ];
 
@@ -260,7 +280,6 @@ class TokenHelper
                     $this->engine->addHelper(
                         'trim',
                         [
-                            // Currently undocumented.
                             'ws'    => function ($value) {
                                 return trim((string) $value);
                             },
@@ -285,7 +304,6 @@ class TokenHelper
                     $this->engine->addHelper(
                         'strip',
                         [
-                            // Currently undocumented.
                             'comma'       => function ($value) {
                                 return str_replace(',', '', $value);
                             },
@@ -294,6 +312,49 @@ class TokenHelper
                             },
                             'singlequote' => function ($value) {
                                 return str_replace("'", '', $value);
+                            },
+                            'html'        => function ($value) {
+                                return strip_tags($value);
+                            },
+                            // Not currently documented (will not show up in suggestions).
+                            'nonascii'    => function ($value) {
+                                return utf8_strip_non_ascii($value);
+                            },
+                            'nonnumeric'  => function ($value) {
+                                return preg_replace('/[^0-9,.]/', '', $value);
+                            },
+                            'numeric'  => function ($value) {
+                                return preg_replace('/[0-9]+/', '', $value);
+                            },
+                        ]
+                    );
+                }
+                if (!$this->engine->hasHelper('case')) {
+                    $this->engine->addHelper(
+                        'case',
+                        [
+                            'first' => function ($value) {
+                                return utf8_ucfirst($value);
+                            },
+                            'lower' => function ($value) {
+                                return utf8_strtolower($value);
+                            },
+                            'upper' => function ($value) {
+                                return utf8_strtoupper($value);
+                            },
+                        ]
+                    );
+                }
+                if (!$this->engine->hasHelper('url')) {
+                    $this->engine->addHelper(
+                        'url',
+                        [
+                            // Not currently documented (will not show up in suggestions).
+                            'decode' => function ($value) {
+                                return rawurldecode($value);
+                            },
+                            'encode' => function ($value) {
+                                return rawurlencode($value);
                             },
                         ]
                     );
@@ -876,8 +937,8 @@ class TokenHelper
         $this->flattenArray($types, $result);
 
         if ($fileName) {
-            $result['file_count']       = 'number';
-            $result['file_date']        = 'datetime';
+            $result['file_count'] = 'number';
+            $result['file_date']  = 'datetime';
         }
 
         return $result;
