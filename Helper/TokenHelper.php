@@ -321,10 +321,10 @@ class TokenHelper
                                 return utf8_strip_non_ascii($value);
                             },
                             'nonnumeric'  => function ($value) {
-                                return preg_replace("/[^0-9,.]/", '', $value);
+                                return preg_replace('/[^0-9,.]/', '', $value);
                             },
                             'numeric'  => function ($value) {
-                                return preg_replace("/[0-9]+/", '', $value);
+                                return preg_replace('/[0-9]+/', '', $value);
                             },
                         ]
                     );
@@ -690,9 +690,9 @@ class TokenHelper
     private function eventTokenEncode($values)
     {
         list($campaignId, $eventId, $contactId) = $values;
-        $campaignIdString = $this->baseEncode((int) $campaignId);
-        $eventIdString    = $this->baseEncode((int) $eventId);
-        $contactIdString  = $this->baseEncode((int) $contactId);
+        $campaignIdString                       = $this->baseEncode((int) $campaignId);
+        $eventIdString                          = $this->baseEncode((int) $eventId);
+        $contactIdString                        = $this->baseEncode((int) $contactId);
 
         return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
     }
