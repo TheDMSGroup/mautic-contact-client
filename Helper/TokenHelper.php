@@ -64,7 +64,7 @@ class TokenHelper
         'bool.yesno'     => 'yes or no',
         'bool.YN'        => 'Y or N',
         'bool.yn'        => 'y or n',
-        'bool.10'        => '1 or ',
+        'bool.10'        => '1 or 0',
         'bool.TrueFalse' => 'True or False',
         'bool.TRUEFALSE' => 'TRUE or FALSE',
         'bool.truefalse' => 'true or false',
