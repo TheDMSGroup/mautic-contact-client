@@ -28,6 +28,7 @@ use MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
@@ -351,16 +352,25 @@ class ContactClientModel extends FormModel
         $query = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
         $stat  = new Stat();
 
+        $params = ['contactclient_id' => $contactClient->getId()];
+
+        $campaign_id = Request::createFromGlobals()->get('campaign_id');
+        if ($campaign_id) {
+            $params['campaign_id'] = $campaign_id;
+        }
+
         foreach ($stat->getAllTypes() as $type) {
+            $params['type'] = $type;
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',
                 'date_added',
-                ['contactclient_id' => $contactClient->getId(), 'type' => $type]
+                $params
             );
 
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
+
             $data = $query->loadAndBuildTimeData($q);
             foreach ($data as $val) {
                 if (0 !== $val) {
