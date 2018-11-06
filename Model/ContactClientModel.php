@@ -354,14 +354,14 @@ class ContactClientModel extends FormModel
 
         $params = ['contactclient_id' => $contactClient->getId()];
 
-        $campaign_id = Request::createFromGlobals()->get('campaign_id');
-        if ($campaign_id) {
-            $params['campaign_id'] = $campaign_id;
+        $campaignId = Request::createFromGlobals()->get('campaign');
+        if ($campaignId) {
+            $params['campaign_id'] = $campaignId;
         }
 
         foreach ($stat->getAllTypes() as $type) {
             $params['type'] = $type;
-            $q = $query->prepareTimeDataQuery(
+            $q              = $query->prepareTimeDataQuery(
                 'contactclient_stats',
                 'date_added',
                 $params
@@ -464,16 +464,20 @@ class ContactClientModel extends FormModel
         $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
         $utmSources = $this->getStatRepository()->getSourcesByClient($contactClient->getId(), $dateFrom, $dateToAdjusted);
 
+        $params     = ['contactclient_id' => $contactClient->getId()];
+        $camapignId = Request::createFromGlobals()->get('campaign');
+        if ($camapignId) {
+            $params['campaign_id'] = $camapignId;
+        }
+
         if ('revenue' != $type) {
+            $params['type'] = $type;
             foreach ($utmSources as $utmSource) {
-                $q = $query->prepareTimeDataQuery(
+                $params['utm_source'] = $utmSource;
+                $q                    = $query->prepareTimeDataQuery(
                     'contactclient_stats',
                     'date_added',
-                    [
-                        'contactclient_id' => $contactClient->getId(),
-                        'type'             => $type,
-                        'utm_source'       => $utmSource,
-                    ]
+                    $params['utm_source']
                 );
 
                 if (!in_array($unit, ['H', 'i', 's'])) {
@@ -516,11 +520,12 @@ class ContactClientModel extends FormModel
                 }
             }
         } else {
+            $params['type'] = Stat::TYPE_CONVERTED;
             // Add attribution to the chart.
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',
                 'date_added',
-                ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_CONVERTED]
+                $params
             );
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
