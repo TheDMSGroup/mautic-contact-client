@@ -40,7 +40,6 @@ class ChartFilterType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $stop            = 'here';
         $request         = Request::createFromGlobals();
         $contactClientId = $request->get('contactclient');
 
