@@ -465,8 +465,21 @@ class ContactClientModel extends FormModel
         $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
         $utmSources = $this->getStatRepository()->getSourcesByClient($contactClient->getId(), $dateFrom, $dateToAdjusted);
 
-        $params     = ['contactclient_id' => $contactClient->getId()];
-        $campaignId = Request::createFromGlobals()->get('campaign', false);
+        $params  = ['contactclient_id' => $contactClient->getId()];
+        $request = Request::createFromGlobals();
+
+        if ($request->query->has('campaign')) {
+            $campaignId = $request->query->get('campaign');
+        } else {
+            $chartFilter = $request->request->get('chartfilter', []);
+            if (isset($chartFilter['campaign'])) {
+                $campaignId = $chartFilter['campaign'];
+            }
+        }
+
+        if (isset($campaignId)) {
+            $params['campaign_id'] = (int) $campaignId;
+        }
 
         if ('revenue' != $type) {
             $params['type'] = $type;
@@ -475,13 +488,8 @@ class ContactClientModel extends FormModel
                 $q                    = $query->prepareTimeDataQuery(
                     'contactclient_stats',
                     'date_added',
-                    $params['utm_source']
+                    $params
                 );
-
-                if ($campaignId) {
-                    $q->andWhere($q->expr()->eq('t.campaign_id', ':campaignId'))
-                        ->setParameter('campaignId', $params);
-                }
 
                 if (!in_array($unit, ['H', 'i', 's'])) {
                     // For some reason, Mautic only sets UTC in Query Date builder
@@ -530,11 +538,6 @@ class ContactClientModel extends FormModel
                 'date_added',
                 $params
             );
-
-            if ($campaignId) {
-                $q->andWhere($q->expr()->eq('t.campaign_id', ':campaignId'))
-                    ->setParameter('campaignId', $params);
-            }
 
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
@@ -671,6 +674,5 @@ class ContactClientModel extends FormModel
         $campaignRepo = $this->em->getRepository('MauticCampaignBundle:Campaign');
 
         return $campaignRepo->getEntities(['filter'=>['column' => 'canvasSettings', 'expr' => 'like', 'value' => "%'contactclient': $contactclientId,%"]]);
-
     }
 }

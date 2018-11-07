@@ -14,7 +14,6 @@ namespace MauticPlugin\MauticContactClientBundle\Form\Type;
 use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -41,9 +40,8 @@ class ChartFilterType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $stop = 'here';
-        $request = Request::createFromGlobals();
-        $campaignId = $request->get('campaign', '');
+        $stop            = 'here';
+        $request         = Request::createFromGlobals();
         $contactClientId = $request->get('contactclient');
 
         $campaigns = [];
@@ -68,9 +66,7 @@ class ChartFilterType extends AbstractType
                 'empty_data'  => 'All Campaigns',
                 'required'    => false,
                 'disabled'    => false,
-                'data'        => isset($options['data']['camapign'])
-                                    ? $options['data']['camapign']
-                                    : $campaignId
+                'data'        => $options['data']['campaign'],
             ]
         );
 
