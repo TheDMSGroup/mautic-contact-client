@@ -141,9 +141,6 @@ class ClientIntegration extends AbstractIntegration
         /** @var Contact $contactModel */
         $clientModel = $this->getContactClientModel();
         $client      = $clientModel->getEntity($this->event['config']['contactclient']);
-        if (!$client || false === $client->getIsPublished()) {
-            return false;
-        }
 
         $this->sendContact($client, $contact, false);
 
@@ -271,15 +268,16 @@ class ClientIntegration extends AbstractIntegration
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
      *
-     * @param ContactClient $client
-     * @param Contact       $contact
-     * @param bool          $test
-     * @param bool          $force
+     * @param ContactClient|null $client
+     * @param Contact            $contact
+     * @param bool               $test
+     * @param bool               $force
      *
      * @return $this
+     * @throws Exception
      */
     public function sendContact(
-        ContactClient $client,
+        ContactClient $client = null,
         Contact $contact,
         $test = false,
         $force = false
@@ -289,16 +287,24 @@ class ClientIntegration extends AbstractIntegration
 
         try {
             if (!$client && !$this->test) {
-                throw new \InvalidArgumentException(
-                    $translator->trans('mautic.contactclient.sendcontact.error.client.load')
+                throw new ContactClientException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.client.load'),
+                    0,
+                    null,
+                    Stat::TYPE_INVALID,
+                    false
                 );
             }
             $this->contactClient = $client;
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
             if (!$contact && !$this->test) {
-                throw new \InvalidArgumentException(
-                    $translator->trans('mautic.contactclient.sendcontact.error.contact.load')
+                throw new ContactClientException(
+                    $translator->trans('mautic.contactclient.sendcontact.error.contact.load'),
+                    0,
+                    null,
+                    Stat::TYPE_INVALID,
+                    false
                 );
             }
             $this->contact = $contact;
