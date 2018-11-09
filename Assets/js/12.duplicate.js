@@ -2,6 +2,7 @@
 Mautic.contactclientDuplicate = function () {
     var $duplicate = mQuery('#contactclient_duplicate:first:not(.duplicate-checked)');
     if ($duplicate.length) {
+        $duplicate.addClass('duplicate-checked');
 
         var duplicateJSONEditor;
 
@@ -56,6 +57,5 @@ Mautic.contactclientDuplicate = function () {
                 $duplicateJSONEditor.show();
             }
         });
-        $duplicate.addClass('duplicate-checked');
     }
 };

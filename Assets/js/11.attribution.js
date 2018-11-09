@@ -2,6 +2,8 @@
 Mautic.contactclientAttribution = function () {
     var $attribution = mQuery('#contactclient_attribution_settings:first:not(.attribution-checked)');
     if ($attribution.length) {
+        $attribution.addClass('attribution-checked');
+        mQuery('label[for=contactclient_attribution_settings]').addClass('hide');
 
         /**
          * Get all keys/fields from the API Payload responses.
@@ -139,9 +141,7 @@ Mautic.contactclientAttribution = function () {
                     }
                 });
 
-                $attribution.addClass('attribution-checked');
                 $attributionJSONEditor.show();
-                mQuery('label[for=contactclient_attribution_settings]').addClass('hide');
             }
         });
     }

@@ -4,8 +4,10 @@
 }
 
 #contactclient_schedule_hours_widget .dayContainer {
-    width: 86px;
-    height: 150px;
+    min-width: 86px;
+    min-height: 130px;
+    font-weight: 600;
+    line-height: 2em;
 }
 
 #contactclient_schedule_hours_widget .input-group-addon {
@@ -22,3 +24,20 @@
     border: 0;
 }
 
+#contactclient_schedule_hours_widget .schedule-toggle.btn-success:before {
+    font-family: FontAwesome, "Open Sans", Helvetica, Arial, sans-serif;
+    content: "\f046 \00A0 \00A0 Open";
+    /*font-size:1.3em;*/
+    /*font-weight: lighter;*/
+    font-size: 13px;
+    padding-left: 4px;
+}
+
+#contactclient_schedule_hours_widget .schedule-toggle.btn-danger:before {
+    font-family: FontAwesome, "Open Sans", Helvetica, Arial, sans-serif;
+    content: "\f096 \00A0 \00A0 Closed";
+    /*font-size:1.3em;*/
+    /*font-weight: lighter;*/
+    font-size: 13px;
+    padding-left: 4px;
+}
