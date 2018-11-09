@@ -31,7 +31,7 @@ class AuthRepository extends CommonRepository
         $q     = $this->createQueryBuilder($alias);
         $q->select('partial '.$alias.'.{key, value}')
             ->where(
-                $q->expr()->eq($alias.' .contactclient_id', (int) $contactClientId)
+                $q->expr()->eq($alias.'.contactclient_id', (int) $contactClientId)
             );
 
         return $q->getQuery()->getArrayResult();
