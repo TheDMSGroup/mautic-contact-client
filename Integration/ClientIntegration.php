@@ -274,6 +274,7 @@ class ClientIntegration extends AbstractIntegration
      * @param bool               $force
      *
      * @return $this
+     *
      * @throws Exception
      */
     public function sendContact(
@@ -298,7 +299,7 @@ class ClientIntegration extends AbstractIntegration
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
-            // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
+            // Schedule - Check schedule rules to ensure we can send a contact now, do not retry if outside of window.
             $this->evaluateSchedule();
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
@@ -323,11 +324,11 @@ class ClientIntegration extends AbstractIntegration
                 ->setCampaign($this->getCampaign())
                 ->setEvent($this->event);
 
+            // Send all operations (API) or queue the contact (file).
             $this->payloadModel->run();
 
             $this->valid = $this->payloadModel->getValid();
 
-            // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
                 $this->statType = Stat::TYPE_CONVERTED;
             }
@@ -414,6 +415,7 @@ class ClientIntegration extends AbstractIntegration
      * Evaluates the schedule given the client type.
      *
      * @return $this
+     *
      * @throws ContactClientException
      */
     private function evaluateSchedule()
@@ -430,6 +432,7 @@ class ClientIntegration extends AbstractIntegration
      * @param ContactClient|null $contactClient
      *
      * @return ApiPayload|FilePayload|object
+     *
      * @throws ContactClientException
      */
     private function getPayloadModel(ContactClient $contactClient = null)
@@ -458,6 +461,7 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @return ApiPayload|object
+     *
      * @throws Exception
      */
     private function getApiPayloadModel()
@@ -472,6 +476,7 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @return FilePayload|object
+     *
      * @throws Exception
      */
     private function getFilePayloadModel()
@@ -508,6 +513,7 @@ class ClientIntegration extends AbstractIntegration
      * Attempt to discern if we are being triggered by/within a campaign.
      *
      * @return \Mautic\CampaignBundle\Entity\Campaign|mixed|null
+     *
      * @throws Exception
      */
     private function getCampaign()
@@ -1137,6 +1143,7 @@ class ClientIntegration extends AbstractIntegration
      * @param string $attributionSettings
      *
      * @return bool
+     *
      * @throws Exception
      */
     public function sendTestApi(&$apiPayload, $attributionDefault = '', $attributionSettings = '')

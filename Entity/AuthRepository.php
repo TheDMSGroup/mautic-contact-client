@@ -19,19 +19,55 @@ use Mautic\CoreBundle\Entity\CommonRepository;
 class AuthRepository extends CommonRepository
 {
     /**
-     * Gets all key-value pairs for a contactClient.
+     * Gets all token key-value pairs for a contactClient that were previously captured by succesful
+     * auth requests and persisted for re-use.
      *
-     * @param int $contactClientId
+     * @param      $contactClientId
+     * @param      $operationId
+     * @param bool $test
      *
-     * @return int
+     * @return array
      */
-    public function getByContactClient($contactClientId)
+    public function getPreviousPayloadAuthTokensByContactClient($contactClientId, $operationId = null, $test = false)
     {
-        $alias = $this->getTableAlias();
-        $q     = $this->createQueryBuilder($alias);
-        $q->select('partial '.$alias.'.{key, value}')
+        $result = [];
+        $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q->select('a.operation, a.type, a.field, a.val')
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_auth', 'a')
             ->where(
-                $q->expr()->eq($alias.'.contactclient_id', (int) $contactClientId)
+                $q->expr()->eq('a.contactclient_id', (int) $contactClientId),
+                $q->expr()->eq('a.test', (int) $test)
+            );
+
+        if ($operationId) {
+            $q->andWhere(
+                $q->expr()->eq('a.operation', (int) $operationId)
+            );
+        }
+
+        foreach ($q->execute()->fetchAll() as $row) {
+            $token          = 'payload.operations.'.$row['operation'].'.response.'.$row['type'].'.'.$row['field'];
+            $result[$token] = $row['val'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param      $contactClientId
+     * @param      $operationId
+     * @param bool $test
+     *
+     * @return array
+     */
+    public function flushPreviousAuthTokens($contactClientId, $operationId, $test)
+    {
+        $q = $this->createQueryBuilder('a');
+        $q->delete()
+            ->where(
+                $q->expr()->eq('a.contactClient', (int) $contactClientId),
+                $q->expr()->eq('a.operation', (int) $operationId),
+                $q->expr()->eq('a.test', (int) $test)
             );
 
         return $q->getQuery()->getArrayResult();

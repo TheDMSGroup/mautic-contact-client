@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 
 /**
- * Class Auth
+ * Class Auth.
  *
  * Use to store re-usable authentication tokens for the Clients that need them (oAuth1a for example).
  */
@@ -27,14 +27,23 @@ class Auth
     /** @var int $contactClient */
     private $contactClient;
 
-    /** @var string $key */
-    private $key;
+    /** @var string $field */
+    private $field;
 
     /** @var string $value */
-    private $value;
+    private $val;
 
     /** @var \DateTime $dateAdded */
     private $dateAdded;
+
+    /** @var bool */
+    private $test;
+
+    /** @var int */
+    private $operation;
+
+    /** @var string */
+    private $type;
 
     /**
      * Cache constructor.
@@ -42,6 +51,9 @@ class Auth
     public function __construct()
     {
         $this->dateAdded = new \DateTime();
+        $this->test      = false;
+        $this->operation = 0;
+        $this->type      = 'global';
     }
 
     /**
@@ -51,23 +63,32 @@ class Auth
     {
         $builder = new ClassMetadataBuilder($metadata);
 
-        $builder->addId();
-
         $builder->setTable('contactclient_auth');
 
-        $builder->addNullableField('key', 'string');
-
-        $builder->addNullableField('value', 'string');
+        $builder->addId();
 
         $builder->addNamedField('contactClient', 'integer', 'contactclient_id');
+
+        $builder->addNamedField('operation', 'integer', 'operation');
+
+        $builder->addNamedField('type', 'string', 'type');
+
+        $builder->addNullableField('field', 'string');
+
+        $builder->addNullableField('val', 'text');
+
+        $builder->createField('test', 'boolean')
+            ->columnName('test')
+            ->build();
 
         $builder->addDateAdded();
 
         $builder->addIndex(
             [
                 'contactclient_id',
+                'test',
             ],
-            'contactclient_auth_contactclient_id'
+            'contactclient_auth_contactclient_id_test'
         );
 
         $builder->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\AuthRepository');
@@ -76,19 +97,59 @@ class Auth
     /**
      * @return string
      */
-    public function getKey()
+    public function getType()
     {
-        return $this->key;
+        return $this->type;
     }
 
     /**
-     * @param string $key
+     * @param $type
      *
      * @return $this
      */
-    public function setKey($key)
+    public function setType($type)
     {
-        $this->key = $key;
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOperation()
+    {
+        return $this->operation;
+    }
+
+    /**
+     * @param $operation
+     *
+     * @return $this
+     */
+    public function setOperation($operation)
+    {
+        $this->operation = $operation;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getTest()
+    {
+        return $this->test;
+    }
+
+    /**
+     * @param $test
+     *
+     * @return $this
+     */
+    public function setTest($test)
+    {
+        $this->test = $test;
 
         return $this;
     }
@@ -96,9 +157,29 @@ class Auth
     /**
      * @return string
      */
-    public function getValue()
+    public function getField()
     {
-        return $this->value;
+        return $this->field;
+    }
+
+    /**
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function setField($field)
+    {
+        $this->field = $field;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVal()
+    {
+        return $this->val;
     }
 
     /**
@@ -106,9 +187,9 @@ class Auth
      *
      * @return $this
      */
-    public function setValue($value)
+    public function setVal($val)
     {
-        $this->value = $value;
+        $this->val = $val;
 
         return $this;
     }
@@ -152,5 +233,4 @@ class Auth
 
         return $this;
     }
-
 }

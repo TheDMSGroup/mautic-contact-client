@@ -46,7 +46,7 @@ class ContactClientException extends \Exception
      * @param int             $code
      * @param \Exception|null $previous
      * @param string          $statType
-     * @param bool            $retry
+     * @param bool            $retry    indicates this send *can* be retried if the client is configured to allow it
      * @param null            $field
      * @param array           $data
      */

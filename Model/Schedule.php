@@ -328,7 +328,7 @@ class Schedule
                     $endDate   = \DateTime::createFromFormat('H:i', $timeTill, $this->timezone);
                     if (
                         !($this->now > $startDate && $this->now < $endDate)
-                        && !($timeFrom == '00:00' && $timeTill == '23:59')
+                        && !('00:00' == $timeFrom && '23:59' == $timeTill)
                     ) {
                         throw new ContactClientException(
                             'This contact client does not allow contacts during this time of day.',

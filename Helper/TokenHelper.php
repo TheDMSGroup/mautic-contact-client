@@ -167,6 +167,31 @@ class TokenHelper
     }
 
     /**
+     * Scan a string for tokens using the same engine.
+     *
+     * @param $string
+     *
+     * @return array a unique list of all the raw mustache tags found in the string
+     */
+    public function getTokens($string)
+    {
+        $tokens      = [];
+        $scanResults = $this->engine->getTokenizer()->scan($string);
+
+        foreach ($scanResults as $scanResult) {
+            if (
+                isset($scanResult['type'])
+                && isset($scanResult['name'])
+                && \Mustache_Tokenizer::T_ESCAPED === $scanResult['type']
+            ) {
+                $tokens[$scanResult['name']] = true;
+            }
+        }
+
+        return array_keys($tokens);
+    }
+
+    /**
      * Add token helpers/filters to the engine.
      *
      * @param $type
@@ -726,7 +751,7 @@ class TokenHelper
      */
     public function addContext($context = [])
     {
-        if (!$context) {
+        if (!$context || empty($context)) {
             return $this;
         }
         $this->nestContext($context);

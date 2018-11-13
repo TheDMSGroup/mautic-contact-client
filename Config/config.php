@@ -17,11 +17,11 @@ return [
 
     'routes' => [
         'main' => [
-            'mautic_contactclient_index'           => [
+            'mautic_contactclient_index'               => [
                 'path'       => '/contactclient/{page}',
                 'controller' => 'MauticContactClientBundle:ContactClient:index',
             ],
-            'mautic_contactclient_action'          => [
+            'mautic_contactclient_action'              => [
                 'path'         => '/contactclient/{objectAction}/{objectId}',
                 'controller'   => 'MauticContactClientBundle:ContactClient:execute',
                 'requirements' => [
@@ -29,7 +29,7 @@ return [
                     'objectId'     => '\w+',
                 ],
             ],
-            'mautic_contactclient_transactions' => [
+            'mautic_contactclient_transactions'        => [
                 'path'         => '/contactclient/view/{objectId}/transactions/{page}',
                 'controller'   => 'MauticContactClientBundle:Transactions:index',
                 'requirements' => [
@@ -51,7 +51,7 @@ return [
                     'objectId' => '\d+',
                 ],
             ],
-            'mautic_contactclient_files' => [
+            'mautic_contactclient_files'               => [
                 'path'         => '/contactclient/view/{objectId}/files/{page}',
                 'controller'   => 'MauticContactClientBundle:Files:index',
                 'requirements' => [
@@ -59,7 +59,7 @@ return [
                     'page'     => '\d+',
                 ],
             ],
-            'mautic_contactclient_files_file'   => [
+            'mautic_contactclient_files_file'          => [
                 'path'         => '/contactclient/view/{objectId}/files/file/{fileId}',
                 'controller'   => 'MauticContactClientBundle:Files:file',
                 'requirements' => [
@@ -121,7 +121,7 @@ return [
             ],
         ],
         'models'       => [
-            'mautic.contactclient.model.contactclient' => [
+            'mautic.contactclient.model.contactclient'  => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ContactClientModel',
                 'arguments' => [
                     'mautic.form.model.form',
@@ -131,16 +131,24 @@ return [
                     'mautic.lead.model.lead',
                 ],
             ],
-            'mautic.contactclient.model.apipayload'    => [
+            'mautic.contactclient.model.apipayload'     => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ApiPayload',
                 'arguments' => [
                     'mautic.contactclient.model.contactclient',
                     'mautic.contactclient.service.transport',
                     'mautic.contactclient.helper.token',
                     'mautic.contactclient.model.schedule',
+                    'mautic.contactclient.model.apipayloadauth',
                 ],
             ],
-            'mautic.contactclient.model.filepayload'   => [
+            'mautic.contactclient.model.apipayloadauth' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Model\ApiPayloadAuth',
+                'arguments' => [
+                    'mautic.contactclient.helper.token',
+                    'doctrine.orm.entity_manager',
+                ],
+            ],
+            'mautic.contactclient.model.filepayload'    => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\FilePayload',
                 'arguments' => [
                     'mautic.contactclient.model.contactclient',
@@ -157,10 +165,10 @@ return [
                     'mautic.contactclient.helper.utmsource',
                 ],
             ],
-            'mautic.contactclient.model.cache'         => [
+            'mautic.contactclient.model.cache'          => [
                 'class' => 'MauticPlugin\MauticContactClientBundle\Model\Cache',
             ],
-            'mautic.contactclient.model.schedule'      => [
+            'mautic.contactclient.model.schedule'       => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Model\Schedule',
                 'arguments' => [
                     'doctrine.orm.default_entity_manager',
