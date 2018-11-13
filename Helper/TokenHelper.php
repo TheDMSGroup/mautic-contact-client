@@ -167,31 +167,6 @@ class TokenHelper
     }
 
     /**
-     * Scan a string for tokens using the same engine.
-     *
-     * @param $string
-     *
-     * @return array a unique list of all the raw mustache tags found in the string
-     */
-    public function getTokens($string)
-    {
-        $tokens      = [];
-        $scanResults = $this->engine->getTokenizer()->scan($string);
-
-        foreach ($scanResults as $scanResult) {
-            if (
-                isset($scanResult['type'])
-                && isset($scanResult['name'])
-                && \Mustache_Tokenizer::T_ESCAPED === $scanResult['type']
-            ) {
-                $tokens[$scanResult['name']] = true;
-            }
-        }
-
-        return array_keys($tokens);
-    }
-
-    /**
      * Add token helpers/filters to the engine.
      *
      * @param $type
@@ -348,7 +323,7 @@ class TokenHelper
                             'nonnumeric'  => function ($value) {
                                 return preg_replace('/[^0-9,.]/', '', $value);
                             },
-                            'numeric'  => function ($value) {
+                            'numeric'     => function ($value) {
                                 return preg_replace('/[0-9]+/', '', $value);
                             },
                         ]
@@ -386,6 +361,31 @@ class TokenHelper
                 }
                 break;
         }
+    }
+
+    /**
+     * Scan a string for tokens using the same engine.
+     *
+     * @param $string
+     *
+     * @return array a unique list of all the raw mustache tags found in the string
+     */
+    public function getTokens($string)
+    {
+        $tokens      = [];
+        $scanResults = $this->engine->getTokenizer()->scan($string);
+
+        foreach ($scanResults as $scanResult) {
+            if (
+                isset($scanResult['type'])
+                && isset($scanResult['name'])
+                && \Mustache_Tokenizer::T_ESCAPED === $scanResult['type']
+            ) {
+                $tokens[$scanResult['name']] = true;
+            }
+        }
+
+        return array_keys($tokens);
     }
 
     /**
@@ -648,20 +648,18 @@ class TokenHelper
                         foreach (['headers', 'body'] as $fieldType) {
                             if (!empty($operation[$opType][$fieldType])) {
                                 $fieldSet = [];
-                                if ('request' === $opType) {
+                                if (
+                                    'response' === $opType
+                                    && $id === $operationId
+                                    && null !== $responseActual[$fieldType]
+                                ) {
+                                    // While running in realtime.
+                                    $fieldSet = $responseActual[$fieldType];
+                                } else {
                                     foreach ($operation[$opType][$fieldType] as $field) {
                                         if (null !== $field['key']) {
-                                            if (null !== $field['value']) {
-                                                $fieldSet[$field['key']] = $field['value'];
-                                            }
+                                            $fieldSet[$field['key']] = isset($field['value']) ? $field['value'] : null;
                                         }
-                                    }
-                                } elseif ('response' === $opType) {
-                                    if (
-                                        $id === $operationId
-                                        && null !== $responseActual[$fieldType]
-                                    ) {
-                                        $fieldSet = $responseActual[$fieldType];
                                     }
                                 }
                                 $this->context['payload']['operations'][$id][$opType][$fieldType] = $fieldSet;
@@ -921,7 +919,11 @@ class TokenHelper
                     $value = $this->describe($value, $keys.' '.$key, $sort, ($payload || 'payload' === $key));
                 }
             } else {
-                if (is_bool($value) || null === $value || 0 === $value) {
+                if ($payload) {
+                    // $value = implode('.', explode(' ', trim($keys))).'.'.$key;
+                    // Use the last key for easy finding as these get long.
+                    $value = $key;
+                } elseif (is_bool($value) || null === $value || 0 === $value) {
                     // Discern the "label" given the key and previous keys conjoined.
                     $totalKey = str_replace('_', ' ', $keys.' '.trim($key));
                     preg_match_all('/(?:|[A-Z])[a-z]*/', $totalKey, $words);
@@ -935,10 +937,6 @@ class TokenHelper
                     $value = trim(preg_replace('/\s+/', ' ', implode(' ', $words[0])));
                     // One exception is UTM variables.
                     $value = str_replace('Utm ', 'UTM ', $value);
-                } elseif ($payload) {
-                    // For payload tokens, don't label at all but express the path to the token instead.
-                    // This is for advanced use.
-                    $value = implode('.', explode(' ', trim($keys))).'.'.$key;
                 }
             }
         }

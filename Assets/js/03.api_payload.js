@@ -80,7 +80,7 @@ Mautic.contactclientApiPayload = function () {
                         if (apiPayloadJSONEditor.getValue() !== obj) {
                             // console.log('Set value to JSON editor');
                             apiPayloadJSONEditor.setValue(obj);
-                            setTimeout(function(){
+                            setTimeout(function () {
                                 $apiPayloadJSONEditor.find('.codeMirror-active').trigger('cmUpdate');
                             }, 50);
                         }
@@ -345,6 +345,37 @@ Mautic.contactclientApiPayload = function () {
                                 }
                                 return fields;
                             },
+                            // Get all available tokens up to the current operation number.
+                            allFields = function (i) {
+                                var fields = {};
+                                if (i === 0) {
+                                    return fields;
+                                }
+                                var obj = apiPayloadJSONEditor.getValue();
+                                if (
+                                    typeof obj === 'object'
+                                    && typeof obj.operations === 'object'
+                                ) {
+                                    mQuery.each(obj.operations, function (index, operation) {
+                                        mQuery.each(['request', 'response'], function (index, part) {
+                                            mQuery.each(['headers', 'body'], function (index, type) {
+                                                if (typeof operation[part][type] !== 'undefined') {
+                                                    mQuery.each(operation[part][type], function (index, field) {
+                                                        if (field.key.length) {
+                                                            fields[field.key] = field.value;
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        });
+                                        if (i === index) {
+                                            return false;
+                                        }
+                                    });
+
+                                }
+                                return fields;
+                            },
                             // requestTemplate = function (i) {
                             //     var obj = apiPayloadJSONEditor.getValue(),
                             //         template = '';
@@ -531,7 +562,7 @@ Mautic.contactclientApiPayload = function () {
                                             }
                                         }
                                     }
-                                }, 500);
+                                }, 1000);
                             }).addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }
