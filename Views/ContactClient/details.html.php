@@ -126,7 +126,7 @@ $website = $item->getWebsite();
 <!--                                --><?php //echo $view->render(
 //                                     'MauticContactClientBundle:ContactClient:datatable.html.php',
 //                                     ['tableData' => $tableData]
-//                                 ); ?>
+//                                 );?>
 <!--                            </div>-->
                         </div>
                     </div>
