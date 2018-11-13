@@ -121,12 +121,13 @@ $website = $item->getWebsite();
                                     ['chartData' => $stats, 'chartType' => 'line', 'chartHeight' => 300]
                                 ); ?>
                             </div>
-                            <div class="pt-0 pl-15 pb-10 pr-15">
-                                <?php echo $view->render(
-                                    'MauticContactClientBundle:ContactClient:datatable.html.php',
-                                    ['tableData' => $tableData]
-                                ); ?>
-                            </div>
+<!-- depracated DataTable  -->
+<!--                            <div class="pt-0 pl-15 pb-10 pr-15">-->
+<!--                                --><?php //echo $view->render(
+//                                     'MauticContactClientBundle:ContactClient:datatable.html.php',
+//                                     ['tableData' => $tableData]
+//                                 ); ?>
+<!--                            </div>-->
                         </div>
                     </div>
                 </div>
