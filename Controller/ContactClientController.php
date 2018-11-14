@@ -247,10 +247,12 @@ class ContactClientController extends FormController
             // $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
             $args['viewParameters']['search']          = $search;
             $args['viewParameters']['order']           = $order;
+
+            unset($chartFilterValues['campaign']);
+            $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
         }
 
-        unset($chartFilterValues['campaign']);
-        $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
+
 
         return $args;
     }
