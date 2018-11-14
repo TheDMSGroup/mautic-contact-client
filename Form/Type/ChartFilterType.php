@@ -11,10 +11,13 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Form\Type;
 
+use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class FilterType.
@@ -37,6 +40,35 @@ class ChartFilterType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $request         = Request::createFromGlobals();
+        $contactClientId = $request->get('contactclient');
+
+        $campaigns = [];
+        /** @var Campaign $campaign */
+        foreach ($this->factory->getModel('contactclient')->getCampaigns($contactClientId) as $campaign) {
+            $campaigns[$campaign->getId()] = $campaign->getName();
+        }
+
+        $builder->add(
+            'campaign',
+            ChoiceType::class,
+            [
+                'choices'     => $campaigns,
+                'attr'        => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.contactclient.transactions.campaign_tooltip',
+                ],
+                'expanded'    => false,
+                'multiple'    => false,
+                'label'       => 'mautic.contactclient.transactions.campaign_select',
+                'label_attr'  => ['class' => 'control-label'],
+                'empty_data'  => 'All Campaigns',
+                'required'    => false,
+                'disabled'    => false,
+                'data'        => $options['data']['campaign'],
+            ]
+        );
+
         $typeChoices = [
             // 'All Events' => 'All Events',
             // ''           => '--- By Source ---',
