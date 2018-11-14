@@ -28,9 +28,9 @@ class ApiPayload
 {
     const SETTING_DEF_ATTEMPTS        = 3;
 
-    const SETTING_DEF_AUTOUPDATE      = true;
-
     const SETTING_DEF_AUTORETRY       = false;
+
+    const SETTING_DEF_AUTOUPDATE      = true;
 
     const SETTING_DEF_CONNECT_TIMEOUT = 10;
 
@@ -63,9 +63,6 @@ class ApiPayload
 
     /** @var object */
     protected $payload;
-
-    /** @var array */
-    protected $operations = [];
 
     /** @var bool */
     protected $test = false;
@@ -106,6 +103,15 @@ class ApiPayload
     /** @var bool */
     protected $updatedFields = false;
 
+    /** @var bool True to allow an authentication pre-flight check. Set to false to run as normal. */
+    protected $allowPreAuthAttempt = true;
+
+    /** @var ApiPayloadAuth */
+    protected $apiPayloadAuth;
+
+    /** @var int Starting operation ID. */
+    protected $start = 0;
+
     /**
      * ApiPayload constructor.
      *
@@ -113,17 +119,20 @@ class ApiPayload
      * @param Transport          $transport
      * @param TokenHelper        $tokenHelper
      * @param Schedule           $scheduleModel
+     * @param ApiPayloadAuth     $apiPayloadAuth
      */
     public function __construct(
         contactClientModel $contactClientModel,
         Transport $transport,
         tokenHelper $tokenHelper,
-        Schedule $scheduleModel
+        Schedule $scheduleModel,
+        ApiPayloadAuth $apiPayloadAuth
     ) {
         $this->contactClientModel = $contactClientModel;
         $this->transport          = $transport;
         $this->tokenHelper        = $tokenHelper;
         $this->scheduleModel      = $scheduleModel;
+        $this->apiPayloadAuth     = $apiPayloadAuth;
     }
 
     /**
@@ -133,8 +142,9 @@ class ApiPayload
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'transport', 'tokenHelper', 'scheduleModel'])
-    {
+    public function reset(
+        $exclusions = ['contactClientModel', 'transport', 'tokenHelper', 'scheduleModel', 'apiPayloadAuth']
+    ) {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
                      array_flip($exclusions)
@@ -273,14 +283,6 @@ class ApiPayload
     }
 
     /**
-     * @return array
-     */
-    public function getSettings()
-    {
-        return $this->settings;
-    }
-
-    /**
      * @return bool
      */
     public function getValid()
@@ -329,6 +331,37 @@ class ApiPayload
      */
     public function run()
     {
+        $this->validateOperations();
+        $this->prepareTransport();
+        $this->prepareTokenHelper();
+        $this->preparePayloadAuth();
+
+        try {
+            $this->runApiOperations();
+        } catch (\Exception $e) {
+            if (
+                $this->start
+                && $e instanceof ContactClientException
+                && Stat::TYPE_AUTH === $e->getStatType()
+            ) {
+                // We failed the pre-auth run due to an auth-related issue. Flush the tokenHelper.
+                $this->prepareTokenHelper();
+                // Try a standard run from the top assuming authentication is needed again.
+                $this->start = 0;
+                $this->runApiOperations();
+            } else {
+                throw $e;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @throws ContactClientException
+     */
+    private function validateOperations()
+    {
         if (!isset($this->payload->operations) || !count($this->payload->operations)) {
             throw new ContactClientException(
                 'There are no API operations to run.',
@@ -338,23 +371,68 @@ class ApiPayload
                 false
             );
         }
-        // We will create and reuse the same Transport session throughout our operations.
-        /** @var Transport $transport */
-        $transport     = $this->getTransport();
-        $tokenHelper   = $this->tokenHelper->newSession(
+    }
+
+    /**
+     * Apply custom settings to the transport for this API operation set.
+     *
+     * @return Transport
+     */
+    private function prepareTransport()
+    {
+        // Set our internal settings that are pertinent.
+        $this->transport->setSettings($this->settings);
+
+        return $this->transport;
+    }
+
+    /**
+     * Apply our context to create a new tokenhelper session.
+     */
+    private function prepareTokenHelper()
+    {
+        $this->tokenHelper->newSession(
             $this->contactClient,
             $this->contact,
             $this->payload,
             $this->campaign,
             $this->event
         );
-        $updatePayload = (bool) $this->settings['autoUpdate'];
+    }
+
+    /**
+     * Prepare the APIPayloadAuth model and get the starting operation ID it reccomends.
+     */
+    private function preparePayloadAuth()
+    {
+        $this->apiPayloadAuth->reset()
+            ->setTest($this->test)
+            ->setContactClient($this->contactClient)
+            ->setOperations($this->payload->operations);
+
+        $this->start = $this->apiPayloadAuth->getStartOperation();
+        if ($this->start) {
+            $context = $this->apiPayloadAuth->getPreviousPayloadAuthTokens();
+            $this->tokenHelper->addContext($context);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function runApiOperations()
+    {
+        $updatePayload = (bool) $this->getSettings('autoUpdate');
         $opsRemaining  = count($this->payload->operations);
 
         foreach ($this->payload->operations as $id => &$operation) {
+            if ($id < $this->start) {
+                // Running a pre-auth attempt with step/s to be skipped at the beginning.
+                continue;
+            }
             $logs         = [];
             $apiOperation = new ApiOperation(
-                $id + 1, $operation, $transport, $tokenHelper, $this->test, $updatePayload
+                $id + 1, $operation, $this->transport, $this->tokenHelper, $this->test, $updatePayload
             );
             $this->valid  = false;
             try {
@@ -364,24 +442,25 @@ class ApiPayload
                 // Delay this exception throw till after we can do some important logging.
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
-            $this->setLogs($logs, $id);
+            $this->setLogs($logs, ($this->start ? 'preAuth'.$id : $id));
 
             if (!$this->valid) {
                 // Break the chain of operations if an invalid response or exception occurs.
                 break;
-            } else {
-                // Aggregate successful responses that are mapped to Contact fields.
-                $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
-                $responseActual    = $apiOperation->getResponseActual();
-                $this->setAggregateActualResponses($responseActual);
-                --$opsRemaining;
-                if ($opsRemaining) {
-                    // Update the contextual awareness for subsequent requests if needed.
-                    $this->applyResponseMap(true);
-                    // Update context to include actual previous payload responses.
-                    if ($responseActual) {
-                        $this->tokenHelper->addContextPayload($this->payload, $id, $responseActual);
-                    }
+            }
+
+            // Aggregate successful responses that are mapped to Contact fields.
+            $this->responseMap = array_merge($this->responseMap, $apiOperation->getResponseMap());
+            $responseActual    = $apiOperation->getResponseActual();
+            $this->setAggregateActualResponses($responseActual, $id);
+            $this->savePayloadAuthTokens($id);
+            --$opsRemaining;
+            if ($opsRemaining) {
+                // Update the contextual awareness for subsequent requests if needed.
+                $this->applyResponseMap(true);
+                // Update context to include actual previous payload responses.
+                if ($responseActual) {
+                    $this->tokenHelper->addContextPayload($this->payload, $id, $responseActual);
                 }
             }
         }
@@ -400,38 +479,99 @@ class ApiPayload
         if (isset($e)) {
             throw $e;
         }
-
-        return $this;
     }
 
     /**
-     * Retrieve the transport service for API interaction.
+     * @param null $setting
      *
-     * @return Transport
+     * @return array|mixed|null
      */
-    private function getTransport()
+    public function getSettings($setting = null)
     {
-        // Set our internal settings that are pertinent.
-        $this->transport->setSettings($this->settings);
+        if ($setting) {
+            return isset($this->settings[$setting]) ? $this->settings[$setting] : null;
+        }
 
-        return $this->transport;
+        return $this->settings;
     }
 
     /**
-     * @param       $responseActual
-     * @param array $types
+     * If we just made a successful run with an auth operation, without skipping said operation,
+     * preserve the applicable auth tokens for future use.
+     *
+     * @param $operationId
+     */
+    private function savePayloadAuthTokens($operationId)
+    {
+        if (
+            $this->valid
+            && $this->apiPayloadAuth->hasAuthRequest($operationId)
+        ) {
+            $fieldSets = $this->getAggregateActualResponses(null, $operationId);
+            $this->apiPayloadAuth->savePayloadAuthTokens($operationId, $fieldSets);
+        }
+    }
+
+    /**
+     * Get the most recent non-empty response value by field name, ignoring validity.
+     * Provide key, or operationId or both.
+     *
+     * @param string $key
+     * @param int    $operationId
+     * @param array  $types       Types to check for (header/body/etc)
+     */
+    public function getAggregateActualResponses($key = null, $operationId = null, $types = ['headers', 'body'])
+    {
+        if ($this->valid && isset($this->aggregateActualResponses)) {
+            if (null !== $key) {
+                foreach ($types as $type) {
+                    if (null !== $operationId) {
+                        if (isset($this->aggregateActualResponses[$operationId][$type][$key])) {
+                            return $this->aggregateActualResponses[$operationId][$type][$key];
+                        }
+                    } else {
+                        foreach (array_reverse($this->aggregateActualResponses) as $values) {
+                            if (isset($values[$type][$key])) {
+                                return $values[$type][$key];
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Get the entire result, separated by types.
+                $result = [];
+                foreach ($types as $type) {
+                    if (isset($this->aggregateActualResponses[$operationId][$type])) {
+                        $result[$type] = $this->aggregateActualResponses[$operationId][$type];
+                    }
+                }
+
+                return $result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array $responseActual Actual response array, including headers and body
+     * @param null  $operationId
+     * @param array $types          types of data we wish to aggregate
      *
      * @return $this
      */
-    public function setAggregateActualResponses($responseActual, $types = ['headers', 'body'])
+    public function setAggregateActualResponses($responseActual, $operationId, $types = ['headers', 'body'])
     {
+        if (!isset($this->aggregateActualResponses[$operationId])) {
+            $this->aggregateActualResponses[$operationId] = [];
+        }
         foreach ($types as $type) {
-            if (!isset($this->aggregateActualResponses[$type])) {
-                $this->aggregateActualResponses[$type] = [];
+            if (!isset($this->aggregateActualResponses[$operationId][$type])) {
+                $this->aggregateActualResponses[$operationId][$type] = [];
             }
             if (isset($responseActual[$type])) {
-                $this->aggregateActualResponses[$type] = array_merge(
-                    $this->aggregateActualResponses[$type],
+                $this->aggregateActualResponses[$operationId][$type] = array_merge(
+                    $this->aggregateActualResponses[$operationId][$type],
                     $responseActual[$type]
                 );
             }
@@ -599,32 +739,6 @@ class ApiPayload
         ksort($result);
 
         return array_values($result);
-    }
-
-    /**
-     * Get the most recent non-empty response value by field name, ignoring validity.
-     *
-     * @param       $fieldName
-     * @param array $types
-     *
-     * @return null|string
-     */
-    public function getAggregateResponseFieldValue($fieldName, $types = ['headers', 'body'])
-    {
-        if ($this->valid) {
-            if (isset($this->aggregateActualResponses)) {
-                foreach ($types as $type) {
-                    if (
-                        !empty($this->aggregateActualResponses[$type])
-                        && !empty($this->aggregateActualResponses[$type][$fieldName])
-                    ) {
-                        return $this->aggregateActualResponses[$type][$fieldName];
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 
     /**

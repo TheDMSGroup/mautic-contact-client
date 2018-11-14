@@ -141,9 +141,6 @@ class ClientIntegration extends AbstractIntegration
         /** @var Contact $contactModel */
         $clientModel = $this->getContactClientModel();
         $client      = $clientModel->getEntity($this->event['config']['contactclient']);
-        if (!$client || false === $client->getIsPublished()) {
-            return false;
-        }
 
         $this->sendContact($client, $contact, false);
 
@@ -271,52 +268,38 @@ class ClientIntegration extends AbstractIntegration
      * Given the JSON API API instructions payload instruction set.
      * Send the lead/contact to the API by following the steps.
      *
-     * @param ContactClient $client
-     * @param Contact       $contact
-     * @param bool          $test
-     * @param bool          $force
+     * @param ContactClient|null $client
+     * @param Contact|null       $contact
+     * @param bool               $test
+     * @param bool               $force
      *
      * @return $this
+     *
+     * @throws Exception
      */
     public function sendContact(
-        ContactClient $client,
-        Contact $contact,
+        ContactClient $client = null,
+        Contact $contact = null,
         $test = false,
         $force = false
     ) {
-        $translator = $this->getContainer()->get('translator');
+        if (!$this->translator) {
+            $this->translator = $this->getContainer()->get('translator');
+        }
         $this->test = $test;
 
         try {
-            if (!$client && !$this->test) {
-                throw new \InvalidArgumentException(
-                    $translator->trans('mautic.contactclient.sendcontact.error.client.load')
-                );
-            }
+            $this->validateClient($client, $force);
             $this->contactClient = $client;
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
-            if (!$contact && !$this->test) {
-                throw new \InvalidArgumentException(
-                    $translator->trans('mautic.contactclient.sendcontact.error.contact.load')
-                );
-            }
+            $this->validateContact($contact);
             $this->contact = $contact;
             $this->addTrace('contactClientContactId', $this->contact->getId());
 
-            if (!$force && !$this->test && !$client->getIsPublished()) {
-                throw new ContactClientException(
-                    $translator->trans('mautic.contactclient.sendcontact.error.client.publish'),
-                    0,
-                    null,
-                    Stat::TYPE_UNPUBLISHED,
-                    false // do not retry on unpublished clients
-                );
-            }
-
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
-            // Schedule - Check schedule rules to ensure we can send a contact now, retry if outside of window.
+            // Schedule - Check schedule rules to ensure we can send a contact now, do not retry if outside of window.
             $this->evaluateSchedule();
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
@@ -341,11 +324,11 @@ class ClientIntegration extends AbstractIntegration
                 ->setCampaign($this->getCampaign())
                 ->setEvent($this->event);
 
+            // Send all operations (API) or queue the contact (file).
             $this->payloadModel->run();
 
             $this->valid = $this->payloadModel->getValid();
 
-            // Send all operations (API) or queue the contact (file).
             if ($this->valid) {
                 $this->statType = Stat::TYPE_CONVERTED;
             }
@@ -370,6 +353,34 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @param ContactClient|null $client
+     * @param bool               $force
+     *
+     * @throws ContactClientException
+     */
+    private function validateClient(ContactClient $client = null, $force = false)
+    {
+        if (!$client && !$this->test) {
+            throw new ContactClientException(
+                $this->translator->trans('mautic.contactclient.sendcontact.error.client.load'),
+                0,
+                null,
+                Stat::TYPE_INVALID,
+                false
+            );
+        }
+        if (!$force && !$this->test && !$client->getIsPublished()) {
+            throw new ContactClientException(
+                $this->translator->trans('mautic.contactclient.sendcontact.error.client.publish'),
+                0,
+                null,
+                Stat::TYPE_UNPUBLISHED,
+                false
+            );
+        }
+    }
+
+    /**
      * If available add a parameter to NewRelic tracing to aid in debugging.
      *
      * @param $parameter
@@ -383,9 +394,29 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @param Contact|null $contact
+     *
+     * @throws ContactClientException
+     */
+    private function validateContact(Contact $contact = null)
+    {
+        if (!$contact && !$this->test) {
+            throw new ContactClientException(
+                $this->translator->trans('mautic.contactclient.sendcontact.error.contact.load'),
+                0,
+                null,
+                Stat::TYPE_INVALID,
+                false
+            );
+        }
+    }
+
+    /**
      * Evaluates the schedule given the client type.
      *
      * @return $this
+     *
+     * @throws ContactClientException
      */
     private function evaluateSchedule()
     {
@@ -400,7 +431,9 @@ class ClientIntegration extends AbstractIntegration
      *
      * @param ContactClient|null $contactClient
      *
-     * @return ApiPayload|FilePayload|null|object
+     * @return ApiPayload|FilePayload|object
+     *
+     * @throws ContactClientException
      */
     private function getPayloadModel(ContactClient $contactClient = null)
     {
@@ -428,6 +461,8 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @return ApiPayload|object
+     *
+     * @throws Exception
      */
     private function getApiPayloadModel()
     {
@@ -441,6 +476,8 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @return FilePayload|object
+     *
+     * @throws Exception
      */
     private function getFilePayloadModel()
     {
@@ -475,7 +512,9 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Attempt to discern if we are being triggered by/within a campaign.
      *
-     * @return \Mautic\CampaignBundle\Entity\Campaign
+     * @return \Mautic\CampaignBundle\Entity\Campaign|mixed|null
+     *
+     * @throws Exception
      */
     private function getCampaign()
     {
@@ -502,7 +541,9 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param \Exception $exception
+     * @param Exception $exception
+     *
+     * @throws ContactClientException
      */
     private function handleException(\Exception $exception)
     {
@@ -1102,6 +1143,8 @@ class ClientIntegration extends AbstractIntegration
      * @param string $attributionSettings
      *
      * @return bool
+     *
+     * @throws Exception
      */
     public function sendTestApi(&$apiPayload, $attributionDefault = '', $attributionSettings = '')
     {

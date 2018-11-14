@@ -22,6 +22,13 @@ use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 class Stat
 {
     /**
+     * Indicates that an error occurred on the client side. Due to an authentication/authorization failure.
+     *
+     * Contact sent:    Possibly
+     */
+    const TYPE_AUTH = 'auth';
+
+    /**
      * Indicates that we intended to send this contact to a client by way of a file, but the requirements for the file,
      * or the contact changed in such a way that the contact is no longer applicable. Attribution change was reversed.
      *
@@ -46,7 +53,7 @@ class Stat
     /**
      * Indicates that an error occurred on the client side. Something like a 500 error, empty body, etc.
      *
-     * Contact sent:    Yes
+     * Contact sent:    Possibly
      */
     const TYPE_ERROR = 'error';
 

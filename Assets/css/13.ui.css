@@ -73,19 +73,3 @@ ul.CodeMirror-hints li.CodeMirror-hint-active,
     color: #fff;
     background-color: rgba(0, 86, 171, 0.8);
 }
-
-.schedule-toggle.btn-success:before {
-    font-family: FontAwesome;
-    content: "\f046 \00A0 \00A0 Open";
-    font-size:1.3em;
-    font-weight: lighter;
-    padding-left: 4px;
-}
-
-.schedule-toggle.btn-danger:before {
-    font-family: FontAwesome;
-    content: "\f096 \00A0 \00A0 Closed";
-    font-size:1.3em;
-    font-weight: lighter;
-    padding-left: 4px;
-}

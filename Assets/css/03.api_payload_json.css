@@ -36,6 +36,8 @@
     background-color: #fff !important;
 }
 
+/* Checkboxes that need padding to look right */
+.api_payload .contactclient_jsoneditor div[data-schemapath*=".request.auth"] > div,
 .api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.verify"] > div,
 .api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.autoUpdate"] > div,
 .api_payload .contactclient_jsoneditor div[data-schemapath^="root.settings.autoRetry"] > div {
@@ -76,6 +78,7 @@
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".description"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.overridableUrl"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.testUrl"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.auth"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.manual"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.template"],
 .api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".description"],

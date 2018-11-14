@@ -95,7 +95,7 @@
                 "title": "Method",
                 "options": {
                   "infoText": "The method used for this API operation.",
-                  "grid_columns": 6
+                  "grid_columns": 4
                 },
                 "default": "post",
                 "enumSource": [
@@ -138,10 +138,21 @@
                 "title": "Request Format",
                 "options": {
                   "infoText": "The method used to format fields to be sent to this endpoint. This specifies standard headers for you, and the format of fields that are sent.",
-                  "grid_columns": 6
+                  "grid_columns": 4
                 },
                 "default": "form",
                 "$ref": "#/definitions/requestFormat"
+              },
+              "auth": {
+                "propertyOrder": 45,
+                "type": "boolean",
+                "format": "checkbox",
+                "title": "Auth Request",
+                "options": {
+                  "grid_columns": 4,
+                  "infoText": "This call will be used to authenticate/authorize for subsequent calls and can be skipped if we've ran it recently. Auth requests must be at the beginning of your payload to be skipped, without field mapping and they must be used by tokens in subsequent requests. Use this if this call is rate limited and/or you are sending contacts to an OAuth1a or similar service."
+                },
+                "default": false
               },
               "headers": {
                 "propertyOrder": 50,

@@ -73,13 +73,13 @@ class Attribution
                 && isset($attributionSettings->mode)
                 && is_object($attributionSettings->mode)
                 && !empty($attributionSettings->mode->key)
-                && method_exists($this->payloadModel, 'getAggregateResponseFieldValue')
+                && method_exists($this->payloadModel, 'getAggregateActualResponses')
             ) {
                 // Dynamic mode.
                 $key = $attributionSettings->mode->key;
 
                 // Attempt to get this field value from the response operations.
-                $responseFieldValue = $this->payloadModel->getAggregateResponseFieldValue($key);
+                $responseFieldValue = $this->payloadModel->getAggregateActualResponses($key);
                 if (!empty($responseFieldValue) && is_numeric($responseFieldValue)) {
                     // We have a value, apply sign.
                     $sign = isset($attributionSettings->mode->sign) ? $attributionSettings->mode->sign : '+';

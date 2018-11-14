@@ -257,6 +257,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         }
                                     }
                                 },
+                                // Codemirror token autocompletions.
                                 hintTimer = setTimeout(function () {
                                     if (cm.getSelection()) {
                                         // Autocompletion doesn't function when
