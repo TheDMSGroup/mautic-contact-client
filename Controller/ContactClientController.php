@@ -252,8 +252,6 @@ class ContactClientController extends FormController
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
         }
 
-
-
         return $args;
     }
 
