@@ -18,6 +18,7 @@ use Mautic\CoreBundle\Model\AuditLogModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Trait ContactClientDetailsTrait.
@@ -91,6 +92,12 @@ trait ContactClientDetailsTrait
                 'search'   => $search,
             ];
         }
+
+        $campaign_id = Request::createFromGlobals()->get('camapign_id');
+        if ($campaign_id) {
+            $filters['campaign_id'] = $campaign_id;
+        }
+
         if (null === $orderBy) {
             $orderBy = [
                 $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),

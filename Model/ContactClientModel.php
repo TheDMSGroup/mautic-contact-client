@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Doctrine\DBAL\Query\QueryBuilder;
+use Mautic\CampaignBundle\Entity\CampaignRepository;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
@@ -28,6 +29,7 @@ use MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
@@ -351,16 +353,25 @@ class ContactClientModel extends FormModel
         $query = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
         $stat  = new Stat();
 
+        $params = ['contactclient_id' => $contactClient->getId()];
+
+        $campaignId = Request::createFromGlobals()->get('campaign');
+        if ($campaignId) {
+            $params['campaign_id'] = $campaignId;
+        }
+
         foreach ($stat->getAllTypes() as $type) {
-            $q = $query->prepareTimeDataQuery(
+            $params['type'] = $type;
+            $q              = $query->prepareTimeDataQuery(
                 'contactclient_stats',
                 'date_added',
-                ['contactclient_id' => $contactClient->getId(), 'type' => $type]
+                $params
             );
 
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
+
             $data = $query->loadAndBuildTimeData($q);
             foreach ($data as $val) {
                 if (0 !== $val) {
@@ -454,16 +465,30 @@ class ContactClientModel extends FormModel
         $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
         $utmSources = $this->getStatRepository()->getSourcesByClient($contactClient->getId(), $dateFrom, $dateToAdjusted);
 
+        $params  = ['contactclient_id' => $contactClient->getId()];
+        $request = Request::createFromGlobals();
+
+        if ($request->query->has('campaign')) {
+            $campaignId = $request->query->get('campaign');
+        } else {
+            $chartFilter = $request->request->get('chartfilter', []);
+            if (isset($chartFilter['campaign'])) {
+                $campaignId = $chartFilter['campaign'];
+            }
+        }
+
+        if (isset($campaignId)) {
+            $params['campaign_id'] = (int) $campaignId;
+        }
+
         if ('revenue' != $type) {
+            $params['type'] = $type;
             foreach ($utmSources as $utmSource) {
-                $q = $query->prepareTimeDataQuery(
+                $params['utm_source'] = $utmSource;
+                $q                    = $query->prepareTimeDataQuery(
                     'contactclient_stats',
                     'date_added',
-                    [
-                        'contactclient_id' => $contactClient->getId(),
-                        'type'             => $type,
-                        'utm_source'       => $utmSource,
-                    ]
+                    $params
                 );
 
                 if (!in_array($unit, ['H', 'i', 's'])) {
@@ -506,12 +531,14 @@ class ContactClientModel extends FormModel
                 }
             }
         } else {
+            $params['type'] = Stat::TYPE_CONVERTED;
             // Add attribution to the chart.
             $q = $query->prepareTimeDataQuery(
                 'contactclient_stats',
                 'date_added',
-                ['contactclient_id' => $contactClient->getId(), 'type' => Stat::TYPE_CONVERTED]
+                $params
             );
+
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
             }
@@ -639,5 +666,13 @@ class ContactClientModel extends FormModel
         $this->dispatcher->dispatch(ContactClientEvents::TIMELINE_ON_GENERATE, $event);
 
         return $event->getEventCounter();
+    }
+
+    public function getCampaigns($contactclientId)
+    {
+        /** @var CampaignRepository $campaignRepo */
+        $campaignRepo = $this->em->getRepository('MauticCampaignBundle:Campaign');
+
+        return $campaignRepo->getEntities(['filter'=>['column' => 'canvasSettings', 'expr' => 'like', 'value' => "%'contactclient': $contactclientId,%"]]);
     }
 }

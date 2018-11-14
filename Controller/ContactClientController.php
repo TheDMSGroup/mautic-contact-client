@@ -185,6 +185,11 @@ class ContactClientController extends FormController
                     ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
                     : '';
             }
+
+            if ($this->request->query->has('campaign')) {
+                $chartFilterValues['campaign'] = $this->request->query->get('campaign');
+            }
+
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderby', $order[0]);
@@ -242,6 +247,9 @@ class ContactClientController extends FormController
             $args['viewParameters']['search']          = $search;
             $args['viewParameters']['order']           = $order;
         }
+
+        unset($chartFilterValues['campaign']);
+        $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
 
         return $args;
     }
