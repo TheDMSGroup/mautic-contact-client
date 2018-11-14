@@ -243,7 +243,8 @@ class ContactClientController extends FormController
             $args['viewParameters']['stats']           = $stats;
             $args['viewParameters']['transactions']    = $transactions;
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-            $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
+            // depracated datatable section
+            // $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
             $args['viewParameters']['search']          = $search;
             $args['viewParameters']['order']           = $order;
         }
