@@ -326,13 +326,13 @@ class ApiPayloadAuth extends AbstractCommonModel
         $entities = [];
         foreach ($fieldSets as $type => $fields) {
             foreach ($fields as $field => $val) {
-                if ($field && $val && strlen($field) <= 256) {
+                if ($field && $val) {
                     $auth = new Auth();
                     $auth->setContactClient($this->contactClient->getId());
                     $auth->setOperation($operationId);
                     $auth->setType($type);
                     $auth->setField($field);
-                    $auth->setVal($val);
+                    $auth->setVal(substr($val, 0, 256));
                     $auth->setTest($this->test);
                     $entities[] = $auth;
                 }
