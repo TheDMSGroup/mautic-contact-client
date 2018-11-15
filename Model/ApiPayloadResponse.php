@@ -448,13 +448,13 @@ class ApiPayloadResponse
                     ]
                 )
             ) {
-                // These can be retried, especially during pre-auth run.
+                // These can be retried only during pre-auth run.
                 throw new ContactClientException(
                     'Client responded with a '.$this->responseActual['status'].' server error code. The data likely did not reach the destination due to invalid auth.',
                     0,
                     null,
                     Stat::TYPE_AUTH,
-                    true
+                    false
                 );
             }
 
