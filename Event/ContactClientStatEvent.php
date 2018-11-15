@@ -45,7 +45,7 @@ class ContactClientStatEvent extends Event
      * @param Contact       $contact
      */
     public function __construct(
-        ContactClient $contactClient,
+        $contactClient,
         $campaignId,
         $eventId,
         $contact,
