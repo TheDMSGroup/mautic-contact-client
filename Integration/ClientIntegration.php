@@ -286,15 +286,15 @@ class ClientIntegration extends AbstractIntegration
         if (!$this->translator) {
             $this->translator = $this->getContainer()->get('translator');
         }
+        $this->contactClient = $client;
+        $this->contact = $contact;
         $this->test = $test;
 
         try {
             $this->validateClient($client, $force);
-            $this->contactClient = $client;
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
             $this->validateContact($contact);
-            $this->contact = $contact;
             $this->addTrace('contactClientContactId', $this->contact->getId());
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
