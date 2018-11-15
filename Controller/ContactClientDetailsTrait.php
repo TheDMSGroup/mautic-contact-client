@@ -18,7 +18,6 @@ use Mautic\CoreBundle\Model\AuditLogModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Trait ContactClientDetailsTrait.
@@ -86,16 +85,12 @@ trait ContactClientDetailsTrait
             $dateTo->setTime(23, 59, 59);
 
             $filters      = [
-                'dateFrom' => $dateFrom,
-                'dateTo'   => $dateTo,
-                'type'     => $chartFilters['type'],
-                'search'   => $search,
+                'dateFrom'   => $dateFrom,
+                'dateTo'     => $dateTo,
+                'type'       => $chartFilters['type'],
+                'search'     => $search,
+                'campaignId' => $chartFilters['campaign'],
             ];
-        }
-
-        $campaign_id = Request::createFromGlobals()->get('camapign_id');
-        if ($campaign_id) {
-            $filters['campaign_id'] = $campaign_id;
         }
 
         if (null === $orderBy) {

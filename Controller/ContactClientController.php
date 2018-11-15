@@ -190,6 +190,10 @@ class ContactClientController extends FormController
                 $chartFilterValues['campaign'] = $this->request->query->get('campaign');
             }
 
+            if (!isset($chartFilterValues['campaign'])) {
+                $chartFilterValues['campaign'] = null;
+            }
+
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
             $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderby', $order[0]);
@@ -211,7 +215,8 @@ class ContactClientController extends FormController
                     $item,
                     $unit,
                     new \DateTime($chartFilterValues['date_from']),
-                    new \DateTime($chartFilterValues['date_to'])
+                    new \DateTime($chartFilterValues['date_to']),
+                    $chartFilterValues['campaign']
                 );
             } else {
                 $stats = $model->getStatsBySource(
@@ -219,7 +224,8 @@ class ContactClientController extends FormController
                     $unit,
                     $chartFilterValues['type'],
                     new \DateTime($chartFilterValues['date_from']),
-                    new \DateTime($chartFilterValues['date_to'])
+                    new \DateTime($chartFilterValues['date_to']),
+                    $chartFilterValues['campaign']
                 );
             }
             $transactions = $this->getEngagements($item);
