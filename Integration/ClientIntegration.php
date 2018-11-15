@@ -776,12 +776,14 @@ class ClientIntegration extends AbstractIntegration
         $session->set('mautic.contactClient.events', $events);
 
         // get the original / first utm source code for contact
-        try {
-            /** @var \MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper $utmHelper */
-            $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
-            $utmSource = $utmHelper->getFirstUtmSource($this->contact);
-        } catch (\Exception $e) {
-            $utmSource = null;
+        $utmSource = null;
+        if ($this->contact) {
+            try {
+                /** @var \MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper $utmHelper */
+                $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
+                $utmSource = $utmHelper->getFirstUtmSource($this->contact);
+            } catch (\Exception $e) {
+            }
         }
 
         // Add log entry for statistics / charts.
