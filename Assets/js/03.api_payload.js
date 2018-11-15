@@ -715,7 +715,8 @@ Mautic.contactclientApiPayload = function () {
                     action: 'plugin:mauticContactClient:getApiPayloadTest',
                     apiPayload: $apiPayload.val(),
                     attributionDefault: $attributionDefault.length ? $attributionDefault.val() : '',
-                    attributionSettings: $attributionSettings.length ? $attributionSettings.val() : ''
+                    attributionSettings: $attributionSettings.length ? $attributionSettings.val() : '',
+                    contactClientId: window.location.pathname.split('/').pop()
                 };
                 $result.addClass('hide');
                 $message.addClass('hide');

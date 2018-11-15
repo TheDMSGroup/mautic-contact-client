@@ -287,8 +287,8 @@ class ClientIntegration extends AbstractIntegration
             $this->translator = $this->getContainer()->get('translator');
         }
         $this->contactClient = $client;
-        $this->contact = $contact;
-        $this->test = $test;
+        $this->contact       = $contact;
+        $this->test          = $test;
 
         try {
             $this->validateClient($client, $force);
@@ -847,7 +847,10 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // File-based logging.
-        $this->getLogger()->log($statLevel, 'Contact Client '.($this->contactClient ? $this->contactClient->getId() : 'NA').': '.$message);
+        $this->getLogger()->log(
+            $statLevel,
+            'Contact Client '.($this->contactClient ? $this->contactClient->getId() : 'NA').': '.$message
+        );
     }
 
     /**
@@ -1147,14 +1150,27 @@ class ClientIntegration extends AbstractIntegration
      * @param        $apiPayload
      * @param string $attributionDefault
      * @param string $attributionSettings
+     * @param null   $contactClientId
      *
      * @return bool
      *
      * @throws Exception
      */
-    public function sendTestApi(&$apiPayload, $attributionDefault = '', $attributionSettings = '')
-    {
-        $client = new ContactClient();
+    public function sendTestApi(
+        &$apiPayload,
+        $attributionDefault = '',
+        $attributionSettings = '',
+        $contactClientId = null
+    ) {
+        $client = null;
+        if ($contactClientId) {
+            $clientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
+            /** @var ContactClient $client */
+            $client = $clientModel->getEntity($contactClientId);
+        }
+        if (!$client) {
+            $client = new ContactClient();
+        }
         $client->setAPIPayload($apiPayload);
         if ($attributionSettings) {
             $client->setAttributionSettings($attributionSettings);
