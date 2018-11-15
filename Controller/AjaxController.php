@@ -106,6 +106,8 @@ class AjaxController extends CommonAjaxController
     protected function getApiPayloadTestAction(Request $request)
     {
         // Get the API payload to test.
+        $contactClientId = (int) InputHelper::clean($request->request->get('contactClientId'));
+
         $apiPayload = html_entity_decode(InputHelper::clean($request->request->get('apiPayload')));
 
         $attributionDefault = html_entity_decode(InputHelper::clean($request->request->get('attributionDefault')));
@@ -129,7 +131,8 @@ class AjaxController extends CommonAjaxController
             $valid                = $clientIntegration->sendTestApi(
                 $apiPayload,
                 $attributionDefault,
-                $attributionSettings
+                $attributionSettings,
+                $contactClientId
             );
             $dataArray['valid']   = $valid;
             $dataArray['payload'] = $apiPayload;
