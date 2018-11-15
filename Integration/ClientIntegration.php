@@ -769,9 +769,9 @@ class ClientIntegration extends AbstractIntegration
             'valid'             => $this->valid,
             'statType'          => $this->statType,
             'errors'            => $errors,
-            'contactId'         => $this->contact->getId(),
-            'contactClientId'   => $this->contactClient->getId(),
-            'contactClientName' => $this->contactClient->getName(),
+            'contactId'         => $this->contact ? $this->contact->getId() : null,
+            'contactClientId'   => $this->contactClient ? $this->contactClient->getId() : null,
+            'contactClientName' => $this->contactClient ? $this->contactClient->getName() : null,
         ];
         $session->set('mautic.contactClient.events', $events);
 
@@ -799,15 +799,17 @@ class ClientIntegration extends AbstractIntegration
         $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
 
         // Add transactional event for deep dive into logs.
-        $clientModel->addEvent(
-            $this->contactClient,
-            $this->statType,
-            $this->contact,
-            $this->getLogsJSON(),
-            $message,
-            $integrationEntityId
-        );
-        $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Event');
+        if ($this->contact && $this->contactClient) {
+            $clientModel->addEvent(
+                $this->contactClient,
+                $this->statType,
+                $this->contact,
+                $this->getLogsJSON(),
+                $message,
+                $integrationEntityId
+            );
+            $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Event');
+        }
 
         // Lead event log (lead_event_log) I've decided to leave this out for now because it's not very useful.
         //$contactModel = $this->getContainer()->get('mautic.lead.model.lead');
@@ -832,7 +834,7 @@ class ClientIntegration extends AbstractIntegration
                 $this->saveSyncedData(
                     'Client',
                     'ContactClient',
-                    $this->contactClient->getId(),
+                    $this->contactClient ? $this->contactClient->getId() : null,
                     $this->contact
                 ),
             ];
@@ -843,7 +845,7 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // File-based logging.
-        $this->getLogger()->log($statLevel, 'Contact Client '.$this->contactClient->getId().': '.$message);
+        $this->getLogger()->log($statLevel, 'Contact Client '.($this->contactClient ? $this->contactClient->getId() : 'NA').': '.$message);
     }
 
     /**
@@ -919,7 +921,7 @@ class ClientIntegration extends AbstractIntegration
         $integrationName,
         $integrationEntity,
         $integrationEntityId,
-        $entity,
+        $entity = null,
         $internalEntityType = 'lead',
         $internalData = null
     ) {
@@ -930,7 +932,9 @@ class ClientIntegration extends AbstractIntegration
         $newIntegrationEntity->setIntegrationEntity($integrationEntity);
         $newIntegrationEntity->setIntegrationEntityId($integrationEntityId);
         $newIntegrationEntity->setInternalEntity($internalEntityType);
-        $newIntegrationEntity->setInternalEntityId($entity->getId());
+        if ($entity) {
+            $newIntegrationEntity->setInternalEntityId($entity->getId());
+        }
         $newIntegrationEntity->setLastSyncDate(new \DateTime());
 
         // This is too heavy of data to log in multiple locations.
