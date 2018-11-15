@@ -93,14 +93,17 @@ class EventRepository extends CommonRepository
         if ($countOnly) {
             $query->select('COUNT(c.id)');
         } else {
-            $query->select('c.*, s.utm_source')
-                ->leftJoin(
+            $query->select('c.*, s.utm_source');
+        }
+
+//        if (!$countOnly || isset($options['campaignId'])) {
+        $query->leftJoin(
                     'c',
                     MAUTIC_TABLE_PREFIX.'contactclient_stats',
                     's',
                     'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
                 );
-        }
+        //      }
 
         $query->where('c.contactclient_id = :contactClientId')
             ->setParameter('contactClientId', $contactClientId);
@@ -141,6 +144,13 @@ class EventRepository extends CommonRepository
                     $options['dateTo']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')
                 );
         }
+        if (isset($options['campaignId'])) {
+            $query->andWhere('s.campaign_id = :campaignId')
+                ->setParameter(
+                    'campaignId',
+                    $options['campaignId']
+                );
+        }
 
         if (isset($options['order']) && is_array($options['order']) && 2 == count($options['order'])) {
             list($orderBy, $orderByDir) = array_values($options['order']);
@@ -171,7 +181,7 @@ class EventRepository extends CommonRepository
                 ->setFirstResult(null)
                 ->setMaxResults(null)
                 ->select('COUNT(*)');
-            if (empty(trim($options['search']))) {
+            if (empty(trim($options['search'])) && !isset($options['campaignId'])) {
                 //remove the join if there is no search, for performance
                 $query->resetQueryParts(['join']);
             }

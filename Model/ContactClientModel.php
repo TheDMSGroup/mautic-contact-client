@@ -29,7 +29,6 @@ use MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
@@ -323,10 +322,11 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient  $contactClient
-     * @param                $unit
+     * @param ContactClient $contactClient
+     * @param $unit
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
+     * @param null           $campaignId
      * @param null           $dateFormat
      * @param bool           $canViewOthers
      *
@@ -337,6 +337,7 @@ class ContactClientModel extends FormModel
         $unit,
         \DateTime $dateFrom = null,
         \DateTime $dateTo = null,
+        $campaignId = null,
         $dateFormat = null,
         $canViewOthers = true
     ) {
@@ -355,7 +356,6 @@ class ContactClientModel extends FormModel
 
         $params = ['contactclient_id' => $contactClient->getId()];
 
-        $campaignId = Request::createFromGlobals()->get('campaign');
         if ($campaignId) {
             $params['campaign_id'] = $campaignId;
         }
@@ -437,10 +437,12 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient  $contactClient
-     * @param                $unit
+     * @param ContactClient $contactClient
+     * @param $unit
+     * @param $type
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
+     * @param null           $campaignId
      * @param null           $dateFormat
      * @param bool           $canViewOthers
      *
@@ -452,6 +454,7 @@ class ContactClientModel extends FormModel
         $type,
         \DateTime $dateFrom = null,
         \DateTime $dateTo = null,
+        $campaignId = null,
         $dateFormat = null,
         $canViewOthers = true
     ) {
@@ -464,18 +467,6 @@ class ContactClientModel extends FormModel
         $chart      = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
         $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
         $utmSources = $this->getStatRepository()->getSourcesByClient($contactClient->getId(), $dateFrom, $dateToAdjusted);
-
-        $params  = ['contactclient_id' => $contactClient->getId()];
-        $request = Request::createFromGlobals();
-
-        if ($request->query->has('campaign')) {
-            $campaignId = $request->query->get('campaign');
-        } else {
-            $chartFilter = $request->request->get('chartfilter', []);
-            if (isset($chartFilter['campaign'])) {
-                $campaignId = $chartFilter['campaign'];
-            }
-        }
 
         if (isset($campaignId)) {
             $params['campaign_id'] = (int) $campaignId;
