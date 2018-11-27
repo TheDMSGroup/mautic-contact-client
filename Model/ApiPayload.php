@@ -230,7 +230,7 @@ class ApiPayload
      *
      * @throws ContactClientException
      */
-    private function setPayload(string $payload = null)
+    private function setPayload($payload = null)
     {
         if (!$payload && $this->contactClient) {
             $payload = $this->contactClient->getApiPayload();

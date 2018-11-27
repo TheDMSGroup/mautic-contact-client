@@ -58,7 +58,7 @@ class FilterHelper
      * @throws Exception
      * @throws \Exception
      */
-    public function filter(string $json, array $context = [])
+    public function filter($json, array $context = [])
     {
         $query = $this->decodeJSON($json);
         if (!isset($query->rules) || !is_array($query->rules) || count($query->rules) < 1) {
