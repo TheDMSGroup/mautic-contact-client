@@ -11,6 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -167,7 +170,7 @@ class CacheRepository extends CommonRepository
         // Convert our filters into a query.
         if ($filters) {
             $alias = $this->getTableAlias();
-            $query = $this->getEntityManager()->getConnection()->createQueryBuilder();
+            $query = $this->slaveQueryBuilder();
             if ($returnCount) {
                 $query->select('COUNT(*)');
             } else {
@@ -177,6 +180,9 @@ class CacheRepository extends CommonRepository
             $query->from(MAUTIC_TABLE_PREFIX.$this->getTableName(), $alias);
 
             foreach ($filters as $k => $set) {
+                $expr       = $query->expr();
+                $properties = $set;
+
                 // Expect orx, anx, or neither.
                 if (isset($set['orx'])) {
                     if (count($set['orx'])) {
@@ -188,9 +194,6 @@ class CacheRepository extends CommonRepository
                         $expr = $query->expr()->andX();
                     }
                     $properties = $set['andx'];
-                } else {
-                    $expr       = $query->expr();
-                    $properties = $set;
                 }
                 if (isset($expr)) {
                     foreach ($properties as $property => $value) {
@@ -214,7 +217,12 @@ class CacheRepository extends CommonRepository
                                     $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
                                 );
                             }
-                            $query->setParameter($property.$k, $value);
+                            if (in_array($property, ['category_id', 'contact_id', 'campaign_id', 'contactclient_id'])) {
+                                // Explicit integers for faster queries.
+                                $query->setParameter($property.$k, $value, \PDO::PARAM_INT);
+                            } else {
+                                $query->setParameter($property.$k, $value);
+                            }
                         }
                     }
                 }
@@ -238,7 +246,7 @@ class CacheRepository extends CommonRepository
                             (isset($expr) ? $expr : null)
                         )
                     );
-                    $query->setParameter('contactClientId'.$k, $set['contactclient_id']);
+                    $query->setParameter('contactClientId'.$k, $set['contactclient_id'], \PDO::PARAM_INT);
                     $query->setParameter('dateAdded'.$k, $set['date_added']);
                 }
             }
@@ -262,6 +270,26 @@ class CacheRepository extends CommonRepository
         }
 
         return $result;
+    }
+
+    /**
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->getEntityManager()->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = new QueryBuilder($connection);
+
+        return $queryBuilder;
     }
 
     /**
@@ -430,6 +458,8 @@ class CacheRepository extends CommonRepository
      * @param int            $scope
      *
      * @return mixed|null
+     *
+     * @throws \Exception
      */
     public function findExclusive(
         Contact $contact,
@@ -540,6 +570,7 @@ class CacheRepository extends CommonRepository
             foreach ($filters as &$filter) {
                 $filter['andx']['exclusive_scope'] = $scopePattern;
             }
+            unset($filter);
         }
 
         // Scope Category (duplicates all filters with category specificity)
@@ -548,18 +579,21 @@ class CacheRepository extends CommonRepository
             if ($category) {
                 $category = (int) $category->getId();
                 if ($category) {
-                    $newFilters   = [];
                     $scopePattern = $this->bitwiseIn($scope, self::SCOPE_CATEGORY);
+                    $newFilters   = [];
                     foreach ($filters as $filter) {
-                        $filter['andx']['category_id']     = $category;
-                        $filter['andx']['exclusive_scope'] = $scopePattern;
-                        $newFilters[]                      = $filter;
+                        // Add existing filter.
+                        $newFilters[serialize($filter)] = $filter;
+                        // Create a new category-locked filter equivalent.
+                        $newFilter                            = $filter;
+                        $newFilter['andx']['category_id']     = $category;
+                        $newFilter['andx']['exclusive_scope'] = $scopePattern;
+                        $newFilters[serialize($newFilter)]    = $newFilter;
                     }
-                    $filters = array_merge($filters, $newFilters);
+                    $filters = array_values($newFilters);
                 }
             }
         }
-
         // Add expiration to all filters.
         $this->addExpiration($filters, $dateSend);
 
@@ -594,6 +628,8 @@ class CacheRepository extends CommonRepository
      *
      * @param array          $filters
      * @param \DateTime|null $dateSend
+     *
+     * @throws \Exception
      */
     private function addExpiration(
         &$filters = [],
@@ -610,8 +646,6 @@ class CacheRepository extends CommonRepository
 
     /**
      * Delete all Cache entities that are no longer needed for duplication/exclusivity/limit checks.
-     *
-     * @return mixed
      */
     public function deleteExpired()
     {

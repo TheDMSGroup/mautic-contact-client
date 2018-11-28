@@ -231,6 +231,7 @@ class ApiPayloadResponse
                                     foreach ($elements as &$element) {
                                         $element = trim($element);
                                     }
+                                    unset($element);
                                     // Strip enclosures.
                                     foreach ($elements as &$element) {
                                         foreach (['"', "'"] as $enclosure) {
@@ -243,6 +244,7 @@ class ApiPayloadResponse
                                             }
                                         }
                                     }
+                                    unset($element);
                                     list($key, $value) = $elements;
                                     $result[$key]      = $value;
                                     break;
