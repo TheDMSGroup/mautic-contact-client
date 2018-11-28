@@ -501,6 +501,9 @@ class ContactClientModel extends FormModel
         }
         $params['contactclient_id'] = $contactClient->getId();
 
+        $userTZ        = new \DateTime('now');
+        $userTzName    = $userTZ->getTimezone()->getName();
+
         if ('revenue' != $type) {
             $params['type'] = $type;
             foreach ($utmSources as $utmSource) {
@@ -515,8 +518,6 @@ class ContactClientModel extends FormModel
                     // For some reason, Mautic only sets UTC in Query Date builder
                     // if its an intra-day date range ¯\_(ツ)_/¯
                     // so we have to do it here.
-                    $userTZ        = new \DateTime('now');
-                    $userTzName    = $userTZ->getTimezone()->getName();
                     $paramDateTo   = $q->getParameter('dateTo');
                     $paramDateFrom = $q->getParameter('dateFrom');
                     $paramDateTo   = new \DateTime($paramDateTo);
@@ -572,14 +573,14 @@ class ContactClientModel extends FormModel
             }
             $dbUnit        = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
             $dbUnit        = $query->translateTimeUnit($dbUnit);
-            $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
+            $dateConstruct = "DATE_FORMAT(CONVERT_TZ(t.date_added, @@global.time_zone, '$userTzName'), '$dbUnit.')";
             foreach ($utmSources as $utmSource) {
                 $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
                     ->groupBy($dateConstruct);
                 if (empty($utmSource)) { // utmSource can be a NULL value
-                    $q->where('utm_source IS NULL');
+                    $q->andWhere('utm_source IS NULL');
                 } else {
-                    $q->where('utm_source = :utmSource')
+                    $q->andWhere('utm_source = :utmSource')
                         ->setParameter('utmSource', $utmSource);
                 }
 
