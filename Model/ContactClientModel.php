@@ -322,8 +322,8 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient $contactClient
-     * @param $unit
+     * @param ContactClient  $contactClient
+     * @param                $unit
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
      * @param null           $campaignId
@@ -341,17 +341,9 @@ class ContactClientModel extends FormModel
         $dateFormat = null,
         $canViewOthers = true
     ) {
-        $localDateFrom = date_modify($dateFrom, 'midnight');
-        $utcDateFrom   = clone $localDateFrom;
-        $utcDateFrom->setTimezone(new \DateTimeZone('UTC'));
-
-        $localDateTo = date_modify($dateTo, 'midnight +1 day -1 sec');
-        $utcDateTo   = clone $localDateTo;
-        $utcDateTo->setTimezone(new \DateTimeZone('UTC'));
-
-        $unit  = (null === $unit) ? $this->getTimeUnitFromDateRange($utcDateFrom, $utcDateTo) : $unit;
-        $chart = new LineChart($unit, $localDateFrom, $localDateTo, $dateFormat);
-        $query = new ChartQuery($this->em->getConnection(), $utcDateFrom, $utcDateTo, $unit);
+        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
+        $unit  = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
+        $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
         $stat  = new Stat();
 
         $params = ['contactclient_id' => $contactClient->getId()];
@@ -367,6 +359,40 @@ class ContactClientModel extends FormModel
                 'date_added',
                 $params
             );
+
+            if (!in_array($unit, ['H', 'i', 's'])) {
+                // For some reason, Mautic only sets UTC in Query Date builder
+                // if its an intra-day date range ¯\_(ツ)_/¯
+                // so we have to do it here.
+                $userTZ        = new \DateTime('now');
+                $userTzName    = $userTZ->getTimezone()->getName();
+                $paramDateTo   = $q->getParameter('dateTo');
+                $paramDateFrom = $q->getParameter('dateFrom');
+                $paramDateTo   = new \DateTime($paramDateTo);
+                $paramDateTo->setTimeZone(new \DateTimeZone('UTC'));
+                $q->setParameter('dateTo', $paramDateTo->format('Y-m-d H:i:s'));
+                $paramDateFrom = new \DateTime($paramDateFrom);
+                $paramDateFrom->setTimeZone(new \DateTimeZone('UTC'));
+                $q->setParameter('dateFrom', $paramDateFrom->format('Y-m-d H:i:s'));
+                $select    = $q->getQueryPart('select')[0];
+                $newSelect = str_replace(
+                    't.date_added,',
+                    "CONVERT_TZ(t.date_added, @@global.time_zone, '$userTzName'),",
+                    $select
+                );
+                $q->resetQueryPart('select');
+                $q->select($newSelect);
+
+                // AND adjust the group By, since its using db timezone Date values
+                $groupBy    = $q->getQueryPart('groupBy')[0];
+                $newGroupBy = str_replace(
+                    't.date_added,',
+                    "CONVERT_TZ(t.date_added, @@global.time_zone, '$userTzName'),",
+                    $groupBy
+                );
+                $q->resetQueryPart('groupBy');
+                $q->groupBy($newGroupBy);
+            }
 
             if (!$canViewOthers) {
                 $this->limitQueryToCreator($q);
@@ -437,9 +463,9 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient $contactClient
-     * @param $unit
-     * @param $type
+     * @param ContactClient  $contactClient
+     * @param                $unit
+     * @param                $type
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
      * @param null           $campaignId
@@ -460,22 +486,28 @@ class ContactClientModel extends FormModel
     ) {
         $unit           = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
         $dateToAdjusted = clone $dateTo;
-        if (in_array($unit, ['H', 'i', 's'])) {
-            // draw the chart with the correct intervals for intra-day
-            $dateToAdjusted->setTime(23, 59, 59);
-        }
+        $dateToAdjusted->setTime(23, 59, 59);
         $chart      = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
         $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
-        $utmSources = $this->getStatRepository()->getSourcesByClient($contactClient->getId(), $dateFrom, $dateToAdjusted);
+        $utmSources = $this->getStatRepository()->getSourcesByClient(
+            $contactClient->getId(),
+            $dateFrom,
+            $dateToAdjusted
+        );
 
-        if (isset($campaignId)) {
+        //if (isset($campaignId)) {
+        if (!empty($campaignId)) {
             $params['campaign_id'] = (int) $campaignId;
         }
+        $params['contactclient_id'] = $contactClient->getId();
+
+        $userTZ        = new \DateTime('now');
+        $userTzName    = $userTZ->getTimezone()->getName();
 
         if ('revenue' != $type) {
             $params['type'] = $type;
             foreach ($utmSources as $utmSource) {
-                $params['utm_source'] = $utmSource;
+                $params['utm_source'] = empty($utmSource) ? ['expression' => 'isNull'] : $utmSource;
                 $q                    = $query->prepareTimeDataQuery(
                     'contactclient_stats',
                     'date_added',
@@ -494,14 +526,20 @@ class ContactClientModel extends FormModel
                     $paramDateFrom = new \DateTime($paramDateFrom);
                     $paramDateFrom->setTimeZone(new \DateTimeZone('UTC'));
                     $q->setParameter('dateFrom', $paramDateFrom->format('Y-m-d H:i:s'));
+                    $select    = $q->getQueryPart('select')[0];
+                    $newSelect = str_replace(
+                        't.date_added,',
+                        "CONVERT_TZ(t.date_added, @@global.time_zone, '$userTzName'),",
+                        $select
+                    );
+                    $q->resetQueryPart('select');
+                    $q->select($newSelect);
 
                     // AND adjust the group By, since its using db timezone Date values
-                    $userTZ     = new \DateTime('now');
-                    $interval   = abs($userTZ->getOffset() / 3600);
                     $groupBy    = $q->getQueryPart('groupBy')[0];
                     $newGroupBy = str_replace(
-                        'DATE_FORMAT(t.date_added,',
-                        "DATE_FORMAT(DATE_SUB(t.date_added, INTERVAL $interval HOUR),",
+                        't.date_added,',
+                        "CONVERT_TZ(t.date_added, @@global.time_zone, '$userTzName'),",
                         $groupBy
                     );
                     $q->resetQueryPart('groupBy');
@@ -535,12 +573,17 @@ class ContactClientModel extends FormModel
             }
             $dbUnit        = $query->getTimeUnitFromDateRange($dateFrom, $dateTo);
             $dbUnit        = $query->translateTimeUnit($dbUnit);
-            $dateConstruct = 'DATE_FORMAT(t.date_added, \''.$dbUnit.'\')';
+            $dateConstruct = "DATE_FORMAT(CONVERT_TZ(t.date_added, @@global.time_zone, '$userTzName'), '$dbUnit.')";
             foreach ($utmSources as $utmSource) {
                 $q->select($dateConstruct.' AS date, ROUND(SUM(t.attribution), 2) AS count')
-                    ->where('utm_source = :utmSource')
-                    ->setParameter('utmSource', $utmSource)
                     ->groupBy($dateConstruct);
+                if (empty($utmSource)) { // utmSource can be a NULL value
+                    $q->andWhere('utm_source IS NULL');
+                } else {
+                    $q->andWhere('utm_source = :utmSource')
+                        ->setParameter('utmSource', $utmSource);
+                }
+
                 $data = $query->loadAndBuildTimeData($q);
                 foreach ($data as $val) {
                     if (0 !== $val) {
@@ -664,6 +707,14 @@ class ContactClientModel extends FormModel
         /** @var CampaignRepository $campaignRepo */
         $campaignRepo = $this->em->getRepository('MauticCampaignBundle:Campaign');
 
-        return $campaignRepo->getEntities(['filter'=>['column' => 'canvasSettings', 'expr' => 'like', 'value' => "%'contactclient': $contactclientId,%"]]);
+        return $campaignRepo->getEntities(
+            [
+                'filter' => [
+                    'column' => 'canvasSettings',
+                    'expr'   => 'like',
+                    'value'  => "%'contactclient': $contactclientId,%",
+                ],
+            ]
+        );
     }
 }
