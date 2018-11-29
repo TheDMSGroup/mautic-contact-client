@@ -89,8 +89,10 @@ trait ContactClientDetailsTrait
                 'dateTo'     => $dateTo,
                 'type'       => $chartFilters['type'],
                 'search'     => $search,
-                'campaignId' => $chartFilters['campaign'],
             ];
+            if (!empty($chartFilters['campaign'])) {
+                $filters['campaignId'] = $chartFilters['campaign'];
+            }
         }
 
         if (null === $orderBy) {
