@@ -180,49 +180,43 @@ class CacheRepository extends CommonRepository
             $query->from(MAUTIC_TABLE_PREFIX.$this->getTableName(), $alias);
 
             foreach ($filters as $k => $set) {
-                $expr       = $query->expr();
-                $properties = $set;
-
                 // Expect orx, anx, or neither.
-                if (isset($set['orx'])) {
-                    if (count($set['orx'])) {
-                        $expr = $query->expr()->orX();
-                    }
+                if (!empty($set['orx'])) {
+                    $expr       = $query->expr()->orX();
                     $properties = $set['orx'];
-                } elseif (isset($set['andx'])) {
-                    if (count($set['andx'])) {
-                        $expr = $query->expr()->andX();
-                    }
+                } elseif (!empty($set['andx'])) {
+                    $expr       = $query->expr()->andX();
                     $properties = $set['andx'];
+                } else {
+                    $expr       = $query->expr();
+                    $properties = $set;
                 }
-                if (isset($expr)) {
-                    foreach ($properties as $property => $value) {
-                        if (is_array($value)) {
+                foreach ($properties as $property => $value) {
+                    if (is_array($value)) {
+                        $expr->add(
+                            $query->expr()->andX(
+                                $query->expr()->isNotNull($alias.'.'.$property),
+                                $query->expr()->in($alias.'.'.$property, $value)
+                            )
+                        );
+                    } else {
+                        if (!empty($value)) {
                             $expr->add(
                                 $query->expr()->andX(
                                     $query->expr()->isNotNull($alias.'.'.$property),
-                                    $query->expr()->in($alias.'.'.$property, $value)
+                                    $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
                                 )
                             );
                         } else {
-                            if (!empty($value)) {
-                                $expr->add(
-                                    $query->expr()->andX(
-                                        $query->expr()->isNotNull($alias.'.'.$property),
-                                        $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
-                                    )
-                                );
-                            } else {
-                                $expr->add(
-                                    $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
-                                );
-                            }
-                            if (in_array($property, ['category_id', 'contact_id', 'campaign_id', 'contactclient_id'])) {
-                                // Explicit integers for faster queries.
-                                $query->setParameter($property.$k, $value, \PDO::PARAM_INT);
-                            } else {
-                                $query->setParameter($property.$k, $value);
-                            }
+                            $expr->add(
+                                $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                            );
+                        }
+                        if (in_array($property, ['category_id', 'contact_id', 'campaign_id', 'contactclient_id'])) {
+                            // Explicit integers for faster queries.
+                            $query->setParameter($property.$k, (int) $value, \PDO::PARAM_INT);
+                        } else {
+                            $query->setParameter($property.$k, $value);
                         }
                     }
                 }
@@ -246,7 +240,7 @@ class CacheRepository extends CommonRepository
                             (isset($expr) ? $expr : null)
                         )
                     );
-                    $query->setParameter('contactClientId'.$k, $set['contactclient_id'], \PDO::PARAM_INT);
+                    $query->setParameter('contactClientId'.$k, (int) $set['contactclient_id'], \PDO::PARAM_INT);
                     $query->setParameter('dateAdded'.$k, $set['date_added']);
                 }
             }
@@ -286,10 +280,7 @@ class CacheRepository extends CommonRepository
             $connection->connect('slave');
         }
 
-        /** @var QueryBuilder $queryBuilder */
-        $queryBuilder = new QueryBuilder($connection);
-
-        return $queryBuilder;
+        return new QueryBuilder($connection);
     }
 
     /**
