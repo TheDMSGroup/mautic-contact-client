@@ -188,7 +188,7 @@ class CacheRepository extends CommonRepository
                     $expr       = $query->expr()->andX();
                     $properties = $set['andx'];
                 } else {
-                    $expr       = $query->expr();
+                    $expr       = $query->expr()->andX();
                     $properties = $set;
                 }
                 foreach ($properties as $property => $value) {
