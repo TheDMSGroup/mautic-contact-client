@@ -181,11 +181,15 @@ class CacheRepository extends CommonRepository
 
             foreach ($filters as $k => $set) {
                 // Expect orx, anx, or neither.
-                if (!empty($set['orx'])) {
-                    $expr       = $query->expr()->orX();
+                if (isset($set['orx'])) {
+                    if (!empty($set['orx'])) {
+                        $expr = $query->expr()->orX();
+                    }
                     $properties = $set['orx'];
-                } elseif (!empty($set['andx'])) {
-                    $expr       = $query->expr()->andX();
+                } elseif (isset($set['andx'])) {
+                    if (!empty($set['andx'])) {
+                        $expr = $query->expr()->andX();
+                    }
                     $properties = $set['andx'];
                 } else {
                     if (!isset($expr)) {
