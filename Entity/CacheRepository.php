@@ -188,35 +188,37 @@ class CacheRepository extends CommonRepository
                     $expr       = $query->expr()->andX();
                     $properties = $set['andx'];
                 } else {
-                    $expr       = $query->expr()->andX();
-                    $properties = $set;
+                    unset($expr);
+                    unset($properties);
                 }
-                foreach ($properties as $property => $value) {
-                    if (is_array($value)) {
-                        $expr->add(
-                            $query->expr()->andX(
-                                $query->expr()->isNotNull($alias.'.'.$property),
-                                $query->expr()->in($alias.'.'.$property, $value)
-                            )
-                        );
-                    } else {
-                        if (!empty($value)) {
+                if (isset($expr) && !empty($properties)) {
+                    foreach ($properties as $property => $value) {
+                        if (is_array($value)) {
                             $expr->add(
                                 $query->expr()->andX(
                                     $query->expr()->isNotNull($alias.'.'.$property),
-                                    $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                                    $query->expr()->in($alias.'.'.$property, $value)
                                 )
                             );
                         } else {
-                            $expr->add(
-                                $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
-                            );
-                        }
-                        if (in_array($property, ['category_id', 'contact_id', 'campaign_id', 'contactclient_id'])) {
-                            // Explicit integers for faster queries.
-                            $query->setParameter($property.$k, (int) $value, \PDO::PARAM_INT);
-                        } else {
-                            $query->setParameter($property.$k, $value);
+                            if (!empty($value)) {
+                                $expr->add(
+                                    $query->expr()->andX(
+                                        $query->expr()->isNotNull($alias.'.'.$property),
+                                        $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                                    )
+                                );
+                            } else {
+                                $expr->add(
+                                    $query->expr()->eq($alias.'.'.$property, ':'.$property.$k)
+                                );
+                            }
+                            if (in_array($property, ['category_id', 'contact_id', 'campaign_id', 'contactclient_id'])) {
+                                // Explicit integers for faster queries.
+                                $query->setParameter($property.$k, (int) $value, \PDO::PARAM_INT);
+                            } else {
+                                $query->setParameter($property.$k, $value);
+                            }
                         }
                     }
                 }
