@@ -188,7 +188,10 @@ class CacheRepository extends CommonRepository
                     $expr       = $query->expr()->andX();
                     $properties = $set['andx'];
                 } else {
-                    unset($properties);
+                    if (!isset($expr)) {
+                        $expr = $query->expr()->andX();
+                    }
+                    $properties = $set;
                 }
                 if (isset($expr) && !empty($properties)) {
                     foreach ($properties as $property => $value) {
@@ -199,7 +202,7 @@ class CacheRepository extends CommonRepository
                                     $query->expr()->in($alias.'.'.$property, $value)
                                 )
                             );
-                        } else {
+                        } elseif (is_int($value) || is_string($value)) {
                             if (!empty($value)) {
                                 $expr->add(
                                     $query->expr()->andX(
