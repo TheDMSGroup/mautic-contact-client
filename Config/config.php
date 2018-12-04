@@ -31,7 +31,7 @@ return [
             ],
             'mautic_contactclient_transactions'        => [
                 'path'         => '/contactclient/view/{objectId}/transactions/{page}',
-                'controller'   => 'MauticContactClientBundle:Transactions:index',
+                'controller'   => 'MauticContactClientBundle:Ajax:transaction',
                 'requirements' => [
                     'objectId' => '\d+',
                     'page'     => '\d+',

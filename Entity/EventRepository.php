@@ -96,38 +96,34 @@ class EventRepository extends CommonRepository
             $query->select('c.*, s.utm_source');
         }
 
-//        if (!$countOnly || isset($options['campaignId'])) {
         $query->leftJoin(
-                    'c',
-                    MAUTIC_TABLE_PREFIX.'contactclient_stats',
-                    's',
-                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
-                );
-        //      }
+            'c',
+            MAUTIC_TABLE_PREFIX.'contactclient_stats',
+            's',
+            'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+        );
 
         $query->where('c.contactclient_id = :contactClientId')
             ->setParameter('contactClientId', $contactClientId);
 
-        if (isset($options['search']) && !empty(trim($options['search']))) {
-            if (is_numeric(trim($options['search']))) {
-                $query->andWhere(
-                    $query->expr()->orX(
-                        'c.contact_id = :search',
-                        's.utm_source = :search'
-                    )
-                )
-                    ->setParameter('search', (int) $options['search']);
-            } else {
-                $query->andWhere(
-                    $query->expr()->orX(
-                        'c.type = :search',
-                        'c.message LIKE :wildcard',
-                        's.utm_source = :search'
-                    )
-                )
-                    ->setParameter('search', trim($options['search']))
-                    ->setParameter('wildcard', '%'.trim($options['search']).'%');
-            }
+        if (isset($options['message']) && !empty($options['message'])) {
+            $query->andWhere('c.message LIKE :message')
+            ->setParameter('message', '%'.trim($options['message']).'%');
+        }
+
+        if (isset($options['contact_id']) && !empty($options['contact_id'])) {
+            $query->andWhere('c.contact_id = :contact')
+                ->setParameter('contact', trim($options['contact_id']));
+        }
+
+        if (isset($options['type']) && !empty($options['type'])) {
+            $query->andWhere('c.type = :type')
+                ->setParameter('type', trim($options['type']));
+        }
+
+        if (isset($options['utm_source']) && !empty($options['utm_source'])) {
+            $query->andWhere('s.utm_source = :utm')
+                ->setParameter('utm', trim($options['utm_source']));
         }
 
         if (isset($options['dateFrom'])) {
@@ -144,7 +140,7 @@ class EventRepository extends CommonRepository
                     $options['dateTo']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')
                 );
         }
-        if (isset($options['campaignId'])) {
+        if (isset($options['campaignId']) && !empty($options['campaignId'])) {
             $query->andWhere('s.campaign_id = :campaignId')
                 ->setParameter(
                     'campaignId',
@@ -170,21 +166,14 @@ class EventRepository extends CommonRepository
             }
         }
 
-        // Not currently needed.
-        // $query->groupBy('c.id');
-
         $results = $query->execute()->fetchAll();
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
             $query->resetQueryParts(['select', 'orderBy'])//, 'groupBy'
-                ->setFirstResult(null)
+            ->setFirstResult(null)
                 ->setMaxResults(null)
                 ->select('COUNT(*)');
-            if (empty(trim($options['search'])) && !isset($options['campaignId'])) {
-                //remove the join if there is no search, for performance
-                $query->resetQueryParts(['join']);
-            }
 
             $counter = $query->execute();
             $total   = $counter->fetchColumn();
@@ -226,17 +215,46 @@ class EventRepository extends CommonRepository
         )
             ->setParameter('contactClientId', $contactClientId);
 
-        if (!empty($options['fromDate']) && !empty($options['toDate'])) {
+        if (!empty($options['dateFrom']) && !empty($options['dateTo'])) {
             $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
-        } elseif (!empty($options['fromDate'])) {
+                ->setParameter('dateFrom', $options['dateFrom']->format('Y-m-d H:i:s'))
+                ->setParameter('dateTo', $options['dateTo']->format('Y-m-d H:i:s'));
+        } elseif (!empty($options['dateFrom'])) {
             $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
-                ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'));
-        } elseif (!empty($options['toDate'])) {
+                ->setParameter('dateFrom', $options['dateFrom']->format('Y-m-d H:i:s'));
+        } elseif (!empty($options['dateTo'])) {
             $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
-                ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
+                ->setParameter('dateTo', $options['dateTo']->format('Y-m-d H:i:s'));
         }
+
+        if (isset($options['message']) && !empty($options['message'])) {
+            $query->andWhere('c.message LIKE :message')
+                ->setParameter('message', '%'.trim($options['message']).'%');
+        }
+
+        if (isset($options['contact_id']) && !empty($options['contact_id'])) {
+            $query->andWhere('c.contact_id = :contact')
+                ->setParameter('contact', trim($options['contact_id']));
+        }
+
+        if (isset($options['type']) && !empty($options['type'])) {
+            $query->andWhere('c.type = :type')
+                ->setParameter('type', trim($options['type']));
+        }
+
+        if (isset($options['utm_source']) && !empty($options['utm_source'])) {
+            $query->andWhere('s.utm_source = :utm')
+                ->setParameter('utm', trim($options['utm_source']));
+        }
+
+        if (isset($options['campaignId']) && !empty($options['campaignId'])) {
+            $query->andWhere('s.campaign_id = :campaignId')
+                ->setParameter(
+                    'campaignId',
+                    $options['campaignId']
+                );
+        }
+
         $query->orderBy('c.date_added', 'DESC');
 
         if (!empty($options['limit'])) {

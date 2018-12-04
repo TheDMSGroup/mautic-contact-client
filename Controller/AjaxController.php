@@ -44,54 +44,59 @@ class AjaxController extends CommonAjaxController
             'success' => 0,
         ];
 
+
+        $filters = null;
+        // filters means the transaction table had a column sort or filter submission, otherwise its a fresh page load
+        if ($request->request->has('filters')) {
+            foreach ($request->request->get('filters') as $filter) {
+                if (in_array($filter['name'], ['dateTo', 'dateFrom']) && !empty($filter['value'])) {
+                    $filter['value'] = new \DateTime($filter['value']);
+                    list($hour, $min, $sec) = $filter['name'] == 'dateTo' ? [23, 59, 59] : [00, 00, 00];
+                    $filter['value']->setTime($hour, $min, $sec);
+                }
+                if (!empty($filter['value'])) {
+                    $filters[$filter['name']] = $filter['value'];
+                }
+            }
+
+        }
+        $page     = isset($filters['page']) && !empty($filters['page']) ? $filters['page'] : 1;
         $objectId = InputHelper::clean($request->request->get('objectId'));
         if (empty($objectId)) {
-            return $dataArray;
+            return c;
         }
 
         $contactClient = $this->checkContactClientAccess($objectId, 'view');
         if ($contactClient instanceof Response) {
-            return $dataArray;
+            return $this->sendJsonResponse($dataArray);
         }
 
-        $session = $this->get('session');
-
-        if ($request->request->has('search')) {
-            $session->set(
-                'mautic.contactclient.'.$contactClient->getId().'.transactions.search',
-                $request->request->get('search')
-            );
-        }
         $order = [
-            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
-                ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
-                : 'date_added',
-            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
-                ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
-                : 'DESC',
+            'date_added',
+            'DESC',
         ];
 
-        if ($request->request->has('orderby')) {
-            $order[0] = $request->request->get('orderby');
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', $order[0]);
+        if (isset($filters['orderby']) && !empty($filters['orderby'])) {
+            $order[0] = $filters['orderby'];
         }
-        if ($request->request->has('orderbydir')) {
-            $order[1] = $request->request->get('orderbydir');
-            $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', $order[1]);
+        if (isset($filters['orderbydir']) && !empty($filters['orderbydir'])) {
+            $order[1] = $filters['orderbydir'];
         }
 
-        $transactions = $this->getEngagements($contactClient, null, null, 1);
+
+        $transactions = $this->getEngagements($contactClient, $filters, $order, $page);
 
         $dataArray['html']    = $this->renderView(
             'MauticContactClientBundle:Transactions:list.html.php',
             [
-                'page'          => 1,
+                'page'          => $page,
                 'contactClient' => $contactClient,
                 'transactions'  => $transactions,
                 'order'         => $order,
             ]
         );
         $dataArray['success'] = 1;
+        $dataArray['total']   = $transactions['total'];
 
         return $this->sendJsonResponse($dataArray);
     }

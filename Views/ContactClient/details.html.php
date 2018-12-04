@@ -121,13 +121,6 @@ $website = $item->getWebsite();
                                     ['chartData' => $stats, 'chartType' => 'line', 'chartHeight' => 300]
                                 ); ?>
                             </div>
-<!-- depracated DataTable  -->
-<!--                            <div class="pt-0 pl-15 pb-10 pr-15">-->
-<!--                                --><?php //echo $view->render(
-//                                     'MauticContactClientBundle:ContactClient:datatable.html.php',
-//                                     ['tableData' => $tableData]
-//                                 );?>
-<!--                            </div>-->
                         </div>
                     </div>
                 </div>
@@ -139,7 +132,7 @@ $website = $item->getWebsite();
                 <li class="active">
                     <a href="#transactions-container" role="tab" data-toggle="tab">
                         <span class="label label-primary mr-sm" id="TransactionsCount">
-                            <?php echo $transactions['total']; ?>
+                            <?php //echo $transactions['total']; ?>
                         </span>
                         <?php echo $view['translator']->trans('mautic.contactclient.transactions.events'); ?>
                     </a>
@@ -163,12 +156,9 @@ $website = $item->getWebsite();
             <div class="tab-content pl-md pr-md pb-md">
                 <div class="tab-pane fade in active bdr-w-0" id="transactions-container">
                     <?php echo $view->render(
-                        'MauticContactClientBundle:Transactions:list.html.php',
+                        'MauticContactClientBundle:Transactions:index.html.php',
                         [
                             'contactClient' => $item,
-                            'transactions'  => $transactions,
-                            'order'         => $order,
-                            'search'        => $search,
                             'tmpl'          => 'index',
                         ]
                     ); ?>
