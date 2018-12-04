@@ -20,7 +20,7 @@ $baseUrl = $view['router']->path(
     ]
 );
 
-$toggleDir = $order[1] == "DESC" ? "ASC" : "DESC";
+$toggleDir = 'DESC' == $order[1] ? 'ASC' : 'DESC';
 //display filters if we have filter values
 $filterDisplay = 'style="display:none;"';
 if (
@@ -29,7 +29,7 @@ if (
     || (isset($transactions['filters']['utm_source']) && !empty($transactions['filters']['utm_source']))
     || (isset($transactions['filters']['contact_id']) && !empty($transactions['filters']['contact_id']))
 ) {
-    $filterDisplay = ""; // visible
+    $filterDisplay = ''; // visible
 }
 ?>
 
@@ -211,8 +211,8 @@ if (
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="e<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
-                           echo ' disabled';
-                       } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
+                echo ' disabled';
+            } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.toggle_details'
                     ); ?>">
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>

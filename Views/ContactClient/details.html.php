@@ -132,7 +132,7 @@ $website = $item->getWebsite();
                 <li class="active">
                     <a href="#transactions-container" role="tab" data-toggle="tab">
                         <span class="label label-primary mr-sm" id="TransactionsCount">
-                            <?php //echo $transactions['total']; ?>
+                            <?php //echo $transactions['total'];?>
                         </span>
                         <?php echo $view['translator']->trans('mautic.contactclient.transactions.events'); ?>
                     </a>

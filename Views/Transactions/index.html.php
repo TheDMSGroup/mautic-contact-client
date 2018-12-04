@@ -36,7 +36,7 @@
 
     <div id="transactions-table" class="bg-whiter">
 
-        <?php //$view['slots']->output('_content'); ?>
+        <?php //$view['slots']->output('_content');?>
     </div>
 </div>
 

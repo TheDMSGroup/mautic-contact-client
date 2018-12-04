@@ -44,21 +44,19 @@ class AjaxController extends CommonAjaxController
             'success' => 0,
         ];
 
-
         $filters = null;
         // filters means the transaction table had a column sort or filter submission, otherwise its a fresh page load
         if ($request->request->has('filters')) {
             foreach ($request->request->get('filters') as $filter) {
                 if (in_array($filter['name'], ['dateTo', 'dateFrom']) && !empty($filter['value'])) {
-                    $filter['value'] = new \DateTime($filter['value']);
-                    list($hour, $min, $sec) = $filter['name'] == 'dateTo' ? [23, 59, 59] : [00, 00, 00];
+                    $filter['value']        = new \DateTime($filter['value']);
+                    list($hour, $min, $sec) = 'dateTo' == $filter['name'] ? [23, 59, 59] : [00, 00, 00];
                     $filter['value']->setTime($hour, $min, $sec);
                 }
                 if (!empty($filter['value'])) {
                     $filters[$filter['name']] = $filter['value'];
                 }
             }
-
         }
         $page     = isset($filters['page']) && !empty($filters['page']) ? $filters['page'] : 1;
         $objectId = InputHelper::clean($request->request->get('objectId'));
@@ -82,7 +80,6 @@ class AjaxController extends CommonAjaxController
         if (isset($filters['orderbydir']) && !empty($filters['orderbydir'])) {
             $order[1] = $filters['orderbydir'];
         }
-
 
         $transactions = $this->getEngagements($contactClient, $filters, $order, $page);
 

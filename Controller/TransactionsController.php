@@ -25,7 +25,6 @@ class TransactionsController extends AbstractFormController
     use ContactClientAccessTrait;
     use ContactClientDetailsTrait;
 
-
     /**
      * @param Request $request
      * @param         $objectId
@@ -62,15 +61,15 @@ class TransactionsController extends AbstractFormController
         $session     = $this->get('session');
         $chartFilter = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
         $params      = [
-            'dateTo'   => new \DateTime($chartFilter['date_to']),
-            'dateFrom' => new \DateTime($chartFilter['date_from']),
+            'dateTo'     => new \DateTime($chartFilter['date_to']),
+            'dateFrom'   => new \DateTime($chartFilter['date_from']),
             'campaignId' => $chartFilter['campaign'],
-            'message' => !empty($request->query->get('message'))? $request->query->get('message') : null,
-            'type' => !empty($request->query->get('type'))? $request->query->get('type') : null,
-            'utm_source' => !empty($request->query->get('utm_source'))? $request->query->get('utm_source') : null,
-            'contact_id' => !empty($request->query->get('contact_id'))? $request->query->get('contact_id') : null,
-            'start'    => 0,
-            'limit'    => 1000,  // is this necessary?
+            'message'    => !empty($request->query->get('message')) ? $request->query->get('message') : null,
+            'type'       => !empty($request->query->get('type')) ? $request->query->get('type') : null,
+            'utm_source' => !empty($request->query->get('utm_source')) ? $request->query->get('utm_source') : null,
+            'contact_id' => !empty($request->query->get('contact_id')) ? $request->query->get('contact_id') : null,
+            'start'      => 0,
+            'limit'      => 1000,  // is this necessary?
         ];
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(
