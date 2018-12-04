@@ -99,6 +99,7 @@ if (
                 <input class="transaction-filter" id="filter-message"
                        name="filter-message" <?php echo $filterDisplay; ?>
                        size="20"
+                       placeholder="Message contains..."
                        value="<?php echo isset($transactions['filters']['message']) ? $transactions['filters']['message'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-contact-id">
@@ -118,6 +119,7 @@ if (
                 <input class="transaction-filter" id="filter-contact_id"
                        name="filter-contact_id" <?php echo $filterDisplay; ?>
                        size="10"
+                       placeholder="Contact ID ="
                        value="<?php echo isset($transactions['filters']['contact_id']) ? $transactions['filters']['contact_id'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-utm-source">
@@ -136,6 +138,7 @@ if (
                 <input class="transaction-filter" id="filter-utm_source"
                        name="filter-utm_source" <?php echo $filterDisplay; ?>
                        size="10"
+                       placeholder="UTM Source ="
                        value="<?php echo isset($transactions['filters']['utm_source']) ? $transactions['filters']['utm_source'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-event-type">
@@ -153,6 +156,7 @@ if (
                         ) : ''; ?>"></i>
                 </a><input class="transaction-filter" id="filter-type" name="filter-type" <?php echo $filterDisplay; ?>
                            size="10"
+                           placeholder="Type ="
                            value="<?php echo isset($transactions['filters']['type']) ? $transactions['filters']['type'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-timestamp">
