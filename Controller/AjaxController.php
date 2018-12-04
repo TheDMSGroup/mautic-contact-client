@@ -45,7 +45,7 @@ class AjaxController extends CommonAjaxController
         ];
 
         $filters = null;
-        // filters means the transaction table had a column sort or filter submission, otherwise its a fresh page load
+        // filters means the transaction table had a column sort or filter submission or pagination, otherwise its a fresh page load
         if ($request->request->has('filters')) {
             foreach ($request->request->get('filters') as $filter) {
                 if (in_array($filter['name'], ['dateTo', 'dateFrom']) && !empty($filter['value'])) {
@@ -61,7 +61,7 @@ class AjaxController extends CommonAjaxController
         $page     = isset($filters['page']) && !empty($filters['page']) ? $filters['page'] : 1;
         $objectId = InputHelper::clean($request->request->get('objectId'));
         if (empty($objectId)) {
-            return c;
+            return $this->sendJsonResponse($dataArray);
         }
 
         $contactClient = $this->checkContactClientAccess($objectId, 'view');
