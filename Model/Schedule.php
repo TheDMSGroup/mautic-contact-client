@@ -435,6 +435,7 @@ class Schedule
             $timezone = new \DateTimeZone($timezone);
         }
         $this->timezone = $timezone;
+        $this->now->setTimezone($timezone);
 
         return $this;
     }
