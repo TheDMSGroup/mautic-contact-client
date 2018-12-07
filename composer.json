@@ -18,5 +18,7 @@
             "name": "Heath Dutton",
             "email": "heathdutton@gmail.com"
         }
-    ]
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
