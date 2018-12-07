@@ -85,16 +85,12 @@ class EventRepository extends CommonRepository
      *
      * @return array
      */
-    public function getEventsForTimeline($contactClientId, array $options = [], $countOnly = false)
+    public function getEventsForTimeline($contactClientId, array $options = [])
     {
         $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c');
 
-        if ($countOnly) {
-            $query->select('COUNT(c.id)');
-        } else {
-            $query->select('c.*, s.utm_source');
-        }
+        $query->select('c.*, s.utm_source');
 
         $query->leftJoin(
             'c',
@@ -108,7 +104,7 @@ class EventRepository extends CommonRepository
 
         if (isset($options['message']) && !empty($options['message'])) {
             $query->andWhere('c.message LIKE :message')
-            ->setParameter('message', '%'.trim($options['message']).'%');
+                ->setParameter('message', '%'.trim($options['message']).'%');
         }
 
         if (isset($options['contact_id']) && !empty($options['contact_id'])) {
@@ -127,17 +123,17 @@ class EventRepository extends CommonRepository
         }
 
         if (isset($options['dateFrom'])) {
-            $query->andWhere('c.date_added >= :dateFrom')
+            $query->andWhere('c.date_added >= FROM_UNIXTIME(:dateFrom)')
                 ->setParameter(
                     'dateFrom',
-                    $options['dateFrom']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')
+                    $options['dateFrom']->getTimestamp()
                 );
         }
         if (isset($options['dateTo'])) {
-            $query->andWhere('c.date_added < :dateTo')
+            $query->andWhere('c.date_added < FROM_UNIXTIME(:dateTo)')
                 ->setParameter(
                     'dateTo',
-                    $options['dateTo']->setTimeZone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')
+                    $options['dateTo']->getTimestamp()
                 );
         }
         if (isset($options['campaignId']) && !empty($options['campaignId'])) {
@@ -170,10 +166,21 @@ class EventRepository extends CommonRepository
 
         if (!empty($options['paginated'])) {
             // Get a total count along with results
-            $query->resetQueryParts(['select', 'orderBy'])//, 'groupBy'
+            $query->resetQueryParts(['select', 'orderBy', 'join'])
             ->setFirstResult(null)
                 ->setMaxResults(null)
                 ->select('COUNT(*)');
+
+            if (
+                isset($options['utm_source']) && !empty($options['utm_source'])
+            ) {
+                $query->leftJoin(
+                    'c',
+                    MAUTIC_TABLE_PREFIX.'contactclient_stats',
+                    's',
+                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+                );
+            }
 
             $counter = $query->execute();
             $total   = $counter->fetchColumn();
@@ -216,15 +223,15 @@ class EventRepository extends CommonRepository
             ->setParameter('contactClientId', $contactClientId);
 
         if (!empty($options['dateFrom']) && !empty($options['dateTo'])) {
-            $query->andWhere('c.date_added BETWEEN :dateFrom AND :dateTo')
-                ->setParameter('dateFrom', $options['dateFrom']->format('Y-m-d H:i:s'))
-                ->setParameter('dateTo', $options['dateTo']->format('Y-m-d H:i:s'));
+            $query->andWhere('c.date_added BETWEEN FROM_UNIXTIME(:dateFrom) AND FROM_UNIXTIME(:dateTo)')
+                ->setParameter('dateFrom', $options['dateFrom']->getTimestamp())
+                ->setParameter('dateTo', $options['dateTo']->getTimestamp());
         } elseif (!empty($options['dateFrom'])) {
-            $query->andWhere($query->expr()->gte('c.date_added', ':dateFrom'))
-                ->setParameter('dateFrom', $options['dateFrom']->format('Y-m-d H:i:s'));
+            $query->andWhere($query->expr()->gte('c.date_added', 'FROM_UNIXTIME(:dateFrom)'))
+                ->setParameter('dateFrom', $options['dateFrom']->getTimestamp());
         } elseif (!empty($options['dateTo'])) {
-            $query->andWhere($query->expr()->lte('c.date_added', ':dateTo'))
-                ->setParameter('dateTo', $options['dateTo']->format('Y-m-d H:i:s'));
+            $query->andWhere($query->expr()->lte('c.date_added', 'FROM_UNIXTIME(:dateTo)'))
+                ->setParameter('dateTo', $options['dateTo']->getTimestamp());
         }
 
         if (isset($options['message']) && !empty($options['message'])) {
@@ -263,6 +270,12 @@ class EventRepository extends CommonRepository
                 $query->setFirstResult($options['start']);
             }
         }
+
+        // if its a count only and there is no utm_source arg, remove the join for performance.
+        if($count && (!isset($options['utm_source']) || empty($options['utm_source'])))
+            {
+            $query->resetQueryParts(['join']);//, 'groupBy'
+            }
 
         $results = $query->execute()->fetchAll();
 
