@@ -272,10 +272,9 @@ class EventRepository extends CommonRepository
         }
 
         // if its a count only and there is no utm_source arg, remove the join for performance.
-        if($count && (!isset($options['utm_source']) || empty($options['utm_source'])))
-            {
-            $query->resetQueryParts(['join']);//, 'groupBy'
-            }
+        if ($count && (!isset($options['utm_source']) || empty($options['utm_source']))) {
+            $query->resetQueryParts(['join']); //, 'groupBy'
+        }
 
         $results = $query->execute()->fetchAll();
 
