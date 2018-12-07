@@ -151,27 +151,8 @@ class ContactClientController extends FormController
             $item = $args['viewParameters']['item'];
 
             // Setup page forms in session
-            $order = [
-                $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
-                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderby')
-                    : 'date_added',
-                $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
-                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.orderbydir')
-                    : 'DESC',
-            ];
-            if ('POST' == $this->request->getMethod()) {
-                $chartFilterValues = $this->request->request->has('chartfilter')
-                    ? $this->request->request->get('chartfilter')
-                    : $session->get('mautic.contactclient.'.$item->getId().'.chartfilter');
-                $search = $this->request->request->has('search')
-                    ? $this->request->request->get('search')
-                    : $session->get('mautic.contactclient.'.$item->getId().'.transactions.search', '');
-                if ($this->request->request->has('orderby')) {
-                    $order[0] = $this->request->request->get('orderby');
-                }
-                if ($this->request->request->has('orderbydir')) {
-                    $order[1] = $this->request->request->get('orderbydir');
-                }
+            if ('POST' == $this->request->getMethod() && $this->request->request->has('chartfilter')) {
+                $chartFilterValues = $this->request->request->get('chartfilter');
             } else {
                 $chartFilterValues = $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
                     ? $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
@@ -180,24 +161,17 @@ class ContactClientController extends FormController
                         'date_to'   => 'midnight tomorrow -1 second',
                         'type'      => '',
                     ];
-
-                $search = $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
-                    ? $session->get('mautic.contactclient.'.$item->getId().'.transactions.search')
-                    : '';
             }
 
             if ($this->request->query->has('campaign')) {
                 $chartFilterValues['campaign'] = $this->request->query->get('campaign');
             }
 
-            if (!isset($chartFilterValues['campaign'])) {
+            if (!isset($chartFilterValues['campaign']) || empty($chartFilterValues['campaign'])) {
                 $chartFilterValues['campaign'] = null;
             }
 
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
-            $session->set('mautic.contactclient.'.$item->getId().'.transactions.search', $search);
-            $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderby', $order[0]);
-            $session->set('mautic.contactclient.'.$item->getId().'.transactions.orderbydir', $order[1]);
 
             //Setup for the chart and stats datatable
             /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
@@ -228,7 +202,6 @@ class ContactClientController extends FormController
                     $chartFilterValues['campaign']
                 );
             }
-            $transactions = $this->getEngagements($item);
 
             $chartFilterForm = $this->get('form.factory')->create(
                 'chartfilter',
@@ -247,82 +220,13 @@ class ContactClientController extends FormController
             $args['viewParameters']['auditlog']        = $auditLog;
             $args['viewParameters']['files']           = $files;
             $args['viewParameters']['stats']           = $stats;
-            $args['viewParameters']['transactions']    = $transactions;
             $args['viewParameters']['chartFilterForm'] = $chartFilterForm->createView();
-            // depracated datatable section
-            // $args['viewParameters']['tableData']       = $this->convertChartStatsToDatatable($stats, $unit);
-            $args['viewParameters']['search']          = $search;
-            $args['viewParameters']['order']           = $order;
 
-            unset($chartFilterValues['campaign']);
+            //unset($chartFilterValues['campaign']);
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
         }
 
         return $args;
-    }
-
-    /**
-     * @param $stats
-     * @param $unit
-     *
-     * @return array
-     */
-    protected function convertChartStatsToDatatable($stats, $unit)
-    {
-        $tableData = [
-            'labels' => [],
-            'data'   => [],
-        ];
-
-        if (!empty($stats)) {
-            $tableData['labels'][] = ['title' => 'Date (Y-m-d)'];
-            $row                   = [];
-            foreach ($stats['datasets'] as $column => $dataset) {
-                $tableData['labels'][] = ['title' => $dataset['label']];
-                foreach ($dataset['data'] as $key => $data) {
-                    //utc may produce an extra result outside of the locale date labels
-                    if (!isset($stats['labels'][$key])) {
-                        continue;
-                    }
-                    $dateStr = $stats['labels'][$key];
-                    $date    = null;
-                    switch ($unit) {
-                        case 'd': // M j, y
-                            $date    = date_create_from_format('M j, y', $dateStr);
-                            $dateStr = $date->format('Y-m-d');
-                            break;
-                        case 'H': // M j ga
-                            $date                   = date_create_from_format('M j ga', $dateStr);
-                            $dateStr                = $date->format('Y-m-d - H:00');
-                            $tableData['labels'][0] = ['title' => 'Date/Time'];
-                            break;
-                        case 'm': // M j ga
-                            $date                   = date_create_from_format('M Y', $dateStr);
-                            $dateStr                = $date->format('Y-m');
-                            $tableData['labels'][0] = ['title' => 'Date (Y-m)'];
-                            break;
-                        case 'Y': // Y
-                            $date                   = date_create_from_format('Y', $dateStr);
-                            $dateStr                = $date->format('Y');
-                            $tableData['labels'][0] = ['title' => 'Year'];
-                            break;
-                        case 'W': // W
-                            $date = new \DateTime();
-                            $date->setISODate(date('Y'), str_replace('Week ', '', $dateStr));
-                            $dateStr                = 'Week '.$date->format('W');
-                            $tableData['labels'][0] = ['title' => 'Week #'];
-                            break;
-                        default:
-                            break;
-                    }
-                    $row[$key][0]           = $dateStr;
-                    $row[$key][$column + 1] = $data;
-                }
-            }
-            $tableData['data'] = $row;
-        }
-
-        return $tableData;
     }
 
     /**

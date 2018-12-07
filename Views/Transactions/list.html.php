@@ -15,10 +15,66 @@ if (isset($tmpl) && 'index' == $tmpl) {
 $baseUrl = $view['router']->path(
     'mautic_contactclient_transactions',
     [
-        'objectId' => $contactClient->getId(),
+        'objectId'     => $contactClient->getId(),
+        'objectAction' => 'view',
     ]
 );
+
+$toggleDir = 'DESC' == $order[1] ? 'ASC' : 'DESC';
+//display filters if we have filter values
+$filterDisplay = 'style="display:none;"';
+if (
+    (isset($transactions['filters']['message']) && !empty($transactions['filters']['message']))
+    || (isset($transactions['filters']['type']) && !empty($transactions['filters']['type']))
+    || (isset($transactions['filters']['utm_source']) && !empty($transactions['filters']['utm_source']))
+    || (isset($transactions['filters']['contact_id']) && !empty($transactions['filters']['contact_id']))
+) {
+    $filterDisplay = ''; // visible
+}
+
+//$view['assets']->addScriptDeclaration('MauticVars.permissionList = '.json_encode($permissionsConfig['list']), 'bodyClose');
+
+$contactClientTransactionVars = [
+    'id'                => $view->escape($contactClient->getId()),
+    'transactionsTotal' => $transactions['total'],
+];
+
+$view['assets']->addScriptDeclaration(
+    'var contactClient = '.json_encode($contactClientTransactionVars),
+        'tabClose'
+);
 ?>
+
+<!-- filter form -->
+<form method="post" id="transactions-filters"
+      data-toggle="ajax"
+      data-target="#transactions-table"
+      data-overlay="true"
+      data-overlay-target="#clientTransactions-builder-overlay"
+      data-action="<?php echo $view['router']->path(
+          'mautic_contactclient_transactions',
+          ['objectId' => $contactClient->getId(), 'objectAction' => 'view']
+      ); ?>">
+    <input type="hidden" name="message" id="transaction_message"
+           value="<?php echo isset($transactions['filters']['message']) ? $transactions['filters']['message'] : null; ?>">
+    <input type="hidden" name="utm_source" id="transaction_utmsource"
+           value="<?php echo isset($transactions['filters']['utmsource']) ? $transactions['filters']['utmsource'] : null; ?>">
+    <input type="hidden" name="contact_id" id="transaction_contact_id"
+           value="<?php echo isset($transactions['filters']['contact_id']) ? $transactions['filters']['contact_id'] : null; ?>">
+    <input type="hidden" name="type" id="transaction_type"
+           value="<?php echo isset($transactions['filters']['type']) ? $transactions['filters']['type'] : null; ?>">
+    <input type="hidden" name="objectId" id="objectId" value="<?php echo $view->escape($contactClient->getId()); ?>"/>
+    <input type="hidden" name="orderby" id="orderby" value="<?php echo $transactions['order'][0]; ?>">
+    <input type="hidden" name="orderbydir" id="orderbydir" value="<?php echo $transactions['order'][1]; ?>">
+    <input type="hidden" name="dateFrom" id="transactions_dateFrom"
+           value="<?php echo isset($transactions['dateFrom']) ? $transactions['dateFrom'] : null; ?>">
+    <input type="hidden" name="dateTo" id="transactions_dateTo"
+           value="<?php echo isset($transactions['dateTo']) ? $transactions['dateTo'] : null; ?>">
+    <input type="hidden" name="campaignId" id="transactions_campaignId"
+           value="<?php echo isset($transactions['filters']['campaignId']) ? $transactions['filters']['campaignId'] : null; ?>">
+    <input type="hidden" name="page" id="transactions_page" value="<?php echo $transactions['page']; ?>">
+</form>
+
 
 <!-- transactions -->
 <script>
@@ -39,55 +95,94 @@ $baseUrl = $view['router']->path(
                 </a>
             </th>
             <th class="visible-md visible-lg timeline-message">
-                <a data-toggle="tooltip"
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="message"
+                   data-sort_dir="<?php echo 'message' === $order[0] ? $toggleDir : 'DESC'; ?>"
+                   data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.message'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.message'
                     ); ?>
+                    <i class="fa fa-sort<?php echo 'message' === $order[0] ? '-amount-'.strtolower(
+                            $order[1]
+                        ) : ''; ?>"></i>
                 </a>
+                <input class="transaction-filter" id="filter-message"
+                       name="filter-message" <?php echo $filterDisplay; ?>
+                       size="20"
+                       placeholder="Message contains..."
+                       value="<?php echo isset($transactions['filters']['message']) ? $transactions['filters']['message'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-contact-id">
-                <a data-toggle="tooltip"
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="contact_id"
+                   data-sort_dir="<?php echo 'contact_id' === $order[0] ? $toggleDir : 'DESC'; ?>"
+                   data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.contact_id'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.contact_id'
                     ); ?>
+                    <i class="fa fa-sort<?php echo 'contact_id' === $order[0] ? '-amount-'.strtolower(
+                            $order[1]
+                        ) : ''; ?>"></i>
                 </a>
+                <input class="transaction-filter" id="filter-contact_id"
+                       name="filter-contact_id" <?php echo $filterDisplay; ?>
+                       size="10"
+                       placeholder="Contact ID ="
+                       value="<?php echo isset($transactions['filters']['contact_id']) ? $transactions['filters']['contact_id'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-utm-source">
                 <a class="timeline-header-sort" data-toggle="tooltip" data-sort="utm_source"
+                   data-sort_dir="<?php echo 'utm_source' === $order[0] ? $toggleDir : 'DESC'; ?>"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.utm_source'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.utm_source'
                     ); ?>
-                    <i class="fa fa-sort<?php echo 'utm_source' === $order[0] ? '-amount-'.strtolower($order[1]) : ''; ?>"></i>
+                    <i class="fa fa-sort<?php echo 'utm_source' === $order[0] ? '-amount-'.strtolower(
+                            $order[1]
+                        ) : ''; ?>"></i>
                 </a>
+                <input class="transaction-filter" id="filter-utm_source"
+                       name="filter-utm_source" <?php echo $filterDisplay; ?>
+                       size="10"
+                       placeholder="UTM Source ="
+                       value="<?php echo isset($transactions['filters']['utm_source']) ? $transactions['filters']['utm_source'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-event-type">
-                <a data-toggle="tooltip"
+                <a class="timeline-header-sort" data-toggle="tooltip" data-sort="type"
+                   data-sort_dir="<?php echo 'type' === $order[0] ? $toggleDir : 'DESC'; ?>"
+                   data-toggle="tooltip"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.event_type'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.event_type'
                     ); ?>
-                </a>
+                    <i class="fa fa-sort<?php echo 'type' === $order[0] ? '-amount-'.strtolower(
+                            $order[1]
+                        ) : ''; ?>"></i>
+                </a><input class="transaction-filter" id="filter-type" name="filter-type" <?php echo $filterDisplay; ?>
+                           size="10"
+                           placeholder="Type ="
+                           value="<?php echo isset($transactions['filters']['type']) ? $transactions['filters']['type'] : null; ?>">
             </th>
             <th class="visible-md visible-lg timeline-timestamp">
                 <a class="timeline-header-sort" data-toggle="tooltip" data-sort="date_added"
+                   data-sort_dir="<?php echo 'date_added' === $order[0] ? $toggleDir : 'DESC'; ?>"
                    title="<?php echo $view['translator']->trans(
                        'mautic.contactclient.transactions.event_timestamp'
                    ); ?>">
                     <?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.event_timestamp'
                     ); ?>
-                    <i class="fa fa-sort<?php echo 'date_added' === $order[0] ? '-amount-'.strtolower($order[1]) : ''; ?>"></i>
+                    <i class="fa fa-sort<?php echo 'date_added' === $order[0] ? '-amount-'.strtolower(
+                            $order[1]
+                        ) : ''; ?>"></i>
                 </a>
             </th>
         </tr>
@@ -174,3 +269,7 @@ echo $view->render(
         'totalItems' => $transactions['total'],
     ]
 ); ?>
+
+<?php $view['assets']->outputScripts('tabClose'); ?>
+
+

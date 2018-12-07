@@ -28,78 +28,6 @@ class TransactionsController extends AbstractFormController
     /**
      * @param Request $request
      * @param         $objectId
-     * @param int     $page
-     *
-     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
-     */
-    public function indexAction(Request $request, $objectId, $page = 1)
-    {
-        if (empty($objectId)) {
-            return $this->accessDenied();
-        }
-
-        $contactClient = $this->checkContactClientAccess($objectId, 'view');
-        if ($contactClient instanceof Response) {
-            return $contactClient;
-        }
-
-        $session = $this->get('session');
-
-        if ($request->request->has('search')) {
-            $session->set(
-                'mautic.contactclient.'.$contactClient->getId().'.transactions.search',
-                $request->request->get('search')
-            );
-        }
-        $order = [
-            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
-                ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby')
-                : 'date_added',
-            $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
-                ? $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir')
-                : 'DESC',
-        ];
-
-        if ($request->request->has('orderby')) {
-            $order[0] = $request->request->get('orderby');
-        }
-        if ($request->request->has('orderbydir')) {
-            $order[1] = $request->request->get('orderbydir');
-        }
-
-        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby', $order[0]);
-        $session->set('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir', $order[1]);
-
-        $transactions = $this->getEngagements($contactClient, null, null, $page);
-
-        return $this->delegateView(
-            [
-                'viewParameters'  => [
-                    'contactClient' => $contactClient,
-                    'page'          => $page,
-                    'transactions'  => $transactions,
-                    'search'        => $session->get(
-                        'mautic.contactclient.'.$contactClient->getId().'.transactions.search'
-                    ),
-                    'order'         => [
-                        $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
-                        $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
-                    ],
-                ],
-                'passthroughVars' => [
-                    'route'             => false,
-                    'mauticContent'     => 'contactClient',
-                    'transactions'      => $transactions,
-                    'transactionsCount' => $transactions['total'],
-                ],
-                'contentTemplate' => 'MauticContactClientBundle:Transactions:list.html.php',
-            ]
-        );
-    }
-
-    /**
-     * @param Request $request
-     * @param         $objectId
      *
      * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|StreamedResponse
      */
@@ -133,11 +61,15 @@ class TransactionsController extends AbstractFormController
         $session     = $this->get('session');
         $chartFilter = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
         $params      = [
-            'dateTo'   => new \DateTime($chartFilter['date_to']),
-            'dateFrom' => new \DateTime($chartFilter['date_from']),
-            'type'     => $chartFilter['type'],
-            'start'    => 0,
-            'limit'    => 1000,
+            'dateTo'     => new \DateTime($chartFilter['date_to']),
+            'dateFrom'   => new \DateTime($chartFilter['date_from']),
+            'campaignId' => $chartFilter['campaign'],
+            'message'    => !empty($request->query->get('message')) ? $request->query->get('message') : null,
+            'type'       => !empty($request->query->get('type')) ? $request->query->get('type') : null,
+            'utm_source' => !empty($request->query->get('utm_source')) ? $request->query->get('utm_source') : null,
+            'contact_id' => !empty($request->query->get('contact_id')) ? $request->query->get('contact_id') : null,
+            'start'      => 0,
+            'limit'      => 1000,  // batch limit, not total limit
         ];
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(

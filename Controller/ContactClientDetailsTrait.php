@@ -76,7 +76,6 @@ trait ContactClientDetailsTrait
 
         if (null === $filters) {
             $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
-            $search       = $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.search');
 
             $dateFrom     = new \DateTime($chartFilters['date_from']);
             $dateFrom->setTime(00, 00, 00); // set to beginning of day, Timezone should be OK.
@@ -88,18 +87,10 @@ trait ContactClientDetailsTrait
                 'dateFrom'   => $dateFrom,
                 'dateTo'     => $dateTo,
                 'type'       => $chartFilters['type'],
-                'search'     => $search,
             ];
             if (!empty($chartFilters['campaign'])) {
                 $filters['campaignId'] = $chartFilters['campaign'];
             }
-        }
-
-        if (null === $orderBy) {
-            $orderBy = [
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderby'),
-                $session->get('mautic.contactclient.'.$contactClient->getId().'.transactions.orderbydir'),
-            ];
         }
 
         /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $engagements */
@@ -118,7 +109,7 @@ trait ContactClientDetailsTrait
                 'date_to'   => $filters['dateTo']->format('M j, Y'),
                 'type'      => $filters['type'],
             ],
-            'search'      => $filters['search'],
+            'filters'     => $filters,
             'order'       => $orderBy,
             'types'       => $engagements->getEventTypes(),
             'total'       => $engagements->getQueryTotal(),

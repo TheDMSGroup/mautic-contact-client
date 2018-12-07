@@ -459,7 +459,7 @@ class ContactClientTimelineEvent extends Event
      */
     public function getEventFilters()
     {
-        return $this->filters['search'];
+        return $this->filters;
     }
 
     /**

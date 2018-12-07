@@ -50,7 +50,7 @@ Mautic.contactclientTransactionsOnLoad = function (container, response) {
         }
     });
     // Expand/collapse single transactions.
-    mQuery('.contactclient-timeline a[data-activate-details!=\'all\']').off('click').on('click', function () {
+    mQuery('.contactclient-timeline .timeline-icon  a[data-activate-details!=\'all\']').off('click').on('click', function () {
         var detailsId = mQuery(this).data('activate-details');
         if (detailsId && mQuery('#timeline-details-' + detailsId).length) {
             var activateDetailsState = mQuery(this).hasClass('active'),
@@ -74,59 +74,61 @@ Mautic.contactclientTransactionsOnLoad = function (container, response) {
             }
         }
     });
-    // Change sorting.
-    var $filterForm = mQuery('form#transactions-filters:first');
-    mQuery('.contactclient-timeline a.timeline-header-sort').off('click').on('click', function (event) {
-        event.preventDefault();
-        $filterForm.find('#orderby').val(mQuery(this).data('sort'));
-        $filterForm.find('#orderbydir').val(mQuery(this).find('.fa:first').hasClass('fa-sort-amount-asc') ? 'DESC' : 'ASC');
-        $filterForm.submit();
+
+    // add Transaction Totals to the tab
+    mQuery('span#TransactionsCount').html(contactClient.transactionsTotal);
+    mQuery('#transactions-filter-btn').unbind('click').click(function () {
+        mQuery('.transaction-filter').toggle();
     });
 
-    // Ajaxify the form.
-    $filterForm.unbind('submit').submit(function (event) {
-        var $form = mQuery(this);
+    // Register Form Submission control events
+    mQuery('#transactions-table .pagination-wrapper .pagination a').not('.disabled a').click(function (event) {
         event.preventDefault();
-        $form.find('input').attr('disabled', 'disabled');
+        var arg = this.href.split('?')[1];
+        var page = arg.split('/')[1];
+        var filterForm = mQuery('#transactions-filters');
+        mQuery('#transactions_page').val(page);
         Mautic.startPageLoadingBar();
-        mQuery('#client-timeline-overlay').show();
-        event.preventDefault();
-        mQuery.ajax({
-            url: mauticAjaxUrl,
-            type: 'POST',
-            data: {
-                action: 'plugin:mauticContactClient:transactions',
-                objectId: $form.find('#objectId').val(),
-                search: $form.find('#search').val(),
-                orderby: $form.find('#orderby').val(),
-                orderbydir: $form.find('#orderbydir').val()
-            },
-            cache: false,
-            dataType: 'json'
-        }).done(function (data) {
-            mQuery('#transactions-table').html(data.html);
-            $form.find('input').attr('disabled', false);
-            $form.find('#contactClientTimelineFilterApply i')
-                .removeClass('fa-spin')
-                .removeClass('fa-spinner')
-                .addClass('fa-search');
-            Mautic.stopPageLoadingBar();
-            setTimeout(function () {
-                Mautic.contactclientTransactionsOnLoad();
-            }, 500);
-            mQuery("#transactions-table a[data-toggle='ajax']").click(function (event) {
-                event.preventDefault();
-                return Mautic.ajaxifyLink(this, event);
-            });
-        }).fail(function (data) {
-            console.error('Something went wrong with the transaction form ajax.', data);
-        });
+        filterForm.submit();
+    });
+
+    mQuery('.timeline-header-sort').click(function (event) {
+        var filterForm = mQuery('#transactions-filters');
+        mQuery('#orderby').val(mQuery(this).data('sort'));
+        mQuery('#orderbydir').val(mQuery(this).data('sort_dir'));
+        Mautic.startPageLoadingBar();
+        filterForm.submit();
+    });
+
+    mQuery('.transaction-filter').change(function (event) {
+        var filterForm = mQuery('#transactions-filters');
+        mQuery('#transactions_page').val(1); // reset page to 1 when filtering
+        Mautic.startPageLoadingBar();
+        filterForm.submit();
+    });
+
+    mQuery('#transactions-filters').submit(function (event) {
+        event.preventDefault(); // Prevent the form from submitting via the browser
+        Mautic.contactClientTransactionFormSubmit(this);
+
     });
 };
 
 Mautic.contactClientTimelineExport = function (contactClientId) {
+    // grab timeline filter values to send for export params
+    var messageVar = mQuery('#filter-message').val();
+    var typeVar = mQuery('#filter-type').val();
+    var utm_sourceVar = mQuery('#filter-utm_source').val();
+    var contact_idVar = mQuery('#filter-contact_id').val();
+    var params = jQuery.param({
+        message: messageVar,
+        type: typeVar,
+        utm_source: utm_sourceVar,
+        contact_id: contact_idVar
+    });
+
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/view/' + contactClientId + '/transactions/export';
+    var src = mauticBaseUrl + 's/contactclient/view/' + contactClientId + '/transactions/export?' + params;
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
@@ -139,3 +141,36 @@ Mautic.contactClientTimelineFile = function (contactClientId, fileId) {
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
 };
+
+Mautic.contactClientTransactionFormSubmit = function(form){
+    //merge the chartfilter form to the transaction filter before re-submiting it
+    mQuery('#transactions_dateFrom').val(mQuery('#chartfilter_date_from').val());
+    mQuery('#transactions_dateTo').val(mQuery('#chartfilter_date_to').val());
+    mQuery('#transactions_campaignId').val(mQuery('#chartfilter_campaign').val());
+
+    //merge the filter fields to the transaction filter before re-submiting it
+    mQuery('#transaction_message').val(mQuery('#filter-message').val());
+    mQuery('#transaction_contact_id').val(mQuery('#filter-contact_id').val());
+    mQuery('#transaction_utmsource').val(mQuery('#filter-utm_source').val());
+    mQuery('#transaction_type').val(mQuery('#filter-type').val());
+
+    var form = $(form);
+    mQuery.ajax({
+        type: form.attr('method'),
+        url: mauticAjaxUrl,
+        data: {
+            action: 'plugin:mauticContactClient:transactions',
+            filters: form.serializeArray(),
+            objectId: contactClient.id
+        }
+    }).done(function (data) {
+        mQuery('div#transactions-table').html(data.html);
+        mQuery('span#TransactionsCount').html(data.total);
+        Mautic.contactclientTransactionsOnLoad();
+        Mautic.stopPageLoadingBar();
+
+    }).fail(function (data) {
+        // Optionally alert the user of an error here...
+        alert('Ooops! Something went wrong');
+    });
+}
