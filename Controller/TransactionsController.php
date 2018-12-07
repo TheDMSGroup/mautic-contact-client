@@ -69,6 +69,7 @@ class TransactionsController extends AbstractFormController
             'utm_source' => !empty($request->query->get('utm_source')) ? $request->query->get('utm_source') : null,
             'contact_id' => !empty($request->query->get('contact_id')) ? $request->query->get('contact_id') : null,
             'start'      => 0,
+            'limit'      => 1000,  // batch limit, not total limit
         ];
         /** @var EventRepository $eventRepository */
         $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(
