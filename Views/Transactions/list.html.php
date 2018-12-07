@@ -31,6 +31,18 @@ if (
 ) {
     $filterDisplay = ''; // visible
 }
+
+//$view['assets']->addScriptDeclaration('MauticVars.permissionList = '.json_encode($permissionsConfig['list']), 'bodyClose');
+
+$contactClientTransactionVars = [
+    'id'                => $view->escape($contactClient->getId()),
+    'transactionsTotal' => $transactions['total'],
+];
+
+$view['assets']->addScriptDeclaration(
+    'var contactClient = '.json_encode($contactClientTransactionVars),
+        'tabClose'
+);
 ?>
 
 <!-- filter form -->
@@ -215,8 +227,8 @@ if (
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="e<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
-                echo ' disabled';
-            } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
+                           echo ' disabled';
+                       } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.toggle_details'
                     ); ?>">
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>
@@ -257,75 +269,7 @@ echo $view->render(
         'totalItems' => $transactions['total'],
     ]
 ); ?>
-<script>
-    mQuery('span#TransactionsCount').html(<?php echo $transactions['total']; ?>);
-    mQuery('#transactions-filter-btn').unbind('click').click(function () {
-        mQuery('.transaction-filter').toggle();
-    });
-</script>
 
-<script>
-    // Form Submission controls
-    mQuery('#transactions-table .pagination-wrapper .pagination a').not('.disabled a').click(function (event) {
-        event.preventDefault();
-        var arg = this.href.split('?')[1];
-        var page = arg.split('/')[1];
-        var filterForm = mQuery('#transactions-filters');
-        mQuery('#transactions_page').val(page);
-        Mautic.startPageLoadingBar();
-        filterForm.submit();
-    });
-
-    mQuery('.timeline-header-sort').click(function (event) {
-        console.log('sorting...');
-        var filterForm = mQuery('#transactions-filters');
-        mQuery('#orderby').val(mQuery(this).data('sort'));
-        mQuery('#orderbydir').val(mQuery(this).data('sort_dir'));
-        Mautic.startPageLoadingBar();
-        filterForm.submit();
-    });
-
-    mQuery('.transaction-filter').change(function (event) {
-        var filterForm = mQuery('#transactions-filters');
-        mQuery('#transactions_page').val(1); // reset page to 1 when filtering
-        Mautic.startPageLoadingBar();
-        filterForm.submit();
-    });
-
-    mQuery('#transactions-filters').submit(function (event) {
-        event.preventDefault(); // Prevent the form from submitting via the browser
-
-        //merge the chartfilter form to the transaction filter before re-submiting it
-        mQuery('#transactions_dateFrom').val(mQuery('#chartfilter_date_from').val());
-        mQuery('#transactions_dateTo').val(mQuery('#chartfilter_date_to').val());
-        mQuery('#transactions_campaignId').val(mQuery('#chartfilter_campaign').val());
-
-        //merge the filter fields to the transaction filter before re-submiting it
-        mQuery('#transaction_message').val(mQuery('#filter-message').val());
-        mQuery('#transaction_contact_id').val(mQuery('#filter-contact_id').val());
-        mQuery('#transaction_utmsource').val(mQuery('#filter-utm_source').val());
-        mQuery('#transaction_type').val(mQuery('#filter-type').val());
-
-        var form = $(this);
-        mQuery.ajax({
-            type: form.attr('method'),
-            url: mauticAjaxUrl,
-            data: {
-                action: 'plugin:mauticContactClient:transactions',
-                filters: form.serializeArray(),
-                objectId: <?php echo $view->escape($contactClient->getId()); ?>
-            }
-        }).done(function (data) {
-            mQuery('div#transactions-table').html(data.html);
-            mQuery('span#TransactionsCount').html(data.total);
-            Mautic.contactclientTransactionsOnLoad();
-            Mautic.stopPageLoadingBar();
-
-        }).fail(function (data) {
-            // Optionally alert the user of an error here...
-            alert('Ooops! Something went wrong');
-        });
-    });
+<?php $view['assets']->outputScripts('tabClose'); ?>
 
 
-</script>
