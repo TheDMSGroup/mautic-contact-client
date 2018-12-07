@@ -214,7 +214,7 @@ class EventRepository extends CommonRepository
         if ($count) {
             $query->select('COUNT(c.id) as count');
         } else {
-            $query->select('c.type, c.message, c.logs, c.date_added, c.contact_id, s.utm_source');
+            $query->select('c.id, c.type, c.message, c.logs, c.date_added, c.contact_id, s.utm_source');
         }
 
         $query->where(
@@ -262,12 +262,13 @@ class EventRepository extends CommonRepository
                 );
         }
 
-        $query->orderBy('c.date_added', 'DESC');
+        //$query->orderBy('c.date_added', 'DESC');
 
         if (!empty($options['limit'])) {
             $query->setMaxResults($options['limit']);
             if (!empty($options['start'])) {
-                $query->setFirstResult($options['start']);
+                $query->andWhere('c.id > :offset')
+                    ->setParameter('offset', $options['start']);
             }
         }
 
