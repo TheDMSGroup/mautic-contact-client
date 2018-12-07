@@ -17,7 +17,7 @@ use Exporter\Writer\CsvWriter;
 use Exporter\Writer\XlsWriter;
 use FOS\RestBundle\Util\Codes;
 use League\Flysystem\Adapter\Ftp as FtpAdapter;
-use League\Flysystem\AwsS3v2\AwsS3Adapter;
+use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Sftp\SftpAdapter;
 use Mautic\CampaignBundle\Entity\Campaign;
