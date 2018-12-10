@@ -82,7 +82,8 @@ class TransactionsController extends AbstractFormController
             function () use ($params, $headers, $contactClient, $count, $eventRepository) {
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
-                while ($params['start'] < $count[0]['count']) {
+                $iterator = 0;
+                while ($iterator < $count[0]['count']) {
                     $timelineData = $eventRepository->getEventsForTimelineExport(
                         $contactClient->getId(),
                         $params,
@@ -102,7 +103,8 @@ class TransactionsController extends AbstractFormController
                             fputcsv($handle, array_values($csvRow));
                         }
                     }
-                    $params['start'] += $params['limit'];
+                    $iterator = $iterator + $params['limit'];
+                    $params['start'] = $data['id'];
                 }
                 fclose($handle);
             }
