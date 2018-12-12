@@ -215,6 +215,7 @@ class ClientIntegration extends AbstractIntegration
                                     && $campaignId == $campaign->getId()
                                 ) {
                                     $this->event['id']         = $leadEvent->getId();
+                                    $this->event['name']       = $leadEvent->getName();
                                     $this->event['campaignId'] = $campaign->getId();
                                     break;
                                 }
