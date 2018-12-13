@@ -172,7 +172,8 @@ class EventRepository extends CommonRepository
                 ->select('COUNT(*)');
 
             if (
-                isset($options['utm_source']) && !empty($options['utm_source'])
+            (isset($options['utm_source']) && !empty($options['utm_source']))
+            || (isset($options['campaignId']) && !empty($options['campaignId']))
             ) {
                 $query->leftJoin(
                     'c',
