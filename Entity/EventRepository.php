@@ -167,12 +167,13 @@ class EventRepository extends CommonRepository
         if (!empty($options['paginated'])) {
             // Get a total count along with results
             $query->resetQueryParts(['select', 'orderBy', 'join'])
-            ->setFirstResult(null)
+                ->setFirstResult(null)
                 ->setMaxResults(null)
                 ->select('COUNT(*)');
 
             if (
-                isset($options['utm_source']) && !empty($options['utm_source'])
+                (isset($options['utm_source']) && !empty($options['utm_source']))
+                || (isset($options['campaignId']) && !empty($options['campaignId']))
             ) {
                 $query->leftJoin(
                     'c',
@@ -273,7 +274,10 @@ class EventRepository extends CommonRepository
         }
 
         // if its a count only and there is no utm_source arg, remove the join for performance.
-        if ($count && (!isset($options['utm_source']) || empty($options['utm_source']))) {
+        if ($count
+            && (!isset($options['utm_source']) || empty($options['utm_source']))
+            && (!isset($options['campaignId']) || empty($options['campaignId']))
+        ) {
             $query->resetQueryParts(['join']); //, 'groupBy'
         }
 

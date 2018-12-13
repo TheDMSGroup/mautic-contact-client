@@ -56,7 +56,7 @@ class ChartFilterType extends AbstractType
                 'choices'     => $campaigns,
                 'attr'        => [
                     'class'   => 'form-control',
-                    'tooltip' => 'mautic.contactclient.transactions.campaign_tooltip',
+                    'tooltip' => 'mautic.contactclient.integration.campaign.tooltip',
                 ],
                 'expanded'    => false,
                 'multiple'    => false,

@@ -714,6 +714,8 @@ class ContactClientModel extends FormModel
                     'expr'   => 'like',
                     'value'  => "%'contactclient': $contactclientId,%",
                 ],
+                'orderBy'    => 'c.name',
+                'orderByDir' => 'ASC',
             ]
         );
     }
