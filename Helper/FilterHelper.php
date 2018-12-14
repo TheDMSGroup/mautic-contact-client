@@ -55,6 +55,7 @@ class FilterHelper
                 $error = trim(strip_tags($error));
             }
         }
+
         return $errors;
     }
 
