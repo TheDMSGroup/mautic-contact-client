@@ -34,8 +34,6 @@ class ApiPayload
 
     const SETTING_DEF_CONNECT_TIMEOUT = 10;
 
-    const SETTING_DEF_DELAY           = 15;
-
     const SETTING_DEF_LIMIT           = 300;
 
     const SETTING_DEF_TIMEOUT         = 30;
@@ -50,7 +48,6 @@ class ApiPayload
         'timeout'         => self::SETTING_DEF_TIMEOUT,
         'connect_timeout' => self::SETTING_DEF_CONNECT_TIMEOUT,
         'attempts'        => self::SETTING_DEF_ATTEMPTS,
-        'delay'           => self::SETTING_DEF_DELAY,
         'autoUpdate'      => self::SETTING_DEF_AUTOUPDATE,
         'autoRetry'       => self::SETTING_DEF_AUTORETRY,
     ];
