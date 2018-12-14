@@ -114,7 +114,7 @@ Mautic.contactclientTransactionsOnLoad = function (container, response) {
     });
 };
 
-Mautic.contactClientTimelineExport = function (contactClientId) {
+Mautic.contactClientTimelineExport = function () {
     // grab timeline filter values to send for export params
     var messageVar = mQuery('#filter-message').val();
     var typeVar = mQuery('#filter-type').val();
@@ -128,15 +128,15 @@ Mautic.contactClientTimelineExport = function (contactClientId) {
     });
 
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/view/' + contactClientId + '/transactions/export?' + params;
+    var src = mauticBaseUrl + 's/contactclient/view/' + window.location.pathname.split('/').pop() + '/transactions/export?' + params;
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
 };
 
-Mautic.contactClientTimelineFile = function (contactClientId, fileId) {
+Mautic.contactClientTimelineFile = function (fileId) {
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/view/' + contactClientId + '/files/file/' + fileId;
+    var src = mauticBaseUrl + 's/contactclient/view/' + window.location.pathname.split('/').pop() + '/files/file/' + fileId;
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);

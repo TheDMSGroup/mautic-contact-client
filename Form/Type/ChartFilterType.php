@@ -111,7 +111,7 @@ class ChartFilterType extends AbstractType
             'text',
             [
                 'label'      => 'mautic.core.date.from',
-                'label_attr' => ['class' => 'control-label'],
+                'label_attr' => ['class' => 'control-label', 'autocomplete' => 'off'],
                 'attr'       => ['class' => 'form-control'],
                 'required'   => false,
                 'data'       => $dateFrom->format($humanFormat),
@@ -127,7 +127,7 @@ class ChartFilterType extends AbstractType
             'text',
             [
                 'label'      => 'mautic.core.date.to',
-                'label_attr' => ['class' => 'control-label'],
+                'label_attr' => ['class' => 'control-label', 'autocomplete' => 'off'],
                 'attr'       => ['class' => 'form-control'],
                 'required'   => false,
                 'data'       => $dateTo->format($humanFormat),
