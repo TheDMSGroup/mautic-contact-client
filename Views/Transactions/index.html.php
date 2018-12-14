@@ -16,7 +16,7 @@
     <!-- Export button -->
     <div class="btn-group col-xs-2 pb-md" >
         <a class="btn btn-default"
-           onclick="Mautic.contactClientTimelineExport(<?php echo $contactClient->getId(); ?>);">
+           onclick="Mautic.contactClientTimelineExport();">
             <span>
                 <i class="fa fa-download"></i><span class="hidden-xs hidden-sm">Export</span>
             </span>
@@ -39,13 +39,3 @@
         <?php //$view['slots']->output('_content');?>
     </div>
 </div>
-
-<script>
-    mQuery(document).ready(function () {
-        if (!mQuery('#transactions-table').hasClass('table-initialized')) {
-            setTimeout(function(){
-                Mautic.contactclientTransactionsTable(<?php echo $contactClient->getId(); ?>);
-            }, 150);
-        }
-    });
-</script>
