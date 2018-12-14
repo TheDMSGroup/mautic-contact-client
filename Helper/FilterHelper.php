@@ -42,9 +42,20 @@ class FilterHelper
         'is_not_null'      => ['accept_values' => false, 'apply_to' => ['string', 'number', 'datetime']],
     ];
 
-    public function getErrors()
+    /**
+     * @param bool $stripTags
+     *
+     * @return array
+     */
+    public function getErrors($clean = true)
     {
-        return $this->errors;
+        $errors = $this->errors;
+        if ($clean) {
+            foreach ($errors as &$error) {
+                $error = trim(strip_tags($error));
+            }
+        }
+        return $errors;
     }
 
     /**
