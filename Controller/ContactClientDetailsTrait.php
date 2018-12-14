@@ -107,7 +107,7 @@ trait ContactClientDetailsTrait
             'chartfilter' => [
                 'date_from' => $filters['dateFrom']->format('M j, Y'),
                 'date_to'   => $filters['dateTo']->format('M j, Y'),
-                'type'      => $filters['type'],
+                'type'      => isset($filters['type']) ? $filters['type'] : null,
             ],
             'filters'     => $filters,
             'order'       => $orderBy,

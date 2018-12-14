@@ -23,3 +23,7 @@ form[name='chartfilter'] > div.input-group:nth-child(2) > span.input-group-btn,
 form[name='chartfilter'] > div.input-group:nth-child(2) > span.input-group-btn > button {
     border-top-right-radius: 0;
 }
+
+#transactions-table input.transaction-filter {
+    min-width: 99%;
+}

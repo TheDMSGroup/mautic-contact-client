@@ -132,7 +132,7 @@ $baseUrl = $view['router']->path(
                 <td class="timeline-name">
                     <?php if ($location): ?>
                         <a class="btn btn-default"
-                           onclick="Mautic.contactClientTimelineFile(<?php echo $contactClient->getId(); ?>, <?php echo $id; ?>);">
+                           onclick="Mautic.contactClientTimelineFile(<?php echo $id; ?>);">
                             <span>
                                 <i class="fa fa-download"></i>
                                 <span class="hidden-xs hidden-sm">
