@@ -8,7 +8,7 @@ Mautic.contactclientTransactionsTable = function () {
             type: 'POST',
             data: {
                 action: 'plugin:mauticContactClient:transactions',
-                objectId: window.location.pathname.split('/').pop()
+                objectId: Mautic.getEntityId(),
             },
             cache: true,
             dataType: 'json',
