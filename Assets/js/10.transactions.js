@@ -128,7 +128,7 @@ Mautic.contactClientTimelineExport = function () {
     });
 
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/view/' + window.location.pathname.split('/').pop() + '/transactions/export?' + params;
+    var src = mauticBaseUrl + 's/contactclient/view/' + Mautic.getEntityId() + '/transactions/export?' + params;
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
@@ -136,7 +136,7 @@ Mautic.contactClientTimelineExport = function () {
 
 Mautic.contactClientTimelineFile = function (fileId) {
     var frame = document.createElement('iframe');
-    var src = mauticBaseUrl + 's/contactclient/view/' + window.location.pathname.split('/').pop() + '/files/file/' + fileId;
+    var src = mauticBaseUrl + 's/contactclient/view/' + Mautic.getEntityId() + '/files/file/' + fileId;
     frame.setAttribute('src', src);
     frame.setAttribute('style', 'display: none');
     document.body.appendChild(frame);
