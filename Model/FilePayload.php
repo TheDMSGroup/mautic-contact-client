@@ -1484,7 +1484,7 @@ class FilePayload
 
         $mailResult = $mailer->send(false, false);
         if ($errors = $mailer->getErrors()) {
-            $this->setLogs(var_export($errors, true), 'error');
+            $this->setLogs($errors, 'sendError');
         }
 
         return $mailResult;
