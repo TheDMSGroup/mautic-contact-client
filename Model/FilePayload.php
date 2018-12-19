@@ -1483,11 +1483,11 @@ class FilePayload
         // $mailer->setBcc($bcc);
 
         $mailResult = $mailer->send(false, false);
-        if($errors = $mailer->getErrors())
-        {
+        if ($errors = $mailer->getErrors()) {
             $this->setLogs(var_export($errors, true), 'error');
         }
-            return $mailResult;
+
+        return $mailResult;
     }
 
     /**
