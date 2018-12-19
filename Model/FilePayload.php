@@ -1482,7 +1482,12 @@ class FilePayload
         // $mailer->setCc($cc);
         // $mailer->setBcc($bcc);
 
-        return $mailer->send(false, false);
+        $mailResult = $mailer->send(false, false);
+        if ($errors = $mailer->getErrors()) {
+            $this->setLogs($errors, 'sendError');
+        }
+
+        return $mailResult;
     }
 
     /**
