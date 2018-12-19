@@ -23,7 +23,7 @@ Can optionally be used in tandem with it's sibling [Mautic Contact Source](https
 
 ## Installation & Usage
 
-Currently being used with Mautic `2.14.x`.
+Currently being used with Mautic `2.14.x`+.
 If you have success/issues with other versions please report.
 
 1. Install by running `composer require thedmsgroup/mautic-contact-client-bundle`
