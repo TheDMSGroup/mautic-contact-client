@@ -117,7 +117,7 @@ return [
             'mautic.contactclient.form.type.chartfilter'            => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ChartFilterType',
                 'arguments' => 'mautic.factory',
-                'alias'     => 'chartfilter',
+                'alias'     => 'contactclient_chart',
             ],
         ],
         'models'       => [

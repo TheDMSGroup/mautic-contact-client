@@ -204,7 +204,7 @@ class ContactClientController extends FormController
             }
 
             $chartFilterForm = $this->get('form.factory')->create(
-                'chartfilter',
+                'contactclient_chart',
                 $chartFilterValues,
                 [
                     'action' => $this->generateUrl(

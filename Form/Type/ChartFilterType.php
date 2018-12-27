@@ -153,6 +153,6 @@ class ChartFilterType extends AbstractType
      */
     public function getName()
     {
-        return 'chartfilter';
+        return 'contactclient_chart';
     }
 }
