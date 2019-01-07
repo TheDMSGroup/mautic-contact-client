@@ -490,8 +490,7 @@ class ApiPayloadResponse
                 }
             }
 
-            if (!$this->valid && !isset($e))
-            {
+            if (!$this->valid && !isset($e)) {
                 throw new ContactClientException(
                     'Failed validation: '.implode(', ', $filter->getErrors()),
                     0,
