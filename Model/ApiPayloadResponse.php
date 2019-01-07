@@ -396,70 +396,6 @@ class ApiPayloadResponse
                 );
             }
 
-            // Response codes that indicate a server error where the lead likely was not delivered.
-            if (
-                is_int($this->responseActual['status'])
-                && in_array(
-                    $this->responseActual['status'],
-                    [
-                        Codes::HTTP_NOT_FOUND,
-                        Codes::HTTP_METHOD_NOT_ALLOWED,
-                        Codes::HTTP_REQUEST_TIMEOUT,
-                        Codes::HTTP_CONFLICT,
-                        Codes::HTTP_GONE,
-                        Codes::HTTP_LENGTH_REQUIRED,
-                        Codes::HTTP_REQUEST_ENTITY_TOO_LARGE,
-                        Codes::HTTP_REQUEST_URI_TOO_LONG,
-                        Codes::HTTP_UNSUPPORTED_MEDIA_TYPE,
-                        Codes::HTTP_REQUESTED_RANGE_NOT_SATISFIABLE,
-                        Codes::HTTP_TOO_MANY_REQUESTS,
-                        Codes::HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE,
-                        Codes::HTTP_INTERNAL_SERVER_ERROR,
-                        Codes::HTTP_NOT_IMPLEMENTED,
-                        Codes::HTTP_BAD_GATEWAY,
-                        Codes::HTTP_SERVICE_UNAVAILABLE,
-                        Codes::HTTP_GATEWAY_TIMEOUT,
-                        Codes::HTTP_VERSION_NOT_SUPPORTED,
-                        Codes::HTTP_INSUFFICIENT_STORAGE,
-                        Codes::HTTP_LOOP_DETECTED,
-                        Codes::HTTP_NOT_EXTENDED,
-                    ]
-                )
-            ) {
-                // These can be retried in the hopes that they are due to a temporary condition.
-                throw new ContactClientException(
-                    'Client responded with a '.$this->responseActual['status'].' server error code. The data likely did not reach the destination due to a temporary condition.',
-                    0,
-                    null,
-                    Stat::TYPE_ERROR,
-                    true
-                );
-            }
-
-            // Response codes known to be returned when there is invalid auth.
-            if (
-                is_int($this->responseActual['status'])
-                && in_array(
-                    $this->responseActual['status'],
-                    [
-                        Codes::HTTP_BAD_REQUEST,
-                        Codes::HTTP_UNAUTHORIZED,
-                        Codes::HTTP_PAYMENT_REQUIRED,
-                        Codes::HTTP_FORBIDDEN,
-                        Codes::HTTP_PROXY_AUTHENTICATION_REQUIRED,
-                    ]
-                )
-            ) {
-                // These can be retried only during pre-auth run.
-                throw new ContactClientException(
-                    'Client responded with a '.$this->responseActual['status'].' server error code. The data likely did not reach the destination due to invalid auth.',
-                    0,
-                    null,
-                    Stat::TYPE_AUTH,
-                    false
-                );
-            }
-
             // If there is no success definition, than do the default test of a 200 ok status check.
             if (empty($this->successDefinition) || in_array($this->successDefinition, ['null', '[]'])) {
                 if (!$this->responseActual['status'] || Codes::HTTP_OK != $this->responseActual['status']) {
@@ -471,33 +407,100 @@ class ApiPayloadResponse
                         true
                     );
                 }
-            } else {
-                // Standard success definition validation.
-                $filter = new FilterHelper();
-                try {
-                    $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
-                } catch (\Exception $e) {
+            }
+
+            $filter = new FilterHelper();
+            try {
+                $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
+            } catch (\Exception $e) {
+                throw new ContactClientException(
+                    'Error in validation: '.$e->getMessage(),
+                    0,
+                    $e,
+                    Stat::TYPE_REJECT,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
+            }
+
+            if (!$this->valid) {
+                // Response codes that indicate a server error where the lead likely was not delivered.
+                if (
+                    is_int($this->responseActual['status'])
+                    && in_array(
+                        $this->responseActual['status'],
+                        [
+                            Codes::HTTP_NOT_FOUND,
+                            Codes::HTTP_METHOD_NOT_ALLOWED,
+                            Codes::HTTP_REQUEST_TIMEOUT,
+                            Codes::HTTP_CONFLICT,
+                            Codes::HTTP_GONE,
+                            Codes::HTTP_LENGTH_REQUIRED,
+                            Codes::HTTP_REQUEST_ENTITY_TOO_LARGE,
+                            Codes::HTTP_REQUEST_URI_TOO_LONG,
+                            Codes::HTTP_UNSUPPORTED_MEDIA_TYPE,
+                            Codes::HTTP_REQUESTED_RANGE_NOT_SATISFIABLE,
+                            Codes::HTTP_TOO_MANY_REQUESTS,
+                            Codes::HTTP_REQUEST_HEADER_FIELDS_TOO_LARGE,
+                            Codes::HTTP_INTERNAL_SERVER_ERROR,
+                            Codes::HTTP_NOT_IMPLEMENTED,
+                            Codes::HTTP_BAD_GATEWAY,
+                            Codes::HTTP_SERVICE_UNAVAILABLE,
+                            Codes::HTTP_GATEWAY_TIMEOUT,
+                            Codes::HTTP_VERSION_NOT_SUPPORTED,
+                            Codes::HTTP_INSUFFICIENT_STORAGE,
+                            Codes::HTTP_LOOP_DETECTED,
+                            Codes::HTTP_NOT_EXTENDED,
+                        ]
+                    )
+                ) {
+                    // These can be retried in the hopes that they are due to a temporary condition.
                     throw new ContactClientException(
-                        'Error in validation: '.$e->getMessage(),
+                        'Client responded with a '.$this->responseActual['status'].' server error code. The data likely did not reach the destination due to a temporary condition.',
                         0,
-                        $e,
-                        Stat::TYPE_REJECT,
-                        false,
                         null,
-                        $filter->getErrors()
+                        Stat::TYPE_ERROR,
+                        true
                     );
                 }
-                if (!$this->valid && !isset($e)) {
+
+                // Response codes known to be returned when there is invalid auth.
+                if (
+                    is_int($this->responseActual['status'])
+                    && in_array(
+                        $this->responseActual['status'],
+                        [
+                            Codes::HTTP_BAD_REQUEST,
+                            Codes::HTTP_UNAUTHORIZED,
+                            Codes::HTTP_PAYMENT_REQUIRED,
+                            Codes::HTTP_FORBIDDEN,
+                            Codes::HTTP_PROXY_AUTHENTICATION_REQUIRED,
+                        ]
+                    )
+                ) {
+                    // These can be retried only during pre-auth run.
                     throw new ContactClientException(
-                        'Failed validation: '.implode(', ', $filter->getErrors()),
+                        'Client responded with a '.$this->responseActual['status'].' server error code. The data likely did not reach the destination due to invalid auth.',
                         0,
                         null,
-                        Stat::TYPE_REJECT,
-                        false,
-                        null,
-                        $filter->getErrors()
+                        Stat::TYPE_AUTH,
+                        false
                     );
                 }
+            }
+
+            if (!$this->valid && !isset($e))
+            {
+                throw new ContactClientException(
+                    'Failed validation: '.implode(', ', $filter->getErrors()),
+                    0,
+                    null,
+                    Stat::TYPE_REJECT,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
             }
         }
 
