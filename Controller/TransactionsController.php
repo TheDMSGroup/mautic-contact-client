@@ -80,7 +80,7 @@ class TransactionsController extends AbstractFormController
             'limit'      => 1000,  // batch limit, not total limit
         ];
         /** @var EventRepository $eventRepository */
-        $eventRepository = $this->getDoctrine()->getManager()->getRepository(
+        $eventRepository = $entityManager->getRepository(
             'MauticContactClientBundle:Event'
         );
         $count           = $eventRepository->getEventsForTimelineExport($contactClient->getId(), $params, true);
