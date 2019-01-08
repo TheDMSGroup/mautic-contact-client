@@ -265,7 +265,7 @@ class EventRepository extends CommonRepository
 
         //$query->orderBy('c.date_added', 'DESC');
 
-        if (!empty($options['limit'])) {
+        if (!empty($options['limit']) && !$count) {
             $query->setMaxResults($options['limit']);
             if (!empty($options['start'])) {
                 $query->andWhere('c.id > :offset')
