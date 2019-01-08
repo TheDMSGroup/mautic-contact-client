@@ -33,6 +33,8 @@ class TransactionsController extends AbstractFormController
      */
     public function exportAction(Request $request, $objectId)
     {
+        $entityManager = $this->getDoctrine()->getManager();
+
         if (empty($objectId)) {
             return $this->accessDenied();
         }
@@ -85,7 +87,7 @@ class TransactionsController extends AbstractFormController
         ini_set('max_execution_time', 0);
         $response = new StreamedResponse();
         $response->setCallback(
-            function () use ($params, $headers, $contactClient, $count, $eventRepository) {
+            function () use ($params, $headers, $contactClient, $count, $eventRepository, $entityManager) {
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
                 $iterator = 0;
@@ -111,6 +113,10 @@ class TransactionsController extends AbstractFormController
                     }
                     $iterator = $iterator + $params['limit'];
                     $params['start'] = $data['id'];
+                    // memory management
+                    $entityManager->flush();
+                    $entityManager->clear();
+
                 }
                 fclose($handle);
             }
