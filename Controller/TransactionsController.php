@@ -43,6 +43,7 @@ class TransactionsController extends AbstractFormController
         // send a stream csv file of the timeline
         $name        = 'ContactClientExport';
         $headers     = [
+            'id',
             'type',
             'message',
             'date_added',
