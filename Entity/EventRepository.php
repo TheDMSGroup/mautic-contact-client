@@ -215,7 +215,13 @@ class EventRepository extends CommonRepository
         if ($count) {
             $query->select('COUNT(c.id) as count');
         } else {
-            $query->select('c.id, c.type, c.message, c.logs, c.date_added, c.contact_id, s.utm_source');
+            $query->select('c.id, c.type, c.message, c.logs, c.date_added, c.contact_id, s.utm_source, l.email, l.phone, l.firstname, l.lastname');
+            $query->join(
+                'c',
+                MAUTIC_TABLE_PREFIX.'leads',
+                'l',
+                'c.contact_id=l.id'
+            );
         }
 
         $query->where(
