@@ -116,7 +116,6 @@ class TransactionsController extends AbstractFormController
                     // memory management
                     $entityManager->flush();
                     $entityManager->clear();
-
                 }
                 fclose($handle);
             }
