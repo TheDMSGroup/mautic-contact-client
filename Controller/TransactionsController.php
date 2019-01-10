@@ -33,6 +33,8 @@ class TransactionsController extends AbstractFormController
      */
     public function exportAction(Request $request, $objectId)
     {
+        $entityManager = $this->getDoctrine()->getManager();
+
         if (empty($objectId)) {
             return $this->accessDenied();
         }
@@ -43,10 +45,16 @@ class TransactionsController extends AbstractFormController
         // send a stream csv file of the timeline
         $name        = 'ContactClientExport';
         $headers     = [
+            'id',
             'type',
             'message',
             'date_added',
             'contact_id',
+            'utm_source',
+            'email',
+            'phone',
+            'firstname',
+            'lastname',
             'request_format',
             'request_method',
             'request_headers',
@@ -72,14 +80,14 @@ class TransactionsController extends AbstractFormController
             'limit'      => 1000,  // batch limit, not total limit
         ];
         /** @var EventRepository $eventRepository */
-        $eventRepository = $this->getDoctrine()->getEntityManager()->getRepository(
+        $eventRepository = $entityManager->getRepository(
             'MauticContactClientBundle:Event'
         );
         $count           = $eventRepository->getEventsForTimelineExport($contactClient->getId(), $params, true);
         ini_set('max_execution_time', 0);
         $response = new StreamedResponse();
         $response->setCallback(
-            function () use ($params, $headers, $contactClient, $count, $eventRepository) {
+            function () use ($params, $headers, $contactClient, $count, $eventRepository, $entityManager) {
                 $handle = fopen('php://output', 'w+');
                 fputcsv($handle, $headers);
                 $iterator = 0;
@@ -105,6 +113,9 @@ class TransactionsController extends AbstractFormController
                     }
                     $iterator = $iterator + $params['limit'];
                     $params['start'] = $data['id'];
+                    // memory management
+                    $entityManager->flush();
+                    $entityManager->clear();
                 }
                 fclose($handle);
             }
