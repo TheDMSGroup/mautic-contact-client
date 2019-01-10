@@ -151,8 +151,8 @@ class ContactClientController extends FormController
             $item = $args['viewParameters']['item'];
 
             // Setup page forms in session
-            if ('POST' == $this->request->getMethod() && $this->request->request->has('chartfilter')) {
-                $chartFilterValues = $this->request->request->get('chartfilter');
+            if ('POST' == $this->request->getMethod() && $this->request->request->has('contactclient_chart')) {
+                $chartFilterValues = $this->request->request->get('contactclient_chart');
             } else {
                 $chartFilterValues = $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
                     ? $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
