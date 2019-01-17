@@ -26,6 +26,8 @@ use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use Symfony\Component\Routing\RouterInterface;
+use Mautic\CampaignBundle\CampaignEvents;
+use Mautic\CampaignBundle\Event\ScheduledEvent;
 
 /**
  * Class ContactClientSubscriber.
@@ -116,6 +118,7 @@ class ContactClientSubscriber extends CommonSubscriber
             ContactClientEvents::POST_SAVE                => ['onContactClientPostSave', 0],
             ContactClientEvents::POST_DELETE              => ['onContactClientDelete', 0],
             ContactClientEvents::TIMELINE_ON_GENERATE     => ['onTimelineGenerate', 0],
+            CampaignEvents::ON_EVENT_SCHEDULED            => ['onEventScheduled', 0],
         ];
     }
 
@@ -217,5 +220,24 @@ class ContactClientSubscriber extends CommonSubscriber
                 );
             }
         }
+    }
+
+    public function onEventScheduled(ScheduledEvent $event)
+    {
+       ///$event-> eventConfig; eventLog; isReschedule;
+        if($event->isReschedule())
+        {
+            // do this when for when a LeadEventLog is meant to be rescheduled
+            $contactClientRescheduleEvents = $this->session->get(
+                'contact.client.reschedule.event'
+            ) ? $this->session->get('contact.client.reschedule.event') : null;
+
+            if(!empty($contactClientRescheduleEvents) && array_key_exists($event->eventLog->getId(), $contactClientRescheduleEvents))
+            {
+                // get leadEventLog repo and save log entity.
+            }
+        }
+
+        // no action for other conditions yet, but maybe later...
     }
 }

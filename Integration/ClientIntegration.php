@@ -585,6 +585,9 @@ class ClientIntegration extends AbstractIntegration
                 $this->retry = true;
                 $exception->setStatType(STAT::TYPE_QUEUE);
                 $this->setLogs($this->retry, 'retry');
+                $this->addRescheduleItemToSession();
+
+
             } elseif ($exception->getRetry()) {
                 // This type of exception indicates that we can requeue the contact.
                 $this->logIntegrationError($exception, $this->contact);
@@ -1263,5 +1266,24 @@ class ClientIntegration extends AbstractIntegration
     public function getValid()
     {
         return $this->valid;
+    }
+
+    public function addRescheduleItemToSession()
+    {
+        if (isset($this->getEvent()['leadEventLog'])) {
+            // add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
+            $contactClientRescheduleEvents = $this->session->get(
+                'contact.client.reschedule.event'
+            ) ? $this->session->get('contact.client.reschedule.event') : [];
+
+            $interval = $this->factory->getParameter('campaign_time_wait_on_event_false');
+            $defaultDate = new \DateTime();
+            $defaultDate->add(new \DateInterval($interval));
+            $range    = $this->payloadModel->getScheduleModel()->nextOpening(1,7);
+            $rescheduleDate  = isset($range[0]) ? $range[0] : $defaultDate;
+
+            $contactClientRescheduleEvents[$this->getEvent()['leadEventLog']->getId()] =  $rescheduleDate;
+            $this->session->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
+        }
     }
 }
