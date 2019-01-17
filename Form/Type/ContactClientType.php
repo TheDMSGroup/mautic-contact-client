@@ -244,7 +244,7 @@ class ContactClientType extends AbstractType
             'yesno_button_group',
             [
                 'read_only'  => false,
-                'data'      => $schedule_queue,
+                'data'       => $schedule_queue,
                 'label'      => 'mautic.contactclient.form.schedule_queue',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
