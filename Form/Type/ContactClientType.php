@@ -237,6 +237,24 @@ class ContactClientType extends AbstractType
             ]
         );
 
+        $schedule_queue = null === $options['data']->getScheduleQueue() ? false : $options['data']->getScheduleQueue();
+
+        $builder->add(
+            'schedule_queue',
+            'yesno_button_group',
+            [
+                'read_only'  => false,
+                'data'      => $schedule_queue,
+                'label'      => 'mautic.contactclient.form.schedule_queue',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'       => 'form-control hide',
+                    'empty_value' => false,
+                    'tooltip'     => 'mautic.contactclient.form.schedule_queue.tooltip',
+                ],
+            ]
+        );
+
         $builder->add(
             'schedule_exclusions',
             'textarea',
