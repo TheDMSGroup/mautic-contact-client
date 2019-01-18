@@ -143,10 +143,10 @@ Mautic.contactClientTimelineFile = function (fileId) {
 };
 
 Mautic.contactClientTransactionFormSubmit = function(form){
-    //merge the chartfilter form to the transaction filter before re-submiting it
-    mQuery('#transactions_dateFrom').val(mQuery('#chartfilter_date_from').val());
-    mQuery('#transactions_dateTo').val(mQuery('#chartfilter_date_to').val());
-    mQuery('#transactions_campaignId').val(mQuery('#chartfilter_campaign').val());
+    //merge the contactclient_chart form to the transaction filter before re-submiting it
+    mQuery('#transactions_dateFrom').val(mQuery('#contactclient_chart_date_from').val());
+    mQuery('#transactions_dateTo').val(mQuery('#contactclient_chart_date_to').val());
+    mQuery('#transactions_campaignId').val(mQuery('#contactclient_chart_campaign').val());
 
     //merge the filter fields to the transaction filter before re-submiting it
     mQuery('#transaction_message').val(mQuery('#filter-message').val());
