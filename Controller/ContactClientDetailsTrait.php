@@ -74,23 +74,32 @@ trait ContactClientDetailsTrait
     ) {
         $session = $this->get('session');
 
-        if (null === $filters) {
-            $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
+        $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
 
-            $dateFrom     = new \DateTime($chartFilters['date_from']);
+        if (!isset($filters['dateFrom'])) {
+            $dateFrom = new \DateTime($chartFilters['date_from']);
             $dateFrom->setTime(00, 00, 00); // set to beginning of day, Timezone should be OK.
+            $filters['dateFrom'] = $dateFrom;
+        }
 
-            $dateTo       = new \DateTime($chartFilters['date_to']);
+        if (!isset($filters['dateTo'])) {
+            $dateTo = new \DateTime($chartFilters['date_to']);
             $dateTo->setTime(23, 59, 59);
+            $filters['dateTo'] = $dateTo;
+        }
 
-            $filters      = [
-                'dateFrom'   => $dateFrom,
-                'dateTo'     => $dateTo,
-                'type'       => $chartFilters['type'],
-            ];
-            if (!empty($chartFilters['campaign'])) {
-                $filters['campaignId'] = $chartFilters['campaign'];
-            }
+        if (
+            !isset($filters['type'])
+            && !empty($chartFilters['type'])
+        ) {
+            $filters['type'] = $chartFilters['type'];
+        }
+
+        if (
+            !isset($filters['campaignId'])
+            && !empty($chartFilters['campaign'])
+        ) {
+            $filters['campaignId'] = $chartFilters['campaign'];
         }
 
         /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $engagements */
