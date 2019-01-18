@@ -12,6 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\EventListener;
 
 use Mautic\AssetBundle\Helper\TokenHelper as AssetTokenHelper;
+use Mautic\CampaignBundle\Entity\LeadEventLog;
+use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
@@ -25,6 +27,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\RouterInterface;
 use Mautic\CampaignBundle\CampaignEvents;
 use Mautic\CampaignBundle\Event\ScheduledEvent;
@@ -77,6 +80,9 @@ class ContactClientSubscriber extends CommonSubscriber
     /** @var PageModel */
     protected $pageModel;
 
+    /** @var Session */
+    public $session;
+
     /**
      * ContactClientSubscriber constructor.
      *
@@ -88,6 +94,7 @@ class ContactClientSubscriber extends CommonSubscriber
      * @param AssetTokenHelper   $assetTokenHelper
      * @param FormTokenHelper    $formTokenHelper
      * @param ContactClientModel $contactclientModel
+     * @param Session            $session
      */
     public function __construct(
         RouterInterface $router,
@@ -97,7 +104,8 @@ class ContactClientSubscriber extends CommonSubscriber
         PageTokenHelper $pageTokenHelper,
         AssetTokenHelper $assetTokenHelper,
         FormTokenHelper $formTokenHelper,
-        ContactClientModel $contactclientModel
+        ContactClientModel $contactclientModel,
+        Session $session
     ) {
         $this->router             = $router;
         $this->ipHelper           = $ipLookupHelper;
@@ -107,6 +115,7 @@ class ContactClientSubscriber extends CommonSubscriber
         $this->assetTokenHelper   = $assetTokenHelper;
         $this->formTokenHelper    = $formTokenHelper;
         $this->contactclientModel = $contactclientModel;
+        $this->session            = $session;
     }
 
     /**
@@ -115,10 +124,10 @@ class ContactClientSubscriber extends CommonSubscriber
     public static function getSubscribedEvents()
     {
         return [
-            ContactClientEvents::POST_SAVE                => ['onContactClientPostSave', 0],
-            ContactClientEvents::POST_DELETE              => ['onContactClientDelete', 0],
-            ContactClientEvents::TIMELINE_ON_GENERATE     => ['onTimelineGenerate', 0],
-            CampaignEvents::ON_EVENT_SCHEDULED            => ['onEventScheduled', 0],
+            ContactClientEvents::POST_SAVE            => ['onContactClientPostSave', 0],
+            ContactClientEvents::POST_DELETE          => ['onContactClientDelete', 0],
+            ContactClientEvents::TIMELINE_ON_GENERATE => ['onTimelineGenerate', 0],
+            CampaignEvents::ON_EVENT_SCHEDULED        => ['onEventScheduled', 0],
         ];
     }
 
@@ -178,10 +187,13 @@ class ContactClientSubscriber extends CommonSubscriber
             // TODO: $event->addEventType($type, $this->translator->trans('mautic.contactclient.event.'.$type));
             $event->addEventType($type, ucfirst($type));
         }
-        $results = $eventRepository->getEventsForTimeline($event->getContactClient()->getId(), $event->getQueryOptions());
+        $results = $eventRepository->getEventsForTimeline(
+            $event->getContactClient()->getId(),
+            $event->getQueryOptions()
+        );
 
-        $rows    = isset($results['results']) ? $results['results'] : $results;
-        $total   = isset($results['total']) ? $results['total'] : count($rows);
+        $rows  = isset($results['results']) ? $results['results'] : $results;
+        $total = isset($results['total']) ? $results['total'] : count($rows);
 
         foreach ($rows as $row) {
             $eventTypeKey  = $row['type'];
@@ -224,17 +236,30 @@ class ContactClientSubscriber extends CommonSubscriber
 
     public function onEventScheduled(ScheduledEvent $event)
     {
-       ///$event-> eventConfig; eventLog; isReschedule;
-        if($event->isReschedule())
-        {
+        $foo='';
+
+        ///$event-> eventConfig; eventLog; isReschedule;
+        if ($event->isReschedule()) {
+            /** @var LeadEventLog $log */
+            $log     = $event->getLog();
+
             // do this when for when a LeadEventLog is meant to be rescheduled
             $contactClientRescheduleEvents = $this->session->get(
                 'contact.client.reschedule.event'
             ) ? $this->session->get('contact.client.reschedule.event') : null;
 
-            if(!empty($contactClientRescheduleEvents) && array_key_exists($event->eventLog->getId(), $contactClientRescheduleEvents))
-            {
+            if (!empty($contactClientRescheduleEvents) && array_key_exists(
+                    $log->getId(),
+                    $contactClientRescheduleEvents
+                )) {
                 // get leadEventLog repo and save log entity.
+                $log->setTriggerDate($contactClientRescheduleEvents[$log->getId()]);
+                $log->setIsScheduled(true);
+                /** @var LeadEventLogRepository $leadEventLogRepo */
+                $leadEventLogRepo = $this->em->getRepository('MauticCampaignBundle:LeadEventLog');
+                $leadEventLogRepo->saveEntity($log);
+
+                unset($contactClientRescheduleEvents[$log->getId()]);
             }
         }
 

@@ -89,6 +89,7 @@ return [
                     'mautic.asset.helper.token',
                     'mautic.form.helper.token',
                     'mautic.contactclient.model.contactclient',
+                    'session',
                 ],
             ],
             'mautic.contactclient.stats.subscriber'         => [
