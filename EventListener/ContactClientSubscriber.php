@@ -236,8 +236,6 @@ class ContactClientSubscriber extends CommonSubscriber
 
     public function onEventScheduled(ScheduledEvent $event)
     {
-        $foo='';
-
         ///$event-> eventConfig; eventLog; isReschedule;
         if ($event->isReschedule()) {
             /** @var LeadEventLog $log */
