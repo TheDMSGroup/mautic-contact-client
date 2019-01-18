@@ -579,7 +579,7 @@
           "propertyOrder": 20,
           "type": "string",
           "title": "Destination",
-          "format": "select",
+          "#format": "select",
           "options": {
             "infoText": "The internal fields to which we should save the value."
           },
