@@ -236,12 +236,11 @@ class ContactClientSubscriber extends CommonSubscriber
 
     public function onEventScheduled(ScheduledEvent $event)
     {
-        ///$event-> eventConfig; eventLog; isReschedule;
         if ($event->isReschedule()) {
             /** @var LeadEventLog $log */
             $log     = $event->getLog();
 
-            // do this when for when a LeadEventLog is meant to be rescheduled
+            // do this when a LeadEventLog is meant to be rescheduled
             $contactClientRescheduleEvents = $this->session->get(
                 'contact.client.reschedule.event'
             ) ? $this->session->get('contact.client.reschedule.event') : null;
