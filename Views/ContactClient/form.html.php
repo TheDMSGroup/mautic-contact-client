@@ -339,6 +339,7 @@ echo $view['form']->start($form);
                             <div class="row">
                                 <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['schedule_timezone']); ?>
+                                    <?php echo $view['form']->row($form['schedule_queue']); ?>
                                     <?php echo $view['form']->row($form['schedule_hours']); ?>
                                     <div id="contactclient_schedule_hours_widget"></div>
                                     <?php echo $view['form']->row($form['schedule_exclusions']); ?>

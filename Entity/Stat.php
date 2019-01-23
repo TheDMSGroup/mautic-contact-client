@@ -109,6 +109,13 @@ class Stat
     const TYPE_SCHEDULE = 'schedule';
 
     /**
+     * Indicates that the client is currently off-schedule and that this contact CAN be queued to be sent later.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_QUEUE = 'queue';
+
+    /**
      * Indicates that the client was unpublished and so the contact was intentionally not sent and will never be sent.
      *
      * Contact sent:    No

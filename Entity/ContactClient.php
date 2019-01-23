@@ -133,6 +133,11 @@ class ContactClient extends FormEntity
     private $schedule_exclusions;
 
     /**
+     * @var int
+     */
+    private $schedule_queue;
+
+    /**
      * ContactClient constructor.
      */
     public function __construct()
@@ -140,6 +145,11 @@ class ContactClient extends FormEntity
         if (null === $this->type) {
             $this->type = 'api';
         }
+
+        if (null === $this->schedule_queue) {
+            $this->schedule_queue = false;
+        }
+
         if (!$this->api_payload) {
             $defaultFile = __DIR__.self::API_PAYLOAD_DEFAULT_FILE;
             if (file_exists($defaultFile)) {
@@ -229,6 +239,8 @@ class ContactClient extends FormEntity
 
         $builder->addNullableField('schedule_exclusions', 'text');
 
+        $builder->addNullableField('schedule_queue', 'boolean');
+
         $builder->addNullableField('api_payload', 'text');
 
         $builder->addNullableField('file_payload', 'text');
@@ -265,6 +277,7 @@ class ContactClient extends FormEntity
                     'schedule_timezone',
                     'schedule_hours',
                     'schedule_exclusions',
+                    'schedule_queue',
                     'api_payload',
                     'file_payload',
                 ]
@@ -680,6 +693,28 @@ class ContactClient extends FormEntity
         $this->isChanged('scheduleExclusions', $schedule_exclusions);
 
         $this->schedule_exclusions = $schedule_exclusions;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScheduleQueue()
+    {
+        return $this->schedule_queue;
+    }
+
+    /**
+     * @param mixed $schedule_exclusions
+     *
+     * @return ContactClient
+     */
+    public function setScheduleQueue($schedule_queue)
+    {
+        $this->isChanged('scheduleQueue', $schedule_queue);
+
+        $this->schedule_queue = $schedule_queue;
 
         return $this;
     }

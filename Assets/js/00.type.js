@@ -8,6 +8,7 @@ Mautic.contactclientType = function () {
             mQuery('.row.api_payload').removeClass('hide');
             mQuery('.row.file_payload').addClass('hide');
             mQuery('#contactclient_attribution_settings').removeClass('hide');
+            mQuery('input[name="contactclient[schedule_queue]"]').closest('.row').removeClass('hide');
 
             // Mautic.contactclientApiPayload();
             Mautic.contactclientApiPayloadPre();
@@ -16,7 +17,7 @@ Mautic.contactclientType = function () {
             mQuery('.row.api_payload').addClass('hide');
             mQuery('.row.file_payload').removeClass('hide');
             mQuery('#contactclient_attribution_settings').addClass('hide');
-
+            mQuery('input[name="contactclient[schedule_queue]"]').closest('.row').addClass('hide');
             Mautic.contactclientFilePayloadPre();
         }
     }).first().parent().parent().find('label.active input:first').trigger('change');
