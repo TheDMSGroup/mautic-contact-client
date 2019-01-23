@@ -578,12 +578,12 @@ class ClientIntegration extends AbstractIntegration
                 $this->setLogs($errorData, $statType);
             }
 
-            if (STAT::TYPE_SCHEDULE == $exception->getStatType()
+            if (Stat::TYPE_SCHEDULE == $exception->getStatType()
                 && 'api' == $this->contactClient->getType()
                 && $this->contactClient->getScheduleQueue()) {
                 // requeue the lead to send at a later time per API schedule Queue setting, and change stat type to queue
                 $this->retry = true;
-                $exception->setStatType(STAT::TYPE_QUEUE);
+                $exception->setStatType(Stat::TYPE_QUEUE);
                 $this->setLogs($this->retry, 'retry');
                 $this->addRescheduleItemToSession();
             } elseif ($exception->getRetry()) {

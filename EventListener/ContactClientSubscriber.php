@@ -238,12 +238,10 @@ class ContactClientSubscriber extends CommonSubscriber
     {
         if ($event->isReschedule()) {
             /** @var LeadEventLog $log */
-            $log     = $event->getLog();
+            $log = $event->getLog();
 
             // do this when a LeadEventLog is meant to be rescheduled
-            $contactClientRescheduleEvents = $this->session->get(
-                'contact.client.reschedule.event'
-            ) ? $this->session->get('contact.client.reschedule.event') : null;
+            $contactClientRescheduleEvents = $this->session->get('contact.client.reschedule.event');
 
             if (!empty($contactClientRescheduleEvents) && array_key_exists(
                     $log->getId(),
@@ -257,6 +255,7 @@ class ContactClientSubscriber extends CommonSubscriber
                 $leadEventLogRepo->saveEntity($log);
 
                 unset($contactClientRescheduleEvents[$log->getId()]);
+                $this->session->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
             }
         }
 
