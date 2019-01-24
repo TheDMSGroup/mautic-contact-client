@@ -677,7 +677,7 @@ class ClientIntegration extends AbstractIntegration
 
         $campaign = $this->getCampaign();
         $event    = new ContactLedgerContextEvent(
-            $campaign, $this->contactClient, $this->statType, '0 Revenue conversion', $this->contact
+            $campaign, $this->contactClient, $this->statType, null, $this->contact
         );
         $this->dispatcher->dispatch(
             'mautic.contactledger.context_create',
