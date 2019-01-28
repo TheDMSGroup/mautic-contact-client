@@ -623,16 +623,7 @@ class ApiPayload
         if ($this->contactClient) {
             $this->sortPayloadFields();
             $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
-            if ($this->contactClient->getAPIPayload() !== $payloadJSON) {
-                $this->contactClient->setAPIPayload($payloadJSON);
-                if (!$this->contactClient->isNew()) {
-                    try {
-                        $this->contactClientModel->saveEntity($this->contactClient);
-                    } catch (\Exception $e) {
-                        $this->setLogs('Unable to save updates to the payload. '.$e->getMessage(), 'error');
-                    }
-                }
-            }
+            $this->contactClient->setAPIPayload($payloadJSON);
         }
     }
 
