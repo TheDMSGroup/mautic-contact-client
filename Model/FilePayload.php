@@ -1482,13 +1482,12 @@ class FilePayload
         // $mailer->setCc($cc);
         // $mailer->setBcc($bcc);
 
-
         // [ENG-683] start/stop transport as suggested by http://www.prowebdev.us/2013/06/swiftmailersymfony2-expected-response.html and
         // https://github.com/php-pm/php-pm-httpkernel/issues/62#issuecomment-410667217
 
         $repeatSend = true;
         $sendTry    = 1;
-        While ($repeatSend || $sendTry > 3) {
+        while ($repeatSend || $sendTry > 3) {
             if (!$mailer->getTransport()->isStarted()) {
                 $mailer->getTransport()->start();
             }
@@ -1498,11 +1497,9 @@ class FilePayload
             } else {
                 $repeatSend = false;
             }
-            $sendTry++;
+            ++$sendTry;
             $mailer->getTransport()->stop();
         }
-
-
 
         return $mailResult;
     }
