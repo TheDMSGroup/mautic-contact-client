@@ -606,6 +606,25 @@ class ClientIntegration extends AbstractIntegration
         }
     }
 
+    public function addRescheduleItemToSession()
+    {
+        if (isset($this->getEvent()['leadEventLog'])) {
+            // add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
+            $contactClientRescheduleEvents = $this->session->get(
+                'contact.client.reschedule.event'
+            ) ? $this->session->get('contact.client.reschedule.event') : [];
+
+            $interval    = $this->factory->getParameter('campaign_time_wait_on_event_false');
+            $defaultDate = new \DateTime();
+            $defaultDate->add(new \DateInterval($interval));
+            $range          = $this->payloadModel->getScheduleModel()->nextOpening(1, 7);
+            $rescheduleDate = isset($range[0]) ? $range[0] : $defaultDate;
+
+            $contactClientRescheduleEvents[$this->getEvent()['leadEventLog']->getId()] = $rescheduleDate;
+            $this->session->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
+        }
+    }
+
     /**
      * Loop through the API Operation responses and find valid field mappings.
      * Set the new values to the contact and log the changes thereof.
@@ -1190,6 +1209,8 @@ class ClientIntegration extends AbstractIntegration
         $contact = new Contact();
 
         $this->sendContact($client, $contact, true);
+        // Get the API Payload in case there were updates.
+        $apiPayload = $this->contactClient->getAPIPayload();
 
         return $this->valid;
     }
@@ -1264,24 +1285,5 @@ class ClientIntegration extends AbstractIntegration
     public function getValid()
     {
         return $this->valid;
-    }
-
-    public function addRescheduleItemToSession()
-    {
-        if (isset($this->getEvent()['leadEventLog'])) {
-            // add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
-            $contactClientRescheduleEvents = $this->session->get(
-                'contact.client.reschedule.event'
-            ) ? $this->session->get('contact.client.reschedule.event') : [];
-
-            $interval    = $this->factory->getParameter('campaign_time_wait_on_event_false');
-            $defaultDate = new \DateTime();
-            $defaultDate->add(new \DateInterval($interval));
-            $range           = $this->payloadModel->getScheduleModel()->nextOpening(1, 7);
-            $rescheduleDate  = isset($range[0]) ? $range[0] : $defaultDate;
-
-            $contactClientRescheduleEvents[$this->getEvent()['leadEventLog']->getId()] =  $rescheduleDate;
-            $this->session->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
-        }
     }
 }
