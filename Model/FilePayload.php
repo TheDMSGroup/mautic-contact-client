@@ -1487,7 +1487,7 @@ class FilePayload
 
         $repeatSend = true;
         $sendTry    = 1;
-        while ($repeatSend || $sendTry > 3) {
+        while ($repeatSend || $sendTry < 4) {
             if (!$mailer->getTransport()->isStarted()) {
                 $mailer->getTransport()->start();
             }
