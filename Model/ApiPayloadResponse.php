@@ -407,6 +407,9 @@ class ApiPayloadResponse
                         true
                     );
                 }
+
+                //since no definition exists, we are done here?
+                return $this->valid;
             }
 
             $filter = new FilterHelper();
