@@ -492,7 +492,8 @@ class ContactClientModel extends FormModel
         $utmSources = $this->getStatRepository()->getSourcesByClient(
             $contactClient->getId(),
             $dateFrom,
-            $dateToAdjusted
+            $dateToAdjusted,
+            $type
         );
 
         //if (isset($campaignId)) {

@@ -60,10 +60,11 @@ class StatRepository extends CommonRepository
      * @param                $contactClientId
      * @param \DateTime|null $dateFrom
      * @param \DateTime|null $dateTo
+     * @param string|null    $type
      *
      * @return array
      */
-    public function getSourcesByClient($contactClientId, \DateTime $dateFrom = null, \DateTime $dateTo = null)
+    public function getSourcesByClient($contactClientId, \DateTime $dateFrom = null, \DateTime $dateTo = null, $type = null)
     {
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
 
@@ -72,6 +73,13 @@ class StatRepository extends CommonRepository
             ->where(
                 $q->expr()->eq('s.contactclient_id', (int) $contactClientId)
             );
+
+        if (empty($type)) {
+            $q->andWhere('s.type !=""');
+        } else {
+            $q->andWhere('s.type = :type')
+            ->setParameter('type', $type);
+        }
 
         if ($dateFrom && $dateTo) {
             $q->andWhere('s.date_added BETWEEN FROM_UNIXTIME(:dateFrom) AND FROM_UNIXTIME(:dateTo)')
