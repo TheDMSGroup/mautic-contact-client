@@ -94,6 +94,13 @@ class Stat
     const TYPE_LIMITS = 'limited';
 
     /**
+     * Indicates that the client was over budget and that the contact was queued to be sent later.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_LIMITS_QUEUE = 'limited_queue';
+
+    /**
      * Indicates that the client did not accept the contact (based on the success definition aka. validation rules).
      *
      * Contact sent:    Yes
@@ -109,7 +116,14 @@ class Stat
     const TYPE_SCHEDULE = 'schedule';
 
     /**
-     * Indicates that the client is currently off-schedule and that this contact CAN be queued to be sent later.
+     * Indicates that the client was off-schedule and that the contact was queued to be sent later.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_SCHEDULE_QUEUE = 'schedule_queue';
+
+    /**
+     * @deprecated use TYPE_SCHEDULE_QUEUE
      *
      * Contact sent:    No
      */

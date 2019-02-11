@@ -1909,4 +1909,12 @@ class FilePayload
 
         return $elevated;
     }
+
+    /**
+     * @return Schedule
+     */
+    public function getScheduleModel()
+    {
+        return $this->scheduleModel;
+    }
 }
