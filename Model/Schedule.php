@@ -97,17 +97,18 @@ class Schedule
      *
      * @param int $fileRate maximum number of files to build per day
      * @param int $seekDays maximum number of days forward to seek for an opening
+     * @param int $startDay set to 1 to start the seek tomorrow
      *
      * @return array
      *
      * @throws \Exception
      */
-    public function nextOpening($fileRate, $seekDays)
+    public function nextOpening($fileRate, $seekDays, $startDay = 0)
     {
         // During this evaluation the $this->now property will shift forward in time till the next opening.
         $realNow = new \DateTime();
 
-        for ($day = 0; $day < $seekDays; ++$day) {
+        for ($day = $startDay; $day < $seekDays; ++$day) {
             if (0 === $day) {
                 // Current day.
                 $this->now = clone $realNow;

@@ -830,6 +830,9 @@ class ApiPayload
         return $this->externalId;
     }
 
+    /**
+     * @return Schedule
+     */
     public function getScheduleModel()
     {
         return $this->scheduleModel;

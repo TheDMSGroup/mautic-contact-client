@@ -234,6 +234,9 @@ class ContactClientSubscriber extends CommonSubscriber
         }
     }
 
+    /**
+     * @param ScheduledEvent $event
+     */
     public function onEventScheduled(ScheduledEvent $event)
     {
         if ($event->isReschedule()) {

@@ -241,7 +241,9 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return ContactClientModel
+     * @return ContactClientModel|object
+     *
+     * @throws Exception
      */
     private function getContactClientModel()
     {
@@ -567,27 +569,39 @@ class ClientIntegration extends AbstractIntegration
                 $exception->setContact($this->contact);
             }
 
-            $statType = $exception->getStatType();
-            if ($statType) {
-                $this->statType = $statType;
+            if ($exception->getStatType()) {
+                $this->statType = $exception->getStatType();
                 $this->setLogs($this->statType, 'status');
             }
 
             $errorData = $exception->getData();
             if ($errorData) {
-                $this->setLogs($errorData, $statType);
+                $this->setLogs($errorData, $exception->getStatType());
             }
 
-            if (Stat::TYPE_SCHEDULE == $exception->getStatType()
+            if (
+                Stat::TYPE_SCHEDULE == $exception->getStatType()
                 && 'api' == $this->contactClient->getType()
-                && $this->contactClient->getScheduleQueue()) {
-                // requeue the lead to send at a later time per API schedule Queue setting, and change stat type to queue
+                && $this->contactClient->getScheduleQueue()
+            ) {
+                // Requeue the contact to be sent at a later time per API Schedule Queue setting,
+                // and change stat type to queue
                 $this->retry = true;
-                $exception->setStatType(Stat::TYPE_QUEUE);
-                $this->setLogs($this->retry, 'retry');
+                $exception->setStatType(Stat::TYPE_SCHEDULE_QUEUE);
+                $exception->setMessage($exception->getMessage().' Queued for a later.');
                 $this->addRescheduleItemToSession();
+            } elseif (
+                Stat::TYPE_LIMITS == $exception->getStatType()
+                && $this->contactClient->getLimitsQueue()
+            ) {
+                // Requeue the contact to be sent at a later time per Limits Queue setting,
+                // and change stat type to queue
+                $this->retry = true;
+                $exception->setStatType(Stat::TYPE_LIMITS_QUEUE);
+                $exception->setMessage($exception->getMessage().' Queued for a later.');
+                $this->addRescheduleItemToSession(1);
             } elseif ($exception->getRetry()) {
-                // This type of exception indicates that we can requeue the contact.
+                // Handle general exception retries.
                 $this->logIntegrationError($exception, $this->contact);
                 if (
                     $this->contactClient
@@ -601,28 +615,49 @@ class ClientIntegration extends AbstractIntegration
                 } else {
                     $this->retry = true;
                 }
-                $this->setLogs($this->retry, 'retry');
             }
+            $this->setLogs($this->retry, 'retry');
         }
     }
 
-    public function addRescheduleItemToSession()
+    /**
+     * @param int $startDay
+     *
+     * @throws Exception
+     */
+    public function addRescheduleItemToSession($startDay = 0)
     {
         if (isset($this->getEvent()['leadEventLog'])) {
             // add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
-            $contactClientRescheduleEvents = $this->session->get(
-                'contact.client.reschedule.event'
-            ) ? $this->session->get('contact.client.reschedule.event') : [];
-
-            $interval    = $this->factory->getParameter('campaign_time_wait_on_event_false');
-            $defaultDate = new \DateTime();
-            $defaultDate->add(new \DateInterval($interval));
-            $range          = $this->payloadModel->getScheduleModel()->nextOpening(1, 7);
-            $rescheduleDate = isset($range[0]) ? $range[0] : $defaultDate;
+            $contactClientRescheduleEvents = $this->getSession()->get('contact.client.reschedule.event', []);
+            $range                         = $this->payloadModel->getScheduleModel()->nextOpening(1, 7, $startDay);
+            if (!isset($range[0])) {
+                $interval       = $this->factory->getParameter('campaign_time_wait_on_event_false');
+                $rescheduleDate = new \DateTime('+'.$startDay.' day');
+                try {
+                    $rescheduleDate->add(new \DateInterval($interval));
+                } catch (\Exception $e) {
+                }
+            } else {
+                $rescheduleDate = $range[0];
+            }
 
             $contactClientRescheduleEvents[$this->getEvent()['leadEventLog']->getId()] = $rescheduleDate;
-            $this->session->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
+            $this->getSession()->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
         }
+    }
+
+    /**
+     * @return object|\Symfony\Component\HttpFoundation\Session\Session|\Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     */
+    private function getSession()
+    {
+        if (!$this->session) {
+            // CLI will not have the session available by default.
+            $this->session = $this->dispatcher->getContainer()->get('session');
+        }
+
+        return $this->session;
     }
 
     /**
@@ -789,8 +824,7 @@ class ClientIntegration extends AbstractIntegration
         }
 
         // Session storage for external plugins (should probably be dispatcher instead).
-        $session  = $this->dispatcher->getContainer()->get('session');
-        $events   = $session->get('mautic.contactClient.events', []);
+        $events   = $this->getSession()->get('mautic.contactClient.events', []);
         $events[] = [
             'id'                => isset($this->event['id']) ? $this->event['id'] : 'NA',
             'name'              => isset($this->event['name']) ? $this->event['name'] : null,
@@ -801,7 +835,7 @@ class ClientIntegration extends AbstractIntegration
             'contactClientId'   => $this->contactClient ? $this->contactClient->getId() : null,
             'contactClientName' => $this->contactClient ? $this->contactClient->getName() : null,
         ];
-        $session->set('mautic.contactClient.events', $events);
+        $this->getSession()->set('mautic.contactClient.events', $events);
 
         // get the original / first utm source code for contact
         $utmSource = null;
@@ -939,16 +973,16 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * Create a new integration record (we are never updating here).
-     *
      * @param        $integrationName
      * @param        $integrationEntity
      * @param        $integrationEntityId
-     * @param        $entity
+     * @param null   $entity
      * @param string $internalEntityType
      * @param null   $internalData
      *
      * @return IntegrationEntity
+     *
+     * @throws Exception
      */
     private function saveSyncedData(
         $integrationName,

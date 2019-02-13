@@ -135,6 +135,18 @@ class ContactClientException extends \Exception
     }
 
     /**
+     * @param string $message
+     *
+     * @return ContactClientException
+     */
+    public function setMessage($message)
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    /**
      * @return Contact
      */
     public function getContact()
