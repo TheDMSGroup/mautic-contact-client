@@ -150,6 +150,11 @@ echo $view['form']->start($form);
                                     <?php echo $view['form']->row($form['exclusive']); ?>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <?php echo $view['form']->row($form['exclusive_ignore']); ?>
+                                </div>
+                            </div>
                             <hr class="mnr-md mnl-md">
                         </div>
                     </div>
