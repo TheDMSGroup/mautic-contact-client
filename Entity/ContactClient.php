@@ -98,14 +98,19 @@ class ContactClient extends FormEntity
     private $attribution_settings;
 
     /**
-     * @var int
+     * @var string
      */
     private $duplicate;
 
     /**
-     * @var int
+     * @var string
      */
     private $exclusive;
+
+    /**
+     * @var bool
+     */
+    private $exclusive_ignore;
 
     /**
      * @var int
@@ -148,6 +153,10 @@ class ContactClient extends FormEntity
 
         if (null === $this->schedule_queue) {
             $this->schedule_queue = false;
+        }
+
+        if (null === $this->exclusive_ignore) {
+            $this->exclusive_ignore = false;
         }
 
         if (!$this->api_payload) {
@@ -229,6 +238,8 @@ class ContactClient extends FormEntity
 
         $builder->addNullableField('exclusive', 'text');
 
+        $builder->addNullableField('exclusive_ignore', 'boolean');
+
         $builder->addNullableField('filter', 'text');
 
         $builder->addNullableField('limits', 'text');
@@ -270,6 +281,7 @@ class ContactClient extends FormEntity
                     'publishDown',
                     'duplicate',
                     'exclusive',
+                    'exclusive_ignore',
                     'filter',
                     'limits',
                     'attribution_default',
@@ -583,6 +595,28 @@ class ContactClient extends FormEntity
         $this->isChanged('exclusive', $exclusive);
 
         $this->exclusive = $exclusive;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getExclusiveIgnore()
+    {
+        return $this->exclusive_ignore;
+    }
+
+    /**
+     * @param mixed $exclusive_ignore
+     *
+     * @return ContactClient
+     */
+    public function setExclusiveIgnore($exclusive_ignore)
+    {
+        $this->isChanged('exclusiveIgnore', $exclusive_ignore);
+
+        $this->exclusive_ignore = $exclusive_ignore;
 
         return $this;
     }
