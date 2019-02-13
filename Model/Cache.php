@@ -317,21 +317,23 @@ class Cache extends AbstractCommonModel
      */
     public function evaluateExclusive()
     {
-        $exclusive = $this->getRepository()->findExclusive(
-            $this->contact,
-            $this->contactClient,
-            $this->dateSend
-        );
-        if ($exclusive) {
-            throw new ContactClientException(
-                'Skipping exclusive Contact.',
-                Codes::HTTP_CONFLICT,
-                null,
-                Stat::TYPE_EXCLUSIVE,
-                false,
-                null,
-                $exclusive
+        if (!$this->contactClient->getExclusiveIgnore()) {
+            $exclusive = $this->getRepository()->findExclusive(
+                $this->contact,
+                $this->contactClient,
+                $this->dateSend
             );
+            if ($exclusive) {
+                throw new ContactClientException(
+                    'Skipping exclusive Contact.',
+                    Codes::HTTP_CONFLICT,
+                    null,
+                    Stat::TYPE_EXCLUSIVE,
+                    false,
+                    null,
+                    $exclusive
+                );
+            }
         }
     }
 

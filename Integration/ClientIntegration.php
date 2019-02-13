@@ -612,6 +612,7 @@ class ClientIntegration extends AbstractIntegration
                     $this->retry = true;
                 }
             }
+            $this->setLogs($this->retry, 'retry');
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');

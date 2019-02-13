@@ -176,6 +176,22 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
+            'exclusive_ignore',
+            'yesno_button_group',
+            [
+                'read_only'  => false,
+                'data'       => (bool) $options['data']->getExclusiveIgnore(),
+                'label'      => 'mautic.contactclient.form.exclusive_ignore',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'       => 'form-control',
+                    'empty_value' => false,
+                    'tooltip'     => 'mautic.contactclient.form.exclusive_ignore.tooltip',
+                ],
+            ]
+        );
+
+        $builder->add(
             'filter',
             'textarea',
             [
@@ -214,7 +230,7 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.limits_queue',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'       => 'form-control hide',
+                    'class'       => 'form-control',
                     'empty_value' => false,
                     'tooltip'     => 'mautic.contactclient.form.limits_queue.tooltip',
                 ],
