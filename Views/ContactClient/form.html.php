@@ -122,6 +122,7 @@ echo $view['form']->start($form);
                             </div>
                             <div class="row">
                                 <div class="col-sm-12">
+                                    <?php echo $view['form']->row($form['limits_queue']); ?>
                                     <?php echo $view['form']->row($form['limits']); ?>
                                 </div>
                             </div>

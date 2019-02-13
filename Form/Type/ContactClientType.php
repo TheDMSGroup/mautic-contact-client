@@ -222,6 +222,22 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
+            'limits_queue',
+            'yesno_button_group',
+            [
+                'read_only'  => false,
+                'data'       => (bool) $options['data']->getLimitsQueue(),
+                'label'      => 'mautic.contactclient.form.limits_queue',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'       => 'form-control',
+                    'empty_value' => false,
+                    'tooltip'     => 'mautic.contactclient.form.limits_queue.tooltip',
+                ],
+            ]
+        );
+
+        $builder->add(
             'schedule_timezone',
             'timezone',
             [

@@ -143,6 +143,11 @@ class ContactClient extends FormEntity
     private $schedule_queue;
 
     /**
+     * @var int
+     */
+    private $limits_queue;
+
+    /**
      * ContactClient constructor.
      */
     public function __construct()
@@ -157,6 +162,10 @@ class ContactClient extends FormEntity
 
         if (null === $this->exclusive_ignore) {
             $this->exclusive_ignore = false;
+        }
+
+        if (null === $this->limits_queue) {
+            $this->limits_queue = false;
         }
 
         if (!$this->api_payload) {
@@ -193,16 +202,6 @@ class ContactClient extends FormEntity
                 ['message' => 'mautic.contactclient.error.select_type']
             )
         );
-    }
-
-    /**
-     * Allow these entities to be cloned like core entities.
-     */
-    public function __clone()
-    {
-        $this->id = null;
-
-        parent::__clone();
     }
 
     /**
@@ -244,6 +243,8 @@ class ContactClient extends FormEntity
 
         $builder->addNullableField('limits', 'text');
 
+        $builder->addNullableField('limits_queue', 'boolean');
+
         $builder->addNullableField('schedule_hours', 'text');
 
         $builder->addNullableField('schedule_timezone', 'string');
@@ -284,6 +285,7 @@ class ContactClient extends FormEntity
                     'exclusive_ignore',
                     'filter',
                     'limits',
+                    'limits_queue',
                     'attribution_default',
                     'attribution_settings',
                     'schedule_timezone',
@@ -295,6 +297,16 @@ class ContactClient extends FormEntity
                 ]
             )
             ->build();
+    }
+
+    /**
+     * Allow these entities to be cloned like core entities.
+     */
+    public function __clone()
+    {
+        $this->id = null;
+
+        parent::__clone();
     }
 
     /**
@@ -668,6 +680,28 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
+    public function getLimitsQueue()
+    {
+        return $this->limits_queue;
+    }
+
+    /**
+     * @param mixed $limits_queue
+     *
+     * @return ContactClient
+     */
+    public function setLimitsQueue($limits_queue)
+    {
+        $this->isChanged('limitsQueue', $limits_queue);
+
+        $this->limits_queue = $limits_queue;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getScheduleHours()
     {
         return $this->schedule_hours;
@@ -740,7 +774,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @param mixed $schedule_exclusions
+     * @param mixed $limits_queue
      *
      * @return ContactClient
      */

@@ -395,6 +395,12 @@ class ApiPayload
             $this->campaign,
             $this->event
         );
+        // Add any additional tokens here that are only needed for API payloads.
+        $this->tokenHelper->addContext(
+            [
+                'api_date' => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime()),
+            ]
+        );
     }
 
     /**
@@ -824,6 +830,9 @@ class ApiPayload
         return $this->externalId;
     }
 
+    /**
+     * @return Schedule
+     */
     public function getScheduleModel()
     {
         return $this->scheduleModel;
