@@ -892,6 +892,8 @@ class TokenHelper
             $result['file_type']        = 'File Name: Type of file, such as csv/xsl';
             $result['file_compression'] = 'File Name: Compression of the file, such as zip/gz';
             $result['file_extension']   = 'File Name: Automatic extension such as xsl/zip/csv';
+        } else {
+            $result['api_date'] = 'API: Date/time of the API request';
         }
 
         return $result;
@@ -962,6 +964,8 @@ class TokenHelper
         if ($fileName) {
             $result['file_count'] = 'number';
             $result['file_date']  = 'datetime';
+        } else {
+            $result['api_date'] = 'datetime';
         }
 
         return $result;
