@@ -552,18 +552,14 @@ class ClientIntegration extends AbstractIntegration
     {
         // Any exception means the client send has failed.
         $this->valid = false;
-        $this->setLogs($exception->getMessage(), 'error');
 
-        $field = null;
-        // $code  = $exception->getCode();
         if ($exception instanceof ApiErrorException) {
             // Critical issue with the API. This will be logged and retried.
             // To be deprecated.
             if ($this->contact) {
                 $exception->setContact($this->contact);
             }
-        }
-        if ($exception instanceof ContactClientException) {
+        } elseif ($exception instanceof ContactClientException) {
             // A known exception within the Client handling.
             if ($this->contact) {
                 $exception->setContact($this->contact);
@@ -618,6 +614,8 @@ class ClientIntegration extends AbstractIntegration
             }
             $this->setLogs($this->retry, 'retry');
         }
+        $this->setLogs($exception->getMessage(), 'error');
+        $this->setLogs($this->retry, 'retry');
     }
 
     /**

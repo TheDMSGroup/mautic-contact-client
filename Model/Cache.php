@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\CoreBundle\Model\AbstractCommonModel;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\Cache as CacheEntity;
+use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
@@ -96,7 +97,73 @@ class Cache extends AbstractCommonModel
         $jsonHelper = new JSONHelper();
         $exclusive  = $jsonHelper->decodeObject($this->contactClient->getExclusive(), 'Exclusive');
 
+        $this->excludeIrrelevantRules($exclusive);
+
         return $this->mergeRules($exclusive);
+    }
+
+    /**
+     * Exclude limits that are not currently applicable, because of a tighter scope.
+     *
+     * @param $rules
+     *
+     * @throws \Exception
+     */
+    private function excludeIrrelevantRules(&$rules)
+    {
+        if (!empty($rules->rules)) {
+            foreach ($rules->rules as $key => $limit) {
+                if (
+                    isset($limit->scope)
+                    && CacheRepository::SCOPE_UTM_SOURCE === intval($limit->scope)
+                    && strlen(trim($limit->value))
+                    && trim($limit->value) !== $this->getUtmSource()
+                ) {
+                    // This is a UTM Source limit, and we do not match it, so it is currently irrelevant to us.
+                    unset($rules->rules[$key]);
+                    continue;
+                }
+                if (
+                    isset($limit->scope)
+                    && CacheRepository::SCOPE_CATEGORY === intval($limit->scope)
+                    && $limit->value
+                    && $limit->value != $this->contactClient->getCategory()
+                ) {
+                    // This is a Category limit, and we do not match it, so it is currently irrelevant to us.
+                    unset($rules->rules[$key]);
+                    continue;
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the original / first utm source code for contact.
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    private function getUtmSource()
+    {
+        if (!$this->utmSource) {
+            $utmHelper       = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
+            $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
+        }
+
+        return $this->utmSource;
+    }
+
+    /**
+     * @return \Symfony\Component\DependencyInjection\Container
+     */
+    private function getContainer()
+    {
+        if (!$this->container) {
+            $this->container = $this->dispatcher->getContainer();
+        }
+
+        return $this->container;
     }
 
     /**
@@ -214,35 +281,6 @@ class Cache extends AbstractCommonModel
         }
 
         return $result;
-    }
-
-    /**
-     * Get the original / first utm source code for contact.
-     *
-     * @return string
-     *
-     * @throws \Exception
-     */
-    private function getUtmSource()
-    {
-        if (!$this->utmSource) {
-            $utmHelper       = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
-            $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
-        }
-
-        return $this->utmSource;
-    }
-
-    /**
-     * @return \Symfony\Component\DependencyInjection\Container
-     */
-    private function getContainer()
-    {
-        if (!$this->container) {
-            $this->container = $this->dispatcher->getContainer();
-        }
-
-        return $this->container;
     }
 
     /**
@@ -377,6 +415,8 @@ class Cache extends AbstractCommonModel
     {
         $jsonHelper = new JSONHelper();
         $limits     = $jsonHelper->decodeObject($this->contactClient->getLimits(), 'Limits');
+
+        $this->excludeIrrelevantRules($limits);
 
         return $this->mergeRules($limits, false);
     }
