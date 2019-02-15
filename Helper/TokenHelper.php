@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mustache_Engine as Engine;
@@ -48,6 +49,9 @@ class TokenHelper
 
     /** @var array Used to remember context data types that are not text (text being the default) */
     private $conType = [];
+
+    /** @var PhoneNumberHelper */
+    private $phoneHelper;
 
     /** @var array */
     private $formatNumber = [
@@ -88,6 +92,13 @@ class TokenHelper
         'trim.255'          => 'Trim to 255 characters (varchar)',
         'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
+        'tel.e164'          => 'Tel +12223334444',
+        'tel.idash'         => 'Tel 1-222-333-4444',
+        'tel.ldash'         => 'Tel 222-333-4444',
+        'tel.ipar'          => 'Tel 1 (222) 333-4444',
+        'tel.lpar'          => 'Tel (222) 333-4444',
+        'tel.idot'          => 'Tel 1.222.333.4444',
+        'tel.ldot'          => 'Tel 222.333.4444',
     ];
 
     /** @var array */
@@ -107,6 +118,13 @@ class TokenHelper
         'trim.65535'        => 'Trim to 65535 characters (text/blog)',
         'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
+        'tel.e164'          => 'Tel +12223334444',
+        'tel.idash'         => 'Tel 1-222-333-4444',
+        'tel.ldash'         => 'Tel 222-333-4444',
+        'tel.ipar'          => 'Tel 1 (222) 333-4444',
+        'tel.lpar'          => 'Tel (222) 333-4444',
+        'tel.idot'          => 'Tel 1.222.333.4444',
+        'tel.ldot'          => 'Tel 222.333.4444',
     ];
 
     /** @var array */
@@ -126,6 +144,7 @@ class TokenHelper
         'trim',
         'url',
         'zip',
+        'tel',
     ];
 
     /** @var string */
@@ -156,8 +175,12 @@ class TokenHelper
                     'escape'  => function ($value) {
                         return $value;
                     },
+                    'logger'  => $this->logger,
                 ]
             );
+            if ($cacheDir = $this->coreParametersHelper->getParameter('mautic.mustache.cache_dir')) {
+                $this->engine->setCache($cacheDir);
+            }
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');
@@ -355,6 +378,154 @@ class TokenHelper
                             },
                             'encode' => function ($value) {
                                 return rawurlencode($value);
+                            },
+                        ]
+                    );
+                }
+                if (!$this->engine->hasHelper('tel')) {
+                    $this->engine->addHelper(
+                        'tel',
+                        [
+                            'e164'  => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // +12223334444
+                                            $value = $phone;
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
+                            },
+                            'idash' => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // 1-222-333-4444
+                                            $value = substr($phone, 1, 1).'-'
+                                                .substr($phone, 2, 3).'-'
+                                                .substr($phone, 5, 3).'-'
+                                                .substr($phone, 8, 4);
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
+                            },
+                            'ldash' => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // 222-333-4444
+                                            $value = substr($phone, 2, 3).'-'
+                                                .substr($phone, 5, 3).'-'
+                                                .substr($phone, 8, 4);
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
+                            },
+                            'ipar'  => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // 1 (222) 333-4444
+                                            $value = substr($phone, 1, 1).
+                                                ' ('.substr($phone, 2, 3).') '
+                                                .substr($phone, 5, 3).'-'
+                                                .substr($phone, 8, 4);
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
+                            },
+                            'lpar'  => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // (222) 333-4444
+                                            $value = '('.substr($phone, 2, 3).') '
+                                                .substr($phone, 5, 3).'-'
+                                                .substr($phone, 8, 4);
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
+                            },
+                            'idot'  => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // 1.222.333.4444
+                                            $value = substr($phone, 1, 1).'.'
+                                                .substr($phone, 2, 3).'.'
+                                                .substr($phone, 5, 3).'.'
+                                                .substr($phone, 8, 4);
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
+                            },
+                            'ldot'  => function ($value) {
+                                $phone = trim($value);
+                                if (!empty($value)) {
+                                    if (!$this->phoneHelper) {
+                                        $this->phoneHelper = new PhoneNumberHelper();
+                                    }
+                                    try {
+                                        $phone = $this->phoneHelper->format($phone);
+                                        if (!empty($phone)) {
+                                            // 222.333.4444
+                                            $value = substr($phone, 2, 3).'.'
+                                                .substr($phone, 5, 3).'.'
+                                                .substr($phone, 8, 4);
+                                        }
+                                    } catch (\Exception $e) {
+                                    }
+                                }
+
+                                return $value;
                             },
                         ]
                     );
