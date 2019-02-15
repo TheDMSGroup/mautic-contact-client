@@ -96,13 +96,13 @@ class TokenHelper
 
     /** @var array */
     private $formatTel = [
-        'tel.e164'  => 'Tel +12223334444',
-        'tel.idash' => 'Tel 1-222-333-4444',
-        'tel.ldash' => 'Tel 222-333-4444',
-        'tel.ipar'  => 'Tel 1 (222) 333-4444',
-        'tel.lpar'  => 'Tel (222) 333-4444',
-        'tel.idot'  => 'Tel 1.222.333.4444',
-        'tel.ldot'  => 'Tel 222.333.4444',
+        'tel.e164'  => 'Format as +12223334444',
+        'tel.idash' => 'Format as 1-222-333-4444',
+        'tel.ldash' => 'Format as 222-333-4444',
+        'tel.ipar'  => 'Format as 1 (222) 333-4444',
+        'tel.lpar'  => 'Format as (222) 333-4444',
+        'tel.idot'  => 'Format as 1.222.333.4444',
+        'tel.ldot'  => 'Format as 222.333.4444',
     ];
 
     /** @var array */
