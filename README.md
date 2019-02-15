@@ -6,6 +6,15 @@ Create integrations/enhancers without touching code. Allows you to send contacts
 Designed for use by performance marketers who enhance/exchange contacts in mass quantities.
 Can optionally be used in tandem with it's sibling [Mautic Contact Source](https://github.com/TheDMSGroup/mautic-contact-source).
 
+## Screenshots
+![Creating a new Client](https://i.imgur.com/Sp6nZZ4.png)
+![Duplicate Rules](https://i.imgur.com/M8RVzYt.png)
+![Exclusivity Rules](https://i.imgur.com/5jT94ar.png)
+![Setting Payload](https://i.imgur.com/ePTER81.png)
+![Finances](https://i.imgur.com/23i35om.png)
+![Scheduling](https://i.imgur.com/zPKxXY5.png)
+![Stats](https://i.imgur.com/AxjtiKd.png)
+
 ## Features
 - [x] Campaign: Queue a contact to be sent within a Campaign as you would any integration.
 - [x] Campaign: Allow fields to be overridden within a campaign workflow for specific use cases.
