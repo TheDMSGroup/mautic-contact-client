@@ -84,7 +84,10 @@ class ApiPayloadRequest
         $request   = $this->request;
         $transport = $this->transport;
         $options   = [];
-        $manual    = isset($request->manual) && $request->manual && !empty(trim($request->template));
+        $manual    = isset($request->manual)
+            && $request->manual
+            && isset($request->template)
+            && !empty(trim($request->template));
 
         // Retrieve/filter/tokenize the Request Body Field values if present.
         $requestFields = [];
