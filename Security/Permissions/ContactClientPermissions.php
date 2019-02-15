@@ -28,7 +28,9 @@ class ContactClientPermissions extends AbstractPermissions
         $this->addStandardPermissions('categories');
         $this->addExtendedPermissions('items');
         $this->addExtendedPermissions('files');
-        $this->addCustomPermission('export', ['disable' => 1024]);
+        if (method_exists($this, 'addCustomPermission')) {
+            $this->addCustomPermission('export', ['disable' => 1024]);
+        }
     }
 
     /**
@@ -52,6 +54,8 @@ class ContactClientPermissions extends AbstractPermissions
         $this->addStandardFormFields('contactclient', 'categories', $builder, $data);
         $this->addExtendedFormFields('contactclient', 'items', $builder, $data);
         $this->addExtendedFormFields('contactclient', 'files', $builder, $data);
-        $this->addCustomFormFields($this->getName(), 'export', $builder, 'mautic.core.permissions.export', ['disable' => 'mautic.core.permissions.disable'], $data);
+        if (method_exists($this, 'addCustomFormFields')) {
+            $this->addCustomFormFields($this->getName(), 'export', $builder, 'mautic.core.permissions.export', ['disable' => 'mautic.core.permissions.disable'], $data);
+        }
     }
 }
