@@ -13,6 +13,7 @@ Can optionally be used in tandem with it's sibling [Mautic Contact Source](https
 ![Setting Payload](https://i.imgur.com/ePTER81.png)
 ![Finances](https://i.imgur.com/23i35om.png)
 ![Scheduling](https://i.imgur.com/zPKxXY5.png)
+![Stats](https://i.imgur.com/AxjtiKd.png)
 
 ## Features
 - [x] Campaign: Queue a contact to be sent within a Campaign as you would any integration.
