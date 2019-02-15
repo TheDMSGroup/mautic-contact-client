@@ -38,7 +38,13 @@ class TransactionsController extends AbstractFormController
         if (empty($objectId)) {
             return $this->accessDenied();
         }
+
+        if (!$this->get('mautic.security')->isAdmin() && $this->get('mautic.security')->isGranted('contactclient:export:disable')) {
+            return $this->accessDenied();
+        }
+
         $contactClient = $this->checkContactClientAccess($objectId, 'view');
+
         if ($contactClient instanceof Response) {
             return $contactClient;
         }
