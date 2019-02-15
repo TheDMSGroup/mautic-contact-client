@@ -632,7 +632,7 @@ class ContactClientModel extends FormModel
      *
      * @param ContactClient|null $contactClient
      * @param array              $filters
-     * @param null               $orderBy
+     * @param array              $orderBy
      * @param int                $page
      * @param int                $limit
      * @param bool               $forTimeline
