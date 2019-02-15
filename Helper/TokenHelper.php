@@ -92,13 +92,17 @@ class TokenHelper
         'trim.255'          => 'Trim to 255 characters (varchar)',
         'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
-        'tel.e164'          => 'Tel +12223334444',
-        'tel.idash'         => 'Tel 1-222-333-4444',
-        'tel.ldash'         => 'Tel 222-333-4444',
-        'tel.ipar'          => 'Tel 1 (222) 333-4444',
-        'tel.lpar'          => 'Tel (222) 333-4444',
-        'tel.idot'          => 'Tel 1.222.333.4444',
-        'tel.ldot'          => 'Tel 222.333.4444',
+    ];
+
+    /** @var array */
+    private $formatTel = [
+        'tel.e164'  => 'Tel +12223334444',
+        'tel.idash' => 'Tel 1-222-333-4444',
+        'tel.ldash' => 'Tel 222-333-4444',
+        'tel.ipar'  => 'Tel 1 (222) 333-4444',
+        'tel.lpar'  => 'Tel (222) 333-4444',
+        'tel.idot'  => 'Tel 1.222.333.4444',
+        'tel.ldot'  => 'Tel 222.333.4444',
     ];
 
     /** @var array */
@@ -118,13 +122,6 @@ class TokenHelper
         'trim.65535'        => 'Trim to 65535 characters (text/blog)',
         'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
-        'tel.e164'          => 'Tel +12223334444',
-        'tel.idash'         => 'Tel 1-222-333-4444',
-        'tel.ldash'         => 'Tel 222-333-4444',
-        'tel.ipar'          => 'Tel 1 (222) 333-4444',
-        'tel.lpar'          => 'Tel (222) 333-4444',
-        'tel.idot'          => 'Tel 1.222.333.4444',
-        'tel.ldot'          => 'Tel 222.333.4444',
     ];
 
     /** @var array */
@@ -573,6 +570,8 @@ class TokenHelper
             'number'   => $this->formatNumber,
             'boolean'  => $this->formatBoolean,
             'string'   => $this->formatString,
+            'region'   => $this->formatString,
+            'tel'      => $this->formatTel,
             'text'     => $this->formatText,
             'email'    => $this->formatEmail,
         ];
