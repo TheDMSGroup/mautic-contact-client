@@ -42,11 +42,19 @@ class ChartFilterType extends AbstractType
     {
         $request         = Request::createFromGlobals();
         $contactClientId = $request->get('contactclient');
+        if (!is_integer($contactClientId)) {
+            if (isset($options['action'])) {
+                $parts           = explode('/', $options['action']);
+                $contactClientId = intval(end($parts));
+            }
+        }
 
         $campaigns = [];
-        /** @var Campaign $campaign */
-        foreach ($this->factory->getModel('contactclient')->getCampaigns($contactClientId) as $campaign) {
-            $campaigns[$campaign->getId()] = $campaign->getName();
+        /* @var Campaign $campaign */
+        if ($contactClientId) {
+            foreach ($this->factory->getModel('contactclient')->getCampaigns($contactClientId) as $campaign) {
+                $campaigns[$campaign->getId()] = $campaign->getName();
+            }
         }
 
         $builder->add(

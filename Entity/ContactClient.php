@@ -148,6 +148,11 @@ class ContactClient extends FormEntity
     private $limits_queue;
 
     /**
+     * @var mixed
+     */
+    private $dnc_checks;
+
+    /**
      * ContactClient constructor.
      */
     public function __construct()
@@ -256,6 +261,8 @@ class ContactClient extends FormEntity
         $builder->addNullableField('api_payload', 'text');
 
         $builder->addNullableField('file_payload', 'text');
+
+        $builder->addNullableField('dnc_checks', 'text');
     }
 
     /**
@@ -294,6 +301,7 @@ class ContactClient extends FormEntity
                     'schedule_queue',
                     'api_payload',
                     'file_payload',
+                    'dnc_checks',
                 ]
             )
             ->build();
@@ -774,7 +782,7 @@ class ContactClient extends FormEntity
     }
 
     /**
-     * @param mixed $limits_queue
+     * @param mixed $schedule_queue
      *
      * @return ContactClient
      */
@@ -793,5 +801,33 @@ class ContactClient extends FormEntity
     public function getPermissionUser()
     {
         return $this->getCreatedBy();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDncChecks()
+    {
+        if (!is_array($this->dnc_checks)) {
+            $this->dnc_checks = explode(',', $this->dnc_checks);
+        }
+
+        return $this->dnc_checks;
+    }
+
+    /**
+     * @param $dnc_checks
+     *
+     * @return $this
+     */
+    public function setDncChecks($dnc_checks)
+    {
+        $this->isChanged('dncChecks', $dnc_checks);
+        if (is_array($dnc_checks)) {
+            $dnc_checks = implode(',', $dnc_checks);
+        }
+        $this->dnc_checks = $dnc_checks;
+
+        return $this;
     }
 }

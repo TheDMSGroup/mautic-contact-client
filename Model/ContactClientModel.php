@@ -703,6 +703,11 @@ class ContactClientModel extends FormModel
         return $event->getEventCounter();
     }
 
+    /**
+     * @param $contactclientId
+     *
+     * @return array|\Doctrine\ORM\Internal\Hydration\IterableResult|\Doctrine\ORM\Tools\Pagination\Paginator
+     */
     public function getCampaigns($contactclientId)
     {
         /** @var CampaignRepository $campaignRepo */

@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Form\Type;
 // use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
 use Mautic\CoreBundle\Form\EventListener\FormExitSubscriber;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
+use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use MauticPlugin\MauticContactClientBundle\Constraints\JsonArray;
 use MauticPlugin\MauticContactClientBundle\Constraints\JsonObject;
 use Symfony\Component\Form\AbstractType;
@@ -25,19 +26,23 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
  */
 class ContactClientType extends AbstractType
 {
-    /**
-     * @var CorePermissions
-     */
+    /** @var CorePermissions */
     private $security;
+
+    /** @var ContactModel */
+    private $contactModel;
 
     /**
      * ContactClientType constructor.
      *
      * @param CorePermissions $security
      */
-    public function __construct(CorePermissions $security)
-    {
-        $this->security = $security;
+    public function __construct(
+        CorePermissions $security,
+        ContactModel $contactModel
+    ) {
+        $this->security     = $security;
+        $this->contactModel = $contactModel;
     }
 
     /**
@@ -298,6 +303,24 @@ class ContactClientType extends AbstractType
                 ],
                 'required'    => false,
                 'constraints' => [new JsonArray()],
+            ]
+        );
+
+        $builder->add(
+            'dnc_checks',
+            'choice',
+            [
+                'choices'    => array_flip($this->contactModel->getPreferenceChannels()),
+                'data'       => $options['data']->getDncChecks(),
+                'multiple'   => true,
+                'expanded'   => true,
+                'required'   => false,
+                'label'      => 'mautic.contactclient.form.dnc_checks',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.contactclient.form.dnc_checks.tooltip',
+                ],
             ]
         );
 

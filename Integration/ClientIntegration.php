@@ -18,9 +18,11 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
+use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Event\ContactDncCheckEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
@@ -92,6 +94,12 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var float */
     protected $attribution;
+
+    /** @var \Mautic\LeadBundle\Model\LeadModel $model */
+    protected $contactModel;
+
+    /** @var array */
+    private $dncChannels = [];
 
     /**
      * @return string
@@ -307,6 +315,10 @@ class ClientIntegration extends AbstractIntegration
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
 
+            if (!$this->test) {
+                $this->evaluateDnc();
+            }
+
             // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
                 $this->getCacheModel()->evaluateLimits();
@@ -490,6 +502,79 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $this->filePayloadModel;
+    }
+
+    /**
+     * Evaluates the DNC entries for the Contact against the Client settings.
+     *
+     * @return $this
+     *
+     * @throws ContactClientException
+     */
+    private function evaluateDnc()
+    {
+        $channels = $this->contactClient->getDncChecks();
+        if ($channels) {
+            $dncCollection = $this->contact->getDoNotContact();
+            foreach ($dncCollection as $dnc) {
+                $currentChannel = $dnc->getChannel();
+                foreach ($channels as $channel) {
+                    if ($currentChannel == $channel) {
+                        throw new ContactClientException(
+                            $this->translator->trans(
+                                'mautic.contactclient.sendcontact.error.dnc',
+                                ['%channel%' => $this->getDncChannelName($channel)]
+                            ),
+                            0,
+                            null,
+                            Stat::TYPE_DNC,
+                            false
+                        );
+                    }
+                }
+            }
+        }
+        // Support external DNC checking.
+        // Throw an exception like above if DNC entries are found externally.
+        $event = new ContactDncCheckEvent($this->contact);
+        $this->dispatcher->dispatch(ContactClientEvents::EXTERNAL_DNC_CHECK, $event);
+
+        return $this;
+    }
+
+    /**
+     * Get all DNC Channels, or one by key.
+     *
+     * @param $key
+     *
+     * @return array|mixed
+     */
+    private function getDncChannelName($key)
+    {
+        if (!$this->dncChannels) {
+            $this->dncChannels = $this->getContactModel()->getPreferenceChannels();
+        }
+        if ($key) {
+            if (isset($this->dncChannels[$key])) {
+                return $this->dncChannels[$key];
+            } else {
+                return ucwords($key);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return \Mautic\LeadBundle\Model\LeadModel
+     */
+    private function getContactModel()
+    {
+        if (!$this->contactModel) {
+            $this->contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
+        }
+
+        return $this->contactModel;
     }
 
     /**
@@ -707,9 +792,7 @@ class ClientIntegration extends AbstractIntegration
 
             // If any fields were updated, save the Contact entity.
             if ($updatedFields || $updatedAttribution) {
-                /** @var \Mautic\LeadBundle\Model\LeadModel $model */
-                $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
-                $contactModel->saveEntity($this->contact);
+                $this->getContactModel()->saveEntity($this->contact);
                 $this->setLogs('Operation successful. The contact was updated.', 'updated');
             } else {
                 $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');

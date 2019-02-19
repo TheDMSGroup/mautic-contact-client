@@ -113,7 +113,10 @@ return [
             'mautic.contactclient.form.type.contactclient'          => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientType',
                 'alias'     => 'contactclient',
-                'arguments' => 'mautic.security',
+                'arguments' => [
+                    'mautic.security',
+                    'mautic.lead.model.lead',
+                ],
             ],
             'mautic.contactclient.form.type.chartfilter'            => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ChartFilterType',

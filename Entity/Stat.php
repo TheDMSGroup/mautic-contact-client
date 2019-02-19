@@ -44,6 +44,13 @@ class Stat
     const TYPE_CONVERTED = 'converted';
 
     /**
+     * Indicates that the contact was found to have a Do Not Contact channel entry.
+     *
+     * Contact sent:    No
+     */
+    const TYPE_DNC = 'dnc';
+
+    /**
      * Indicates that the client has recently accepted a similar contact based on "duplicate rules".
      *
      * Contact sent:    No (was sent previously)
@@ -101,6 +108,13 @@ class Stat
     const TYPE_LIMITS_QUEUE = 'limited_queue';
 
     /**
+     * @deprecated use TYPE_SCHEDULE_QUEUE
+     *
+     * Contact sent:    No
+     */
+    const TYPE_QUEUE = 'queue';
+
+    /**
      * Indicates that the client did not accept the contact (based on the success definition aka. validation rules).
      *
      * Contact sent:    Yes
@@ -121,13 +135,6 @@ class Stat
      * Contact sent:    No
      */
     const TYPE_SCHEDULE_QUEUE = 'schedule_queue';
-
-    /**
-     * @deprecated use TYPE_SCHEDULE_QUEUE
-     *
-     * Contact sent:    No
-     */
-    const TYPE_QUEUE = 'queue';
 
     /**
      * Indicates that the client was unpublished and so the contact was intentionally not sent and will never be sent.
