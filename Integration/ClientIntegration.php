@@ -520,10 +520,17 @@ class ClientIntegration extends AbstractIntegration
                 $currentChannel = $dnc->getChannel();
                 foreach ($channels as $channel) {
                     if ($currentChannel == $channel) {
+                        $comments = !in_array($dnc->getComments(), ['user', 'system']) ? $dnc->getComments() : '';
                         throw new ContactClientException(
-                            $this->translator->trans(
-                                'mautic.contactclient.sendcontact.error.dnc',
-                                ['%channel%' => $this->getDncChannelName($channel)]
+                            trim(
+                                $this->translator->trans(
+                                    'mautic.contactclient.sendcontact.error.dnc',
+                                    [
+                                        '%channel%'  => $this->getDncChannelName($channel),
+                                        '%date%'     => $dnc->getDateAdded()->format('Y-m-d H:i:s e'),
+                                        '%comments%' => $comments,
+                                    ]
+                                )
                             ),
                             0,
                             null,

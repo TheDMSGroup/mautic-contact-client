@@ -135,12 +135,14 @@ class ContactClientTimelineEvent extends Event
      * ContactClientTimelineEvent constructor.
      *
      * @param ContactClient|null $contactClient
-     * @param array              $filters
+     * @param array|null         $filters
      * @param array|null         $orderBy
      * @param int                $page
-     * @param int                $limit         Limit per type
+     * @param int                $limit
      * @param bool               $forTimeline
-     * @param string|null        $siteDomain
+     * @param null               $siteDomain
+     *
+     * @throws \Exception
      */
     public function __construct(
         ContactClient $contactClient = null,
