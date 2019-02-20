@@ -180,20 +180,25 @@ class ContactClientType extends AbstractType
             ]
         );
 
+        $exclusiveIgnore = [
+            'read_only'  => false,
+            'data'       => (bool) $options['data']->getExclusiveIgnore(),
+            'label'      => 'mautic.contactclient.form.exclusive_ignore',
+            'label_attr' => ['class' => 'control-label'],
+            'attr'       => [
+                'class'       => 'form-control',
+                'empty_value' => false,
+                'tooltip'     => 'mautic.contactclient.form.exclusive_ignore.tooltip',
+            ],
+        ];
+        if (!$this->security->isAdmin()) {
+            $exclusiveIgnore['disabled']         = true;
+            $exclusiveIgnore['attr']['disabled'] = 'disabled';
+        }
         $builder->add(
             'exclusive_ignore',
             'yesno_button_group',
-            [
-                'read_only'  => false,
-                'data'       => (bool) $options['data']->getExclusiveIgnore(),
-                'label'      => 'mautic.contactclient.form.exclusive_ignore',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'       => 'form-control',
-                    'empty_value' => false,
-                    'tooltip'     => 'mautic.contactclient.form.exclusive_ignore.tooltip',
-                ],
-            ]
+            $exclusiveIgnore
         );
 
         $builder->add(
