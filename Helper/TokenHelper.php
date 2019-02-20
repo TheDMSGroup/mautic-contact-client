@@ -186,6 +186,9 @@ class TokenHelper
                     'cache'   => realpath($this->coreParametersHelper->getParameter('kernel.cache_dir')).'/mustache',
                 ]
             );
+            if ($cacheDir = $this->coreParametersHelper->getParameter('mautic.mustache.cache_dir')) {
+                $this->engine->setCache($cacheDir);
+            }
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');

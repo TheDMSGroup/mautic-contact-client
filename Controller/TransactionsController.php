@@ -38,7 +38,15 @@ class TransactionsController extends AbstractFormController
         if (empty($objectId)) {
             return $this->accessDenied();
         }
+
+        // If contactclient:export:disable is true, deny access
+        // since Admin permissions are always true, exclude the check for them
+        if (!$this->get('mautic.security')->isAdmin() && $this->get('mautic.security')->isGranted('contactclient:export:disable')) {
+            return $this->accessDenied();
+        }
+
         $contactClient = $this->checkContactClientAccess($objectId, 'view');
+
         if ($contactClient instanceof Response) {
             return $contactClient;
         }
