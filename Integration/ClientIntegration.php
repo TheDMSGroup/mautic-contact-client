@@ -315,9 +315,8 @@ class ClientIntegration extends AbstractIntegration
 
             // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
 
-            if (!$this->test) {
-                $this->evaluateDnc();
-            }
+            // DNC - Check Do Not Contact channels for an entry for this contact that is not permitted for this client.
+            $this->evaluateDnc();
 
             // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
@@ -513,6 +512,9 @@ class ClientIntegration extends AbstractIntegration
      */
     private function evaluateDnc()
     {
+        if ($this->test) {
+            return $this;
+        }
         $channels = $this->contactClient->getDncChecks();
         if ($channels) {
             $dncCollection = $this->contact->getDoNotContact();
@@ -540,11 +542,10 @@ class ClientIntegration extends AbstractIntegration
                     }
                 }
             }
+            // Support external DNC checking. Should throw ContactClientException if DNC match found.
+            $event = new ContactDncCheckEvent($this->contact, $channels);
+            $this->dispatcher->dispatch(ContactClientEvents::EXTERNAL_DNC_CHECK, $event);
         }
-        // Support external DNC checking.
-        // Throw an exception like above if DNC entries are found externally.
-        $event = new ContactDncCheckEvent($this->contact);
-        $this->dispatcher->dispatch(ContactClientEvents::EXTERNAL_DNC_CHECK, $event);
 
         return $this;
     }

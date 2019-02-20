@@ -22,15 +22,21 @@ class ContactDncCheckEvent extends Event
     /** @var Contact */
     protected $contact;
 
+    /** @var array */
+    protected $channels = [];
+
     /**
      * ContactDncCheckEvent constructor.
      *
      * @param Contact|null $contact
+     * @param array        $channels
      */
     public function __construct(
-        Contact $contact = null
+        Contact $contact = null,
+        $channels = []
     ) {
-        $this->contact = $contact;
+        $this->contact  = $contact;
+        $this->channels = $channels;
     }
 
     /**
@@ -39,5 +45,13 @@ class ContactDncCheckEvent extends Event
     public function getContact()
     {
         return $this->contact;
+    }
+
+    /**
+     * @return array
+     */
+    public function getChannels()
+    {
+        return $this->channels;
     }
 }
