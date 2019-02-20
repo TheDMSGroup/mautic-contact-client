@@ -49,7 +49,7 @@ class AjaxController extends CommonAjaxController
         if ($request->request->has('filters')) {
             foreach ($request->request->get('filters') as $filter) {
                 if (in_array($filter['name'], ['dateTo', 'dateFrom']) && !empty($filter['value'])) {
-                    $filter['value']        = new \DateTime($filter['value']);
+                    $filter['value'] = new \DateTime($filter['value']);
                     list($hour, $min, $sec) = 'dateTo' == $filter['name'] ? [23, 59, 59] : [00, 00, 00];
                     $filter['value']->setTime($hour, $min, $sec);
                 }
@@ -262,12 +262,11 @@ class AjaxController extends CommonAjaxController
         $tokenHelper = $this->get('mautic.contactclient.helper.token');
         $tokenHelper->newSession(null, $contact, $payload);
 
-        $fileName = (bool) $request->request->get('fileName');
-        $tokens   = $tokenHelper->getContextLabeled($fileName);
+        $tokens = $tokenHelper->getContextLabeled();
         if ($tokens) {
             $dataArray['success'] = true;
             $dataArray['tokens']  = $tokens;
-            $dataArray['types']   = $tokenHelper->getContextTypes($fileName);
+            $dataArray['types']   = $tokenHelper->getContextTypes();
             $dataArray['formats'] = $tokenHelper->getFormats();
         }
 

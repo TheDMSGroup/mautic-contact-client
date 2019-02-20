@@ -521,7 +521,7 @@ class ApiPayload
      *
      * @param string $key
      * @param int    $operationId
-     * @param array  $types       Types to check for (header/body/etc)
+     * @param array  $types Types to check for (header/body/etc)
      */
     public function getAggregateActualResponses($key = null, $operationId = null, $types = ['headers', 'body'])
     {
@@ -836,5 +836,13 @@ class ApiPayload
     public function getScheduleModel()
     {
         return $this->scheduleModel;
+    }
+
+    /**
+     * @return TokenHelper
+     */
+    public function getTokenHelper()
+    {
+        return $this->tokenHelper;
     }
 }

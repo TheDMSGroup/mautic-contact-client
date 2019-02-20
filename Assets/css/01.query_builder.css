@@ -42,3 +42,24 @@
     line-height: 1.356;
     border-radius: 4px;
 }
+
+.query-builder .rules-group-header .group-conditions .btn-primary {
+    color: #5d6c7c;
+    background-color: #fff;
+    border-color: #ddd;
+}
+
+.query-builder .rules-group-header .group-conditions .btn-primary.active {
+    background-color: #2a84c5;
+    border-color: #2a84c5;
+    color: #fff;
+}
+
+/* Make the buttons the same size as all the others for consistency */
+.query-builder .btn-xs,
+.query-builder .btn-group-xs > .btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    line-height: 1.3856;
+    border-radius: 3px;
+}

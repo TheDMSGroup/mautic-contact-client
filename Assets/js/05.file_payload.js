@@ -23,7 +23,6 @@ Mautic.contactclientFilePayloadPre = function () {
                 type: 'POST',
                 data: {
                     // Include tokens for file-names
-                    fileName: 1,
                     action: tokenSource,
                     apiPayload: mQuery('#contactclient_api_payload:first').val(),
                     filePayload: $filePayload.val()

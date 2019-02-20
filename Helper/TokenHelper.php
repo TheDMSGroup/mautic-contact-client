@@ -713,9 +713,9 @@ class TokenHelper
     private function eventTokenEncode($values)
     {
         list($campaignId, $eventId, $contactId) = $values;
-        $campaignIdString                       = $this->baseEncode((int) $campaignId);
-        $eventIdString                          = $this->baseEncode((int) $eventId);
-        $contactIdString                        = $this->baseEncode((int) $contactId);
+        $campaignIdString = $this->baseEncode((int) $campaignId);
+        $eventIdString    = $this->baseEncode((int) $eventId);
+        $contactIdString  = $this->baseEncode((int) $contactId);
 
         return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
     }
@@ -875,25 +875,26 @@ class TokenHelper
     /**
      * Get the context array labels instead of values for use in token suggestions.
      *
-     * @param bool $fileName
+     * @param bool $sort
      *
      * @return array
      */
-    public function getContextLabeled($fileName = false)
+    public function getContextLabeled($sort = true)
     {
         $result = [];
         $labels = $this->describe($this->context);
         $this->flattenArray($labels, $result);
 
-        if ($fileName) {
-            $result['file_count']       = 'File Name: Number of contacts in this file';
-            $result['file_test']        = 'File Name: Inserts ".test" if testing';
-            $result['file_date']        = 'File Name: Date/time of file creation';
-            $result['file_type']        = 'File Name: Type of file, such as csv/xsl';
-            $result['file_compression'] = 'File Name: Compression of the file, such as zip/gz';
-            $result['file_extension']   = 'File Name: Automatic extension such as xsl/zip/csv';
-        } else {
-            $result['api_date'] = 'API: Date/time of the API request';
+        $result['file_count']       = 'File: Number of contacts in this file';
+        $result['file_test']        = 'File: Inserts ".test" if testing';
+        $result['file_date']        = 'File: Date/time of file creation';
+        $result['file_type']        = 'File: Type of file, such as csv/xsl';
+        $result['file_compression'] = 'File: Compression of the file, such as zip/gz';
+        $result['file_extension']   = 'File: Automatic extension such as xsl/zip/csv';
+        $result['api_date']         = 'API: Date/time of the API request';
+
+        if ($sort) {
+            asort($result, SORT_STRING | SORT_FLAG_CASE | SORT_NATURAL);
         }
 
         return $result;
@@ -951,22 +952,17 @@ class TokenHelper
     }
 
     /**
-     * @param bool $fileName
-     *
      * @return array
      */
-    public function getContextTypes($fileName = false)
+    public function getContextTypes()
     {
         $result = [];
         $types  = $this->describe($this->conType);
         $this->flattenArray($types, $result);
 
-        if ($fileName) {
-            $result['file_count'] = 'number';
-            $result['file_date']  = 'datetime';
-        } else {
-            $result['api_date'] = 'datetime';
-        }
+        $result['file_count'] = 'number';
+        $result['file_date']  = 'datetime';
+        $result['api_date']   = 'datetime';
 
         return $result;
     }

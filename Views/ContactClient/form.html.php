@@ -62,7 +62,7 @@ echo $view['form']->start($form);
                             ); ?>
                         </a>
                     </li>
-                    <li class="hide">
+                    <li>
                         <a href="#filter" role="tab" data-toggle="tab" class="contactclient-tab">
                             <i class="fa fa-filter fa-lg pull-left"></i><?php echo $view['translator']->trans(
                                 'mautic.contactclient.form.group.filter'
@@ -129,8 +129,8 @@ echo $view['form']->start($form);
                             </div>
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <?php echo $view['form']->row($form['limits_queue']); ?>
                                     <?php echo $view['form']->row($form['limits']); ?>
+                                    <?php echo $view['form']->row($form['limits_queue']); ?>
                                 </div>
                             </div>
                             <hr class="mnr-md mnl-md">
@@ -167,10 +167,6 @@ echo $view['form']->start($form);
                             <div class="row">
                                 <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['exclusive']); ?>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['exclusive_ignore']); ?>
                                 </div>
                             </div>
@@ -362,12 +358,16 @@ echo $view['form']->start($form);
                     <div class="pa-md">
                         <div class="form-group mb-0">
                             <div class="row">
-                                <div class="col-sm-12">
+                                <div class="col-md-4">
                                     <?php echo $view['form']->row($form['schedule_timezone']); ?>
-                                    <?php echo $view['form']->row($form['schedule_queue']); ?>
+                                </div>
+                                <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['schedule_hours']); ?>
                                     <div id="contactclient_schedule_hours_widget"></div>
+                                </div>
+                                <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['schedule_exclusions']); ?>
+                                    <?php echo $view['form']->row($form['schedule_queue']); ?>
                                 </div>
                             </div>
                             <hr class="mnr-md mnl-md">

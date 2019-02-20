@@ -73,3 +73,9 @@ ul.CodeMirror-hints li.CodeMirror-hint-active,
     color: #fff;
     background-color: rgba(0, 86, 171, 0.8);
 }
+
+form[name='contactclient'] .h3,
+form[name='contactclient'] h3 {
+    font-size: 16px;
+    padding: 0 0 5px 0;
+}

@@ -181,8 +181,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             $input[0].fireEvent('onchange');
                                         }
                                     }
-
-                                    $input.siblings().find('input[type="text"]').each(function() {
+                                    $queryBuilder.parent().find('input[type="text"]').each(function() {
                                         mQuery(this).on('keypress', function (e) {
                                             var charCode = (typeof e.which === 'number') ? e.which : e.keyCode;
                                             if (charCode === 13) {
@@ -193,7 +192,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         });
                                     });
                                 }, 50);
-                            });
+                            })
+                            .trigger('rulesChanged.queryBuilder');
                         $input.addClass('queryBuilder-checked');
                     }
                     else {

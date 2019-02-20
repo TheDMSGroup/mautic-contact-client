@@ -1,0 +1,6 @@
+/* Duplicates */
+
+/* This is a duplicate (duplicate) label */
+#duplicate_jsoneditor div[data-schemapath="root.rules"] h3 {
+    display: none;
+}

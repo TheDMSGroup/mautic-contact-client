@@ -808,10 +808,6 @@ class ContactClient extends FormEntity
      */
     public function getDncChecks()
     {
-        if (!is_array($this->dnc_checks)) {
-            $this->dnc_checks = explode(',', $this->dnc_checks);
-        }
-
         return $this->dnc_checks;
     }
 
@@ -822,10 +818,10 @@ class ContactClient extends FormEntity
      */
     public function setDncChecks($dnc_checks)
     {
-        $this->isChanged('dncChecks', $dnc_checks);
         if (is_array($dnc_checks)) {
             $dnc_checks = implode(',', $dnc_checks);
         }
+        $this->isChanged('dncChecks', $dnc_checks);
         $this->dnc_checks = $dnc_checks;
 
         return $this;

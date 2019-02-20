@@ -25,6 +25,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactDncCheckEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
+use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
@@ -313,7 +314,8 @@ class ClientIntegration extends AbstractIntegration
             // Schedule - Check schedule rules to ensure we can send a contact now, do not retry if outside of window.
             $this->evaluateSchedule();
 
-            // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
+            // Filter - Check filter rules to ensure this contact is applicable.
+            $this->evaluateFilter();
 
             // DNC - Check Do Not Contact channels for an entry for this contact that is not permitted for this client.
             $this->evaluateDnc();
@@ -504,6 +506,38 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return $this
+     * @throws ContactClientException
+     */
+    private function evaluateFilter()
+    {
+        if ($this->test) {
+            return $this;
+        }
+        $filter = $this->contactClient->getFilter();
+        if ($filter) {
+            $filterHelper = new FilterHelper();
+            $context      = $this->getPayloadModel()->getTokenHelper()->getContext(true);
+            try {
+                $filterHelper->filter($filter, $context);
+            } catch (\Exception $e) {
+                throw new ContactClientException(
+                    'Contact filtered: '.$e->getMessage(),
+                    0,
+                    $e,
+                    Stat::TYPE_FILTER,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
+            }
+
+        }
+
+        return $this;
+    }
+
+    /**
      * Evaluates the DNC entries for the Contact against the Client settings.
      *
      * @return $this
@@ -515,7 +549,7 @@ class ClientIntegration extends AbstractIntegration
         if ($this->test) {
             return $this;
         }
-        $channels = $this->contactClient->getDncChecks();
+        $channels = explode(',', $this->contactClient->getDncChecks());
         if ($channels) {
             $dncCollection = $this->contact->getDoNotContact();
             foreach ($dncCollection as $dnc) {

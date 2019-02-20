@@ -11,7 +11,9 @@ Mautic.contactclientType = function () {
             mQuery('input[name="contactclient[schedule_queue]"]').closest('.row').removeClass('hide');
 
             // Mautic.contactclientApiPayload();
-            Mautic.contactclientApiPayloadPre();
+            Mautic.contactclientPreloadTokens(function () {
+                Mautic.contactclientApiPayload();
+            });
         }
         else if (val === 'file') {
             mQuery('.row.api_payload').addClass('hide');
