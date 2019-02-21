@@ -23,8 +23,14 @@ use Psr\Log\LoggerInterface;
  */
 class TokenHelper
 {
-    /** @var string To reduce overhead, fields will be searched for this before attempting token replacement. */
-    const TOKEN_KEY = '{{';
+    /** @var int */
+    const TEMPLATE_MIN_LENGTH = 5;
+
+    /** @var string */
+    const TOKEN_KEY_END = '}}';
+
+    /** @var string */
+    const TOKEN_KEY_START = '{{';
 
     /** @var Engine */
     private $engine;
@@ -32,8 +38,8 @@ class TokenHelper
     /** @var array context of tokens for replacement */
     private $context = [];
 
-    /** @var string|array */
-    private $template;
+    /** @var string|array Last template we attempted to parse, used for error reporting. */
+    private $lastTemplate;
 
     /** @var DateFormatHelper */
     private $dateFormatHelper;
@@ -170,9 +176,14 @@ class TokenHelper
                 [
                     'pragmas' => [Engine::PRAGMA_FILTERS],
                     'escape'  => function ($value) {
-                        return $value;
+                        if (is_array($value) || is_object($value)) {
+                            $value = '';
+                        }
+
+                        return (string) $value;
                     },
                     'logger'  => $this->logger,
+                    'cache'   => realpath($this->coreParametersHelper->getParameter('kernel.cache_dir')).'/mustache',
                 ]
             );
             if ($cacheDir = $this->coreParametersHelper->getParameter('mautic.mustache.cache_dir')) {
@@ -747,6 +758,8 @@ class TokenHelper
             }
         }
 
+        // @todo - Get Device data here.
+
         $fieldGroups = $contact->getFields();
         if ($fieldGroups) {
             foreach ($fieldGroups as $fgKey => $fieldGroup) {
@@ -962,37 +975,39 @@ class TokenHelper
      *
      * @param string|array|object $template
      *
-     * @return string|array
+     * @return string|array|object
      */
     public function render($template = '')
     {
-        $this->template = $template;
-        if (is_array($this->template) || is_object($this->template)) {
-            foreach ($this->template as $key => &$value) {
-                $value = $this->render($value);
+        $result = $template;
+        if (is_array($template) || is_object($template)) {
+            // Recursively go down into an object/array to tokenize.
+            foreach ($result as &$val) {
+                $val = $this->render($val);
             }
-        } else {
-            if (
-                strlen($this->template) > 3
-                && false !== strpos($this->template, self::TOKEN_KEY)
-            ) {
-                if (isset($this->renderCache[$this->template])) {
-                    // Already tokenized this exact string.
-                    $this->template = $this->renderCache[$this->template];
-                } else {
-                    // The following line should be irrelevant in the future.
-                    $this->addHelper('date');
-                    set_error_handler([$this, 'handleMustacheErrors'], E_WARNING);
-                    $this->template = $this->engine->render($this->template, $this->context);
-                    restore_error_handler();
-                    if (null !== $this->template && '' !== $this->template) {
-                        $this->renderCache[$template] = $this->template;
-                    }
+        } elseif (
+            is_string($template)
+            && strlen($template) >= self::TEMPLATE_MIN_LENGTH
+            && false !== strpos($template, self::TOKEN_KEY_START)
+            && false !== strpos($template, self::TOKEN_KEY_END)
+        ) {
+            if (isset($this->renderCache[$template])) {
+                // Already tokenized this exact string.
+                $result = $this->renderCache[$template];
+            } else {
+                // A new or non-tokenized string.
+                $this->lastTemplate = $template;
+                set_error_handler([$this, 'handleMustacheErrors'], E_WARNING | E_NOTICE);
+                $result = $this->engine->render($template, $this->context);
+                restore_error_handler();
+                if (null !== $result && '' !== $result) {
+                    // Store the result in cache for faster lookup later.
+                    $this->renderCache[$template] = $result;
                 }
             }
         }
 
-        return $this->template;
+        return $result;
     }
 
     /**
@@ -1149,12 +1164,12 @@ class TokenHelper
      */
     private function handleMustacheErrors($errno, $errstr, $errfile, $errline)
     {
-        if (!empty($this->template)) {
+        if (!empty($this->lastTemplate)) {
             if (function_exists('newrelic_add_custom_parameter')) {
                 call_user_func(
                     'newrelic_add_custom_parameter',
                     'contactclientToken',
-                    $this->template
+                    $this->lastTemplate
                 );
             }
         }
@@ -1169,7 +1184,7 @@ class TokenHelper
         }
         $this->logger->error(
             'Contact Client '.$this->contactClient->getId().
-            ': Warning issued with Template: '.$this->template.' Context: '.json_encode($this->context)
+            ': Warning issued with Template: '.$this->lastTemplate.' Context: '.json_encode($this->context)
         );
 
         return true;
