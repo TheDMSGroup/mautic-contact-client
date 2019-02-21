@@ -15,15 +15,16 @@
 
     <!-- Export button -->
     <div class="btn-group col-xs-2 pb-md">
-        <?php // Currently causes exceptions without patch: if (
-        //$view['security']->isAdmin() || !$view['security']->isGranted('contactclient:export:disable', 'MATCH_ONE')):?>
+        <?php if (!method_exists($view['security'], 'isAdmin')
+            || !$view['security']->isAdmin()
+            || !$view['security']->isGranted('contactclient:export:disable', 'MATCH_ONE')):?>
         <a class="btn btn-default"
            onclick="Mautic.contactClientTimelineExport();">
             <span>
                 <i class="fa fa-download"></i><span class="hidden-xs hidden-sm">Export</span>
             </span>
         </a>
-        <?php // endif;?>
+        <?php endif; ?>
         <a id="transactions-filter-btn"
            class="btn btn-default">
             <span>
