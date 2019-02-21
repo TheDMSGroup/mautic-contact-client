@@ -191,6 +191,8 @@ return [
                 'arguments' => [
                     'mautic.helper.core_parameters',
                     'monolog.logger.mautic',
+                    'mautic.lead.model.lead',
+                    'mautic.contactclient.helper.utmsource',
                 ],
             ],
             'mautic.contactclient.helper.utmsource'  => [
