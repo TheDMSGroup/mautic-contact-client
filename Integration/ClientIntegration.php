@@ -507,6 +507,7 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @return $this
+     *
      * @throws ContactClientException
      */
     private function evaluateFilter()
@@ -515,7 +516,7 @@ class ClientIntegration extends AbstractIntegration
             return $this;
         }
         $definition = $this->contactClient->getFilter();
-        if ($definition && $definition !== 'null') {
+        if ($definition && 'null' !== $definition) {
             $valid   = null;
             $filter  = new FilterHelper();
             $context = $this->getPayloadModel()
@@ -1396,6 +1397,7 @@ class ClientIntegration extends AbstractIntegration
      * @param null   $contactClientId
      *
      * @return bool
+     *
      * @throws ContactClientException
      */
     public function sendTestFile(

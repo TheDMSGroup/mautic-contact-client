@@ -1032,9 +1032,9 @@ class TokenHelper
     private function eventTokenEncode($values)
     {
         list($campaignId, $eventId, $contactId) = $values;
-        $campaignIdString = $this->baseEncode((int) $campaignId);
-        $eventIdString    = $this->baseEncode((int) $eventId);
-        $contactIdString  = $this->baseEncode((int) $contactId);
+        $campaignIdString                       = $this->baseEncode((int) $campaignId);
+        $eventIdString                          = $this->baseEncode((int) $eventId);
+        $contactIdString                        = $this->baseEncode((int) $contactId);
 
         return $campaignIdString.'0'.$eventIdString.'0'.$contactIdString;
     }

@@ -49,7 +49,7 @@ class AjaxController extends CommonAjaxController
         if ($request->request->has('filters')) {
             foreach ($request->request->get('filters') as $filter) {
                 if (in_array($filter['name'], ['dateTo', 'dateFrom']) && !empty($filter['value'])) {
-                    $filter['value'] = new \DateTime($filter['value']);
+                    $filter['value']        = new \DateTime($filter['value']);
                     list($hour, $min, $sec) = 'dateTo' == $filter['name'] ? [23, 59, 59] : [00, 00, 00];
                     $filter['value']->setTime($hour, $min, $sec);
                 }

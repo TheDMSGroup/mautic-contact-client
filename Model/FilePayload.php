@@ -1064,6 +1064,7 @@ class FilePayload
      * @param null $compression
      *
      * @return string
+     *
      * @throws \Exception
      */
     private function getFileName($compression = null)
@@ -1926,5 +1927,4 @@ class FilePayload
     {
         return $this->tokenHelper;
     }
-
 }

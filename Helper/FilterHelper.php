@@ -479,13 +479,13 @@ class FilterHelper
                 break;
             case 'regex':
                 if (
-                    substr($ruleValue, 0, 1) !== '/'
-                    && substr($ruleValue, -1, 1) !== '/'
+                    '/' !== substr($ruleValue, 0, 1)
+                    && '/' !== substr($ruleValue, -1, 1)
                 ) {
                     $ruleValue = '/'.$ruleValue.'/';
                 }
                 try {
-                    return preg_match($ruleValue, $contextValue) === 1;
+                    return 1 === preg_match($ruleValue, $contextValue);
                 } catch (\Exception $e) {
                     $this->setError('Invalid regex pattern.');
 
