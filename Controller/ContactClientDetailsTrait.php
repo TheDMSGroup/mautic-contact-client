@@ -215,7 +215,7 @@ trait ContactClientDetailsTrait
 
             $result['events'] = array_merge($result['events'], $events);
             $result['types']  = array_merge($result['types'], $types);
-            $result['total'] += $engagements['total'];
+            $result['total']  += $engagements['total'];
         }
 
         $result['maxPages'] = ($limit <= 0) ? 1 : round(ceil($result['total'] / $limit));

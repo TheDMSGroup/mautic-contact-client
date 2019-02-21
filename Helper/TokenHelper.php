@@ -176,19 +176,20 @@ class TokenHelper
                 [
                     'pragmas' => [Engine::PRAGMA_FILTERS],
                     'escape'  => function ($value) {
+                        // This replaces the default engine escape function that uses htmlentities.
+                        // We just need to ensure we're dealing with strings, nothing more.
                         if (is_array($value) || is_object($value)) {
                             $value = '';
                         }
 
                         return (string) $value;
                     },
+                    // Set Mustache Engine to use our Monolog instance.
                     'logger'  => $this->logger,
+                    // Set Mustache Engine to use our cache folder for opcache performance gains.
                     'cache'   => realpath($this->coreParametersHelper->getParameter('kernel.cache_dir')).'/mustache',
                 ]
             );
-            if ($cacheDir = $this->coreParametersHelper->getParameter('mautic.mustache.cache_dir')) {
-                $this->engine->setCache($cacheDir);
-            }
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');

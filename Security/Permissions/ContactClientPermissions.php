@@ -38,16 +38,6 @@ class ContactClientPermissions extends AbstractPermissions
     /**
      * {@inheritdoc}
      *
-     * @return string
-     */
-    public function getName()
-    {
-        return 'contactclient';
-    }
-
-    /**
-     * {@inheritdoc}
-     *
      * @param FormBuilderInterface $builder
      * @param array                $options
      */
@@ -59,7 +49,24 @@ class ContactClientPermissions extends AbstractPermissions
         //This is in anticipation of PR 5995 getting merged ~2.16
         if (method_exists($this, 'addCustomFormFields')) {
             $addCustomFormFields = 'addCustomFormFields';
-            $this->$addCustomFormFields($this->getName(), 'export', $builder, 'mautic.core.permissions.export', ['disable' => 'mautic.core.permissions.disable'], $data);
+            $this->$addCustomFormFields(
+                $this->getName(),
+                'export',
+                $builder,
+                'mautic.core.permissions.export',
+                ['disable' => 'mautic.core.permissions.disable'],
+                $data
+            );
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return 'contactclient';
     }
 }

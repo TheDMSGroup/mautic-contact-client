@@ -47,7 +47,8 @@ Mautic.contactclientFilePayloadPre = function () {
                     Mautic.contactclientFilePayload();
                 }
             });
-        } else {
+        }
+        else {
             Mautic.contactclientFilePayload();
         }
         $filePayload.addClass('payload-checked');
@@ -275,7 +276,8 @@ Mautic.contactclientFilePayload = function () {
                     action: 'plugin:mauticContactClient:getFilePayloadTest',
                     filePayload: $filePayload.val(),
                     attributionDefault: $attributionDefault.length ? $attributionDefault.val() : '',
-                    attributionSettings: $attributionSettings.length ? $attributionSettings.val() : ''
+                    attributionSettings: $attributionSettings.length ? $attributionSettings.val() : '',
+                    contactClientId: window.location.pathname.split('/').pop()
                 };
                 $result.addClass('hide');
                 $message.addClass('hide');

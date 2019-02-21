@@ -246,7 +246,7 @@ class ApiPayloadResponse
                                     }
                                     unset($element);
                                     list($key, $value) = $elements;
-                                    $result[$key]      = $value;
+                                    $result[$key] = $value;
                                     break;
                                 }
                             }

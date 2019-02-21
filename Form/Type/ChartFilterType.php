@@ -61,19 +61,19 @@ class ChartFilterType extends AbstractType
             'campaign',
             ChoiceType::class,
             [
-                'choices'     => $campaigns,
-                'attr'        => [
+                'choices'    => $campaigns,
+                'attr'       => [
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.integration.campaign.tooltip',
                 ],
-                'expanded'    => false,
-                'multiple'    => false,
-                'label'       => 'mautic.contactclient.transactions.campaign_select',
-                'label_attr'  => ['class' => 'control-label'],
-                'empty_data'  => 'All Campaigns',
-                'required'    => false,
-                'disabled'    => false,
-                'data'        => $options['data']['campaign'],
+                'expanded'   => false,
+                'multiple'   => false,
+                'label'      => 'mautic.contactclient.transactions.campaign_select',
+                'label_attr' => ['class' => 'control-label'],
+                'empty_data' => 'All Campaigns',
+                'required'   => false,
+                'disabled'   => false,
+                'data'       => $options['data']['campaign'],
             ]
         );
 

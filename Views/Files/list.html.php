@@ -22,8 +22,8 @@ $baseUrl = $view['router']->path(
 ?>
 <script>
     // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $order[0]; ?>';
-    var sortDirection = '<?php echo strtolower($order[1]); ?>';
+    var sortField = '<?php echo isset($order[0]) ? $order[0] : ''; ?>';
+    var sortDirection = '<?php echo isset($order[1]) ? strtolower($order[1]) : ''; ?>';
 </script>
 
 <!-- timeline -->
@@ -122,8 +122,8 @@ $baseUrl = $view['router']->path(
                 <td class="timeline-icon">
                     <a href="javascript:void(0);" data-activate-details="f<?php echo $counter; ?>"
                        class="btn btn-sm btn-nospin btn-default<?php if (empty($details)) {
-                echo ' disabled';
-            } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
+                           echo ' disabled';
+                       } ?>" data-toggle="tooltip" title="<?php echo $view['translator']->trans(
                         'mautic.contactclient.transactions.toggle_details'
                     ); ?>">
                         <span class="fa fa-fw <?php echo $icon; ?>"></span>

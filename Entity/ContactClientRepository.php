@@ -54,6 +54,26 @@ class ContactClientRepository extends CommonRepository
     }
 
     /**
+     * @return array
+     */
+    public function getSearchCommands()
+    {
+        return $this->getStandardSearchCommands();
+    }
+
+    /**
+     * @return array
+     */
+    public function getContactClientList($currentId)
+    {
+        $alias = $this->getTableAlias();
+        $q     = $this->createQueryBuilder($alias);
+        $q->select('partial '.$alias.'.{id, name, description}')->orderBy($alias.'.name');
+
+        return $q->getQuery()->getArrayResult();
+    }
+
+    /**
      * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
      * @param                                                              $filter
      *
@@ -84,30 +104,10 @@ class ContactClientRepository extends CommonRepository
     /**
      * @return array
      */
-    public function getSearchCommands()
-    {
-        return $this->getStandardSearchCommands();
-    }
-
-    /**
-     * @return array
-     */
     protected function getDefaultOrder()
     {
         return [
             [$this->getTableAlias().'.name', 'ASC'],
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getContactClientList($currentId)
-    {
-        $alias = $this->getTableAlias();
-        $q     = $this->createQueryBuilder($alias);
-        $q->select('partial '.$alias.'.{id, name, description}')->orderBy($alias.'.name');
-
-        return $q->getQuery()->getArrayResult();
     }
 }

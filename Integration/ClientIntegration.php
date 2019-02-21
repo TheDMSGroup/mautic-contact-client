@@ -514,15 +514,19 @@ class ClientIntegration extends AbstractIntegration
         if ($this->test) {
             return $this;
         }
-        $filter = $this->contactClient->getFilter();
-        if ($filter) {
-            $filterHelper = new FilterHelper();
-            $context      = $this->getPayloadModel()->getTokenHelper()->getContext(true);
+        $definition = $this->contactClient->getFilter();
+        if ($definition && $definition !== 'null') {
+            $valid   = null;
+            $filter  = new FilterHelper();
+            $context = $this->getPayloadModel()
+                ->getTokenHelper()
+                ->newSession($this->contactClient, $this->contact)
+                ->getContext(true);
             try {
-                $filterHelper->filter($filter, $context);
+                $valid = $filter->filter($definition, $context);
             } catch (\Exception $e) {
                 throw new ContactClientException(
-                    'Contact filtered: '.$e->getMessage(),
+                    'Error in filter: '.$e->getMessage(),
                     0,
                     $e,
                     Stat::TYPE_FILTER,
@@ -531,7 +535,17 @@ class ClientIntegration extends AbstractIntegration
                     $filter->getErrors()
                 );
             }
-
+            if (!$valid) {
+                throw new ContactClientException(
+                    'Contact filtered: '.implode(', ', $filter->getErrors()),
+                    0,
+                    null,
+                    Stat::TYPE_FILTER,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
+            }
         }
 
         return $this;
@@ -1356,6 +1370,7 @@ class ClientIntegration extends AbstractIntegration
         if (!$client) {
             $client = new ContactClient();
         }
+        $client->setType('api');
         $client->setAPIPayload($apiPayload);
         if ($attributionSettings) {
             $client->setAttributionSettings($attributionSettings);
@@ -1378,14 +1393,27 @@ class ClientIntegration extends AbstractIntegration
      * @param        $filePayload
      * @param string $attributionDefault
      * @param string $attributionSettings
+     * @param null   $contactClientId
      *
      * @return bool
-     *
      * @throws ContactClientException
      */
-    public function sendTestFile(&$filePayload, $attributionDefault = '', $attributionSettings = '')
-    {
-        $client = new ContactClient();
+    public function sendTestFile(
+        &$filePayload,
+        $attributionDefault = '',
+        $attributionSettings = '',
+        $contactClientId = null
+    ) {
+        $client = null;
+        if ($contactClientId) {
+            $clientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
+            /** @var ContactClient $client */
+            $client = $clientModel->getEntity($contactClientId);
+        }
+        if (!$client) {
+            $client = new ContactClient();
+        }
+        $client->setType('file');
         $client->setFilePayload($filePayload);
         if ($attributionSettings) {
             $client->setAttributionSettings($attributionSettings);

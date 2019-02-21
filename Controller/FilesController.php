@@ -40,13 +40,22 @@ class FilesController extends AbstractFormController
 
         if ('POST' === $request->getMethod()) {
             if ($request->query->has('orderby')) {
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderby', $request->query->get('orderby'));
+                $session->set(
+                    'mautic.contactclient.'.$contactClient->getId().'.files.orderby',
+                    $request->query->get('orderby')
+                );
             }
             if ($request->query->has('orderbydir')) {
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.orderbydir', $request->query->get('orderbydir'));
+                $session->set(
+                    'mautic.contactclient.'.$contactClient->getId().'.files.orderbydir',
+                    $request->query->get('orderbydir')
+                );
             }
             if ($request->query->has('limit')) {
-                $session->set('mautic.contactclient.'.$contactClient->getId().'.files.limit', $request->query->get('limit'));
+                $session->set(
+                    'mautic.contactclient.'.$contactClient->getId().'.files.limit',
+                    $request->query->get('limit')
+                );
             }
         }
 

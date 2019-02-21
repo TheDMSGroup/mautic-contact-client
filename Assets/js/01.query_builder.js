@@ -18,8 +18,9 @@ Mautic.contactclientQBDefaultOps = [
     'ends_with',
     'not_ends_with',
     'is_empty',
-    'is_not_empty'
+    'is_not_empty',
     // 'is_null'
+    'regex'
 ];
 
 // Used as the default filters (others are added on demand).
@@ -124,23 +125,33 @@ Mautic.contactclientQBDefaultGet = {
 };
 
 // Used whenever instantiating.
-Mautic.contactclientQBDefaultSettings = {
-    plugins: {
-        'sortable': {
-            icon: 'fa fa-sort'
+Mautic.contactclientQBDefaultSettings = function () {
+    var operators = Object.values(mQuery.fn.queryBuilder.defaults('operators'));
+    operators.push({
+        type: 'regex',
+        nb_inputs: 1,
+        multiple: false,
+        apply_to: ['string']
+    });
+    return {
+        plugins: {
+            'sortable': {
+                icon: 'fa fa-sort'
+            },
+            'bt-tooltip-errors': null
         },
-        'bt-tooltip-errors': null
-    },
-    filters: Mautic.contactclientQBDefaultFilters,
-    icons: {
-        add_group: 'fa fa-plus',
-        add_rule: 'fa fa-plus',
-        remove_group: 'fa fa-times',
-        remove_rule: 'fa fa-times',
-        sort: 'fa fa-sort',
-        error: 'fa fa-exclamation-triangle'
-    }
-    // Note: Providing rules upfront fails because the filters may not include fields.
-    // Allow rules to be put in place on change when the JSONSchema renders.
-    // rules: null
+        filters: Mautic.contactclientQBDefaultFilters,
+        icons: {
+            add_group: 'fa fa-plus',
+            add_rule: 'fa fa-plus',
+            remove_group: 'fa fa-times',
+            remove_rule: 'fa fa-times',
+            sort: 'fa fa-sort',
+            error: 'fa fa-exclamation-triangle'
+        },
+        operators: operators
+        // Note: Providing rules upfront fails because the filters may not
+        // include fields. Allow rules to be put in place on change when the
+        // JSONSchema renders. rules: null
+    };
 };

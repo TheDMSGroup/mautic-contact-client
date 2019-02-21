@@ -36,6 +36,7 @@ class ContactClientType extends AbstractType
      * ContactClientType constructor.
      *
      * @param CorePermissions $security
+     * @param ContactModel    $contactModel
      */
     public function __construct(
         CorePermissions $security,

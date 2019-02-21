@@ -155,13 +155,15 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
                 if (!error) {
                     if (!checked) {
+                        var QBSettings = Mautic.contactclientQBDefaultSettings();
+                        QBSettings.rules = rules;
                         mQuery('<div>',
                             {
                                 id: 'success-definition-' + path.split('.')[2],
                                 class: 'query-builder'
                             })
                             .insertAfter($input)
-                            .queryBuilder(Mautic.contactclientQBDefaultSettings)
+                            .queryBuilder(QBSettings)
                             // On any change to Success Definition:
                             .on('rulesChanged.queryBuilder', function () {
                                 var $queryBuilder = mQuery(this);
@@ -169,6 +171,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 timeout = setTimeout(function () {
                                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
                                     var rulesString = JSON.stringify(rules, null, 2);
+                                    rulesString = (rulesString === 'null' ? '' : rulesString);
 
                                     if ($input.val() !== rulesString) {
                                         $input.val(rulesString);
@@ -181,7 +184,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             $input[0].fireEvent('onchange');
                                         }
                                     }
-                                    $queryBuilder.parent().find('input[type="text"]').each(function() {
+                                    $queryBuilder.parent().find('input[type="text"]').each(function () {
                                         mQuery(this).on('keypress', function (e) {
                                             var charCode = (typeof e.which === 'number') ? e.which : e.keyCode;
                                             if (charCode === 13) {
@@ -357,7 +360,17 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                                     key.indexOf('zip.') > -1
                                                                     && word.indexOf('zip') === -1
                                                                 ) {
-                                                                    // Do not include the zip filter for fields that do not contain the word zip.
+                                                                    // Do not
+                                                                    // include
+                                                                    // the zip
+                                                                    // filter
+                                                                    // for
+                                                                    // fields
+                                                                    // that do
+                                                                    // not
+                                                                    // contain
+                                                                    // the word
+                                                                    // zip.
                                                                     return true;
                                                                 }
                                                                 delimitedKey = key.indexOf('.') !== -1 ? key : type + '.' + key;
@@ -540,8 +553,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     completeSingle: false
                                 });
                             });
-                            $input.on('cmUpdate', function(){
-                                if (cm.getValue() !== $(this).val()){
+                            $input.on('cmUpdate', function () {
+                                if (cm.getValue() !== $(this).val()) {
                                     cm.setValue($(this).val());
                                     cm.refresh();
                                 }

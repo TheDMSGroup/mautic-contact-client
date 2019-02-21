@@ -7,13 +7,14 @@ Mautic.contactclientFilter = function () {
 Mautic.contactclientFilterStart = function () {
     var $input = mQuery('#contactclient_filter:first:not(.queryBuilder-checked)');
     if ($input.length) {
-        var QBSettings = mQuery.extend({}, Mautic.contactclientQBDefaultSettings),
+        var QBSettings = Mautic.contactclientQBDefaultSettings(),
             tokenSource = 'plugin:mauticContactClient:getTokens',
             timeout,
             chosenSettings = {
                 allow_single_deselect: true,
                 search_contains: true
-            };
+            },
+            rules = {};
         QBSettings.filters = [];
         // Get field/token list and use that as our filters for the Query
         // Builder.
@@ -74,6 +75,10 @@ Mautic.contactclientFilterStart = function () {
                                 'not_equal'
                             ];
                             break;
+
+                        default:
+                            operators.push('regex');
+                            break;
                     }
                 }
                 QBSettings.filters.push({
@@ -87,6 +92,16 @@ Mautic.contactclientFilterStart = function () {
         if (!QBSettings.filters.length) {
             return;
         }
+
+        // Load initial rules if present.
+        try {
+            rules = mQuery.parseJSON($input.val());
+            QBSettings.rules = rules;
+        }
+        catch (e) {
+            console.warn('Error in Filter rules JSON.');
+        }
+
         mQuery('<div>',
             {
                 id: 'filter-definition',
@@ -101,6 +116,7 @@ Mautic.contactclientFilterStart = function () {
                     $parent = $queryBuilder.parent();
                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
                     var rulesString = JSON.stringify(rules, null, 2);
+                    rulesString = (rulesString === 'null' ? '' : rulesString);
 
                     if ($input.val() !== rulesString) {
                         $input.val(rulesString);

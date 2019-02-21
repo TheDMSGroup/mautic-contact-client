@@ -159,6 +159,8 @@ class AjaxController extends CommonAjaxController
     protected function getFilePayloadTestAction(Request $request)
     {
         // Get the File payload to test.
+        $contactClientId = (int) InputHelper::clean($request->request->get('contactClientId'));
+
         $filePayload = html_entity_decode(InputHelper::clean($request->request->get('filePayload')));
 
         $attributionDefault = html_entity_decode(InputHelper::clean($request->request->get('attributionDefault')));
@@ -182,7 +184,8 @@ class AjaxController extends CommonAjaxController
             $valid                = $clientIntegration->sendTestFile(
                 $filePayload,
                 $attributionDefault,
-                $attributionSettings
+                $attributionSettings,
+                $contactClientId
             );
             $dataArray['valid']   = $valid;
             $dataArray['payload'] = $filePayload;

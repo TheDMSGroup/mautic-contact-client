@@ -1061,9 +1061,10 @@ class FilePayload
     /**
      * Discern the desired output file name for a new file.
      *
-     * @param string $compression
+     * @param null $compression
      *
      * @return string
+     * @throws \Exception
      */
     private function getFileName($compression = null)
     {
