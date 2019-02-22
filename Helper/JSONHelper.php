@@ -112,6 +112,7 @@ class JSONHelper
      * @param $fieldName
      *
      * @return false|string
+     *
      * @throws \Exception
      */
     public function encode($mixed, $fieldName)
@@ -169,4 +170,3 @@ class JSONHelper
         }
     }
 }
-

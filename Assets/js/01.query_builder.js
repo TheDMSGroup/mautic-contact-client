@@ -121,7 +121,13 @@ Mautic.contactclientQBDefaultFilters = [{
 // Used whenever we use getRules for consistency.
 Mautic.contactclientQBDefaultGet = {
     get_flags: false,
-    skip_empty: true
+    skip_empty: true,
+    allow_invalid: true,
+};
+
+// Used whenever we use setRules for consistency.
+Mautic.contactclientQBDefaultSet = {
+    allow_invalid: true,
 };
 
 // Used whenever instantiating.
@@ -134,6 +140,9 @@ Mautic.contactclientQBDefaultSettings = function () {
         apply_to: ['string']
     });
     return {
+        allow_empty: true,
+        allow_empty_value: true,
+        select_placeholder: '-- Select a Field --',
         plugins: {
             'sortable': {
                 icon: 'fa fa-sort'

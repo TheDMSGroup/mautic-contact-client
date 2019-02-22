@@ -94,12 +94,14 @@ Mautic.contactclientFilterStart = function () {
         }
 
         // Load initial rules if present.
-        try {
-            rules = mQuery.parseJSON($input.val());
-            QBSettings.rules = rules;
-        }
-        catch (e) {
-            console.warn('Error in Filter rules JSON.');
+        if ($input.val().length) {
+            try {
+                rules = mQuery.parseJSON($input.val());
+                QBSettings.rules = rules;
+            }
+            catch (e) {
+                console.warn('Error in Filter rules JSON.');
+            }
         }
 
         mQuery('<div>',
@@ -115,6 +117,7 @@ Mautic.contactclientFilterStart = function () {
                 timeout = setTimeout(function () {
                     $parent = $queryBuilder.parent();
                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
+                    if (rules === null) return;
                     var rulesString = JSON.stringify(rules, null, 2);
                     rulesString = (rulesString === 'null' ? '' : rulesString);
 
