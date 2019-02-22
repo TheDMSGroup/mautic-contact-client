@@ -1440,27 +1440,24 @@ class FilePayload
 
             return false;
         }
-        $from  = !empty($operation->from) ? $operation->from : $this->getIntegrationSetting(
-            'email_from'
-        );
+        $from  = (isset($operation->from) && !empty(trim($operation->from)))
+            ? $operation->from : $this->getIntegrationSetting('email_from');
         $email = new Email();
         $email->setSessionId('new_'.hash('sha1', uniqid(mt_rand())));
         $email->setReplyToAddress($from);
         $email->setFromAddress($from);
-        $subject = !empty($operation->subject) ? $operation->subject : $this->file->getName();
+        $subject = (isset($operation->subject) && !empty(trim($operation->subject)))
+            ? $operation->subject : $this->file->getName();
         $email->setSubject($subject);
         if ($this->file->getCount()) {
-            $body = !empty($operation->successMessage) ? $operation->successMessage : $this->getIntegrationSetting(
-                'success_message'
-            );
+            $body = (isset($operation->successMessage) && !empty(trim($operation->successMessage)))
+                ? $operation->successMessage : $this->getIntegrationSetting('success_message');
         } else {
-            $body = !empty($operation->emptyMessage) ? $operation->emptyMessage : $this->getIntegrationSetting(
-                'empty_message'
-            );
+            $body = (isset($operation->emptyMessage) && !empty(trim($operation->emptyMessage)))
+                ? $operation->emptyMessage : $this->getIntegrationSetting('empty_message');
         }
-        $body .= PHP_EOL.PHP_EOL.!empty($operation->footer) ? $operation->footer : $this->getIntegrationSetting(
-            'footer'
-        );
+        $body .= PHP_EOL.PHP_EOL.((isset($operation->footer) && !empty(trim($operation->footer)))
+                ? $operation->footer : $this->getIntegrationSetting('footer'));
         $email->setContent($body);
         $email->setCustomHtml(htmlentities($body));
 
