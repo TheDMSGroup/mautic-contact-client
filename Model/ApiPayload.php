@@ -521,7 +521,7 @@ class ApiPayload
      *
      * @param string $key
      * @param int    $operationId
-     * @param array  $types       Types to check for (header/body/etc)
+     * @param array  $types Types to check for (header/body/etc)
      */
     public function getAggregateActualResponses($key = null, $operationId = null, $types = ['headers', 'body'])
     {
@@ -628,7 +628,8 @@ class ApiPayload
     {
         if ($this->contactClient) {
             $this->sortPayloadFields();
-            $payloadJSON = json_encode($this->payload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+            $jsonHelper  = new JSONHelper();
+            $payloadJSON = $jsonHelper->encode($this->payload, 'Payload');
             $this->contactClient->setAPIPayload($payloadJSON);
         }
     }
