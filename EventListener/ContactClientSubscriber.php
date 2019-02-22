@@ -37,6 +37,9 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class ContactClientSubscriber extends CommonSubscriber
 {
+    /** @var Session */
+    public $session;
+
     /**
      * @var RouterInterface
      */
@@ -79,9 +82,6 @@ class ContactClientSubscriber extends CommonSubscriber
 
     /** @var PageModel */
     protected $pageModel;
-
-    /** @var Session */
-    public $session;
 
     /**
      * ContactClientSubscriber constructor.

@@ -16,7 +16,8 @@ Mautic.contactclientDuplicate = function () {
 
                 // Create our widget container for the JSON Editor.
                 var $duplicateJSONEditor = mQuery('<div>', {
-                    class: 'contactclient_jsoneditor'
+                    class: 'contactclient_jsoneditor',
+                    id: 'duplicate_jsoneditor'
                 }).insertBefore($duplicate);
 
                 // Instantiate the JSON Editor based on our schema.

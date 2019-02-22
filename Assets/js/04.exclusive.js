@@ -15,7 +15,8 @@ Mautic.contactclientExclusive = function () {
 
                 // Create our widget container for the JSON Editor.
                 var $exclusiveJSONEditor = mQuery('<div>', {
-                    class: 'contactclient_jsoneditor'
+                    class: 'contactclient_jsoneditor',
+                    id: 'exclusive_jsoneditor'
                 }).insertBefore($exclusive);
 
                 // Instantiate the JSON Editor based on our schema.

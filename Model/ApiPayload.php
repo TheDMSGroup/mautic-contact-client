@@ -837,4 +837,12 @@ class ApiPayload
     {
         return $this->scheduleModel;
     }
+
+    /**
+     * @return TokenHelper
+     */
+    public function getTokenHelper()
+    {
+        return $this->tokenHelper;
+    }
 }

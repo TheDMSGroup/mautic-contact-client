@@ -1,5 +1,68 @@
-/* // A date/time format helper modal to work in tandem with DateFormatHelper.php
-Mautic.contactclientTokenHelper = function (tokenSource, title, token, helper, type, field, selection) {
+// Preload tokens and then run a callback when done */
+Mautic.contactclientPreloadTokens = function (callback) {
+    if (typeof window.JSONEditor.gettingTokens == 'undefined' || !window.JSONEditor.gettingTokens) {
+        if (typeof window.JSONEditor.tokenCache === 'undefined') {
+            window.JSONEditor.tokenCache = {};
+        }
+        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
+            window.JSONEditor.tokenCacheTypes = {};
+        }
+        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
+            window.JSONEditor.tokenCacheFormats = {};
+        }
+        var tokenSource = 'plugin:mauticContactClient:getTokens';
+        if (typeof window.JSONEditor.tokenCache[tokenSource] != 'object' || !window.JSONEditor.tokenCache[tokenSource].length) {
+            window.JSONEditor.gettingTokens = true;
+            window.JSONEditor.tokenCache[tokenSource] = {};
+            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
+            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
+            mQuery.ajax({
+                url: mauticAjaxUrl,
+                type: 'POST',
+                data: {
+                    action: tokenSource,
+                    apiPayload: mQuery('#contactclient_api_payload:first').val(),
+                    filePayload: mQuery('#contactclient_file_payload:first').val()
+                },
+                cache: true,
+                dataType: 'json',
+                success: function (response) {
+                    if (typeof response.tokens !== 'undefined') {
+                        window.JSONEditor.tokenCache[tokenSource] = response.tokens;
+                    }
+                    if (typeof response.types !== 'undefined') {
+                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
+                    }
+                    if (typeof response.formats !== 'undefined') {
+                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
+                    }
+                },
+                error: function (request, textStatus, errorThrown) {
+                    Mautic.processAjaxError(request, textStatus, errorThrown);
+                },
+                complete: function () {
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                    window.JSONEditor.gettingTokens = false;
+                }
+            });
+        }
+        else {
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }
+    }
+    else {
+        setTimeout(function () {
+            Mautic.contactclientPreloadTokens(callback);
+        }, 200);
+    }
+};
+// A date/time format helper modal to work in tandem with DateFormatHelper.php
+// - deprecated
+/* Mautic.contactclientTokenHelper = function (tokenSource, title, token, helper, type, field, selection) {
     // Check that we don't already have a modal running, recreate?
     mQuery('#tokenHelper').remove();
 

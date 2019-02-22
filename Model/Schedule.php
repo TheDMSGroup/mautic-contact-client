@@ -305,6 +305,42 @@ class Schedule
     }
 
     /**
+     * Test if we can send/build another file for the day in question.
+     *
+     * @param int $fileRate
+     *
+     * @return int
+     *
+     * @throws ContactClientException
+     */
+    private function evaluateFileRate($fileRate = 1)
+    {
+        $date = clone $this->now;
+        $date->setTimezone($this->timezone);
+        $repo      = $this->getFileRepository();
+        $fileCount = $repo->getCountByDate($date, $this->contactClient->getId());
+
+        if ($fileCount >= $fileRate) {
+            throw new ContactClientException(
+                'This client has reached the maximum number of files they can receive per day.',
+                0,
+                null,
+                Stat::TYPE_SCHEDULE
+            );
+        }
+
+        return $fileCount;
+    }
+
+    /**
+     * @return \MauticPlugin\MauticContactClientBundle\Entity\FileRepository
+     */
+    public function getFileRepository()
+    {
+        return $this->em->getRepository('MauticContactClientBundle:File');
+    }
+
+    /**
      * @param bool $returnRange
      *
      * @return $this|array
@@ -346,42 +382,6 @@ class Schedule
         }
 
         return $this;
-    }
-
-    /**
-     * Test if we can send/build another file for the day in question.
-     *
-     * @param int $fileRate
-     *
-     * @return int
-     *
-     * @throws ContactClientException
-     */
-    private function evaluateFileRate($fileRate = 1)
-    {
-        $date = clone $this->now;
-        $date->setTimezone($this->timezone);
-        $repo      = $this->getFileRepository();
-        $fileCount = $repo->getCountByDate($date, $this->contactClient->getId());
-
-        if ($fileCount >= $fileRate) {
-            throw new ContactClientException(
-                'This client has reached the maximum number of files they can receive per day.',
-                0,
-                null,
-                Stat::TYPE_SCHEDULE
-            );
-        }
-
-        return $fileCount;
-    }
-
-    /**
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\FileRepository
-     */
-    public function getFileRepository()
-    {
-        return $this->em->getRepository('MauticContactClientBundle:File');
     }
 
     /**

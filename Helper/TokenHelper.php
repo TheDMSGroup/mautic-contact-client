@@ -14,6 +14,8 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Entity\LeadDeviceRepository;
+use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mustache_Engine as Engine;
 use Psr\Log\LoggerInterface;
@@ -31,6 +33,15 @@ class TokenHelper
 
     /** @var string */
     const TOKEN_KEY_START = '{{';
+
+    /** @var bool */
+    protected $needsDeviceData = false;
+
+    /** @var bool */
+    protected $needsUtmData = false;
+
+    /** @var bool */
+    protected $needsDncData = false;
 
     /** @var Engine */
     private $engine;
@@ -58,6 +69,9 @@ class TokenHelper
 
     /** @var PhoneNumberHelper */
     private $phoneHelper;
+
+    /** @var ContactModel */
+    private $contactModel;
 
     /** @var array */
     private $formatNumber = [
@@ -159,36 +173,48 @@ class TokenHelper
     /** @var LoggerInterface */
     private $logger;
 
+    /** @var UtmSourceHelper */
+    private $utmSourceHelper;
+
     /**
      * TokenHelper constructor.
      *
      * @param CoreParametersHelper $coreParametersHelper
      * @param LoggerInterface      $logger
+     * @param ContactModel         $contactModel
+     * @param UtmSourceHelper      $utmSourceHelper
      *
      * @throws \Exception
      */
-    public function __construct(CoreParametersHelper $coreParametersHelper, LoggerInterface $logger)
-    {
+    public function __construct(
+        CoreParametersHelper $coreParametersHelper,
+        LoggerInterface $logger,
+        ContactModel $contactModel,
+        UtmSourceHelper $utmSourceHelper
+    ) {
         $this->logger               = $logger;
         $this->coreParametersHelper = $coreParametersHelper;
+        $this->contactModel         = $contactModel;
+        $this->utmSourceHelper      = $utmSourceHelper;
         try {
             $this->engine = new Engine(
                 [
                     'pragmas' => [Engine::PRAGMA_FILTERS],
                     'escape'  => function ($value) {
+                        // This replaces the default engine escape function that uses htmlentities.
+                        // We just need to ensure we're dealing with strings, nothing more.
                         if (is_array($value) || is_object($value)) {
                             $value = '';
                         }
 
                         return (string) $value;
                     },
+                    // Set Mustache Engine to use our Monolog instance.
                     'logger'  => $this->logger,
+                    // Set Mustache Engine to use our cache folder for opcache performance gains.
                     'cache'   => realpath($this->coreParametersHelper->getParameter('kernel.cache_dir')).'/mustache',
                 ]
             );
-            if ($cacheDir = $this->coreParametersHelper->getParameter('mautic.mustache.cache_dir')) {
-                $this->engine->setCache($cacheDir);
-            }
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');
@@ -623,8 +649,8 @@ class TokenHelper
         $this->context     = [];
         $this->renderCache = [];
         $this->setContactClient($contactClient);
-        $this->addContextContact($contact);
         $this->addContextPayload($payload);
+        $this->addContextContact($contact);
         $this->addContextCampaign($campaign);
         $this->addContextEvent($event);
 
@@ -657,6 +683,104 @@ class TokenHelper
     }
 
     /**
+     * Simplify the payload for tokens, including actual response data when possible.
+     *
+     * @param array $payload
+     * @param null  $operationId
+     * @param array $responseActual
+     *
+     * @return $this
+     */
+    public function addContextPayload($payload = [], $operationId = null, $responseActual = [])
+    {
+        if (!$payload) {
+            return $this;
+        }
+        $payload = json_decode(json_encode($payload), true);
+        if (!isset($this->context['payload'])) {
+            $this->context['payload'] = $payload;
+        }
+        if (!empty($payload['operations'])) {
+            foreach ($payload['operations'] as $id => $operation) {
+                foreach (['request', 'response'] as $opType) {
+                    if (!empty($operation[$opType])) {
+                        foreach (['headers', 'body'] as $fieldType) {
+                            if (!empty($operation[$opType][$fieldType])) {
+                                $fieldSet = [];
+                                if (
+                                    'response' === $opType
+                                    && $id === $operationId
+                                    && null !== $responseActual[$fieldType]
+                                ) {
+                                    // While running in realtime.
+                                    $fieldSet = $responseActual[$fieldType];
+                                } else {
+                                    foreach ($operation[$opType][$fieldType] as $field) {
+                                        if (null !== $field['key']) {
+                                            $fieldSet[$field['key']] = isset($field['value']) ? $field['value'] : null;
+                                            // Check for the need for device data to keep queries low later.
+                                            if ('request' === $opType) {
+                                                if (
+                                                    !$this->needsDeviceData
+                                                    && 1 === preg_match('/{{\s?device\..*\s?}}/', $field['value'])
+                                                ) {
+                                                    $this->needsDeviceData = true;
+                                                }
+                                                if (
+                                                    !$this->needsUtmData
+                                                    && 1 === preg_match('/{{\s?utm.\..*\s?}}/', $field['value'])
+                                                ) {
+                                                    $this->needsUtmData = true;
+                                                }
+                                                if (
+                                                    !$this->needsDncData
+                                                    && 1 === preg_match('/{{\s?doNotContact\..*\s?}}/', $field['value'])
+                                                ) {
+                                                    $this->needsDncData = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                $this->context['payload']['operations'][$id][$opType][$fieldType] = $fieldSet;
+                                // Check for the need for pivot data to keep queries low later.
+                                if (
+                                    'request' === $opType
+                                    && !empty($operation[$opType]['manual'])
+                                    && $operation[$opType]['manual']
+                                    && !empty($operation[$opType]['template'])
+                                ) {
+                                    if (
+                                        !$this->needsDeviceData
+                                        && 1 === preg_match('/{{\s?device\..*\s?}}/', $operation[$opType]['template'])
+                                    ) {
+                                        $this->needsDeviceData = true;
+                                    }
+                                    if (
+                                        !$this->needsUtmData
+                                        && 1 === preg_match('/{{\s?utm.\..*\s?}}/', $operation[$opType]['template'])
+                                    ) {
+                                        $this->needsUtmData = true;
+                                    }
+                                    if (
+                                        !$this->needsDncData
+                                        && 1 === preg_match(
+                                            '/{{\s?doNotContact\..*\s?}}/',
+                                            $operation[$opType]['template']
+                                        )
+                                    ) {
+                                        $this->needsDncData = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Given a Contact, flatten the field values a bit into a more user friendly list of token possibilities.
      *
      * @param Contact|null $contact
@@ -672,7 +796,7 @@ class TokenHelper
         $conType = [];
 
         // Append contact ID.
-        $contactId     = $contact->getId();
+        $contactId     = (int) $contact->getId();
         $context['id'] = isset($contactId) ? $contactId : null;
         $conType['id'] = 'number';
 
@@ -711,23 +835,25 @@ class TokenHelper
         $context['dateModified'] = $dateModified ? $this->dateFormatHelper->format($dateModified) : null;
         $conType['dateModified'] = 'datetime';
 
-        // Add DNC status.
+        // Add DNC data.
         $context['doNotContacts'] = [];
         $context['doNotContact']  = false;
-        /** @var \Mautic\LeadBundle\Model\DoNotContact $record */
-        foreach ($contact->getDoNotContact() as $record) {
-            $context['doNotContacts'][$record->getChannel()] = [
-                'comments' => $record->getComments(),
-                'reason'   => $record->getReason(),
-            ];
-            $context['doNotContact']                         = true;
+        if ($contactId && $this->needsDncData) {
+            /** @var \Mautic\LeadBundle\Model\DoNotContact $record */
+            foreach ($contact->getDoNotContact() as $record) {
+                $context['doNotContacts'][$record->getChannel()]           = [
+                    'comments' => $record->getComments(),
+                    'reason'   => $record->getReason(),
+                    'exists'   => true,
+                ];
+                $conType['doNotContacts'][$record->getChannel()]['exists'] = 'boolean';
+                $context['doNotContact']                                   = true;
+            }
+            $conType['doNotContact'] = 'boolean';
         }
-        $conType['doNotContact'] = 'boolean';
 
         // Add UTM data.
-        $utmTags            = $contact->getUtmTags();
-        $context['utmTags'] = [];
-        $context['utm']     = [
+        $context['utm'] = [
             'campaign'   => null,
             'content'    => null,
             'medium'     => null,
@@ -739,26 +865,84 @@ class TokenHelper
             'url'        => null,
             'userAgent'  => null,
         ];
-        if ($utmTags) {
-            foreach ($utmTags as $utmTag) {
-                $tags                 = [
-                    'campaign'   => $utmTag->getUtmCampaign(),
-                    'content'    => $utmTag->getUtmContent(),
-                    'medium'     => $utmTag->getUtmMedium(),
-                    'query'      => $utmTag->getQuery(),
-                    'referrer'   => $utmTag->getReferer(),
-                    'remoteHost' => $utmTag->getRemoteHost(),
-                    'source'     => $utmTag->getUtmSource(),
-                    'term'       => $utmTag->getUtmTerm(),
-                    'url'        => $utmTag->getUrl(),
-                    'userAgent'  => $utmTag->getUserAgent(),
-                ];
-                $context['utmTags'][] = $tags;
-                $context['utm']       = $tags;
+        if ($contactId && $this->needsUtmData) {
+            $utmTags            = $this->utmSourceHelper->getSortedUtmTags($contact);
+            $context['utmTags'] = [];
+            if ($utmTags) {
+                foreach ($utmTags as $utmTag) {
+                    $tags                 = [
+                        'campaign'   => $utmTag->getUtmCampaign(),
+                        'content'    => $utmTag->getUtmContent(),
+                        'medium'     => $utmTag->getUtmMedium(),
+                        'query'      => $utmTag->getQuery(),
+                        'referrer'   => $utmTag->getReferer(),
+                        'remoteHost' => $utmTag->getRemoteHost(),
+                        'source'     => $utmTag->getUtmSource(),
+                        'term'       => $utmTag->getUtmTerm(),
+                        'url'        => $utmTag->getUrl(),
+                        'userAgent'  => $utmTag->getUserAgent(),
+                    ];
+                    $context['utmTags'][] = $tags;
+                    // Override the {{ utm.values }} to be the latest non-empty version of each found.
+                    foreach ($tags as $key => $value) {
+                        if (!empty($value)) {
+                            $context['utm'][$key] = $value;
+                        }
+                    }
+                }
             }
         }
 
-        // @todo - Get Device data here.
+        // Add Device data.
+        $context['device'] = [
+            'name'        => null,
+            'brand'       => null,
+            'model'       => null,
+            'fingerprint' => null,
+            'trackingId'  => null,
+            'os'          => [
+                'osName'      => null,
+                'osShortName' => null,
+                'osVersion'   => null,
+                'osPlatform'  => null,
+            ],
+        ];
+        if ($contactId && $this->needsDeviceData) {
+            /** @var LeadDeviceRepository $deviceRepo */
+            $deviceRepo = $this->contactModel->getDeviceRepository();
+            $devices    = $deviceRepo->getEntities(
+                [
+                    'limit'            => 1,
+                    'orderBy'          => $deviceRepo->getTableAlias().'.id',
+                    'orderByDir'       => 'DESC',
+                    'filter'           => [
+                        'force' => [
+                            [
+                                'column' => 'IDENTITY('.$deviceRepo->getTableAlias().'.lead)',
+                                'expr'   => 'eq',
+                                'value'  => $contactId,
+                            ],
+                        ],
+                    ],
+                    'ignore_paginator' => true,
+                ]
+            );
+            if ($devices && $device = reset($devices)) {
+                $context['device'] = [
+                    'name'        => $device->getDevice(),
+                    'brand'       => $device->getDeviceBrand(),
+                    'model'       => $device->getDeviceModel(),
+                    'fingerprint' => $device->getDeviceFingerprint(),
+                    'trackingId'  => $device->getTrackingId(),
+                    'os'          => [
+                        'osName'      => $device->getDeviceOsName(),
+                        'osShortName' => $device->getDeviceOsShortName(),
+                        'osVersion'   => $device->getDeviceOsVersion(),
+                        'osPlatform'  => $device->getDeviceOsPlatform(),
+                    ],
+                ];
+            }
+        }
 
         $fieldGroups = $contact->getFields();
         if ($fieldGroups) {
@@ -804,54 +988,6 @@ class TokenHelper
     private function sanitizeContext(&$context)
     {
         $context = array_diff_key($context, array_flip($this->helpers));
-    }
-
-    /**
-     * Simplify the payload for tokens, including actual response data when possible.
-     *
-     * @param array $payload
-     * @param null  $operationId
-     * @param array $responseActual
-     *
-     * @return $this
-     */
-    public function addContextPayload($payload = [], $operationId = null, $responseActual = [])
-    {
-        if (!$payload) {
-            return $this;
-        }
-        $payload = json_decode(json_encode($payload), true);
-        if (!isset($this->context['payload'])) {
-            $this->context['payload'] = $payload;
-        }
-        if (!empty($payload['operations'])) {
-            foreach ($payload['operations'] as $id => $operation) {
-                foreach (['request', 'response'] as $opType) {
-                    if (!empty($operation[$opType])) {
-                        foreach (['headers', 'body'] as $fieldType) {
-                            if (!empty($operation[$opType][$fieldType])) {
-                                $fieldSet = [];
-                                if (
-                                    'response' === $opType
-                                    && $id === $operationId
-                                    && null !== $responseActual[$fieldType]
-                                ) {
-                                    // While running in realtime.
-                                    $fieldSet = $responseActual[$fieldType];
-                                } else {
-                                    foreach ($operation[$opType][$fieldType] as $field) {
-                                        if (null !== $field['key']) {
-                                            $fieldSet[$field['key']] = isset($field['value']) ? $field['value'] : null;
-                                        }
-                                    }
-                                }
-                                $this->context['payload']['operations'][$id][$opType][$fieldType] = $fieldSet;
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -1060,25 +1196,26 @@ class TokenHelper
     /**
      * Get the context array labels instead of values for use in token suggestions.
      *
-     * @param bool $fileName
+     * @param bool $sort
      *
      * @return array
      */
-    public function getContextLabeled($fileName = false)
+    public function getContextLabeled($sort = true)
     {
         $result = [];
         $labels = $this->describe($this->context);
         $this->flattenArray($labels, $result);
 
-        if ($fileName) {
-            $result['file_count']       = 'File Name: Number of contacts in this file';
-            $result['file_test']        = 'File Name: Inserts ".test" if testing';
-            $result['file_date']        = 'File Name: Date/time of file creation';
-            $result['file_type']        = 'File Name: Type of file, such as csv/xsl';
-            $result['file_compression'] = 'File Name: Compression of the file, such as zip/gz';
-            $result['file_extension']   = 'File Name: Automatic extension such as xsl/zip/csv';
-        } else {
-            $result['api_date'] = 'API: Date/time of the API request';
+        $result['file_count']       = 'File: Number of contacts in this file';
+        $result['file_test']        = 'File: Inserts ".test" if testing';
+        $result['file_date']        = 'File: Date/time of file creation';
+        $result['file_type']        = 'File: Type of file, such as csv/xsl';
+        $result['file_compression'] = 'File: Compression of the file, such as zip/gz';
+        $result['file_extension']   = 'File: Automatic extension such as xsl/zip/csv';
+        $result['api_date']         = 'API: Date/time of the API request';
+
+        if ($sort) {
+            asort($result, SORT_STRING | SORT_FLAG_CASE | SORT_NATURAL);
         }
 
         return $result;
@@ -1136,22 +1273,17 @@ class TokenHelper
     }
 
     /**
-     * @param bool $fileName
-     *
      * @return array
      */
-    public function getContextTypes($fileName = false)
+    public function getContextTypes()
     {
         $result = [];
         $types  = $this->describe($this->conType);
         $this->flattenArray($types, $result);
 
-        if ($fileName) {
-            $result['file_count'] = 'number';
-            $result['file_date']  = 'datetime';
-        } else {
-            $result['api_date'] = 'datetime';
-        }
+        $result['file_count'] = 'number';
+        $result['file_date']  = 'datetime';
+        $result['api_date']   = 'datetime';
 
         return $result;
     }

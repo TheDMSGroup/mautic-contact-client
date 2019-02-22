@@ -157,7 +157,10 @@ class ContactClientController extends FormController
                 $chartFilterValues = $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
                     ? $session->get('mautic.contactclient.'.$item->getId().'.chartfilter')
                     : [
-                        'date_from' => $this->get('mautic.helper.core_parameters')->getParameter('default_daterange_filter', 'midnight -1 month'),
+                        'date_from' => $this->get('mautic.helper.core_parameters')->getParameter(
+                            'default_daterange_filter',
+                            'midnight -1 month'
+                        ),
                         'date_to'   => 'midnight tomorrow -1 second',
                         'type'      => '',
                     ];
@@ -182,8 +185,8 @@ class ContactClientController extends FormController
                 new \DateTime($chartFilterValues['date_to'])
             );
 
-            $auditLog    = $this->getAuditlogs($item);
-            $files       = $this->getFiles($item);
+            $auditLog = $this->getAuditlogs($item);
+            $files    = $this->getFiles($item);
             if (in_array($chartFilterValues['type'], [''])) {
                 $stats = $model->getStats(
                     $item,

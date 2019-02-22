@@ -99,7 +99,7 @@ class SendContactCommand extends ModeratedCommand
 
         if (false === $client->getIsPublished() && !$options['force']) {
             $output->writeln(
-                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.publish').' .</error>'
+                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client.publish').'</error>'
             );
 
             return 1;

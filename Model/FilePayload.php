@@ -1061,9 +1061,11 @@ class FilePayload
     /**
      * Discern the desired output file name for a new file.
      *
-     * @param string $compression
+     * @param null $compression
      *
      * @return string
+     *
+     * @throws \Exception
      */
     private function getFileName($compression = null)
     {
@@ -1916,5 +1918,13 @@ class FilePayload
     public function getScheduleModel()
     {
         return $this->scheduleModel;
+    }
+
+    /**
+     * @return TokenHelper
+     */
+    public function getTokenHelper()
+    {
+        return $this->tokenHelper;
     }
 }

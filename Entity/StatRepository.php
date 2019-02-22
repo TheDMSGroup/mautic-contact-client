@@ -64,8 +64,12 @@ class StatRepository extends CommonRepository
      *
      * @return array
      */
-    public function getSourcesByClient($contactClientId, \DateTime $dateFrom = null, \DateTime $dateTo = null, $type = null)
-    {
+    public function getSourcesByClient(
+        $contactClientId,
+        \DateTime $dateFrom = null,
+        \DateTime $dateTo = null,
+        $type = null
+    ) {
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
 
         $q->select('distinct(s.utm_source)')
@@ -78,7 +82,7 @@ class StatRepository extends CommonRepository
             $q->andWhere('s.type !=""');
         } else {
             $q->andWhere('s.type = :type')
-            ->setParameter('type', $type);
+                ->setParameter('type', $type);
         }
 
         if ($dateFrom && $dateTo) {

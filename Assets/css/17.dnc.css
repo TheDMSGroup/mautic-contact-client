@@ -1,0 +1,18 @@
+/* Styles for the DNC tab */
+form[name='contactclient'] #dnc input[type='checkbox'] {
+    margin-top: -6px !important;
+}
+form[name='contactclient'] #dnc .checkbox label {
+    font-size: 13px;
+    line-height: 1.3856;
+    font-weight: bold;
+    width: 100%;
+    background: rgba(145,145,145,.1);
+    border: 1px solid rgba(45,45,45,.1);
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    padding: 9px 12px 9px 26px;
+    border-radius: 2px;
+    min-height: 20px;
+    margin-bottom: 20px;
+}

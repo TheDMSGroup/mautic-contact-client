@@ -1,71 +1,9 @@
 // API Payload field.
 // API Payload JSON Schema.
-Mautic.contactclientApiPayloadPre = function () {
+Mautic.contactclientApiPayload = function () {
     var $apiPayload = mQuery('#contactclient_api_payload:first:not(.payload-checked)');
     if ($apiPayload.length) {
-
-        var tokenSource = 'plugin:mauticContactClient:getTokens';
-        if (typeof window.JSONEditor.tokenCache === 'undefined') {
-            window.JSONEditor.tokenCache = {};
-        }
-        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
-            window.JSONEditor.tokenCacheTypes = {};
-        }
-        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
-            window.JSONEditor.tokenCacheFormats = {};
-        }
-        if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
-            window.JSONEditor.tokenCache[tokenSource] = {};
-            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
-            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
-            mQuery.ajax({
-                url: mauticAjaxUrl,
-                type: 'POST',
-                data: {
-                    action: tokenSource,
-                    apiPayload: $apiPayload.val(),
-                    filePayload: mQuery('#contactclient_file_payload:first').val()
-                },
-                cache: true,
-                dataType: 'json',
-                success: function (response) {
-                    if (typeof response.tokens !== 'undefined') {
-                        window.JSONEditor.tokenCache[tokenSource] = response.tokens;
-                    }
-                    if (typeof response.types !== 'undefined') {
-                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
-                    }
-                    if (typeof response.formats !== 'undefined') {
-                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
-                    }
-                },
-                error: function (request, textStatus, errorThrown) {
-                    Mautic.processAjaxError(request, textStatus, errorThrown);
-                },
-                complete: function () {
-                    Mautic.contactclientApiPayload();
-                }
-            });
-        }
-        else {
-            Mautic.contactclientApiPayload();
-        }
         $apiPayload.addClass('payload-checked');
-
-        // Ensure our affix nav functions even on ajax create.
-        mQuery('#api_payload_buttons[data-spy="affix"]').each(function () {
-            mQuery(this).affix({
-                offset: {
-                    top: mQuery(this).attr('data-offset-top')
-                }
-            });
-        });
-    }
-};
-Mautic.contactclientApiPayload = function () {
-
-    var $apiPayload = mQuery('#contactclient_api_payload:first');
-    if ($apiPayload.length) {
 
         var apiPayloadCodeMirror,
             apiPayloadJSONEditor,

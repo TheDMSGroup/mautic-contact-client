@@ -40,10 +40,11 @@ class FilterHelper
         'is_not_empty'     => ['accept_values' => false, 'apply_to' => ['string']],
         'is_null'          => ['accept_values' => false, 'apply_to' => ['string', 'number', 'datetime']],
         'is_not_null'      => ['accept_values' => false, 'apply_to' => ['string', 'number', 'datetime']],
+        'regex'            => ['accept_values' => true, 'apply_to' => ['string']],
     ];
 
     /**
-     * @param bool $stripTags
+     * @param bool $clean
      *
      * @return array
      */
@@ -51,8 +52,11 @@ class FilterHelper
     {
         $errors = $this->errors;
         if ($clean) {
-            foreach ($errors as &$error) {
-                $error = trim(strip_tags($error));
+            foreach ($errors as $key => $error) {
+                $errors[$key] = trim(strip_tags($error));
+                if (empty($errors[$key])) {
+                    unset($errors[$key]);
+                }
             }
         }
 
@@ -472,6 +476,21 @@ class FilterHelper
                 break;
             case 'is_not_empty':
                 return !empty(trim($contextValue));
+                break;
+            case 'regex':
+                if (
+                    '/' !== substr($ruleValue, 0, 1)
+                    && '/' !== substr($ruleValue, -1, 1)
+                ) {
+                    $ruleValue = '/'.$ruleValue.'/';
+                }
+                try {
+                    return 1 === preg_match($ruleValue, $contextValue);
+                } catch (\Exception $e) {
+                    $this->setError('Invalid regex pattern.');
+
+                    return false;
+                }
                 break;
         }
     }

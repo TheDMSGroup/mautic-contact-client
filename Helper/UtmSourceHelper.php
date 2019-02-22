@@ -39,7 +39,7 @@ class UtmSourceHelper
      *
      * @return array
      */
-    protected function getSortedUtmTags(Contact $contact)
+    public function getSortedUtmTags(Contact $contact)
     {
         $tags = [];
         if ($contact instanceof Contact) {

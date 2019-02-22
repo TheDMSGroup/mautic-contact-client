@@ -42,30 +42,38 @@ class ChartFilterType extends AbstractType
     {
         $request         = Request::createFromGlobals();
         $contactClientId = $request->get('contactclient');
+        if (!is_integer($contactClientId)) {
+            if (isset($options['action'])) {
+                $parts           = explode('/', $options['action']);
+                $contactClientId = intval(end($parts));
+            }
+        }
 
         $campaigns = [];
-        /** @var Campaign $campaign */
-        foreach ($this->factory->getModel('contactclient')->getCampaigns($contactClientId) as $campaign) {
-            $campaigns[$campaign->getId()] = $campaign->getName();
+        /* @var Campaign $campaign */
+        if ($contactClientId) {
+            foreach ($this->factory->getModel('contactclient')->getCampaigns($contactClientId) as $campaign) {
+                $campaigns[$campaign->getId()] = $campaign->getName();
+            }
         }
 
         $builder->add(
             'campaign',
             ChoiceType::class,
             [
-                'choices'     => $campaigns,
-                'attr'        => [
+                'choices'    => $campaigns,
+                'attr'       => [
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.contactclient.integration.campaign.tooltip',
                 ],
-                'expanded'    => false,
-                'multiple'    => false,
-                'label'       => 'mautic.contactclient.transactions.campaign_select',
-                'label_attr'  => ['class' => 'control-label'],
-                'empty_data'  => 'All Campaigns',
-                'required'    => false,
-                'disabled'    => false,
-                'data'        => $options['data']['campaign'],
+                'expanded'   => false,
+                'multiple'   => false,
+                'label'      => 'mautic.contactclient.transactions.campaign_select',
+                'label_attr' => ['class' => 'control-label'],
+                'empty_data' => 'All Campaigns',
+                'required'   => false,
+                'disabled'   => false,
+                'data'       => $options['data']['campaign'],
             ]
         );
 

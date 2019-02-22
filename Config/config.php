@@ -113,7 +113,10 @@ return [
             'mautic.contactclient.form.type.contactclient'          => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ContactClientType',
                 'alias'     => 'contactclient',
-                'arguments' => 'mautic.security',
+                'arguments' => [
+                    'mautic.security',
+                    'mautic.lead.model.lead',
+                ],
             ],
             'mautic.contactclient.form.type.chartfilter'            => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\Form\Type\ChartFilterType',
@@ -188,6 +191,8 @@ return [
                 'arguments' => [
                     'mautic.helper.core_parameters',
                     'monolog.logger.mautic',
+                    'mautic.lead.model.lead',
+                    'mautic.contactclient.helper.utmsource',
                 ],
             ],
             'mautic.contactclient.helper.utmsource'  => [

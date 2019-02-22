@@ -22,8 +22,8 @@ $baseUrl = $view['router']->path(
 ?>
 <script>
     // put correct sort icons on timeline table headers
-    var sortField = '<?php echo $order[0]; ?>';
-    var sortDirection = '<?php echo strtolower($order[1]); ?>';
+    var sortField = '<?php echo isset($order[0]) ? $order[0] : ''; ?>';
+    var sortDirection = '<?php echo isset($order[1]) ? strtolower($order[1]) : ''; ?>';
 </script>
 
 <!-- timeline -->

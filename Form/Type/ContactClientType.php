@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Form\Type;
 // use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
 use Mautic\CoreBundle\Form\EventListener\FormExitSubscriber;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
+use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use MauticPlugin\MauticContactClientBundle\Constraints\JsonArray;
 use MauticPlugin\MauticContactClientBundle\Constraints\JsonObject;
 use Symfony\Component\Form\AbstractType;
@@ -25,19 +26,24 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
  */
 class ContactClientType extends AbstractType
 {
-    /**
-     * @var CorePermissions
-     */
+    /** @var CorePermissions */
     private $security;
+
+    /** @var ContactModel */
+    private $contactModel;
 
     /**
      * ContactClientType constructor.
      *
      * @param CorePermissions $security
+     * @param ContactModel    $contactModel
      */
-    public function __construct(CorePermissions $security)
-    {
-        $this->security = $security;
+    public function __construct(
+        CorePermissions $security,
+        ContactModel $contactModel
+    ) {
+        $this->security     = $security;
+        $this->contactModel = $contactModel;
     }
 
     /**
@@ -152,8 +158,9 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.duplicate',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control hide',
-                    'rows'  => 12,
+                    'class'   => 'form-control hide',
+                    'rows'    => 12,
+                    'tooltip' => 'mautic.contactclient.form.duplicate.tooltip',
                 ],
                 'required'    => false,
                 'constraints' => [new JsonObject()],
@@ -167,28 +174,34 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.exclusive',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control hide',
-                    'rows'  => 12,
+                    'class'   => 'form-control hide',
+                    'rows'    => 12,
+                    'tooltip' => 'mautic.contactclient.form.exclusive.tooltip',
                 ],
                 'required'    => false,
                 'constraints' => [new JsonObject()],
             ]
         );
 
+        $exclusiveIgnore = [
+            'read_only'  => false,
+            'data'       => (bool) $options['data']->getExclusiveIgnore(),
+            'label'      => 'mautic.contactclient.form.exclusive_ignore',
+            'label_attr' => ['class' => 'control-label'],
+            'attr'       => [
+                'class'       => 'form-control',
+                'empty_value' => false,
+                'tooltip'     => 'mautic.contactclient.form.exclusive_ignore.tooltip',
+            ],
+        ];
+        if (!$this->security->isAdmin()) {
+            $exclusiveIgnore['disabled']         = true;
+            $exclusiveIgnore['attr']['disabled'] = 'disabled';
+        }
         $builder->add(
             'exclusive_ignore',
             'yesno_button_group',
-            [
-                'read_only'  => false,
-                'data'       => (bool) $options['data']->getExclusiveIgnore(),
-                'label'      => 'mautic.contactclient.form.exclusive_ignore',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'       => 'form-control',
-                    'empty_value' => false,
-                    'tooltip'     => 'mautic.contactclient.form.exclusive_ignore.tooltip',
-                ],
-            ]
+            $exclusiveIgnore
         );
 
         $builder->add(
@@ -198,8 +211,9 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.filter',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control hide',
-                    'rows'  => 12,
+                    'class'   => 'form-control hide',
+                    'tooltip' => 'mautic.contactclient.form.filter.tooltip',
+                    'rows'    => 12,
                 ],
                 'required'    => false,
                 'constraints' => [new JsonObject()],
@@ -213,8 +227,9 @@ class ContactClientType extends AbstractType
                 'label'       => 'mautic.contactclient.form.limits',
                 'label_attr'  => ['class' => 'control-label'],
                 'attr'        => [
-                    'class' => 'form-control hide',
-                    'rows'  => 12,
+                    'class'   => 'form-control hide',
+                    'rows'    => 12,
+                    'tooltip' => 'mautic.contactclient.form.limits.tooltip',
                 ],
                 'required'    => false,
                 'constraints' => [new JsonObject()],
@@ -298,6 +313,24 @@ class ContactClientType extends AbstractType
                 ],
                 'required'    => false,
                 'constraints' => [new JsonArray()],
+            ]
+        );
+
+        $builder->add(
+            'dnc_checks',
+            'choice',
+            [
+                'choices'    => array_flip($this->contactModel->getPreferenceChannels()),
+                'data'       => explode(',', $options['data']->getDncChecks()),
+                'multiple'   => true,
+                'expanded'   => true,
+                'required'   => false,
+                'label'      => 'mautic.contactclient.form.dnc_checks',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.contactclient.form.dnc_checks.tooltip',
+                ],
             ]
         );
 

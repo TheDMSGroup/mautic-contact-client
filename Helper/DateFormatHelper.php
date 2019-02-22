@@ -79,6 +79,7 @@ class DateFormatHelper
         'dd-mm-yyyy' => 'd-m-Y',
         'mm-dd-yyyy' => 'm-d-Y',
         'yyyy-dd-mm' => 'Y-d-m',
+        'yyyy-mm-dd' => 'Y-m-d',
     ];
 
     /** @var array */

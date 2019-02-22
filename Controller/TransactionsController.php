@@ -41,7 +41,9 @@ class TransactionsController extends AbstractFormController
 
         // If contactclient:export:disable is true, deny access
         // since Admin permissions are always true, exclude the check for them
-        if (!$this->get('mautic.security')->isAdmin() && $this->get('mautic.security')->isGranted('contactclient:export:disable')) {
+        if (!$this->get('mautic.security')->isAdmin() && $this->get('mautic.security')->isGranted(
+                'contactclient:export:disable'
+            )) {
             return $this->accessDenied();
         }
 
@@ -119,7 +121,7 @@ class TransactionsController extends AbstractFormController
                             fputcsv($handle, array_values($csvRow));
                         }
                     }
-                    $iterator = $iterator + $params['limit'];
+                    $iterator        = $iterator + $params['limit'];
                     $params['start'] = $data['id'];
                     // memory management
                     $entityManager->flush();

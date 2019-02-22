@@ -154,50 +154,6 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return bool|ContactClientEvent
-     *
-     * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
-     */
-    protected function dispatchEvent($action, &$entity, $isNew = false, Event $event = null)
-    {
-        if (!$entity instanceof ContactClient) {
-            throw new MethodNotAllowedHttpException(['ContactClient']);
-        }
-
-        switch ($action) {
-            case 'pre_save':
-                $name = ContactClientEvents::PRE_SAVE;
-                break;
-            case 'post_save':
-                $name = ContactClientEvents::POST_SAVE;
-                break;
-            case 'pre_delete':
-                $name = ContactClientEvents::PRE_DELETE;
-                break;
-            case 'post_delete':
-                $name = ContactClientEvents::POST_DELETE;
-                break;
-            default:
-                return null;
-        }
-
-        if ($this->dispatcher->hasListeners($name)) {
-            if (empty($event)) {
-                $event = new ContactClientEvent($entity, $isNew);
-                $event->setEntityManager($this->em);
-            }
-
-            $this->dispatcher->dispatch($name, $event);
-
-            return $event;
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * Add a stat entry.
      *
      * @param ContactClient|null $contactClient
@@ -502,8 +458,8 @@ class ContactClientModel extends FormModel
         }
         $params['contactclient_id'] = $contactClient->getId();
 
-        $userTZ        = new \DateTime('now');
-        $userTzName    = $userTZ->getTimezone()->getName();
+        $userTZ     = new \DateTime('now');
+        $userTzName = $userTZ->getTimezone()->getName();
 
         if ('revenue' != $type) {
             $params['type'] = $type;
@@ -703,6 +659,11 @@ class ContactClientModel extends FormModel
         return $event->getEventCounter();
     }
 
+    /**
+     * @param $contactclientId
+     *
+     * @return array|\Doctrine\ORM\Internal\Hydration\IterableResult|\Doctrine\ORM\Tools\Pagination\Paginator
+     */
     public function getCampaigns($contactclientId)
     {
         /** @var CampaignRepository $campaignRepo */
@@ -710,7 +671,7 @@ class ContactClientModel extends FormModel
 
         return $campaignRepo->getEntities(
             [
-                'filter' => [
+                'filter'     => [
                     'column' => 'canvasSettings',
                     'expr'   => 'like',
                     'value'  => "%'contactclient': $contactclientId,%",
@@ -719,5 +680,49 @@ class ContactClientModel extends FormModel
                 'orderByDir' => 'ASC',
             ]
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool|ContactClientEvent
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
+     */
+    protected function dispatchEvent($action, &$entity, $isNew = false, Event $event = null)
+    {
+        if (!$entity instanceof ContactClient) {
+            throw new MethodNotAllowedHttpException(['ContactClient']);
+        }
+
+        switch ($action) {
+            case 'pre_save':
+                $name = ContactClientEvents::PRE_SAVE;
+                break;
+            case 'post_save':
+                $name = ContactClientEvents::POST_SAVE;
+                break;
+            case 'pre_delete':
+                $name = ContactClientEvents::PRE_DELETE;
+                break;
+            case 'post_delete':
+                $name = ContactClientEvents::POST_DELETE;
+                break;
+            default:
+                return null;
+        }
+
+        if ($this->dispatcher->hasListeners($name)) {
+            if (empty($event)) {
+                $event = new ContactClientEvent($entity, $isNew);
+                $event->setEntityManager($this->em);
+            }
+
+            $this->dispatcher->dispatch($name, $event);
+
+            return $event;
+        } else {
+            return null;
+        }
     }
 }

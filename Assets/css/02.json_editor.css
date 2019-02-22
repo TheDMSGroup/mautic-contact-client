@@ -1,10 +1,4 @@
 /** Generic styling for JSON Editor */
-.contactclient_jsoneditor h3 {
-    font-size: 16px;
-    font-weight: 600;
-    padding: 0 0 5px 0;
-}
-
 .contactclient_jsoneditor .btn-md i.fa {
     font-size: 15px;
 }
@@ -131,12 +125,6 @@
 
 .contactclient_jsoneditor table .form-group {
     margin-bottom: 0;
-}
-
-.contactclient_jsoneditor h3 {
-    font-size: 16px;
-    font-weight: 600;
-    padding: 0 0 5px 0;
 }
 
 .contactclient_jsoneditor .btn-md i.fa {

@@ -18,11 +18,14 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
+use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Event\ContactDncCheckEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
+use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
@@ -92,6 +95,12 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var float */
     protected $attribution;
+
+    /** @var \Mautic\LeadBundle\Model\LeadModel $model */
+    protected $contactModel;
+
+    /** @var array */
+    private $dncChannels = [];
 
     /**
      * @return string
@@ -305,7 +314,11 @@ class ClientIntegration extends AbstractIntegration
             // Schedule - Check schedule rules to ensure we can send a contact now, do not retry if outside of window.
             $this->evaluateSchedule();
 
-            // @todo - Filtering - Check filter rules to ensure this contact is applicable (Feature incoming).
+            // Filter - Check filter rules to ensure this contact is applicable.
+            $this->evaluateFilter();
+
+            // DNC - Check Do Not Contact channels for an entry for this contact that is not permitted for this client.
+            $this->evaluateDnc();
 
             // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
@@ -490,6 +503,135 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $this->filePayloadModel;
+    }
+
+    /**
+     * @return $this
+     *
+     * @throws ContactClientException
+     */
+    private function evaluateFilter()
+    {
+        if ($this->test) {
+            return $this;
+        }
+        $definition = $this->contactClient->getFilter();
+        if ($definition && 'null' !== $definition) {
+            $valid   = null;
+            $filter  = new FilterHelper();
+            $context = $this->getPayloadModel()
+                ->getTokenHelper()
+                ->newSession($this->contactClient, $this->contact)
+                ->getContext(true);
+            try {
+                $valid = $filter->filter($definition, $context);
+            } catch (\Exception $e) {
+                throw new ContactClientException(
+                    'Error in filter: '.$e->getMessage(),
+                    0,
+                    $e,
+                    Stat::TYPE_FILTER,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
+            }
+            if (!$valid) {
+                throw new ContactClientException(
+                    'Contact filtered: '.implode(', ', $filter->getErrors()),
+                    0,
+                    null,
+                    Stat::TYPE_FILTER,
+                    false,
+                    null,
+                    $filter->getErrors()
+                );
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Evaluates the DNC entries for the Contact against the Client settings.
+     *
+     * @return $this
+     *
+     * @throws ContactClientException
+     */
+    private function evaluateDnc()
+    {
+        if ($this->test) {
+            return $this;
+        }
+        $channels = explode(',', $this->contactClient->getDncChecks());
+        if ($channels) {
+            $dncCollection = $this->contact->getDoNotContact();
+            foreach ($dncCollection as $dnc) {
+                $currentChannel = $dnc->getChannel();
+                foreach ($channels as $channel) {
+                    if ($currentChannel == $channel) {
+                        $comments = !in_array($dnc->getComments(), ['user', 'system']) ? $dnc->getComments() : '';
+                        throw new ContactClientException(
+                            trim(
+                                $this->translator->trans(
+                                    'mautic.contactclient.sendcontact.error.dnc',
+                                    [
+                                        '%channel%'  => $this->getDncChannelName($channel),
+                                        '%date%'     => $dnc->getDateAdded()->format('Y-m-d H:i:s e'),
+                                        '%comments%' => $comments,
+                                    ]
+                                )
+                            ),
+                            0,
+                            null,
+                            Stat::TYPE_DNC,
+                            false
+                        );
+                    }
+                }
+            }
+            // Support external DNC checking. Should throw ContactClientException if DNC match found.
+            $event = new ContactDncCheckEvent($this->contact, $channels);
+            $this->dispatcher->dispatch(ContactClientEvents::EXTERNAL_DNC_CHECK, $event);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get all DNC Channels, or one by key.
+     *
+     * @param $key
+     *
+     * @return array|mixed
+     */
+    private function getDncChannelName($key)
+    {
+        if (!$this->dncChannels) {
+            $this->dncChannels = $this->getContactModel()->getPreferenceChannels();
+        }
+        if ($key) {
+            if (isset($this->dncChannels[$key])) {
+                return $this->dncChannels[$key];
+            } else {
+                return ucwords($key);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return \Mautic\LeadBundle\Model\LeadModel
+     */
+    private function getContactModel()
+    {
+        if (!$this->contactModel) {
+            $this->contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
+        }
+
+        return $this->contactModel;
     }
 
     /**
@@ -707,9 +849,7 @@ class ClientIntegration extends AbstractIntegration
 
             // If any fields were updated, save the Contact entity.
             if ($updatedFields || $updatedAttribution) {
-                /** @var \Mautic\LeadBundle\Model\LeadModel $model */
-                $contactModel = $this->dispatcher->getContainer()->get('mautic.lead.model.lead');
-                $contactModel->saveEntity($this->contact);
+                $this->getContactModel()->saveEntity($this->contact);
                 $this->setLogs('Operation successful. The contact was updated.', 'updated');
             } else {
                 $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');
@@ -1231,6 +1371,7 @@ class ClientIntegration extends AbstractIntegration
         if (!$client) {
             $client = new ContactClient();
         }
+        $client->setType('api');
         $client->setAPIPayload($apiPayload);
         if ($attributionSettings) {
             $client->setAttributionSettings($attributionSettings);
@@ -1253,14 +1394,28 @@ class ClientIntegration extends AbstractIntegration
      * @param        $filePayload
      * @param string $attributionDefault
      * @param string $attributionSettings
+     * @param null   $contactClientId
      *
      * @return bool
      *
      * @throws ContactClientException
      */
-    public function sendTestFile(&$filePayload, $attributionDefault = '', $attributionSettings = '')
-    {
-        $client = new ContactClient();
+    public function sendTestFile(
+        &$filePayload,
+        $attributionDefault = '',
+        $attributionSettings = '',
+        $contactClientId = null
+    ) {
+        $client = null;
+        if ($contactClientId) {
+            $clientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
+            /** @var ContactClient $client */
+            $client = $clientModel->getEntity($contactClientId);
+        }
+        if (!$client) {
+            $client = new ContactClient();
+        }
+        $client->setType('file');
         $client->setFilePayload($filePayload);
         if ($attributionSettings) {
             $client->setAttributionSettings($attributionSettings);
