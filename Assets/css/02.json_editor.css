@@ -17,6 +17,15 @@
     margin-bottom: 8px;
 }
 
+/* Push the All button a bit away from the add button */
+.contactclient_jsoneditor .btn-group.btn-left .btn.btn-sm.btn-xs.btn-danger.json-editor-btn-delete {
+    margin: 5px 20px;
+}
+
+.contactclient_jsoneditor .btn-group.btn-left .btn.btn-sm.btn-xs.btn-danger.json-editor-btn-delete.delete {
+    margin: auto;
+}
+
 /* Hidden nav items in this group cause border radius to look strange */
 .contactclient_jsoneditor .btn-group > .btn:not(:first-child):not(:last-child):not(.dropdown-toggle),
 .contactclient_jsoneditor .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle),

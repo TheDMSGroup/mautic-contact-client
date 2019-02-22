@@ -300,7 +300,7 @@
         "autoUpdate": {
           "title": "Auto-Update",
           "options": {
-            "infoText": "Automatically update the Payload response headers and fields when new ones are discovered.",
+            "infoText": "Automatically update the Payload response headers and body fields when new ones are discovered when testing.",
             "grid_columns": 2
           },
           "propertyOrder": 10,
@@ -579,7 +579,7 @@
           "propertyOrder": 20,
           "type": "string",
           "title": "Destination",
-          "#format": "select",
+          "format": "select",
           "options": {
             "infoText": "The internal fields to which we should save the value."
           },
