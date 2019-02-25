@@ -645,17 +645,35 @@ class CacheRepository extends CommonRepository
 
     /**
      * Delete all Cache entities that are no longer needed for duplication/exclusivity/limit checks.
+     *
+     * @throws \Exception
      */
     public function deleteExpired()
     {
-        // 32 days old, since the maximum limiter is 1m/30d.
-        $oldest = date('Y-m-d H:i:s', time() - (32 * 24 * 60 * 60));
+        // General expirations. Maximum limiter is 1m.
+        $oldest = new \DateTime('-1 month -1 day');
         $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
         $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
         $q->where(
-            $q->expr()->lt('date_added', ':oldest')
+            $q->expr()->lt('date_added', 'FROM_UNIXTIME(:oldest)')
         );
-        $q->setParameter('oldest', $oldest);
+        $q->setParameter('oldest', $oldest->getTimestamp());
+        $q->execute();
+    }
+
+    /**
+     * Update exclusivity rows to reduce the index size and thus reduce processing required to check exclusivity.
+     */
+    public function reduceExclusivityIndex() {
+        $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q->update(MAUTIC_TABLE_PREFIX.$this->getTableName());
+        $q->where(
+            $q->expr()->isNotNull('exclusive_expire_date'),
+            $q->expr()->lte('exclusive_expire_date', 'NOW()')
+        );
+        $q->set('exclusive_expire_date', 'NULL');
+        $q->set('exclusive_pattern', 'NULL');
+        $q->set('exclusive_scope', 'NULL');
         $q->execute();
     }
 }
