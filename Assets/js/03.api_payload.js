@@ -18,9 +18,6 @@ Mautic.contactclientApiPayload = function () {
                         if (apiPayloadJSONEditor.getValue() !== obj) {
                             // console.log('Set value to JSON editor');
                             apiPayloadJSONEditor.setValue(obj);
-                            setTimeout(function () {
-                                $apiPayloadJSONEditor.find('.codeMirror-active').trigger('cmUpdate');
-                            }, 50);
                         }
                     }
                 }

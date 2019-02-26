@@ -170,7 +170,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 clearTimeout(timeout);
                                 timeout = setTimeout(function () {
                                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
-                                    if (rules === null) return;
+                                    if (rules === null) {
+                                        return;
+                                    }
                                     var rulesString = JSON.stringify(rules, null, 2);
                                     rulesString = (rulesString === 'null' ? '' : rulesString);
 
@@ -205,7 +207,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         // value if it has changed.
                         var $queryBuilder = $input.next('.query-builder'),
                             oldRules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
-                        if (oldRules === null) return;
+                        if (oldRules === null) {
+                            return;
+                        }
                         var oldRulesString = JSON.stringify(oldRules, null, 2);
                         if (val !== oldRulesString) {
                             try {
@@ -228,15 +232,27 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
     // When a textarea with option "codeMirror" is true, render codeMirror.
     if (typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
-        var selector = '[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)';
+        var selector = '[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first'; // :not(.codeMirror-checked)
         mQuery('input' + selector + ', textarea' + selector).first()
             .each(function () {
+                // See if we just need to update an existing codemirror.
+                var $input = mQuery(this);
+                if ($input.hasClass('codeMirror-active')) {
+                    var $next = $input.next();
+                    if ($next.hasClass('CodeMirror') && typeof $next[0].CodeMirror !== 'undefined') {
+                        if ($next[0].CodeMirror.getValue() !== $(this).val()) {
+                            $next[0].CodeMirror.setValue($(this).val());
+                            $next[0].CodeMirror.refresh();
+                            return true;
+                        }
+                    }
+                }
+
                 if (schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
                     var tokenSource = schema.options.tokenSource;
                 }
 
-                var $input = mQuery(this),
-                    isTextarea = $input.is('textarea'),
+                var isTextarea = $input.is('textarea'),
                     hintTimer,
                     delimiter = '  ',
                     hinter = function (cm, option) {
@@ -538,8 +554,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         else if ($input.is(':visible')) {
                             clearInterval(pollVisibility);
                             var cm = CodeMirror.fromTextArea($input[0], options);
+
+                            // Push changes to the original field.
                             cm.on('change', function (cm) {
-                                // Push changes to the original field.
                                 $input.val(cm.getValue());
                                 if ('createEvent' in document) {
                                     var event = document.createEvent('HTMLEvents');
@@ -550,15 +567,22 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                     $input[0].fireEvent('onchange');
                                 }
                             });
+
+                            // Activate autocompletion.
                             cm.on('cursorActivity', function (cm, event) {
-                                CodeMirror.commands.autocomplete(cm, null, {
-                                    completeSingle: false
-                                });
-                            });
-                            $input.on('cmUpdate', function () {
-                                if (cm.getValue() !== $(this).val()) {
-                                    cm.setValue($(this).val());
-                                    cm.refresh();
+                                var charCode = typeof event !== 'undefined' ? (typeof event.which === 'number' ? event.which : (typeof event.keyCode === 'number' ? event.keyCode : null)) : null;
+                                if (
+                                    // Ignore if autocomplete is already active.
+                                    !cm.state.completionActive
+                                    // Ignore if last keystroke was return.
+                                    && charCode !== 13
+                                    // Ignore if cursor is at the start of a
+                                    // line.
+                                    && cm.getCursor().ch > 2
+                                ) {
+                                    CodeMirror.commands.autocomplete(cm, null, {
+                                        completeSingle: false
+                                    });
                                 }
                             });
                             $input.addClass('codeMirror-active');

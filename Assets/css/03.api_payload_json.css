@@ -6,6 +6,7 @@
     font-weight: normal;
     padding: 3px 6px;
 }
+
 .api_payload .contactclient_jsoneditor .well {
     background: none;
     border: 0;
@@ -13,7 +14,7 @@
 
 /*.api_payload .contactclient_jsoneditor .well .well .well h3,*/
 /*.api_payload .contactclient_jsoneditor .well .well .well .well {*/
-    /*color: #fff;*/
+/*color: #fff;*/
 /*}*/
 
 /* ContactClient API Payload - JSON Editor */
@@ -166,6 +167,10 @@
     display: block;
 }
 
+.api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath="root.operations"] > .well > .btn-group > .btn-danger {
+    display: none;
+}
+
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"] {
     border-radius: 3px;
     background: #dfe7ef;
@@ -286,7 +291,7 @@
 
 /*.api_payload .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input,*/
 /*.api_payload .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input {*/
-    /*color: #fff;*/
+/*color: #fff;*/
 /*}*/
 
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td,
