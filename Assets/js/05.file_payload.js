@@ -1,72 +1,8 @@
 // File Payload field.
-// File Payload JSON Schema.
-Mautic.contactclientFilePayloadPre = function () {
+Mautic.contactclientFilePayload = function () {
     var $filePayload = mQuery('#contactclient_file_payload:first:not(.payload-checked)');
     if ($filePayload.length) {
-
-        var tokenSource = 'plugin:mauticContactClient:getTokens';
-        if (typeof window.JSONEditor.tokenCache === 'undefined') {
-            window.JSONEditor.tokenCache = {};
-        }
-        if (typeof window.JSONEditor.tokenCacheTypes === 'undefined') {
-            window.JSONEditor.tokenCacheTypes = {};
-        }
-        if (typeof window.JSONEditor.tokenCacheFormats === 'undefined') {
-            window.JSONEditor.tokenCacheFormats = {};
-        }
-        if (typeof window.JSONEditor.tokenCache[tokenSource] === 'undefined') {
-            window.JSONEditor.tokenCache[tokenSource] = {};
-            window.JSONEditor.tokenCacheTypes[tokenSource] = {};
-            window.JSONEditor.tokenCacheFormats[tokenSource] = {};
-            mQuery.ajax({
-                url: mauticAjaxUrl,
-                type: 'POST',
-                data: {
-                    // Include tokens for file-names
-                    action: tokenSource,
-                    apiPayload: mQuery('#contactclient_api_payload:first').val(),
-                    filePayload: $filePayload.val()
-                },
-                cache: true,
-                dataType: 'json',
-                success: function (response) {
-                    if (typeof response.tokens !== 'undefined') {
-                        window.JSONEditor.tokenCache[tokenSource] = response.tokens;
-                    }
-                    if (typeof response.types !== 'undefined') {
-                        window.JSONEditor.tokenCacheTypes[tokenSource] = response.types;
-                    }
-                    if (typeof response.formats !== 'undefined') {
-                        window.JSONEditor.tokenCacheFormats[tokenSource] = response.formats;
-                    }
-                },
-                error: function (request, textStatus, errorThrown) {
-                    Mautic.processAjaxError(request, textStatus, errorThrown);
-                },
-                complete: function () {
-                    Mautic.contactclientFilePayload();
-                }
-            });
-        }
-        else {
-            Mautic.contactclientFilePayload();
-        }
         $filePayload.addClass('payload-checked');
-
-        // Ensure our affix nav functions even on ajax create.
-        mQuery('#file_payload_buttons[data-spy="affix"]').each(function () {
-            mQuery(this).affix({
-                offset: {
-                    top: mQuery(this).attr('data-offset-top')
-                }
-            });
-        });
-    }
-};
-Mautic.contactclientFilePayload = function () {
-
-    var $filePayload = mQuery('#contactclient_file_payload:first');
-    if ($filePayload.length) {
 
         var filePayloadCodeMirror,
             filePayloadJSONEditor;
@@ -392,6 +328,15 @@ Mautic.contactclientFilePayload = function () {
                     }
                 });
             }
+        });
+
+        // Ensure our affix nav functions even on ajax create.
+        mQuery('#file_payload_buttons[data-spy="affix"]').each(function () {
+            mQuery(this).affix({
+                offset: {
+                    top: mQuery(this).attr('data-offset-top')
+                }
+            });
         });
     }
 };

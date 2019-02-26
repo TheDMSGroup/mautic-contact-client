@@ -22,7 +22,7 @@ Mautic.contactclientPreloadTokens = function (callback) {
                 data: {
                     action: tokenSource,
                     apiPayload: mQuery('#contactclient_api_payload:first').val(),
-                    filePayload: mQuery('#contactclient_file_payload:first').val()
+                    // filePayload: mQuery('#contactclient_file_payload:first').val()
                 },
                 cache: true,
                 dataType: 'json',
