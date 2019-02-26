@@ -115,6 +115,7 @@ class CacheRepository extends CommonRepository
      * @param \DateTime|null $dateSend
      *
      * @return \DateTime
+     *
      * @throws \Exception
      */
     public function oldestDateAdded($duration, string $timezone = null, \DateTime $dateSend = null)
