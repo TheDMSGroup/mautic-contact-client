@@ -18,10 +18,10 @@ Mautic.contactclientFilterStart = function () {
         QBSettings.filters = [];
         // Get field/token list and use that as our filters for the Query
         // Builder.
-        if (typeof window.JSONEditor.tokenCache[tokenSource] == 'object') {
+        if (typeof window.JSONEditor.tokenCache[tokenSource] === 'object') {
             mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                 if (key.indexOf('payload.') === 0) {
-                    return;
+                    return true;
                 }
                 // Default operators.
                 var internalType = 'text',

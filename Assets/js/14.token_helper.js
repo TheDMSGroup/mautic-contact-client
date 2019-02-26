@@ -11,7 +11,8 @@ Mautic.contactclientPreloadTokens = function (callback) {
             window.JSONEditor.tokenCacheFormats = {};
         }
         var tokenSource = 'plugin:mauticContactClient:getTokens';
-        if (typeof window.JSONEditor.tokenCache[tokenSource] != 'object' || !window.JSONEditor.tokenCache[tokenSource].length) {
+        if (typeof window.JSONEditor.tokenCache[tokenSource] != 'object'
+            || mQuery.isEmptyObject(window.JSONEditor.tokenCache[tokenSource])) {
             window.JSONEditor.gettingTokens = true;
             window.JSONEditor.tokenCache[tokenSource] = {};
             window.JSONEditor.tokenCacheTypes[tokenSource] = {};
@@ -21,8 +22,7 @@ Mautic.contactclientPreloadTokens = function (callback) {
                 type: 'POST',
                 data: {
                     action: tokenSource,
-                    apiPayload: mQuery('#contactclient_api_payload:first').val(),
-                    // filePayload: mQuery('#contactclient_file_payload:first').val()
+                    apiPayload: mQuery('#contactclient_api_payload:first').val()
                 },
                 cache: true,
                 dataType: 'json',

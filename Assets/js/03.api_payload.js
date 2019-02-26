@@ -53,6 +53,9 @@ Mautic.contactclientApiPayload = function () {
                         }
                     ];
                     mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                        if (key.indexOf('payload.') === 0) {
+                            return true;
+                        }
                         sources.push({
                             title: value,
                             value: key
