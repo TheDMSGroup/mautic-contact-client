@@ -32,7 +32,7 @@ class ApiPayload
 
     const SETTING_DEF_AUTOUPDATE      = true;
 
-    const SETTING_DEF_CONNECT_TIMEOUT = 10;
+    const SETTING_DEF_CONNECT_TIMEOUT = 5;
 
     const SETTING_DEF_LIMIT           = 300;
 

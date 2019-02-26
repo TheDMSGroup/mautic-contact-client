@@ -349,7 +349,7 @@
           },
           "propertyOrder": 30,
           "type": "integer",
-          "default": 60,
+          "default": 30,
           "minimum": 1,
           "maximum": 300
         },
@@ -360,7 +360,7 @@
           },
           "propertyOrder": 40,
           "type": "integer",
-          "default": 10,
+          "default": 5,
           "minimum": 1,
           "maximum": 30
         },
