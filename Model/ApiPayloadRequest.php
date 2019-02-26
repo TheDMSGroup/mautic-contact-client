@@ -68,8 +68,8 @@ class ApiPayloadRequest
         if ($this->test && !empty($this->request->testUrl)) {
             $uri = $this->request->testUrl;
         }
-        $uri = $this->renderTokens($uri);
-        if (empty(trim($uri))) {
+        $uri = trim($this->renderTokens($uri));
+        if (empty($uri)) {
             throw new ContactClientException(
                 'No URL was specified for an API operation.',
                 0,
