@@ -128,11 +128,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     rules = {},
                     error = false,
                     checked = $input.hasClass('queryBuilder-checked'),
-                    timeout,
-                    chosenSettings = {
-                        allow_single_deselect: true,
-                        search_contains: true
-                    };
+                    timeout;
 
                 if (!val.length) {
                     return;
@@ -561,33 +557,49 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                             var cm = CodeMirror.fromTextArea($input[0], options);
 
                             // Push changes to the original field.
+                            var pollChange;
                             cm.on('change', function (cm) {
-                                $input.val(cm.getValue());
-                                if ('createEvent' in document) {
-                                    var event = document.createEvent('HTMLEvents');
-                                    event.initEvent('change', false, true);
-                                    $input[0].dispatchEvent(event);
+                                if (typeof pollChange !== 'undefined') {
+                                    clearTimeout(pollChange);
                                 }
-                                else {
-                                    $input[0].fireEvent('onchange');
-                                }
+                                pollChange = setTimeout(function () {
+                                    $input.val(cm.getValue());
+                                    if ('createEvent' in document) {
+                                        var event = document.createEvent('HTMLEvents');
+                                        event.initEvent('change', false, true);
+                                        $input[0].dispatchEvent(event);
+                                    }
+                                    else {
+                                        $input[0].fireEvent('onchange');
+                                    }
+                                }, 200);
+                            });
+
+                            // Capture returns.
+                            cm.on('keydown', function (cm, event) {
+                                window.lastCmCharCode = typeof event !== 'undefined' ? (typeof event.which === 'number' ? event.which : (typeof event.keyCode === 'number' ? event.keyCode : null)) : null;
                             });
 
                             // Activate autocompletion.
-                            cm.on('cursorActivity', function (cm, event) {
-                                var charCode = typeof event !== 'undefined' ? (typeof event.which === 'number' ? event.which : (typeof event.keyCode === 'number' ? event.keyCode : null)) : null;
+                            var pollAutocomplete;
+                            cm.on('cursorActivity', function (cm) {
                                 if (
                                     // Ignore if autocomplete is already active.
                                     !cm.state.completionActive
                                     // Ignore if last keystroke was return.
-                                    && charCode !== 13
+                                    && window.lastCmCharCode !== 13
                                     // Ignore if cursor is at the start of a
                                     // line.
                                     && cm.getCursor().ch > 2
                                 ) {
-                                    CodeMirror.commands.autocomplete(cm, null, {
-                                        completeSingle: false
-                                    });
+                                    if (typeof pollAutocomplete !== 'undefined') {
+                                        clearTimeout(pollAutocomplete);
+                                    }
+                                    pollAutocomplete = setTimeout(function () {
+                                        CodeMirror.commands.autocomplete(cm, null, {
+                                            completeSingle: false
+                                        });
+                                    }, 50);
                                 }
                             });
                             $input.addClass('codeMirror-active');
