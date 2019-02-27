@@ -204,6 +204,8 @@ class DateFormatHelper
      * @param $format
      *
      * @return \Closure
+     *
+     * @throws \Exception
      */
     public function __get($format)
     {
@@ -218,27 +220,39 @@ class DateFormatHelper
                     case 'till':
                     case 'until':
                         return function ($date) use ($intervalFormat, $now) {
-                            $date = $this->parse($date);
+                            try {
+                                $date = $this->parse($date);
 
-                            return $this->getIntervalUnits($now, $date, $intervalFormat);
+                                return $this->getIntervalUnits($now, $date, $intervalFormat);
+                            } catch (\Exception $e) {
+                                return null;
+                            }
                         };
                         break;
                     case 'since':
                     case 'from':
                     case 'age':
                         return function ($date) use ($intervalFormat, $now) {
-                            $date = $this->parse($date);
+                            try {
+                                $date = $this->parse($date);
 
-                            return $this->getIntervalUnits($date, $now, $intervalFormat);
+                                return $this->getIntervalUnits($date, $now, $intervalFormat);
+                            } catch (\Exception $e) {
+                                return null;
+                            }
                         };
                         break;
                     // If no operation keyword is found, get the absolute difference (either direction)
                     default:
                         return function ($date) use ($intervalFormat, $now) {
-                            $date   = $this->parse($date);
-                            $result = $this->getIntervalUnits($now, $date, $intervalFormat);
+                            try {
+                                $date   = $this->parse($date);
+                                $result = $this->getIntervalUnits($now, $date, $intervalFormat);
 
-                            return $result ? $result : $this->getIntervalUnits($date, $now, $intervalFormat);
+                                return $result ? $result : $this->getIntervalUnits($date, $now, $intervalFormat);
+                            } catch (\Exception $e) {
+                                return null;
+                            }
                         };
                         break;
                 }
@@ -276,7 +290,11 @@ class DateFormatHelper
         // $format = $this->formatPrefix($format);
 
         return function ($date) use ($format) {
-            return $this->parse($date)->format($format);
+            try {
+                return $this->parse($date)->format($format);
+            } catch (\Exception $e) {
+                return null;
+            }
         };
     }
 
@@ -287,10 +305,16 @@ class DateFormatHelper
      * @param string $timezone
      *
      * @return \DateTime
+     *
+     * @throws \Exception
      */
     private function parse($date, $timezone = null)
     {
         if (!($date instanceof \DateTime)) {
+            if (false === strtotime($date)) {
+                throw new \Exception('Invalid date not parsed.');
+            }
+
             if (!$timezone) {
                 $timezone = $this->timezoneSource;
             }
