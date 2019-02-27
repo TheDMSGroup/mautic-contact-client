@@ -128,7 +128,11 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                     rules = {},
                     error = false,
                     checked = $input.hasClass('queryBuilder-checked'),
-                    timeout;
+                    timeout,
+                    chosenSettings = {
+                        allow_single_deselect: true,
+                        search_contains: true
+                    };
 
                 if (!val.length) {
                     return;
@@ -197,6 +201,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             }
                                         });
                                     });
+                                    $parent.find('select').chosen(chosenSettings);
                                 }, 50);
                             })
                             .trigger('rulesChanged.queryBuilder');
