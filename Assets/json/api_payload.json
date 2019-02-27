@@ -505,8 +505,10 @@
           "type": "string",
           "title": "Default Value",
           "options": {
-            "hidden": false,
-            "infoText": "An optional value to be used as a fallback if the value (and test value) renders as empty."
+            "infoText": "An optional value to be used as a fallback if the value (and test value) renders as empty.",
+            "tokenSource": "plugin:mauticContactClient:getTokens",
+            "tokenPlaceholder": "Type a field name...",
+            "codeMirror": true
           },
           "default": "",
           "minLength": 0,
