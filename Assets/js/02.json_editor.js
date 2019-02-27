@@ -407,7 +407,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 }
                                             });
                                             // Partial matching keys.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (key.length > len) {
                                                         if (key.substr(0, len) === word) {
@@ -417,7 +417,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Partial matching keys.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (value.length > len) {
                                                         if (value.substr(0, len) === word) {
@@ -430,7 +430,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Containing keys.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (key.length > len) {
                                                         if (key.indexOf(word) !== -1 || word.indexOf(key) !== -1) {
@@ -443,7 +443,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Containing labels.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (value.length > len) {
                                                         if (value.indexOf(word) !== -1 || word.indexOf(value) !== -1) {
@@ -456,7 +456,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Levenshtein keys.
-                                            if (matches.length < 5) {
+                                            if (matches.length < 10) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (key.length >= len) {
                                                         if (levenshtein(word, key) < 5) {
@@ -469,7 +469,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Levenshtein labels.
-                                            if (matches.length < 5) {
+                                            if (matches.length < 10) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (value.length >= len) {
                                                         if (levenshtein(word, value) < 5) {
