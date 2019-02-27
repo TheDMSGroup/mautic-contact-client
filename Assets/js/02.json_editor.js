@@ -170,7 +170,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 clearTimeout(timeout);
                                 timeout = setTimeout(function () {
                                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
-                                    if (rules === null) return;
+                                    if (rules === null) {
+                                        return;
+                                    }
                                     var rulesString = JSON.stringify(rules, null, 2);
                                     rulesString = (rulesString === 'null' ? '' : rulesString);
 
@@ -195,6 +197,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             }
                                         });
                                     });
+                                    // $queryBuilder.parent().find('select').chosen(chosenSettings);
                                 }, 50);
                             })
                             .trigger('rulesChanged.queryBuilder');
@@ -205,7 +208,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         // value if it has changed.
                         var $queryBuilder = $input.next('.query-builder'),
                             oldRules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
-                        if (oldRules === null) return;
+                        if (oldRules === null) {
+                            return;
+                        }
                         var oldRulesString = JSON.stringify(oldRules, null, 2);
                         if (val !== oldRulesString) {
                             try {
@@ -228,15 +233,27 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
 
     // When a textarea with option "codeMirror" is true, render codeMirror.
     if (typeof schema.options !== 'undefined' && schema.options.codeMirror === true) {
-        var selector = '[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first:not(.codeMirror-checked)';
+        var selector = '[name=\'' + path.replace('root.', 'root[').split('.').join('][') + ']\']:first'; // :not(.codeMirror-checked)
         mQuery('input' + selector + ', textarea' + selector).first()
             .each(function () {
+                // See if we just need to update an existing codemirror.
+                var $input = mQuery(this);
+                if ($input.hasClass('codeMirror-active')) {
+                    var $next = $input.next();
+                    if ($next.hasClass('CodeMirror') && typeof $next[0].CodeMirror !== 'undefined') {
+                        if ($next[0].CodeMirror.getValue() !== $(this).val()) {
+                            $next[0].CodeMirror.setValue($(this).val());
+                            $next[0].CodeMirror.refresh();
+                            return true;
+                        }
+                    }
+                }
+
                 if (schema.options.tokenSource !== 'undefined' && schema.options.tokenSource.length) {
                     var tokenSource = schema.options.tokenSource;
                 }
 
-                var $input = mQuery(this),
-                    isTextarea = $input.is('textarea'),
+                var isTextarea = $input.is('textarea'),
                     hintTimer,
                     delimiter = '  ',
                     hinter = function (cm, option) {
@@ -390,7 +407,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 }
                                             });
                                             // Partial matching keys.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (key.length > len) {
                                                         if (key.substr(0, len) === word) {
@@ -400,7 +417,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Partial matching keys.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (value.length > len) {
                                                         if (value.substr(0, len) === word) {
@@ -413,7 +430,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Containing keys.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (key.length > len) {
                                                         if (key.indexOf(word) !== -1 || word.indexOf(key) !== -1) {
@@ -426,7 +443,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Containing labels.
-                                            if (matches.length < 10) {
+                                            if (matches.length < 15) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (value.length > len) {
                                                         if (value.indexOf(word) !== -1 || word.indexOf(value) !== -1) {
@@ -439,7 +456,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Levenshtein keys.
-                                            if (matches.length < 5) {
+                                            if (matches.length < 10) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (key.length >= len) {
                                                         if (levenshtein(word, key) < 5) {
@@ -452,7 +469,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                                 });
                                             }
                                             // Levenshtein labels.
-                                            if (matches.length < 5) {
+                                            if (matches.length < 10) {
                                                 mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
                                                     if (value.length >= len) {
                                                         if (levenshtein(word, value) < 5) {
@@ -538,27 +555,51 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         else if ($input.is(':visible')) {
                             clearInterval(pollVisibility);
                             var cm = CodeMirror.fromTextArea($input[0], options);
+
+                            // Push changes to the original field.
+                            var pollChange;
                             cm.on('change', function (cm) {
-                                // Push changes to the original field.
-                                $input.val(cm.getValue());
-                                if ('createEvent' in document) {
-                                    var event = document.createEvent('HTMLEvents');
-                                    event.initEvent('change', false, true);
-                                    $input[0].dispatchEvent(event);
+                                if (typeof pollChange !== 'undefined') {
+                                    clearTimeout(pollChange);
                                 }
-                                else {
-                                    $input[0].fireEvent('onchange');
-                                }
+                                pollChange = setTimeout(function () {
+                                    $input.val(cm.getValue());
+                                    if ('createEvent' in document) {
+                                        var event = document.createEvent('HTMLEvents');
+                                        event.initEvent('change', false, true);
+                                        $input[0].dispatchEvent(event);
+                                    }
+                                    else {
+                                        $input[0].fireEvent('onchange');
+                                    }
+                                }, 200);
                             });
-                            cm.on('cursorActivity', function (cm, event) {
-                                CodeMirror.commands.autocomplete(cm, null, {
-                                    completeSingle: false
-                                });
+
+                            // Capture returns.
+                            cm.on('keydown', function (cm, event) {
+                                window.lastCmCharCode = typeof event !== 'undefined' ? (typeof event.which === 'number' ? event.which : (typeof event.keyCode === 'number' ? event.keyCode : null)) : null;
                             });
-                            $input.on('cmUpdate', function () {
-                                if (cm.getValue() !== $(this).val()) {
-                                    cm.setValue($(this).val());
-                                    cm.refresh();
+
+                            // Activate autocompletion.
+                            var pollAutocomplete;
+                            cm.on('cursorActivity', function (cm) {
+                                if (
+                                    // Ignore if autocomplete is already active.
+                                    !cm.state.completionActive
+                                    // Ignore if last keystroke was return.
+                                    && window.lastCmCharCode !== 13
+                                    // Ignore if cursor is at the start of a
+                                    // line.
+                                    && cm.getCursor().ch > 2
+                                ) {
+                                    if (typeof pollAutocomplete !== 'undefined') {
+                                        clearTimeout(pollAutocomplete);
+                                    }
+                                    pollAutocomplete = setTimeout(function () {
+                                        CodeMirror.commands.autocomplete(cm, null, {
+                                            completeSingle: false
+                                        });
+                                    }, 50);
                                 }
                             });
                             $input.addClass('codeMirror-active');

@@ -13,9 +13,11 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
+use Mautic\CoreBundle\Helper\CacheStorageHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
@@ -209,68 +211,84 @@ class AjaxController extends CommonAjaxController
      */
     protected function getTokensAction(Request $request)
     {
-        $dataArray = [
-            'tokens'  => [],
-            'types'   => [],
-            'formats' => [],
-            'success' => 0,
-        ];
-
         // Get an array representation of the current payload (of last save) for context.
-        $filePayload = [];
-        // Leaving File payload out of the tokens for now, since token use is not cognizant of the type yet.
-        // $filePayload = html_entity_decode(InputHelper::clean($request->request->get('filePayload')));
-        // $filePayload = json_decode($filePayload, true);
-        // $filePayload = is_array($filePayload) ? $filePayload : [];
-        $apiPayload = html_entity_decode(InputHelper::clean($request->request->get('apiPayload')));
-        $apiPayload = json_decode($apiPayload, true);
-        $apiPayload = is_array($apiPayload) ? $apiPayload : [];
-        $payload    = array_merge($filePayload, $apiPayload);
+        // No longer needs filePayload.
+        $payload     = html_entity_decode(InputHelper::clean($request->request->get('apiPayload')));
+        $defaultFile = __DIR__.ContactClient::API_PAYLOAD_DEFAULT_FILE;
+        if (
+            $payload
+            && file_exists($defaultFile)
+            && $payload == file_get_contents($defaultFile)
+        ) {
+            $cacheKey = 'tokenCacheDefault';
+            $cacheTtl = 3600;
+        } else {
+            $cacheKey = 'tokenCache'.md5($payload);
+            $cacheTtl = 300;
+        }
+        $payload   = json_decode($payload, true);
+        $payload   = is_array($payload) ? $payload : [];
+        $cache     = new CacheStorageHelper(
+            CacheStorageHelper::ADAPTOR_FILESYSTEM,
+            'ContactClient',
+            null,
+            300
+        );
+        $dataArray = $cache->get($cacheKey, $cacheTtl);
+        if (!$dataArray) {
+            $dataArray = [
+                'tokens'  => [],
+                'types'   => [],
+                'formats' => [],
+                'success' => 0,
+            ];
 
-        /** @var \Mautic\LeadBundle\Model\FieldModel $fieldModel */
-        $fieldModel = $this->get('mautic.lead.model.field');
+            /** @var \Mautic\LeadBundle\Model\FieldModel $fieldModel */
+            $fieldModel = $this->get('mautic.lead.model.field');
 
-        // Exclude company fields as they are not currently used by the token helper.
-        $fields      = $fieldModel->getEntities(
-            [
-                'filter'         => [
-                    'force' => [
-                        [
-                            'column' => 'f.isPublished',
-                            'expr'   => 'eq',
-                            'value'  => true,
-                        ],
-                        [
-                            'column' => 'f.object',
-                            'expr'   => 'notLike',
-                            'value'  => 'company',
+            // Exclude company fields as they are not currently used by the token helper.
+            $fields      = $fieldModel->getEntities(
+                [
+                    'filter'         => [
+                        'force' => [
+                            [
+                                'column' => 'f.isPublished',
+                                'expr'   => 'eq',
+                                'value'  => true,
+                            ],
+                            [
+                                'column' => 'f.object',
+                                'expr'   => 'notLike',
+                                'value'  => 'company',
+                            ],
                         ],
                     ],
-                ],
-                'hydration_mode' => 'HYDRATE_ARRAY',
-            ]
-        );
-        $contact     = new Contact();
-        $fieldGroups = [];
-        foreach ($fields as $field) {
-            $fieldGroups[$field['group']][$field['alias']] = [
-                'value' => $field['label'],
-                'type'  => $field['type'],
-                'label' => $field['label'],
-            ];
-        }
-        $contact->setFields($fieldGroups);
+                    'hydration_mode' => 'HYDRATE_ARRAY',
+                ]
+            );
+            $contact     = new Contact();
+            $fieldGroups = [];
+            foreach ($fields as $field) {
+                $fieldGroups[$field['group']][$field['alias']] = [
+                    'value' => $field['label'],
+                    'type'  => $field['type'],
+                    'label' => $field['label'],
+                ];
+            }
+            $contact->setFields($fieldGroups);
 
-        /** @var TokenHelper $tokenHelper */
-        $tokenHelper = $this->get('mautic.contactclient.helper.token');
-        $tokenHelper->newSession(null, $contact, $payload);
+            /** @var TokenHelper $tokenHelper */
+            $tokenHelper = $this->get('mautic.contactclient.helper.token');
+            $tokenHelper->newSession(null, $contact, $payload);
 
-        $tokens = $tokenHelper->getContextLabeled();
-        if ($tokens) {
-            $dataArray['success'] = true;
-            $dataArray['tokens']  = $tokens;
-            $dataArray['types']   = $tokenHelper->getContextTypes();
-            $dataArray['formats'] = $tokenHelper->getFormats();
+            $tokens = $tokenHelper->getContextLabeled();
+            if ($tokens) {
+                $dataArray['success'] = true;
+                $dataArray['tokens']  = $tokens;
+                $dataArray['types']   = $tokenHelper->getContextTypes();
+                $dataArray['formats'] = $tokenHelper->getFormats();
+            }
+            $cache->set($cacheKey, $dataArray, $cacheTtl);
         }
 
         return $this->sendJsonResponse($dataArray);

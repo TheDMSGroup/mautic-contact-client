@@ -349,7 +349,7 @@
           },
           "propertyOrder": 30,
           "type": "integer",
-          "default": 60,
+          "default": 30,
           "minimum": 1,
           "maximum": 300
         },
@@ -360,7 +360,7 @@
           },
           "propertyOrder": 40,
           "type": "integer",
-          "default": 10,
+          "default": 5,
           "minimum": 1,
           "maximum": 30
         },
@@ -489,24 +489,26 @@
           "minLength": 0,
           "maxLength": 255
         },
-        "default_value": {
+        "test_value": {
           "propertyOrder": 30,
           "type": "string",
-          "title": "Default Value",
+          "title": "Test Value",
           "options": {
-            "hidden": true,
-            "infoText": "An optional value that will be used if the value field renders as blank."
+            "infoText": "An optional value to override other values during test requests."
           },
           "default": "",
           "minLength": 0,
           "maxLength": 255
         },
-        "test_value": {
+        "default_value": {
           "propertyOrder": 40,
           "type": "string",
-          "title": "Test Value",
+          "title": "Default Value",
           "options": {
-            "infoText": "An optional value to override other values during test requests."
+            "infoText": "An optional value to be used as a fallback if the value (and test value) renders as empty.",
+            "tokenSource": "plugin:mauticContactClient:getTokens",
+            "tokenPlaceholder": "Type a field name...",
+            "codeMirror": true
           },
           "default": "",
           "minLength": 0,
@@ -593,7 +595,7 @@
           "title": "Default Value",
           "options": {
             "hidden": true,
-            "infoText": "An optional value that will be saved if the value field renders as blank."
+            "infoText": "An optional value to be used as a fallback if the value field ends up empty based on the value and tokens specified."
           },
           "default": "",
           "minLength": 0,

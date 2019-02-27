@@ -231,7 +231,7 @@ echo $view['form']->start($form);
                                         </div>
                                     </div>
                                     <?php echo $view['form']->row($form['api_payload']); ?>
-                                    <div id="api_payload_test_result" class="hide modal modal-lg fade bg-white" style="left: auto !important;" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
+                                    <div id="api_payload_test_result" class="hide modal modal-xl fade bg-white" style="left: auto !important;" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                             <h4 class="modal-title" id="testResultsModalTitle">
@@ -312,7 +312,7 @@ echo $view['form']->start($form);
                                         </div>
                                     </div>
                                     <?php echo $view['form']->row($form['file_payload']); ?>
-                                    <div id="file_payload_test_result" class="hide modal fade bg-white" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
+                                    <div id="file_payload_test_result" class="hide modal-xl fade bg-white" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                             <h4 class="modal-title" id="testResultsModalTitle">

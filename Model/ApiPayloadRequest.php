@@ -68,8 +68,8 @@ class ApiPayloadRequest
         if ($this->test && !empty($this->request->testUrl)) {
             $uri = $this->request->testUrl;
         }
-        $uri = $this->renderTokens($uri);
-        if (empty(trim($uri))) {
+        $uri = trim($this->renderTokens($uri));
+        if (empty($uri)) {
             throw new ContactClientException(
                 'No URL was specified for an API operation.',
                 0,
@@ -291,7 +291,7 @@ class ApiPayloadRequest
             // Loop through value sources till a non-empty tokenized result is found.
             $valueSources = ['value', 'default_value'];
             if ($this->test) {
-                array_unshift($valueSources, 'test_value');
+                $valueSources = ['value', 'test_value', 'default_value'];
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
@@ -347,7 +347,7 @@ class ApiPayloadRequest
             // Exclude default_value (may add this functionality in the future if desired).
             $valueSources = ['value', 'default_value'];
             if ($this->test) {
-                array_unshift($valueSources, 'test_value');
+                $valueSources = ['value', 'test_value', 'default_value'];
             }
             $value = null;
             foreach ($valueSources as $valueSource) {

@@ -20,7 +20,9 @@ Mautic.contactclientType = function () {
             mQuery('.row.file_payload').removeClass('hide');
             mQuery('#contactclient_attribution_settings').addClass('hide');
             mQuery('input[name="contactclient[schedule_queue]"]').closest('.row').addClass('hide');
-            Mautic.contactclientFilePayloadPre();
+            Mautic.contactclientPreloadTokens(function () {
+                Mautic.contactclientFilePayload();
+            });
         }
     }).first().parent().parent().find('label.active input:first').trigger('change');
 

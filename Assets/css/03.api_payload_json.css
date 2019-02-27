@@ -5,7 +5,9 @@
     font-size: 13px;
     font-weight: normal;
     padding: 3px 6px;
+    height: 30px;
 }
+
 .api_payload .contactclient_jsoneditor .well {
     background: none;
     border: 0;
@@ -13,7 +15,7 @@
 
 /*.api_payload .contactclient_jsoneditor .well .well .well h3,*/
 /*.api_payload .contactclient_jsoneditor .well .well .well .well {*/
-    /*color: #fff;*/
+/*color: #fff;*/
 /*}*/
 
 /* ContactClient API Payload - JSON Editor */
@@ -81,12 +83,14 @@
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.auth"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.manual"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.template"],
+.api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".default_value"],
 .api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".description"],
 .api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".test_only"],
 .api_payload .contactclient_jsoneditor:not(.advanced) td[data-schemapath*=".overridable"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.method"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.format"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.headers"],
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(4),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(6),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(7),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(8),
@@ -139,8 +143,10 @@
 
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > .CodeMirror {
     background: none;
+}
+
+.api_payload .contactclient_jsoneditor .CodeMirror {
     border: 0;
-    /*color: #fff;*/
 }
 
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schematype="array"][data-schemapath="root.operations"].col-md-12 {
@@ -164,6 +170,10 @@
 .api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath="root.operations"] > .well > .btn-group > .btn-primary {
     margin: 0 46%;
     display: block;
+}
+
+.api_payload .contactclient_jsoneditor div[data-schematype="array"][data-schemapath="root.operations"] > .well > .btn-group > .btn-danger {
+    display: none;
 }
 
 .api_payload .contactclient_jsoneditor div[data-schematype="object"][data-schemapath*=".request"] {
@@ -286,7 +296,7 @@
 
 /*.api_payload .contactclient_jsoneditor td[data-schemapath*=".description"] > div > input,*/
 /*.api_payload .contactclient_jsoneditor td[data-schemapath*=".example"] > div > input {*/
-    /*color: #fff;*/
+/*color: #fff;*/
 /*}*/
 
 .api_payload .contactclient_jsoneditor .table-bordered > tbody > tr > td,

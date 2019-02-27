@@ -18,9 +18,6 @@ Mautic.contactclientApiPayload = function () {
                         if (apiPayloadJSONEditor.getValue() !== obj) {
                             // console.log('Set value to JSON editor');
                             apiPayloadJSONEditor.setValue(obj);
-                            setTimeout(function () {
-                                $apiPayloadJSONEditor.find('.codeMirror-active').trigger('cmUpdate');
-                            }, 50);
                         }
                     }
                 }
@@ -56,6 +53,9 @@ Mautic.contactclientApiPayload = function () {
                         }
                     ];
                     mQuery.each(window.JSONEditor.tokenCache[tokenSource], function (key, value) {
+                        if (key.indexOf('payload.') === 0) {
+                            return true;
+                        }
                         sources.push({
                             title: value,
                             value: key
@@ -283,7 +283,8 @@ Mautic.contactclientApiPayload = function () {
                                 }
                                 return fields;
                             },
-                            // Get all available tokens up to the current operation number.
+                            // Get all available tokens up to the current
+                            // operation number.
                             allFields = function (i) {
                                 var fields = {};
                                 if (i === 0) {
@@ -335,39 +336,48 @@ Mautic.contactclientApiPayload = function () {
                                         && typeof obj.operations[i].request === 'object'
                                         && typeof obj.operations[i].request.body === 'object'
                                     ) {
-                                        // Remove any (by value) not in the
+                                        // Remove any (by key) not in the
                                         // keepers array.
                                         var fields = [],
                                             fieldValues = [];
+                                        // Add existing items if in keepers.
                                         for (var k = 0, lenk = obj.operations[i].request.body.length; k < lenk; k++) {
                                             if (
-                                                typeof obj.operations[i].request.body[k].value === 'undefined'
-                                                || keepers.indexOf(obj.operations[i].request.body[k].value) === -1
+                                                typeof obj.operations[i].request.body[k].key !== 'undefined'
+                                                // This field is in the keepers list.
+                                                && keepers.indexOf(obj.operations[i].request.body[k].key) !== -1
+                                                // We haven't already added this to our fields array.
+                                                && fieldValues.indexOf(obj.operations[i].request.body[k].value) === -1
                                             ) {
-                                                changes = true;
-                                            }
-                                            else if (fieldValues.indexOf(obj.operations[i].request.body[k].value) === -1) {
-                                                // Prevent duplicates.
                                                 fields.push(obj.operations[i].request.body[k]);
                                                 fieldValues.push(obj.operations[i].request.body[k].value);
+                                            }
+                                            else {
+                                                changes = true;
                                             }
                                         }
 
                                         // Add new fields.
                                         if (additions.length) {
-                                            mQuery.each(additions, function (key, value) {
-                                                fields.push({
-                                                    'key': value.replace('{{', '').replace('}}', ''),
-                                                    'value': value,
-                                                    'default_value': '',
-                                                    'test_value': '',
-                                                    'test_only': false,
-                                                    'description': '',
-                                                    'overridable': false,
-                                                    'required': false
-                                                });
+                                            var value;
+                                            for (var a = 0, lena = additions.length; a < lena; a++) {
+                                                value = '{{ ' + additions[a] + ' }}';
+                                                if (fieldValues.indexOf(value) === -1) {
+                                                    fields.push({
+                                                        'key': additions[a],
+                                                        'value': value,
+                                                        'default_value': '',
+                                                        'test_value': '',
+                                                        'test_only': false,
+                                                        'description': '',
+                                                        'overridable': false,
+                                                        'required': false
+                                                    });
+                                                    fieldValues.push(value);
+                                                }
+
                                                 changes = true;
-                                            });
+                                            }
                                         }
 
                                         // Sort the resulting fields by value.
@@ -385,8 +395,6 @@ Mautic.contactclientApiPayload = function () {
 
                                         // Update the JSONEditor schema value.
                                         if (changes) {
-                                            // console.log('Update the
-                                            // JSONEditor schema value.');
                                             var subEditor = apiPayloadJSONEditor.getEditor('root.operations.' + i + '.request.body');
                                             // Setting to a null value to cause
                                             // re-instantiation of tag-editor.
@@ -425,7 +433,7 @@ Mautic.contactclientApiPayload = function () {
                             // field settings.
                             var templateChange,
                                 nameRegex = /root\[operations\]\[(\d+)\]\[request\]\[template\]/,
-                                tokenRegex = /{{\s*?[\w\.]+\s*}}/g,
+                                tokenRegex = new RegExp(/{{\s*?([\w\.]+)(?:\s*?\|\s*?[\w\.]+)?\s*}}/, 'g'),
                                 match,
                                 operation = 0,
                                 previousKeepers = [],
@@ -444,13 +452,19 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                     var value = textarea.val();
                                     if (typeof value !== 'undefined' && value.length) {
-                                        // Find all Mustache tokens from
-                                        // content, ignore openers/closers.
-                                        var TemplateTokens = value.match(tokenRegex);
+                                        // Find all Mustache tokens from.
+                                        var match = null,
+                                            TemplateTokens = [];
+                                        do {
+                                            match = tokenRegex.exec(value);
+                                            if (match !== null && typeof match[1] == 'string') {
+                                                TemplateTokens.push(match[1]);
+                                            }
+                                        } while (match !== null);
 
                                         // Do nothing if not matches are
                                         // found, assume we are in error.
-                                        if (typeof TemplateTokens !== 'undefined' && TemplateTokens && TemplateTokens.length) {
+                                        if (TemplateTokens.length) {
                                             // Find the request fields to
                                             // compare.
                                             // root[operations][0][request][template]
@@ -458,26 +472,24 @@ Mautic.contactclientApiPayload = function () {
                                                 additions = [],
                                                 fields = requestBodyFields(operation);
 
-                                            mQuery.each(fields, function (key, val) {
+                                            mQuery.each(fields, function (key, value) {
                                                 // Find tokens within
                                                 // "value" because there
                                                 // could be multiple.
-                                                var fieldTokens = val.match(tokenRegex);
-                                                if (typeof fieldTokens === 'object' && fieldTokens) {
-                                                    // Compare against
-                                                    // tokens found in the
-                                                    // template.
-                                                    mQuery.each(fieldTokens, function (fieldKey, fieldToken) {
-                                                        if (TemplateTokens.indexOf(fieldToken) !== -1) {
+                                                var match = null;
+                                                do {
+                                                    match = tokenRegex.exec(key + value);
+                                                    if (match !== null && typeof match[1] == 'string') {
+                                                        if (TemplateTokens.indexOf(match[1]) !== -1) {
                                                             // This field
                                                             // has a
                                                             // purpose,
                                                             // leave it.
-                                                            keepers.push(val);
-                                                            return false;
+                                                            keepers.push(key);
+                                                            return true;
                                                         }
-                                                    });
-                                                }
+                                                    }
+                                                } while (match !== null);
                                             });
 
                                             // For each valToken that isn't
@@ -500,7 +512,7 @@ Mautic.contactclientApiPayload = function () {
                                             }
                                         }
                                     }
-                                }, 1000);
+                                }, 1200);
                             }).addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }
