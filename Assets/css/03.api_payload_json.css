@@ -5,6 +5,7 @@
     font-size: 13px;
     font-weight: normal;
     padding: 3px 6px;
+    height: 30px;
 }
 
 .api_payload .contactclient_jsoneditor .well {
@@ -142,8 +143,10 @@
 
 .api_payload .contactclient_jsoneditor div[data-schemapath*=".request.body"].manual > div > table > tbody > tr > td[data-schemapath*=".value"] > div.form-group > .CodeMirror {
     background: none;
+}
+
+.api_payload .contactclient_jsoneditor .CodeMirror {
     border: 0;
-    /*color: #fff;*/
 }
 
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schematype="array"][data-schemapath="root.operations"].col-md-12 {
