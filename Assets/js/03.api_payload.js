@@ -357,8 +357,8 @@ Mautic.contactclientApiPayload = function () {
                                         if (additions.length) {
                                             mQuery.each(additions, function (key, value) {
                                                 fields.push({
-                                                    'key': value.replace('{{', '').replace('}}', ''),
-                                                    'value': value,
+                                                    'key': value,
+                                                    'value': '{{ ' + value + ' }}',
                                                     'default_value': '',
                                                     'test_value': '',
                                                     'test_only': false,
@@ -425,7 +425,7 @@ Mautic.contactclientApiPayload = function () {
                             // field settings.
                             var templateChange,
                                 nameRegex = /root\[operations\]\[(\d+)\]\[request\]\[template\]/,
-                                tokenRegex = /{{\s*?[\w\.]+\s*}}/g,
+                                tokenRegex = new RegExp(/{{\s*?([\w\.]+)(?:\s*?\|\s*?[\w\.]+)?\s*}}/, 'g'),
                                 match,
                                 operation = 0,
                                 previousKeepers = [],
@@ -444,13 +444,19 @@ Mautic.contactclientApiPayload = function () {
                                     }
                                     var value = textarea.val();
                                     if (typeof value !== 'undefined' && value.length) {
-                                        // Find all Mustache tokens from
-                                        // content, ignore openers/closers.
-                                        var TemplateTokens = value.match(tokenRegex);
+                                        // Find all Mustache tokens from.
+                                        var match = null,
+                                            TemplateTokens = [];
+                                        do {
+                                            match = tokenRegex.exec(value);
+                                            if (match !== null && typeof match[1] == 'string') {
+                                                TemplateTokens.push(match[1]);
+                                            }
+                                        } while (match !== null);
 
                                         // Do nothing if not matches are
                                         // found, assume we are in error.
-                                        if (typeof TemplateTokens !== 'undefined' && TemplateTokens && TemplateTokens.length) {
+                                        if (TemplateTokens.length) {
                                             // Find the request fields to
                                             // compare.
                                             // root[operations][0][request][template]
@@ -458,26 +464,24 @@ Mautic.contactclientApiPayload = function () {
                                                 additions = [],
                                                 fields = requestBodyFields(operation);
 
-                                            mQuery.each(fields, function (key, val) {
+                                            mQuery.each(fields, function (key, field) {
                                                 // Find tokens within
                                                 // "value" because there
                                                 // could be multiple.
-                                                var fieldTokens = val.match(tokenRegex);
-                                                if (typeof fieldTokens === 'object' && fieldTokens) {
-                                                    // Compare against
-                                                    // tokens found in the
-                                                    // template.
-                                                    mQuery.each(fieldTokens, function (fieldKey, fieldToken) {
-                                                        if (TemplateTokens.indexOf(fieldToken) !== -1) {
+                                                var match = null;
+                                                do {
+                                                    match = tokenRegex.exec(value);
+                                                    if (match !== null && typeof match[1] == 'string') {
+                                                        if (TemplateTokens.indexOf(match[1]) !== -1) {
                                                             // This field
                                                             // has a
                                                             // purpose,
                                                             // leave it.
-                                                            keepers.push(val);
-                                                            return false;
+                                                            keepers.push(field);
+                                                            return true;
                                                         }
-                                                    });
-                                                }
+                                                    }
+                                                } while (match !== null);
                                             });
 
                                             // For each valToken that isn't
@@ -500,7 +504,7 @@ Mautic.contactclientApiPayload = function () {
                                             }
                                         }
                                     }
-                                }, 1000);
+                                }, 1200);
                             }).addClass('template-checked');
                         }).addClass('manual-checked').trigger('change');
                     }

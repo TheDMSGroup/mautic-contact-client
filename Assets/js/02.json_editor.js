@@ -201,7 +201,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                             }
                                         });
                                     });
-                                    $parent.find('select').chosen(chosenSettings);
+                                    // $queryBuilder.parent().find('select').chosen(chosenSettings);
                                 }, 50);
                             })
                             .trigger('rulesChanged.queryBuilder');

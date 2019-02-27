@@ -89,7 +89,7 @@
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.method"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.format"],
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.headers"],
-.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(3),
+.api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(4),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(6),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(7),
 .api_payload .contactclient_jsoneditor:not(.advanced) div[data-schemapath*=".request.body"] > div > table > thead > tr > th:nth-child(8),
