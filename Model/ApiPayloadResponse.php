@@ -396,25 +396,23 @@ class ApiPayloadResponse
                 );
             }
 
-            // If there is no success definition, than do the default test of a 200 ok status check.
-            if (empty($this->successDefinition) || in_array($this->successDefinition, ['null', '[]'])) {
-                if (!$this->responseActual['status'] || Codes::HTTP_OK != $this->responseActual['status']) {
-                    throw new ContactClientException(
-                        'Status code is not 200. Default validation failure.',
-                        0,
-                        null,
-                        Stat::TYPE_REJECT,
-                        true
-                    );
-                }
-
-                //since no definition exists, we are done here?
-                return $this->valid;
-            }
-
             $filter = new FilterHelper();
             try {
-                $this->valid = $filter->filter($this->successDefinition, $this->responseActual);
+                $this->valid = $filter->filter($this->successDefinition, $this->responseActual, -404);
+
+                // If there is no success definition, than do the default test of a 200 ok status check.
+                // -404 is just a falsy value to signify this from the filter helper.
+                if (-404 === $this->valid) {
+                    if (!$this->responseActual['status'] || Codes::HTTP_OK != $this->responseActual['status']) {
+                        throw new ContactClientException(
+                            'Status code is not 200. Default validation failure.',
+                            0,
+                            null,
+                            Stat::TYPE_REJECT,
+                            true
+                        );
+                    }
+                }
             } catch (\Exception $e) {
                 throw new ContactClientException(
                     'Error in validation: '.$e->getMessage(),

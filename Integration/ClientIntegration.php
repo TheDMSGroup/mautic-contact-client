@@ -516,15 +516,16 @@ class ClientIntegration extends AbstractIntegration
             return $this;
         }
         $definition = $this->contactClient->getFilter();
-        if ($definition && 'null' !== $definition) {
-            $valid   = null;
-            $filter  = new FilterHelper();
-            $context = $this->getPayloadModel()
+        if ($definition) {
+            // Succeed by default should there be no rules.
+            $filterResult = true;
+            $filter       = new FilterHelper();
+            $context      = $this->getPayloadModel()
                 ->getTokenHelper()
                 ->newSession($this->contactClient, $this->contact)
                 ->getContext(true);
             try {
-                $valid = $filter->filter($definition, $context);
+                $filterResult = $filter->filter($definition, $context);
             } catch (\Exception $e) {
                 throw new ContactClientException(
                     'Error in filter: '.$e->getMessage(),
@@ -536,7 +537,7 @@ class ClientIntegration extends AbstractIntegration
                     $filter->getErrors()
                 );
             }
-            if (!$valid) {
+            if (!$filterResult) {
                 throw new ContactClientException(
                     'Contact filtered: '.implode(', ', $filter->getErrors()),
                     0,

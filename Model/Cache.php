@@ -73,7 +73,7 @@ class Cache extends AbstractCommonModel
                     $this->getTimezone(),
                     $this->dateSend
                 );
-                $entity->setExclusiveExpireDate(new \DateTime($expireDate));
+                $entity->setExclusiveExpireDate($expireDate);
                 $entity->setExclusivePattern($rule['matching']);
                 $entity->setExclusiveScope($rule['scope']);
                 $entities[] = $entity;

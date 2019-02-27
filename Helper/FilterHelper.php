@@ -18,8 +18,10 @@ use Exception;
  */
 class FilterHelper
 {
+    /** @var array */
     protected $errors = [];
 
+    /** @var array */
     protected $operators = [
         'equal'            => ['accept_values' => true, 'apply_to' => ['string', 'number', 'datetime']],
         'not_equal'        => ['accept_values' => true, 'apply_to' => ['string', 'number', 'datetime']],
@@ -66,24 +68,43 @@ class FilterHelper
     /**
      * Use a jQuery Query Builder JSON to evaluate the context.
      *
-     * @param string $json
-     * @param array  $context an array of data to be evaluated
+     * @param string      $json
+     * @param array       $context       An array of data to be evaluated
+     * @param bool|string $noRulesResult the result should the rules be missing/invalid,
+     *                                   leave as true to succeed by default
      *
      * @return bool return true if the context passes the filters of $json
      *
      * @throws Exception
-     * @throws \Exception
      */
-    public function filter($json, array $context = [])
+    public function filter($json, array $context = [], $noRulesResult = true)
     {
-        $query = $this->decodeJSON($json);
-        if (!isset($query->rules) || !is_array($query->rules) || count($query->rules) < 1) {
-            $this->setError('No rules to evaluate.');
+        // Pre-validate the string.
+        if (!strlen($json)) {
+            if (!$noRulesResult) {
+                $this->setError('No rules to evaluate.');
+            }
 
-            return false;
+            return $noRulesResult;
+        }
+
+        $query = $this->decodeJSON($json);
+
+        // Post validate the json.
+        if (!isset($query->rules) || !is_array($query->rules) || count($query->rules) < 1) {
+            if (!$noRulesResult) {
+                $this->setError('No rules to evaluate.');
+            }
+
+            return $noRulesResult;
         }
 
         return $this->loopThroughRules($query->rules, $context, isset($query->condition) ? $query->condition : 'AND');
+    }
+
+    private function setError($string)
+    {
+        $this->errors[] = $string;
     }
 
     /**
@@ -106,11 +127,6 @@ class FilterHelper
         }
 
         return $query;
-    }
-
-    private function setError($string)
-    {
-        $this->errors[] = $string;
     }
 
     /**
@@ -242,7 +258,7 @@ class FilterHelper
     private function getRuleValue($rule)
     {
         if (!$this->checkRuleCorrect($rule)) {
-            throw new \Exception('ERROR : checkRuleCorrect !');
+            $this->setError('Rules are missconfigured.');
         }
 
         return $rule->value;
@@ -258,7 +274,11 @@ class FilterHelper
      */
     protected function checkRuleCorrect($rule)
     {
-        if (!isset($rule->id, $rule->field, $rule->type, $rule->input, $rule->operator, $rule->value)) {
+        if (!isset($rule->value)) {
+            // We will assume a missing value for the rule is to be interpreted as empty.
+            $rule->value = null;
+        }
+        if (!isset($rule->id, $rule->field, $rule->type, $rule->input, $rule->operator)) {
             return false;
         }
         if (!isset($this->operators[$rule->operator])) {

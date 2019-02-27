@@ -39,6 +39,8 @@ class MaintenanceCommand extends ModeratedCommand
      * @param OutputInterface $output
      *
      * @return int|null
+     *
+     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -55,7 +57,9 @@ class MaintenanceCommand extends ModeratedCommand
                 'mautic.contactclient.maintenance.running'
             ).'</info>'
         );
-        $cacheModel->getRepository()->deleteExpired();
+        $cacheModel->getRepository()
+            ->deleteExpired()
+            ->reduceExclusivityIndex();
         $output->writeln(
             '<info>'.$translator->trans(
                 'mautic.contactclient.maintenance.complete'

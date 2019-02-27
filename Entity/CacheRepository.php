@@ -88,7 +88,7 @@ class CacheRepository extends CommonRepository
             // Match duration (always, including global scope)
             $filters[] = [
                 'orx'              => $orx,
-                'date_added'       => $this->oldestDateAdded($duration, $timezone, $dateSend),
+                'date_added'       => $this->oldestDateAdded($duration, $timezone, $dateSend)->getTimestamp(),
                 'contactclient_id' => $contactClient->getId(),
             ];
 
@@ -114,17 +114,20 @@ class CacheRepository extends CommonRepository
      * @param string|null    $timezone
      * @param \DateTime|null $dateSend
      *
-     * @return string
+     * @return \DateTime
      *
      * @throws \Exception
      */
     public function oldestDateAdded($duration, string $timezone = null, \DateTime $dateSend = null)
     {
-        $oldest = $dateSend ? clone $dateSend : new \DateTime();
         if (!$timezone) {
             $timezone = date_default_timezone_get();
         }
-        $oldest->setTimezone(new \DateTimeZone($timezone));
+        if ($dateSend) {
+            $oldest = new \DateTime($dateSend->getTimestamp(), $timezone);
+        } else {
+            $oldest = new \DateTime('now', $timezone);
+        }
         if (0 !== strpos($duration, 'P')) {
             // Non-rolling interval, go to previous interval segment.
             // Will only work for simple (singular) intervals.
@@ -152,10 +155,8 @@ class CacheRepository extends CommonRepository
             $interval = new \DateInterval('P1M');
         }
         $oldest->sub($interval);
-        // Switch back to UTC for the format output.
-        $oldest->setTimezone(new \DateTimeZone('UTC'));
 
-        return $oldest->format('Y-m-d H:i:s');
+        return $oldest;
     }
 
     /**
@@ -174,7 +175,8 @@ class CacheRepository extends CommonRepository
             if ($returnCount) {
                 $query->select('COUNT(*)');
             } else {
-                $query->select('*');
+                // Selecting only the id and contact_id for covering index benefits.
+                $query->select($alias.'.id, '.$alias.'.contact_id');
                 $query->setMaxResults(1);
             }
             $query->from(MAUTIC_TABLE_PREFIX.$this->getTableName(), $alias);
@@ -244,7 +246,7 @@ class CacheRepository extends CommonRepository
                         'where',
                         $query->expr()->andX(
                             $query->expr()->eq($alias.'.contactclient_id', ':contactClientId'.$k),
-                            $query->expr()->gte($alias.'.date_added', ':dateAdded'.$k),
+                            $query->expr()->gte($alias.'.date_added', 'FROM_UNIXTIME(:dateAdded'.$k.')'),
                             (isset($expr) ? $expr : null)
                         )
                     );
@@ -258,7 +260,7 @@ class CacheRepository extends CommonRepository
                     'where',
                     $query->expr()->andX(
                         $query->expr()->isNotNull($alias.'.exclusive_expire_date'),
-                        $query->expr()->gte($alias.'.exclusive_expire_date', ':exclusiveExpireDate'),
+                        $query->expr()->gte($alias.'.exclusive_expire_date', 'FROM_UNIXTIME(:exclusiveExpireDate)'),
                         $exprOuter
                     )
                 );
@@ -410,7 +412,7 @@ class CacheRepository extends CommonRepository
                 // Match duration (always), once all other aspects of the query are ready.
                 $filters[] = [
                     'orx'              => $orx,
-                    'date_added'       => $this->oldestDateAdded($duration, $timezone, $dateSend),
+                    'date_added'       => $this->oldestDateAdded($duration, $timezone, $dateSend)->getTimestamp(),
                     'contactclient_id' => $contactClient->getId(),
                 ];
             }
@@ -636,7 +638,7 @@ class CacheRepository extends CommonRepository
     ) {
         if ($filters) {
             $expiration = $dateSend ? $dateSend : new \DateTime();
-            $expiration = (int) $expiration->format('U');
+            $expiration = $expiration->getTimestamp();
             foreach ($filters as &$filter) {
                 $filter['exclusive_expire_date'] = $expiration;
             }
@@ -645,17 +647,36 @@ class CacheRepository extends CommonRepository
 
     /**
      * Delete all Cache entities that are no longer needed for duplication/exclusivity/limit checks.
+     *
+     * @throws \Exception
      */
     public function deleteExpired()
     {
-        // 32 days old, since the maximum limiter is 1m/30d.
-        $oldest = date('Y-m-d H:i:s', time() - (32 * 24 * 60 * 60));
+        // General expirations. Maximum limiter is 1m.
+        $oldest = new \DateTime('-1 month -1 day');
         $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
         $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
         $q->where(
-            $q->expr()->lt('date_added', ':oldest')
+            $q->expr()->lt('date_added', 'FROM_UNIXTIME(:oldest)')
         );
-        $q->setParameter('oldest', $oldest);
+        $q->setParameter('oldest', $oldest->getTimestamp());
+        $q->execute();
+    }
+
+    /**
+     * Update exclusivity rows to reduce the index size and thus reduce processing required to check exclusivity.
+     */
+    public function reduceExclusivityIndex()
+    {
+        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q->update(MAUTIC_TABLE_PREFIX.$this->getTableName());
+        $q->where(
+            $q->expr()->isNotNull('exclusive_expire_date'),
+            $q->expr()->lte('exclusive_expire_date', 'NOW()')
+        );
+        $q->set('exclusive_expire_date', 'NULL');
+        $q->set('exclusive_pattern', 'NULL');
+        $q->set('exclusive_scope', 'NULL');
         $q->execute();
     }
 }

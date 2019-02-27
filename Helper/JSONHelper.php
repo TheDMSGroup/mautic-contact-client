@@ -106,4 +106,67 @@ class JSONHelper
 
         return $object;
     }
+
+    /**
+     * @param $mixed
+     * @param $fieldName
+     *
+     * @return false|string
+     *
+     * @throws \Exception
+     */
+    public function encode($mixed, $fieldName)
+    {
+        $jsonError = false;
+        self::utf8_encode($mixed);
+        $result = json_encode(
+            $mixed,
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_PRETTY_PRINT
+        );
+        switch (json_last_error()) {
+            case JSON_ERROR_NONE:
+                break;
+            case JSON_ERROR_DEPTH:
+                $jsonError = 'Maximum stack depth exceeded';
+                break;
+            case JSON_ERROR_STATE_MISMATCH:
+                $jsonError = 'Underflow or the modes mismatch';
+                break;
+            case JSON_ERROR_CTRL_CHAR:
+                $jsonError = 'Unexpected control character found';
+                break;
+            case JSON_ERROR_SYNTAX:
+                $jsonError = 'Syntax error, malformed JSON';
+                break;
+            case JSON_ERROR_UTF8:
+                $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
+                break;
+            default:
+                $jsonError = 'Unknown error';
+                break;
+        }
+        if ($jsonError) {
+            throw new \Exception('JSON encoding failed for field '.$fieldName.' JSON error: '.$jsonError);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Recursively encode via UTF8.
+     *
+     * @param $mixed
+     */
+    private static function utf8_encode(&$mixed)
+    {
+        if (is_array($mixed) || is_object($mixed)) {
+            foreach ($mixed as &$value) {
+                self::utf8_encode($value);
+            }
+        } else {
+            if (is_string($mixed)) {
+                $mixed = utf8_encode($mixed);
+            }
+        }
+    }
 }

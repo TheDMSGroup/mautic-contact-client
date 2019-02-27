@@ -108,7 +108,7 @@ JSONEditor.defaults.options.theme = 'custom';
 JSONEditor.defaults.options.iconlib = 'custom';
 JSONEditor.defaults.options.disable_edit_json = true;
 JSONEditor.defaults.options.disable_properties = true;
-JSONEditor.defaults.options.disable_array_delete_all_rows = true;
+JSONEditor.defaults.options.disable_array_delete_all_rows = false;
 JSONEditor.defaults.options.disable_array_delete_last_row = true;
 JSONEditor.defaults.options.remove_empty_properties = false;
 JSONEditor.defaults.options.required_by_default = true;
@@ -170,6 +170,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                 clearTimeout(timeout);
                                 timeout = setTimeout(function () {
                                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
+                                    if (rules === null) return;
                                     var rulesString = JSON.stringify(rules, null, 2);
                                     rulesString = (rulesString === 'null' ? '' : rulesString);
 
@@ -203,11 +204,12 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         // The QueryBuilder has already been built, update
                         // value if it has changed.
                         var $queryBuilder = $input.next('.query-builder'),
-                            oldRules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet),
-                            oldRulesString = JSON.stringify(oldRules, null, 2);
+                            oldRules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
+                        if (oldRules === null) return;
+                        var oldRulesString = JSON.stringify(oldRules, null, 2);
                         if (val !== oldRulesString) {
                             try {
-                                $queryBuilder.queryBuilder('setRules', rules);
+                                $queryBuilder.queryBuilder('setRules', rules, Mautic.contactclientQBDefaultSet);
                             }
                             catch (e) {
                                 error = true;
