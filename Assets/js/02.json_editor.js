@@ -133,30 +133,11 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 if (!val.length) {
                     return;
                 }
-                try {
-                    rules = mQuery.parseJSON(val);
-                    if (typeof rules !== 'object') {
-                        error = true;
-                        errors.push({
-                            path: path,
-                            property: 'format',
-                            message: 'This Query Builder field does not contain an object.'
-                        });
-                    }
-                }
-                catch (e) {
-                    error = true;
-                    errors.push({
-                        path: path,
-                        property: 'format',
-                        message: 'Could not parse the JSON in this Query Builder field.'
-                    });
-                }
+                $input.addClass('queryBuilder-checked');
 
                 if (!error) {
                     if (!checked) {
                         var QBSettings = Mautic.contactclientQBDefaultSettings();
-                        QBSettings.rules = rules;
                         mQuery('<div>',
                             {
                                 id: 'success-definition-' + path.split('.')[2],
@@ -188,7 +169,7 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         }
                                     }
                                     $queryBuilder.parent().find('input[type="text"]').each(function () {
-                                        mQuery(this).on('keypress', function (e) {
+                                        mQuery(this).off('keypress').on('keypress', function (e) {
                                             var charCode = (typeof e.which === 'number') ? e.which : e.keyCode;
                                             if (charCode === 13) {
                                                 e.preventDefault();
@@ -198,10 +179,9 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                                         });
                                     });
                                     // $queryBuilder.parent().find('select').chosen(chosenSettings);
-                                }, 50);
-                            })
-                            .trigger('rulesChanged.queryBuilder');
-                        $input.addClass('queryBuilder-checked');
+                                }, 200);
+                            });
+                        // .trigger('rulesChanged.queryBuilder');
                     }
                     else {
                         // The QueryBuilder has already been built, update
@@ -214,7 +194,20 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                         var oldRulesString = JSON.stringify(oldRules, null, 2);
                         if (val !== oldRulesString) {
                             try {
-                                $queryBuilder.queryBuilder('setRules', rules, Mautic.contactclientQBDefaultSet);
+                                rules = mQuery.parseJSON(val);
+                                if (typeof rules !== 'object') {
+                                    error = true;
+                                    errors.push({
+                                        path: path,
+                                        property: 'format',
+                                        message: 'This Query Builder field does not contain an object.'
+                                    });
+                                }
+                                else {
+                                    if (rules !== oldRules) {
+                                        $queryBuilder.queryBuilder('setRules', rules, Mautic.contactclientQBDefaultSet);
+                                    }
+                                }
                             }
                             catch (e) {
                                 error = true;
