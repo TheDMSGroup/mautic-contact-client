@@ -123,8 +123,12 @@ class CacheRepository extends CommonRepository
         if (!$timezone) {
             $timezone = date_default_timezone_get();
         }
+        if (is_string($timezone)) {
+            $timezone = new \DateTimeZone($timezone);
+        }
         if ($dateSend) {
-            $oldest = new \DateTime($dateSend->getTimestamp(), $timezone);
+            $oldest = clone $dateSend;
+            $oldest->setTimezone($timezone);
         } else {
             $oldest = new \DateTime('now', $timezone);
         }
