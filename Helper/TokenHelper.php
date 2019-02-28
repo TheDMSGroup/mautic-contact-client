@@ -728,7 +728,7 @@ class TokenHelper
                                                 }
                                                 if (
                                                     !$this->needsUtmData
-                                                    && 1 === preg_match('/{{\s?utm.\..*\s?}}/', $field['value'])
+                                                    && 1 === preg_match('/{{\s?utm\..*\s?}}/', $field['value'])
                                                 ) {
                                                     $this->needsUtmData = true;
                                                 }
@@ -758,7 +758,7 @@ class TokenHelper
                                     }
                                     if (
                                         !$this->needsUtmData
-                                        && 1 === preg_match('/{{\s?utm.\..*\s?}}/', $operation[$opType]['template'])
+                                        && 1 === preg_match('/{{\s?utm\..*\s?}}/', $operation[$opType]['template'])
                                     ) {
                                         $this->needsUtmData = true;
                                     }

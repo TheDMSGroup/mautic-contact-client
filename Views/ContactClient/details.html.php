@@ -157,7 +157,7 @@ $website = $item->getWebsite();
             <!--/ tabs controls -->
 
             <!-- start: tab-content -->
-            <div class="tab-content pl-md pr-md pb-md">
+            <div class="tab-content pl-md pr-md pb-md bg-white">
                 <div class="tab-pane fade in active bdr-w-0" id="transactions-container">
                     <?php echo $view->render(
                         'MauticContactClientBundle:Transactions:index.html.php',

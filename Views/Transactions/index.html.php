@@ -16,7 +16,7 @@
     <!-- Export button -->
     <div class="btn-group col-xs-2 pb-md">
         <?php if (!method_exists($view['security'], 'isAdmin')
-            || !$view['security']->isAdmin()
+            || $view['security']->isAdmin()
             || !$view['security']->isGranted('contactclient:export:disable', 'MATCH_ONE')):?>
         <a class="btn btn-default"
            onclick="Mautic.contactClientTimelineExport();">
