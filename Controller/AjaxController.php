@@ -232,7 +232,10 @@ class AjaxController extends CommonAjaxController
             CacheStorageHelper::ADAPTOR_FILESYSTEM,
             'ContactClient',
             null,
-            null,
+            $this->coreParametersHelper->getParameter(
+                'cached_data_dir',
+                $this->get('mautic.helper.paths')->getSystemPath('cache', true)
+            ),
             300
         );
         $dataArray = $cache->get($cacheKey, $cacheTtl);
