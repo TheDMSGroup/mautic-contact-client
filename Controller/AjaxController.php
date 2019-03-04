@@ -232,6 +232,7 @@ class AjaxController extends CommonAjaxController
             CacheStorageHelper::ADAPTOR_FILESYSTEM,
             'ContactClient',
             null,
+            null,
             300
         );
         $dataArray = $cache->get($cacheKey, $cacheTtl);
@@ -288,7 +289,7 @@ class AjaxController extends CommonAjaxController
                 $dataArray['types']   = $tokenHelper->getContextTypes();
                 $dataArray['formats'] = $tokenHelper->getFormats();
             }
-            $cache->set($cacheKey, $dataArray);
+            $cache->set($cacheKey, $dataArray, $cacheTtl);
         }
 
         return $this->sendJsonResponse($dataArray);
