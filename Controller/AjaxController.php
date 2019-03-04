@@ -288,7 +288,7 @@ class AjaxController extends CommonAjaxController
                 $dataArray['types']   = $tokenHelper->getContextTypes();
                 $dataArray['formats'] = $tokenHelper->getFormats();
             }
-            $cache->set($cacheKey, $dataArray, $cacheTtl);
+            $cache->set($cacheKey, $dataArray);
         }
 
         return $this->sendJsonResponse($dataArray);
