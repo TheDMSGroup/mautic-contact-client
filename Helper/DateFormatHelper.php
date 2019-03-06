@@ -51,6 +51,8 @@ class DateFormatHelper
         'us1'        => 'Y-m-d H:i:s',
         'us2'        => 'm/d/Y',
         'us3'        => 'm/d/Y H:i:s',
+        'us4'        => 'Y/m/d',
+        'us5'        => 'Y/m/d H:i:s',
         'iso8601'    => 'Y-m-d\TH:i:sO',
         'yyyy'       => 'Y',
         'm'          => 'n',
