@@ -48,6 +48,9 @@ class DateFormatHelper
 
     /** @var array */
     protected $formatsDate = [
+        'us1'        => 'Y-m-d H:i:s',
+        'us2'        => 'm/d/Y',
+        'us3'        => 'm/d/Y H:i:s',
         'iso8601'    => 'Y-m-d\TH:i:sO',
         'yyyy'       => 'Y',
         'm'          => 'n',
