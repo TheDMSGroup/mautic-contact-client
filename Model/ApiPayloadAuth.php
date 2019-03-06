@@ -229,7 +229,7 @@ class ApiPayloadAuth extends AbstractCommonModel
 
             $valueSources = ['value', 'default_value'];
             if ($this->test) {
-                $valueSources = ['value', 'test_value', 'default_value'];
+                $valueSources = ['test_value', 'value', 'default_value'];
             }
 
             foreach ($this->operations as $id => $operation) {

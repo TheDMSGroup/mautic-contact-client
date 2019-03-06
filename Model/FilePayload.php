@@ -524,7 +524,7 @@ class FilePayload
             // Loop through value sources till a non-empty tokenized result is found.
             $valueSources = ['value', 'default_value'];
             if ($this->test) {
-                $valueSources = ['value', 'test_value', 'default_value'];
+                $valueSources = ['test_value', 'value', 'default_value'];
             }
             $value = null;
             foreach ($valueSources as $valueSource) {
