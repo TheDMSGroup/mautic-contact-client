@@ -615,6 +615,7 @@ class ClientIntegration extends AbstractIntegration
     {
         if (!$this->dncRepo) {
             $this->dncRepo = $this->em->getRepository('MauticLeadBundle:DoNotContact');
+            $this->dncRepo->setDispatcher($this->dispatcher);
         }
 
         return $this->dncRepo;
