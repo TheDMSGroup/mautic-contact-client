@@ -22,21 +22,27 @@ class ContactDncCheckEvent extends Event
     /** @var Contact */
     protected $contact;
 
+    /** @var string */
+    protected $channel = '';
+
     /** @var array */
-    protected $channels = [];
+    protected $dncEntries = [];
 
     /**
      * ContactDncCheckEvent constructor.
      *
      * @param Contact|null $contact
-     * @param array        $channels
+     * @param string       $channel
+     * @param array        $dncEntries
      */
     public function __construct(
         Contact $contact = null,
-        $channels = []
+        $channel = '',
+        &$dncEntries = []
     ) {
-        $this->contact  = $contact;
-        $this->channels = $channels;
+        $this->contact    = $contact;
+        $this->channel    = $channel;
+        $this->dncEntries = &$dncEntries;
     }
 
     /**
@@ -48,10 +54,38 @@ class ContactDncCheckEvent extends Event
     }
 
     /**
+     * @return Contact
+     */
+    public function getLead()
+    {
+        return $this->contact;
+    }
+
+    /**
+     * @return string
+     */
+    public function getChannel()
+    {
+        return $this->channel;
+    }
+
+    /**
      * @return array
      */
-    public function getChannels()
+    public function getDncEntries()
     {
-        return $this->channels;
+        return $this->dncEntries;
+    }
+
+    /**
+     * @param $dncEntries
+     *
+     * @return $this
+     */
+    public function setDncEntries($dncEntries)
+    {
+        $this->dncEntries = $dncEntries;
+
+        return $this;
     }
 }

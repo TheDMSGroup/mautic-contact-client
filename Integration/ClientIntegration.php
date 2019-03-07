@@ -14,15 +14,14 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 use Exception;
 use Mautic\CampaignBundle\Model\CampaignModel;
 use Mautic\CoreBundle\Helper\UTF8Helper;
+use Mautic\LeadBundle\Entity\DoNotContactRepository;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
 use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
-use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
-use MauticPlugin\MauticContactClientBundle\Event\ContactDncCheckEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
@@ -98,6 +97,9 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var \Mautic\LeadBundle\Model\LeadModel $model */
     protected $contactModel;
+
+    /** @var DoNotContactRepository */
+    protected $dncRepo;
 
     /** @var array */
     private $dncChannels = [];
@@ -567,11 +569,20 @@ class ClientIntegration extends AbstractIntegration
         }
         $channels = explode(',', $this->contactClient->getDncChecks());
         if ($channels) {
-            $dncCollection = $this->contact->getDoNotContact();
-            foreach ($dncCollection as $dnc) {
-                $currentChannel = $dnc->getChannel();
-                foreach ($channels as $channel) {
-                    if ($currentChannel == $channel) {
+            foreach ($channels as $channel) {
+                $dncEntries = $this->getDncRepo()->getEntriesByLeadAndChannel(
+                    $this->contact,
+                    $channel
+                );
+
+                // @todo - Support external DNC checking should it be needed in the future.
+                // if (empty($dncEntries)) {
+                //     $event = new ContactDncCheckEvent($this->contact, $channels, $dncEntries);
+                //     $this->dispatcher->dispatch(ContactClientEvents::EXTERNAL_DNC_CHECK, $event);
+                // }
+
+                if (!empty($dncEntries)) {
+                    foreach ($dncEntries as $dnc) {
                         $comments = !in_array($dnc->getComments(), ['user', 'system']) ? $dnc->getComments() : '';
                         throw new ContactClientException(
                             trim(
@@ -592,12 +603,21 @@ class ClientIntegration extends AbstractIntegration
                     }
                 }
             }
-            // Support external DNC checking. Should throw ContactClientException if DNC match found.
-            $event = new ContactDncCheckEvent($this->contact, $channels);
-            $this->dispatcher->dispatch(ContactClientEvents::EXTERNAL_DNC_CHECK, $event);
         }
 
         return $this;
+    }
+
+    /**
+     * @return \Doctrine\ORM\EntityRepository|DoNotContactRepository
+     */
+    private function getDncRepo()
+    {
+        if (!$this->dncRepo) {
+            $this->dncRepo = $this->em->getRepository('MauticLeadBundle:DoNotContact');
+        }
+
+        return $this->dncRepo;
     }
 
     /**
