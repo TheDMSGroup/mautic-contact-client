@@ -510,9 +510,9 @@ class TokenHelper
                                         $phone = $this->phoneHelper->format($phone);
                                         if (!empty($phone)) {
                                             // (222)333-4444
-                                            $value = '('.substr($phone, 2, 3).')'
-                                                .substr($phone, 5, 3).'-'
-                                                .substr($phone, 8, 4);
+                                            $value = '('.substr($phone, -10, 3).')'
+                                                .substr($phone, -8, 3).'-'
+                                                .substr($phone, -4, 4);
                                         }
                                     } catch (\Exception $e) {
                                     }
