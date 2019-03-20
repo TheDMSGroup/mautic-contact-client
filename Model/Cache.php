@@ -150,9 +150,8 @@ class Cache extends AbstractCommonModel
         if (!$this->utmSource) {
             $utmHelper       = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
             $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
+            $this->em->clear('Mautic\LeadBundle\Entity\UtmTag');
         }
-        $this->em->clear('Mautic\LeadBundle\Entity\UtmTag');
-
         return $this->utmSource;
     }
 
