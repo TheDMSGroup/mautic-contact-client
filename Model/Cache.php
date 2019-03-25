@@ -152,6 +152,7 @@ class Cache extends AbstractCommonModel
             $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
             $this->em->clear('Mautic\LeadBundle\Entity\UtmTag');
         }
+
         return $this->utmSource;
     }
 
