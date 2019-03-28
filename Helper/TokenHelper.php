@@ -604,7 +604,7 @@ class TokenHelper
                                             // 1-222-333-4444
                                             $value = substr($phone, 1, strlen($phone) - 10).'-'
                                                 .substr($phone, -10, 3).'-'
-                                                .substr($phone, -8, 3).'-'
+                                                .substr($phone, -7, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
                                     } catch (\Exception $e) {
@@ -624,7 +624,7 @@ class TokenHelper
                                         if (!empty($phone)) {
                                             // 222-333-4444
                                             $value = substr($phone, -10, 3).'-'
-                                                .substr($phone, -8, 3).'-'
+                                                .substr($phone, -7, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
                                     } catch (\Exception $e) {
@@ -665,7 +665,7 @@ class TokenHelper
                                         if (!empty($phone)) {
                                             // (222) 333-4444
                                             $value = '('.substr($phone, -10, 3).') '
-                                                .substr($phone, -8, 3).'-'
+                                                .substr($phone, -7, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
                                     } catch (\Exception $e) {
@@ -686,7 +686,7 @@ class TokenHelper
                                             // 1.222.333.4444
                                             $value = substr($phone, 1, strlen($phone) - 10).'.'
                                                 .substr($phone, -10, 3).'.'
-                                                .substr($phone, -8, 3).'.'
+                                                .substr($phone, -7, 3).'.'
                                                 .substr($phone, -4, 4);
                                         }
                                     } catch (\Exception $e) {
@@ -706,7 +706,7 @@ class TokenHelper
                                         if (!empty($phone)) {
                                             // 222.333.4444
                                             $value = substr($phone, -10, 3).'.'
-                                                .substr($phone, -8, 3).'.'
+                                                .substr($phone, -7, 3).'.'
                                                 .substr($phone, -4, 4);
                                         }
                                     } catch (\Exception $e) {

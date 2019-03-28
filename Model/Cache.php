@@ -84,6 +84,7 @@ class Cache extends AbstractCommonModel
         }
         if (count($entities)) {
             $this->getRepository()->saveEntities($entities);
+            $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Cache');
         }
     }
 
@@ -149,6 +150,7 @@ class Cache extends AbstractCommonModel
         if (!$this->utmSource) {
             $utmHelper       = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
             $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
+            $this->em->clear('Mautic\LeadBundle\Entity\UtmTag');
         }
 
         return $this->utmSource;
