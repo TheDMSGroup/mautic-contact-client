@@ -409,7 +409,7 @@ class ApiPayloadResponse
                             0,
                             null,
                             Stat::TYPE_REJECT,
-                            true
+                            false
                         );
                     }
                 }
