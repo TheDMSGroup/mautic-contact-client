@@ -854,6 +854,19 @@ class TokenHelper
         if (!isset($this->context['payload'])) {
             $this->context['payload'] = $payload;
         }
+        // File payloads.
+        if (!empty($payload['body']) && !empty($payload['settings'])) {
+            if (!empty($payload['body']) && is_array($payload['body'])) {
+                foreach ($payload['body'] as $column) {
+                    foreach (['value', 'default_value', 'test_value'] as $key) {
+                        if (!empty($column[$key])) {
+                            $this->findPivotDataTokens($column[$key]);
+                        }
+                    }
+                }
+            }
+        }
+        // API Payloads.
         if (!empty($payload['operations'])) {
             foreach ($payload['operations'] as $id => $operation) {
                 foreach (['request', 'response'] as $opType) {
@@ -872,65 +885,53 @@ class TokenHelper
                                     foreach ($operation[$opType][$fieldType] as $field) {
                                         if (null !== $field['key']) {
                                             $fieldSet[$field['key']] = isset($field['value']) ? $field['value'] : null;
-                                            // Check for the need for device data to keep queries low later.
                                             if ('request' === $opType) {
-                                                if (
-                                                    !$this->needsDeviceData
-                                                    && 1 === preg_match('/{{\s?device\..*\s?}}/', $field['value'])
-                                                ) {
-                                                    $this->needsDeviceData = true;
-                                                }
-                                                if (
-                                                    !$this->needsUtmData
-                                                    && 1 === preg_match('/{{\s?utm\..*\s?}}/', $field['value'])
-                                                ) {
-                                                    $this->needsUtmData = true;
-                                                }
-                                                if (
-                                                    !$this->needsDncData
-                                                    && 1 === preg_match('/{{\s?doNotContact\..*\s?}}/', $field['value'])
-                                                ) {
-                                                    $this->needsDncData = true;
-                                                }
+                                                $this->findPivotDataTokens($field['value']);
                                             }
                                         }
                                     }
                                 }
                                 $this->context['payload']['operations'][$id][$opType][$fieldType] = $fieldSet;
-                                // Check for the need for pivot data to keep queries low later.
                                 if (
                                     'request' === $opType
                                     && !empty($operation[$opType]['manual'])
                                     && $operation[$opType]['manual']
                                     && !empty($operation[$opType]['template'])
                                 ) {
-                                    if (
-                                        !$this->needsDeviceData
-                                        && 1 === preg_match('/{{\s?device\..*\s?}}/', $operation[$opType]['template'])
-                                    ) {
-                                        $this->needsDeviceData = true;
-                                    }
-                                    if (
-                                        !$this->needsUtmData
-                                        && 1 === preg_match('/{{\s?utm\..*\s?}}/', $operation[$opType]['template'])
-                                    ) {
-                                        $this->needsUtmData = true;
-                                    }
-                                    if (
-                                        !$this->needsDncData
-                                        && 1 === preg_match(
-                                            '/{{\s?doNotContact\..*\s?}}/',
-                                            $operation[$opType]['template']
-                                        )
-                                    ) {
-                                        $this->needsDncData = true;
-                                    }
+                                    $this->findPivotDataTokens($operation[$opType]['template']);
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Check for the need for device data to keep queries low later.
+     *
+     * @param $string
+     */
+    private function findPivotDataTokens($string)
+    {
+        if (
+            !$this->needsDeviceData
+            && 1 === preg_match('/{{\s?device\..*\s?}}/', $string)
+        ) {
+            $this->needsDeviceData = true;
+        }
+        if (
+            !$this->needsUtmData
+            && 1 === preg_match('/{{\s?utm\..*\s?}}/', $string)
+        ) {
+            $this->needsUtmData = true;
+        }
+        if (
+            !$this->needsDncData
+            && 1 === preg_match('/{{\s?doNotContact\..*\s?}}/', $string)
+        ) {
+            $this->needsDncData = true;
         }
     }
 
