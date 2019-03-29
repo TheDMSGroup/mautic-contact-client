@@ -74,6 +74,12 @@ class TokenHelper
     private $contactModel;
 
     /** @var array */
+    private $previousPayload;
+
+    /** @var array */
+    private $previousContextPayload;
+
+    /** @var array */
     private $formatNumber = [
         'lpad.2' => 'At least 2 digits, zeros on the left',
         'lpad.4' => 'At least 4 digits, zeros on the left',
@@ -851,10 +857,23 @@ class TokenHelper
             return $this;
         }
         $payload = json_decode(json_encode($payload), true);
-        if (!isset($this->context['payload'])) {
-            $this->context['payload'] = $payload;
+        if ($payload === $this->previousPayload && !$responseActual) {
+            // The payload is the same.
+            // No additional response data has not been provided to append.
+            // No need to recalculate this context.
+            $this->context['payload'] = $this->previousContextPayload;
+
+            return $this;
         }
-        // File payloads.
+
+        // Set the context of the payload and reset the pivot data need flags.
+        $this->context['payload'] = $payload;
+        $this->previousPayload    = $payload;
+        $this->needsDeviceData    = false;
+        $this->needsUtmData       = false;
+        $this->needsDncData       = false;
+
+        // File payload pivot data check.
         if (!empty($payload['body']) && !empty($payload['settings'])) {
             if (!empty($payload['body']) && is_array($payload['body'])) {
                 foreach ($payload['body'] as $column) {
@@ -866,7 +885,8 @@ class TokenHelper
                 }
             }
         }
-        // API Payloads.
+
+        // API Payload pivot data check, and addition of actual response data from previous request operations.
         if (!empty($payload['operations'])) {
             foreach ($payload['operations'] as $id => $operation) {
                 foreach (['request', 'response'] as $opType) {
@@ -906,6 +926,10 @@ class TokenHelper
                 }
             }
         }
+
+        $this->previousContextPayload = $this->context['payload'];
+
+        return $this;
     }
 
     /**
