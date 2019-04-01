@@ -11,8 +11,8 @@ use Mautic\LeadBundle\Entity\Lead;
 class ContactClientTestCase extends MauticMysqlTestCase
 {
 
-    /** @var  Client $client */
-    protected $client;
+    /** @var  Client $appClient */
+    protected $appClient;
 
     /** @var  ContainerInterface $container */
     protected $container;
@@ -36,12 +36,11 @@ class ContactClientTestCase extends MauticMysqlTestCase
         $sqlFile = file_get_contents(__DIR__.'/contactClient_schema.sql');
         $this->applySqlFromFile($sqlFile);
 
-        $this->client = static::createClient();
-        $this->container = $this->client->getContainer();
+        $this->appClient = static::createClient();
+        $this->container = $this->appClient->getContainer();
         $this->entityManager = $this->container->get('doctrine.orm.entity_manager');
 
         $this->clientModel = $this->container->get('mautic.contactclient.model.contactclient');
-
         $this->clientEntity = $this->clientModel->getEntity(1);
 
         parent::setUp();
