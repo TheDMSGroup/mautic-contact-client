@@ -4,6 +4,7 @@ namespace MauticPlugin\MauticContactClientBundle\Bundle\Tests;
 use Doctrine\ORM\EntityManager;
 use Mautic\ApiBundle\Model\ClientModel;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
+use Mautic\LeadBundle\Entity\UtmTag;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Mautic\LeadBundle\Entity\Lead;
@@ -66,6 +67,12 @@ class ContactClientTestCase extends MauticMysqlTestCase
         $contact->setPhone('7273330000');
         $contact->getFirstname('Test');
         $contact->setLastname('LastTest');
+
+        $utmTag = new UtmTag();
+        $utmTag->setLead($contact);
+        $utmTag->setUtmSource('10101UTM');
+        $utmTag->setDateAdded(new \DateTime());
+        $contact->setUtmTags($utmTag);
 
 
         return $contact;
