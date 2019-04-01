@@ -4,6 +4,7 @@ namespace MauticPlugin\MauticContactClientBundle\Bundle\Tests\Integration;
 
 use Mautic\PluginBundle\Helper\IntegrationHelper;
 use MauticPlugin\MauticContactClientBundle\Bundle\Tests\ContactClientTestCase;
+use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 
 class IntegrationTests extends ContactClientTestCase
 {
@@ -18,6 +19,6 @@ class IntegrationTests extends ContactClientTestCase
         /** @var ClientIntegration $integrationObject */
         $integrationObject = $integrationHelper->getIntegrationObject('Client');
 
-        $integrationObject->sendContact($client, $contact, (bool) $options['test'], (bool) $options['force']);
+        $integrationObject->sendContact($client, $contact);
     }
 }

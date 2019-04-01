@@ -33,7 +33,7 @@ class ContactClientTestCase extends MauticMysqlTestCase
     {
 
 
-        $sqlFile = file_get_contents(__DIR__.'/campaign_schema.sql');
+        $sqlFile = file_get_contents(__DIR__.'/contactClient_schema.sql');
         $this->applySqlFromFile($sqlFile);
 
         $this->client = static::createClient();
@@ -59,9 +59,10 @@ class ContactClientTestCase extends MauticMysqlTestCase
 
     public function getContact()
     {
+        $now = new DateTime('now');
         $contact = new Lead();
 
-        $contact->setDateAdded(new DateTime('now');
+        $contact->setDateAdded($now);
         $contact->setEmail('testClient@email.com');
         $contact->setPhone('7273330000');
         $contact->getFirstname('Test');
