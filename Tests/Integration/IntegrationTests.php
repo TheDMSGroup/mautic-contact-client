@@ -1,9 +1,9 @@
 <?php
 
-namespace MauticPlugin\MauticContactClientBundle\Bundle\Tests\Integration;
+namespace MauticPlugin\MauticContactClientBundle\Tests\Integration;
 
 use Mautic\PluginBundle\Helper\IntegrationHelper;
-use MauticPlugin\MauticContactClientBundle\Bundle\Tests\ContactClientTestCase;
+use MauticPlugin\MauticContactClientBundle\Tests\ContactClientTestCase;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 
 class IntegrationTests extends ContactClientTestCase
@@ -19,6 +19,7 @@ class IntegrationTests extends ContactClientTestCase
         /** @var ClientIntegration $integrationObject */
         $integrationObject = $integrationHelper->getIntegrationObject('Client');
 
-        $integrationObject->sendContact($client, $contact);
+        $results = $integrationObject->sendContact($client, $contact);
+        $this->assertEquals(Stat::TYPE_CONVERTED, $results->getStatType(), 'Stat Type "Converted" Expected. Received ' . $results->getStatType() );
     }
 }

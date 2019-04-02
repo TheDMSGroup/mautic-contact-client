@@ -1,5 +1,6 @@
 <?php
-namespace MauticPlugin\MauticContactClientBundle\Bundle\Tests;
+
+namespace MauticPlugin\MauticContactClientBundle\Tests;
 
 use Doctrine\ORM\EntityManager;
 use Mautic\ApiBundle\Model\ClientModel;
@@ -32,19 +33,19 @@ class ContactClientTestCase extends MauticMysqlTestCase
      */
     public function setUp()
     {
-
-
-        $sqlFile = file_get_contents(__DIR__.'/contactClient_schema.sql');
-        $this->applySqlFromFile($sqlFile);
+        parent::setUp();
 
         $this->appClient = static::createClient();
         $this->container = $this->appClient->getContainer();
         $this->entityManager = $this->container->get('doctrine.orm.entity_manager');
+        $this->runCommand('mautic:plugins:install');
+
+        $sqlFile = __DIR__.'/contactClient_schema.sql';
+        $this->applySqlFromFile($sqlFile);
 
         $this->clientModel = $this->container->get('mautic.contactclient.model.contactclient');
         $this->clientEntity = $this->clientModel->getEntity(1);
 
-        parent::setUp();
     }
 
     public function getClientModel()
@@ -59,7 +60,7 @@ class ContactClientTestCase extends MauticMysqlTestCase
 
     public function getContact()
     {
-        $now = new DateTime('now');
+        $now = new \DateTime('now');
         $contact = new Lead();
 
         $contact->setDateAdded($now);
