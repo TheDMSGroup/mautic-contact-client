@@ -11,8 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
-use Mautic\LeadBundle\Entity\Lead as Contact;
 use Doctrine\Common\Collections\ArrayCollection;
+use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
  * Class UtmSourceHelper.
