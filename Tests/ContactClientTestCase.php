@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\LeadModel;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 
 class ContactClientTestCase extends MauticMysqlTestCase
 {
