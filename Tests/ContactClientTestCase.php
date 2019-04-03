@@ -5,23 +5,22 @@ namespace MauticPlugin\MauticContactClientBundle\Tests;
 use Doctrine\ORM\EntityManager;
 use Mautic\ApiBundle\Model\ClientModel;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
-use Mautic\LeadBundle\Entity\UtmTag;
-use Symfony\Bundle\FrameworkBundle\Client;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\UtmTag;
 use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use Symfony\Bundle\FrameworkBundle\Client;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class ContactClientTestCase extends MauticMysqlTestCase
 {
-
-    /** @var  Client $appClient */
+    /** @var Client $appClient */
     protected $appClient;
 
-    /** @var  ContainerInterface $container */
+    /** @var ContainerInterface $container */
     protected $container;
 
-    /** @var  EntityManager $entityManager */
+    /** @var EntityManager $entityManager */
     protected $entityManager;
 
     /** @var ClientModel $clientModel */
@@ -34,14 +33,14 @@ class ContactClientTestCase extends MauticMysqlTestCase
     protected $clientEntity;
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setUp()
     {
         parent::setUp();
 
-        $this->appClient = static::createClient();
-        $this->container = $this->appClient->getContainer();
+        $this->appClient     = static::createClient();
+        $this->container     = $this->appClient->getContainer();
         $this->entityManager = $this->container->get('doctrine.orm.entity_manager');
         $this->runCommand('mautic:plugins:install');
 
@@ -49,8 +48,7 @@ class ContactClientTestCase extends MauticMysqlTestCase
         $this->applySqlFromFile($sqlFile);
 
         $this->clientModel = $this->container->get('mautic.contactclient.model.contactclient');
-        $this->leadModel = $this->container->get('mautic.lead.model.lead');
-
+        $this->leadModel   = $this->container->get('mautic.lead.model.lead');
     }
 
     public function getClientModel()
@@ -66,12 +64,13 @@ class ContactClientTestCase extends MauticMysqlTestCase
     public function getClientEntity($id)
     {
         $this->clientEntity = $this->clientModel->getEntity($id);
+
         return $this->clientEntity;
     }
 
     public function getContact()
     {
-        $now = new \DateTime('now');
+        $now     = new \DateTime('now');
         $contact = new Lead();
 
         $contact->setDateAdded($now);
@@ -115,8 +114,6 @@ class ContactClientTestCase extends MauticMysqlTestCase
             ],
         ];
         $contact->setFields($fields);
-
-
 
         return $contact;
     }
