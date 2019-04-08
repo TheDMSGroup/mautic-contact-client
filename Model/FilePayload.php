@@ -844,7 +844,8 @@ class FilePayload
                         'This contact appears to have been deleted: '.$contactId,
                         Codes::HTTP_GONE,
                         null,
-                        Stat::TYPE_REJECT
+                        Stat::TYPE_REJECT,
+                        false
                     );
                 }
 
@@ -927,7 +928,8 @@ class FilePayload
                     'Contact must be defined.',
                     Codes::HTTP_GONE,
                     null,
-                    Stat::TYPE_REJECT
+                    Stat::TYPE_REJECT,
+                    false
                 );
             }
 
