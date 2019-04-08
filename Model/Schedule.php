@@ -204,7 +204,8 @@ class Schedule
                         'This contact client does not allow contacts on a '.$this->now->format('l').'.',
                         0,
                         null,
-                        Stat::TYPE_SCHEDULE
+                        Stat::TYPE_SCHEDULE,
+                        false
                     );
                 } elseif ($returnHours) {
                     return $hours[$day];
@@ -294,7 +295,8 @@ class Schedule
                             'This contact client does not allow contacts on the date '.$dateString.'.',
                             0,
                             null,
-                            Stat::TYPE_SCHEDULE
+                            Stat::TYPE_SCHEDULE,
+                            false
                         );
                     }
                 }
@@ -325,7 +327,8 @@ class Schedule
                 'This client has reached the maximum number of files they can receive per day.',
                 0,
                 null,
-                Stat::TYPE_SCHEDULE
+                Stat::TYPE_SCHEDULE,
+                false
             );
         }
 
@@ -371,7 +374,8 @@ class Schedule
                             'This contact client does not allow contacts during this time of day.',
                             0,
                             null,
-                            Stat::TYPE_SCHEDULE
+                            Stat::TYPE_SCHEDULE,
+                            false
                         );
                     }
                     if ($returnRange) {

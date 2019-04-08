@@ -317,7 +317,7 @@
           "propertyOrder": 11,
           "type": "boolean",
           "format": "checkbox",
-          "default": false
+          "default": true
         },
         "verify": {
           "title": "Verify SSL",
