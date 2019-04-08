@@ -570,7 +570,9 @@ class ClientIntegration extends AbstractIntegration
         $channels = explode(',', $this->contactClient->getDncChecks());
         if ($channels) {
             foreach ($channels as $channel) {
-                $dncEntries = $this->getDncRepo()->getEntriesByLeadAndChannel(
+                $dncRepo = $this->getDncRepo();
+                $dncRepo->setDispatcher($this->dispatcher);
+                $dncEntries = $dncRepo->getEntriesByLeadAndChannel(
                     $this->contact,
                     $channel
                 );
