@@ -21,7 +21,11 @@ $header = ($entity->getId())
     $view['translator']->trans('mautic.contactclient.new');
 $view['slots']->set('headerTitle', $header);
 
-echo $view['assets']->includeScript('plugins/MauticContactClientBundle/Assets/build/contactclient.min.js?v=2', 'contactclientOnLoad', 'contactclientOnLoad');
+echo $view['assets']->includeScript(
+    'plugins/MauticContactClientBundle/Assets/build/contactclient.min.js?v=2.15.1',
+    'contactclientOnLoad',
+    'contactclientOnLoad'
+);
 echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
 echo $view['assets']->includeStylesheet('https://fonts.googleapis.com/css?family=Roboto+Mono');
 echo $view['form']->start($form);
@@ -130,7 +134,14 @@ echo $view['form']->start($form);
                             <div class="row">
                                 <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['limits']); ?>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
                                     <?php echo $view['form']->row($form['limits_queue']); ?>
+                                </div>
+                                <div class="col-md-3">
+                                    <?php echo $view['form']->row($form['limits_queue_spread']); ?>
                                 </div>
                             </div>
                             <hr class="mnr-md mnl-md">
@@ -233,7 +244,8 @@ echo $view['form']->start($form);
                                     <?php echo $view['form']->row($form['api_payload']); ?>
                                     <div id="api_payload_test_result" class="hide modal modal-xl fade bg-white" style="left: auto !important;" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
                                         <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span></button>
                                             <h4 class="modal-title" id="testResultsModalTitle">
                                                 <?php echo $view['translator']->trans(
                                                     'mautic.contactclient.form.test_results'
@@ -314,7 +326,8 @@ echo $view['form']->start($form);
                                     <?php echo $view['form']->row($form['file_payload']); ?>
                                     <div id="file_payload_test_result" class="hide modal-xl fade bg-white" tabindex="-1" role="dialog" aria-labelledby="testResultsModalTitle">
                                         <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span></button>
                                             <h4 class="modal-title" id="testResultsModalTitle">
                                                 <?php echo $view['translator']->trans(
                                                     'mautic.contactclient.form.test_results'
@@ -361,13 +374,24 @@ echo $view['form']->start($form);
                                 <div class="col-md-4">
                                     <?php echo $view['form']->row($form['schedule_timezone']); ?>
                                 </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['schedule_hours']); ?>
                                     <div id="contactclient_schedule_hours_widget"></div>
                                 </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-sm-12">
                                     <?php echo $view['form']->row($form['schedule_exclusions']); ?>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
                                     <?php echo $view['form']->row($form['schedule_queue']); ?>
+                                </div>
+                                <div class="col-md-3">
+                                    <?php echo $view['form']->row($form['schedule_queue_spread']); ?>
                                 </div>
                             </div>
                             <hr class="mnr-md mnl-md">

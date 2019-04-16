@@ -95,20 +95,22 @@ class Schedule
      * Given the hours of operation, timezone and excluded dates of the client...
      * Find the next appropriate time to send them contacts.
      *
-     * @param int $fileRate maximum number of files to build per day
-     * @param int $seekDays maximum number of days forward to seek for an opening
-     * @param int $startDay set to 1 to start the seek tomorrow
+     * @param int  $startDay set to 1 to start the seek tomorrow, 0 for today
+     * @param int  $endDay   maximum number of days forward to seek for an opening
+     * @param int  $fileRate maximum number of files to build per day (applies to file seek only)
+     * @param bool $all      indicates we want all the openings in the range of days
      *
      * @return array
      *
      * @throws \Exception
      */
-    public function nextOpening($fileRate, $seekDays, $startDay = 0)
+    public function findOpening($startDay = 0, $endDay = 7, $fileRate = 1, $all = false)
     {
+        $openings = [];
         // During this evaluation the $this->now property will shift forward in time till the next opening.
         $realNow = new \DateTime();
 
-        for ($day = $startDay; $day < $seekDays; ++$day) {
+        for ($day = $startDay; $day < $endDay; ++$day) {
             if (0 === $day) {
                 // Current day.
                 $this->now = clone $realNow;
@@ -143,22 +145,24 @@ class Schedule
                 $start->setTimezone($this->timezone);
                 $start->modify($timeFrom);
 
-                // Evaluate if we have exceeded allowed file count for this day.
-                $fileCount = $this->evaluateFileRate($fileRate);
+                if ('file' === $this->contactClient->getType()) {
+                    // Evaluate if we have exceeded allowed file count for this day.
+                    $fileCount = $this->evaluateFileRate($fileRate);
 
-                // If we have already built a file in this day and can send more...
-                if ($fileCount > 0 && $fileRate > 1) {
-                    // Push the start time to the next available slot in this day.
-                    $daySeconds = $end->format('U') - $start->format('U');
-                    if ('00:00' === $timeFrom && '23:59' === $timeTill) {
-                        // Avoid sending 2 files at midnight.
-                        $segmentSeconds = intval($daySeconds / $fileRate);
-                    } else {
-                        // Send at opening and closing times, spreading the rest of the day evenly.
-                        $segmentSeconds = intval($daySeconds / ($fileRate - 1));
+                    // If we have already built a file in this day and can send more...
+                    if ($fileCount > 0 && $fileRate > 1) {
+                        // Push the start time to the next available slot in this day.
+                        $daySeconds = $end->format('U') - $start->format('U');
+                        if ('00:00' === $timeFrom && '23:59' === $timeTill) {
+                            // Avoid sending 2 files at midnight.
+                            $segmentSeconds = intval($daySeconds / $fileRate);
+                        } else {
+                            // Send at opening and closing times, spreading the rest of the day evenly.
+                            $segmentSeconds = intval($daySeconds / ($fileRate - 1));
+                        }
+                        // Push start time to the next segment.
+                        $start->modify('+'.($segmentSeconds * $fileCount).' seconds');
                     }
-                    // Push start time to the next segment.
-                    $start->modify('+'.($segmentSeconds * $fileCount).' seconds');
                 }
 
                 // Start time should not be in the past.
@@ -167,9 +171,10 @@ class Schedule
                     $start = $realNow;
                 }
 
-                // Return the next appropriate window to send contacts.
-                return [$start, $end];
-                break;
+                $openings[] = [$start, $end];
+                if (!$all) {
+                    break;
+                }
             } catch (\Exception $e) {
                 if ($e instanceof ContactClientException) {
                     // Expected.
@@ -179,7 +184,7 @@ class Schedule
             }
         }
 
-        return [null, null];
+        return $openings;
     }
 
     /**

@@ -145,7 +145,17 @@ class ContactClient extends FormEntity
     /**
      * @var int
      */
+    private $schedule_queue_spread;
+
+    /**
+     * @var int
+     */
     private $limits_queue;
+
+    /**
+     * @var int
+     */
+    private $limits_queue_spread;
 
     /**
      * @var mixed
@@ -163,6 +173,14 @@ class ContactClient extends FormEntity
 
         if (null === $this->schedule_queue) {
             $this->schedule_queue = false;
+        }
+
+        if (null === $this->schedule_queue_spread) {
+            $this->schedule_queue_spread = 1;
+        }
+
+        if (null === $this->limits_queue_spread) {
+            $this->limits_queue_spread = 1;
         }
 
         if (null === $this->exclusive_ignore) {
@@ -250,6 +268,8 @@ class ContactClient extends FormEntity
 
         $builder->addNullableField('limits_queue', 'boolean');
 
+        $builder->addNullableField('limits_queue_spread', 'integer');
+
         $builder->addNullableField('schedule_hours', 'text');
 
         $builder->addNullableField('schedule_timezone', 'string');
@@ -257,6 +277,8 @@ class ContactClient extends FormEntity
         $builder->addNullableField('schedule_exclusions', 'text');
 
         $builder->addNullableField('schedule_queue', 'boolean');
+
+        $builder->addNullableField('schedule_queue_spread', 'integer');
 
         $builder->addNullableField('api_payload', 'text');
 
@@ -293,12 +315,14 @@ class ContactClient extends FormEntity
                     'filter',
                     'limits',
                     'limits_queue',
+                    'limits_queue_spread',
                     'attribution_default',
                     'attribution_settings',
                     'schedule_timezone',
                     'schedule_hours',
                     'schedule_exclusions',
                     'schedule_queue',
+                    'schedule_queue_spread',
                     'api_payload',
                     'file_payload',
                     'dnc_checks',
@@ -710,6 +734,28 @@ class ContactClient extends FormEntity
     /**
      * @return mixed
      */
+    public function getLimitsQueueSpread()
+    {
+        return $this->limits_queue_spread ? $this->limits_queue_spread : 1;
+    }
+
+    /**
+     * @param mixed $limits_queue_spread
+     *
+     * @return ContactClient
+     */
+    public function setLimitsQueueSpread($limits_queue_spread)
+    {
+        $this->isChanged('limitsQueueSpread', $limits_queue_spread);
+
+        $this->limits_queue_spread = $limits_queue_spread;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getScheduleHours()
     {
         return $this->schedule_hours;
@@ -791,6 +837,28 @@ class ContactClient extends FormEntity
         $this->isChanged('scheduleQueue', $schedule_queue);
 
         $this->schedule_queue = $schedule_queue;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScheduleQueueSpread()
+    {
+        return $this->schedule_queue_spread ? $this->schedule_queue_spread : 1;
+    }
+
+    /**
+     * @param mixed $schedule_queue_spread
+     *
+     * @return ContactClient
+     */
+    public function setScheduleQueueSpread($schedule_queue_spread)
+    {
+        $this->isChanged('scheduleQueueSpread', $schedule_queue_spread);
+
+        $this->schedule_queue_spread = $schedule_queue_spread;
 
         return $this;
     }

@@ -500,13 +500,13 @@ class FilePayload
     /**
      * Tokenize/parse fields from the file Payload for transit.
      *
-     * @todo - This method also exists in the other payload type with a minor difference
-     *
      * @param $fields
      *
      * @return array
      *
      * @throws ContactClientException
+     *
+     * @todo - This method also exists in the other payload type with a minor difference
      */
     private function fieldValues($fields)
     {
@@ -748,24 +748,26 @@ class FilePayload
     public function evaluateSchedule($prepFile = false)
     {
         if (!$this->scheduleStart && !$this->test) {
-            $rate     = max(1, (int) $this->settings['rate']);
-            $seekDays = 30;
+            $rate   = max(1, (int) $this->settings['rate']);
+            $endDay = 30;
             $this->scheduleModel
                 ->reset()
                 ->setContactClient($this->contactClient)
                 ->setTimezone();
 
-            list($start, $end) = $this->scheduleModel->nextOpening($rate, $seekDays);
-
-            if (!$start) {
+            $openings = $this->scheduleModel->findOpening(0, $endDay, $rate);
+            if (!$openings) {
                 throw new ContactClientException(
-                    'Could not find an open time slot to send in the next '.$seekDays.' days',
+                    'Could not find an open time slot to send in the next '.$endDay.' days',
                     0,
                     null,
                     Stat::TYPE_SCHEDULE,
                     false
                 );
             }
+
+            $opening           = reset($openings);
+            list($start, $end) = $opening;
 
             // More stringent schedule check to discern if now is a good time to prepare a file for build/send.
             if ($prepFile) {

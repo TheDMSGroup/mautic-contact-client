@@ -745,22 +745,26 @@ class ClientIntegration extends AbstractIntegration
                 && 'api' == $this->contactClient->getType()
                 && $this->contactClient->getScheduleQueue()
             ) {
-                // Requeue the contact to be sent at a later time per API Schedule Queue setting,
-                // and change stat type to queue
-                $this->retry = true;
-                $exception->setStatType(Stat::TYPE_SCHEDULE_QUEUE);
-                $exception->setMessage($exception->getMessage().' Queued for a later.');
-                $this->addRescheduleItemToSession();
+                // Attempt to reschedule given the spread setting and scheduling.
+                $maxDay = $this->contactClient->getScheduleQueueSpread();
+                if ($this->addRescheduleItemToSession(1, $maxDay)) {
+                    // Requeue the contact to be sent at a later time per API Schedule Queue setting,
+                    $this->retry = true;
+                    $exception->setStatType(Stat::TYPE_SCHEDULE_QUEUE);
+                    $exception->setMessage($exception->getMessage().' Queued for a later.');
+                }
             } elseif (
                 Stat::TYPE_LIMITS == $exception->getStatType()
                 && $this->contactClient->getLimitsQueue()
             ) {
-                // Requeue the contact to be sent at a later time per Limits Queue setting,
-                // and change stat type to queue
-                $this->retry = true;
-                $exception->setStatType(Stat::TYPE_LIMITS_QUEUE);
-                $exception->setMessage($exception->getMessage().' Queued for a later.');
-                $this->addRescheduleItemToSession(1);
+                // Attempt to reschedule given the spread setting and scheduling.
+                $maxDay = $this->contactClient->getLimitsQueueSpread();
+                if ($this->addRescheduleItemToSession(1, $maxDay)) {
+                    // Requeue the contact to be sent at a later time per Limits Queue setting,
+                    $this->retry = true;
+                    $exception->setStatType(Stat::TYPE_LIMITS_QUEUE);
+                    $exception->setMessage($exception->getMessage().' Queued for a later.');
+                }
             } elseif ($exception->getRetry()) {
                 // Handle general exception retries.
                 $this->logIntegrationError($exception, $this->contact);
@@ -785,29 +789,46 @@ class ClientIntegration extends AbstractIntegration
 
     /**
      * @param int $startDay
+     * @param int $endDay
+     *
+     * @return bool returns true if we were able to find an open slot to reschedule to
      *
      * @throws Exception
      */
-    public function addRescheduleItemToSession($startDay = 0)
+    public function addRescheduleItemToSession($startDay = 1, $endDay = 7)
     {
+        $result = false;
         if (isset($this->getEvent()['leadEventLog'])) {
-            // add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
-            $contactClientRescheduleEvents = $this->getSession()->get('contact.client.reschedule.event', []);
-            $range                         = $this->payloadModel->getScheduleModel()->nextOpening(1, 7, $startDay);
-            if (!isset($range[0])) {
-                $interval       = $this->factory->getParameter('campaign_time_wait_on_event_false');
-                $rescheduleDate = new \DateTime('+'.$startDay.' day');
-                try {
-                    $rescheduleDate->add(new \DateInterval($interval));
-                } catch (\Exception $e) {
-                }
-            } else {
-                $rescheduleDate = $range[0];
-            }
+            // Only randomly disperse API requests.
+            $random = ('api' === $this->contactClient->getType());
 
-            $contactClientRescheduleEvents[$this->getEvent()['leadEventLog']->getId()] = $rescheduleDate;
-            $this->getSession()->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
+            // Get all openings if API, otherwise just get the first available.
+            $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 0, $random);
+            if ($openings) {
+                if ($random) {
+                    $opening = $openings[rand(0, count($openings))];
+                } else {
+                    $opening = reset($openings);
+                }
+                list($start, $end) = $opening;
+
+                // Randomly disperse within this range of time if desired.
+                if ($random) {
+                    // How many seconds are there in this range, minus a minute for margin of error at the end of day?
+                    $rangeSeconds = min(0, ($end->format('U') - $start->format('U') - 60));
+                    $start->modify('+'.rand(0, $rangeSeconds).' seconds');
+                }
+
+                // Add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
+                $eventLogId          = $this->getEvent()['leadEventLog']->getId();
+                $events              = $this->getSession()->get('contact.client.reschedule.event', []);
+                $events[$eventLogId] = $start;
+                $this->getSession()->set('contact.client.reschedule.event', $events);
+                $result = true;
+            }
         }
+
+        return $result;
     }
 
     /**
