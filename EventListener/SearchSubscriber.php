@@ -74,10 +74,9 @@ class SearchSubscriber extends CommonSubscriber
                 }
 
                 if ($count > 5) {
-                    $sourceResults[] = $this->templating->renderResponse(
+                    $clientResults[] = $this->templating->renderResponse(
                         'MauticContactClientBundle:SubscribedEvents\Search:global.html.php',
                         [
-                            'client'       => $client,
                             'showMore'     => true,
                             'searchString' => $str,
                             'remaining'    => ($count - 5),
