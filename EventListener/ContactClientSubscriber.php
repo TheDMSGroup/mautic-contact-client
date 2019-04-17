@@ -13,6 +13,8 @@ namespace MauticPlugin\MauticContactClientBundle\EventListener;
 
 use Mautic\AssetBundle\Helper\TokenHelper as AssetTokenHelper;
 use Mautic\CampaignBundle\CampaignEvents;
+use Mautic\CampaignBundle\Entity\FailedLeadEventLog;
+use Mautic\CampaignBundle\Entity\FailedLeadEventLogRepository;
 use Mautic\CampaignBundle\Entity\LeadEventLog;
 use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
 use Mautic\CampaignBundle\Event\ScheduledEvent;
@@ -241,27 +243,56 @@ class ContactClientSubscriber extends CommonSubscriber
     {
         if ($event->isReschedule()) {
             /** @var LeadEventLog $log */
-            $log = $event->getLog();
+            $log   = $event->getLog();
+            $logId = $log->getId();
 
             // do this when a LeadEventLog is meant to be rescheduled
-            $contactClientRescheduleEvents = $this->session->get('contact.client.reschedule.event');
+            $events = $this->session->get('contact.client.reschedule.event');
 
-            if (!empty($contactClientRescheduleEvents) && array_key_exists(
-                    $log->getId(),
-                    $contactClientRescheduleEvents
-                )) {
-                // get leadEventLog repo and save log entity.
-                $log->setTriggerDate($contactClientRescheduleEvents[$log->getId()]);
-                $log->setIsScheduled(true);
-                /** @var LeadEventLogRepository $leadEventLogRepo */
-                $leadEventLogRepo = $this->em->getRepository('MauticCampaignBundle:LeadEventLog');
-                $leadEventLogRepo->saveEntity($log);
+            if (!empty($events) && isset($events[$logId])) {
+                if ($events[$logId] instanceof \DateTime) {
+                    // For BC.
+                    $triggerDate = $events[$logId];
+                    $reason      = null;
+                } else {
+                    $triggerDate = isset($events[$logId]['triggerDate']) ? $events[$logId]['triggerDate'] : null;
+                    $reason      = isset($events[$logId]['reason']) ? $events[$logId]['reason'] : null;
+                }
+                if (
+                    $triggerDate
+                    && ($log->getTriggerDate() !== $triggerDate || !$log->getIsScheduled())
+                ) {
+                    $log->setTriggerDate($triggerDate);
+                    $log->setIsScheduled(true);
 
-                unset($contactClientRescheduleEvents[$log->getId()]);
-                $this->session->set('contact.client.reschedule.event', $contactClientRescheduleEvents);
+                    if ($reason) {
+                        /** @var FailedLeadEventLog $failedLog */
+                        $failedLog = $log->getFailedLog();
+                        if ($failedLog) {
+                            if ($failedLog->getReason() !== $reason) {
+                                // There is a failed log, let's put the data there to keep the main table light.
+                                $failedLog->setReason($reason);
+                                /** @var FailedLeadEventLogRepository $failedLeadEventLogRepository */
+                                $failedLeadEventLogRepository = $this->em->getRepository(
+                                    'MauticCampaignBundle:FailedLeadEventLog'
+                                );
+                                $failedLeadEventLogRepository->saveEntity($failedLog);
+                            }
+                            $log->setMetadata([]);
+                        } else {
+                            // Persist to the metadata of the event log as a fall-back (non-failing events).
+                            $log->appendToMetadata(['reason' => $reason]);
+                        }
+                    }
+
+                    /** @var LeadEventLogRepository $leadEventLogRepo */
+                    $leadEventLogRepo = $this->em->getRepository('MauticCampaignBundle:LeadEventLog');
+                    $leadEventLogRepo->saveEntity($log);
+                }
+
+                unset($events[$logId]);
+                $this->session->set('contact.client.reschedule.event', $events);
             }
         }
-
-        // no action for other conditions yet, but maybe later...
     }
 }

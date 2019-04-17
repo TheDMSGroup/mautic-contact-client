@@ -737,7 +737,7 @@ class ClientIntegration extends AbstractIntegration
                 // API request during a closed hour/day but the queue is enabled for this.
                 // Attempt to reschedule given the spread setting and scheduling.
                 $maxDay = $this->contactClient->getScheduleQueueSpread();
-                if ($this->addRescheduleItemToSession(1, $maxDay)) {
+                if ($this->addRescheduleItemToSession(1, $maxDay, null, $exception->getMessage())) {
                     // Requeue the contact to be sent at a later time per API Schedule Queue setting,
                     $this->retry = true;
                     $exception->setStatType(Stat::TYPE_SCHEDULE_QUEUE);
@@ -751,7 +751,7 @@ class ClientIntegration extends AbstractIntegration
                 // Rate limits were exceed but the queue is enabled for this.
                 // Attempt to reschedule given the spread setting and scheduling.
                 $maxDay = $this->contactClient->getLimitsQueueSpread();
-                if ($this->addRescheduleItemToSession(1, $maxDay)) {
+                if ($this->addRescheduleItemToSession(1, $maxDay, null, $exception->getMessage())) {
                     // Requeue the contact to be sent at a later time per Limits Queue setting,
                     $this->retry = true;
                     $exception->setStatType(Stat::TYPE_LIMITS_QUEUE);
@@ -784,7 +784,7 @@ class ClientIntegration extends AbstractIntegration
                     }
                     // Add randomized drift of up to 30 minutes to reduce likelihood of stampedes.
                     $startTime->modify('+'.rand(0, 1800).' seconds');
-                    if ($this->addRescheduleItemToSession(0, 1, $startTime)) {
+                    if ($this->addRescheduleItemToSession(0, 1, $startTime, $exception->getMessage())) {
                         $this->retry = true;
                     }
                 }
@@ -808,15 +808,16 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param int       $startDay
-     * @param int       $endDay
-     * @param \DateTime $startTime
+     * @param int            $startDay
+     * @param int            $endDay
+     * @param \DateTime|null $startTime
+     * @param string|null    $reason
      *
      * @return bool
      *
      * @throws Exception
      */
-    public function addRescheduleItemToSession($startDay = 1, $endDay = 7, $startTime = null)
+    public function addRescheduleItemToSession($startDay = 1, $endDay = 7, \DateTime $startTime = null, $reason = null)
     {
         $result = false;
         if (isset($this->getEvent()['leadEventLog'])) {
@@ -849,7 +850,10 @@ class ClientIntegration extends AbstractIntegration
                 // Add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
                 $eventLogId          = $this->getEvent()['leadEventLog']->getId();
                 $events              = $this->getSession()->get('contact.client.reschedule.event', []);
-                $events[$eventLogId] = $start;
+                $events[$eventLogId] = [
+                    'triggerDate' => $start,
+                    'reason'      => $reason,
+                ];
                 $this->getSession()->set('contact.client.reschedule.event', $events);
                 $result = true;
             }
