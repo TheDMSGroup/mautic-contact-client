@@ -13,11 +13,11 @@ namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
 use Mautic\CampaignBundle\Model\CampaignModel;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\LeadBundle\Entity\DoNotContactRepository;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
-use Mautic\PluginBundle\Exception\ApiErrorException;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
@@ -100,6 +100,9 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var DoNotContactRepository */
     protected $dncRepo;
+
+    /** @var CoreParametersHelper */
+    protected $parameterHelper;
 
     /** @var array */
     private $dncChannels = [];
@@ -718,33 +721,20 @@ class ClientIntegration extends AbstractIntegration
         // Any exception means the client send has failed.
         $this->valid = false;
 
-        if ($exception instanceof ApiErrorException) {
-            // Critical issue with the API. This will be logged and retried.
-            // To be deprecated.
-            if ($this->contact) {
-                $exception->setContact($this->contact);
-            }
-        } elseif ($exception instanceof ContactClientException) {
+        if ($exception instanceof ContactClientException) {
             // A known exception within the Client handling.
             if ($this->contact) {
                 $exception->setContact($this->contact);
             }
 
-            if ($exception->getStatType()) {
-                $this->statType = $exception->getStatType();
-                $this->setLogs($this->statType, 'status');
-            }
-
-            $errorData = $exception->getData();
-            if ($errorData) {
-                $this->setLogs($errorData, $exception->getStatType());
-            }
-
+            // Handle retryable / queue exceptions.
             if (
                 Stat::TYPE_SCHEDULE == $exception->getStatType()
+                && $this->contactClient
                 && 'api' == $this->contactClient->getType()
                 && $this->contactClient->getScheduleQueue()
             ) {
+                // API request during a closed hour/day but the queue is enabled for this.
                 // Attempt to reschedule given the spread setting and scheduling.
                 $maxDay = $this->contactClient->getScheduleQueueSpread();
                 if ($this->addRescheduleItemToSession(1, $maxDay)) {
@@ -755,8 +745,10 @@ class ClientIntegration extends AbstractIntegration
                 }
             } elseif (
                 Stat::TYPE_LIMITS == $exception->getStatType()
+                && $this->contactClient
                 && $this->contactClient->getLimitsQueue()
             ) {
+                // Rate limits were exceed but the queue is enabled for this.
                 // Attempt to reschedule given the spread setting and scheduling.
                 $maxDay = $this->contactClient->getLimitsQueueSpread();
                 if ($this->addRescheduleItemToSession(1, $maxDay)) {
@@ -765,58 +757,93 @@ class ClientIntegration extends AbstractIntegration
                     $exception->setStatType(Stat::TYPE_LIMITS_QUEUE);
                     $exception->setMessage($exception->getMessage().' Queued for a later.');
                 }
-            } elseif ($exception->getRetry()) {
-                // Handle general exception retries.
-                $this->logIntegrationError($exception, $this->contact);
-                if (
-                    $this->contactClient
-                    && 'api' === $this->contactClient->getType()
-                    && ($payloadModel = $this->getPayloadModel())
-                    && ($settings = $payloadModel->getSettings())
-                    && isset($settings['autoRetry'])
-                ) {
-                    // set to Client retry setting and IS an API payload
-                    $this->retry = (bool) $settings['autoRetry'];
-                } else {
-                    $this->retry = true;
+            } elseif (
+                $exception->getRetry()
+                && $this->contactClient
+                && 'api' === $this->contactClient->getType()
+                && ($payloadModel = $this->getPayloadModel())
+                && ($settings = $payloadModel->getSettings())
+                && isset($settings['autoRetry'])
+                && true === boolval($settings['autoRetry'])
+            ) {
+                // API based client had a retryable exception and has autoRetry enabled, so we should retry if possible.
+                // Attempt to reschedule to the next open slot by global campaign setting up to 1 day in the future.
+                // This will avoid retries on closed hours if at-all possible.
+                /** @var string $intervalString */
+                $intervalString = $this->getParameterHelper()->getParameter(
+                    'campaign_time_wait_on_event_false'
+                );
+                if ($intervalString) {
+                    try {
+                        $interval  = new \DateInterval($intervalString);
+                        $startTime = new \DateTime();
+                        $startTime->add($interval);
+                    } catch (\Exception $e) {
+                        // If no interval is set default to a few hours in the future
+                        $startTime = new \DateTime('+6 hours');
+                    }
+                    // Add randomized drift of up to 30 minutes to reduce likelihood of stampedes.
+                    $startTime->modify('+'.rand(0, 1800).' seconds');
+                    if ($this->addRescheduleItemToSession(0, 1, $startTime)) {
+                        $this->retry = true;
+                    }
                 }
             }
-            $this->setLogs($this->retry, 'retry');
+
+            // We will persist exception information to logs/stats.
+            if ($exception->getStatType()) {
+                $this->statType = $exception->getStatType();
+                $this->setLogs($this->statType, 'status');
+            }
+            $errorData = $exception->getData();
+            if ($errorData) {
+                $this->setLogs($errorData, $exception->getStatType());
+            }
+        } else {
+            // Unexpected issue with the Client plugin.
+            $this->logIntegrationError($exception, $this->contact);
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');
     }
 
     /**
-     * @param int $startDay
-     * @param int $endDay
+     * @param int       $startDay
+     * @param int       $endDay
+     * @param \DateTime $startTime
      *
-     * @return bool returns true if we were able to find an open slot to reschedule to
+     * @return bool
      *
      * @throws Exception
      */
-    public function addRescheduleItemToSession($startDay = 1, $endDay = 7)
+    public function addRescheduleItemToSession($startDay = 1, $endDay = 7, $startTime = null)
     {
         $result = false;
         if (isset($this->getEvent()['leadEventLog'])) {
-            // Only randomly disperse API requests.
-            $random = ('api' === $this->contactClient->getType());
+            // To randomly disperse API requests we must get all openings within the date range first.
+            $all = 'api' === $this->contactClient->getType();
 
             // Get all openings if API, otherwise just get the first available.
-            $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 0, $random);
+            $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 1, $all, $startTime);
             if ($openings) {
-                if ($random) {
-                    $opening = $openings[rand(0, count($openings))];
+                // Select an opening.
+                if ($all) {
+                    $opening = $openings[rand(0, count($openings) - 1)];
                 } else {
                     $opening = reset($openings);
                 }
+                /**
+                 * @var \DateTime
+                 * @var $end      \DateTime
+                 */
                 list($start, $end) = $opening;
 
-                // Randomly disperse within this range of time if desired.
-                if ($random) {
+                // Randomly disperse within this range of time if needed.
+                if ($all) {
                     // How many seconds are there in this range, minus a minute for margin of error at the end of day?
-                    $rangeSeconds = min(0, ($end->format('U') - $start->format('U') - 60));
-                    $start->modify('+'.rand(0, $rangeSeconds).' seconds');
+                    $rangeSeconds = max(0, ($end->format('U') - $start->format('U') - 60));
+                    $randSeconds  = rand(0, $rangeSeconds);
+                    $start->modify('+'.$randSeconds.' seconds');
                 }
 
                 // Add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
@@ -842,6 +869,18 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $this->session;
+    }
+
+    /**
+     * @return CoreParametersHelper|object
+     */
+    private function getParameterHelper()
+    {
+        if (!$this->parameterHelper) {
+            $this->parameterHelper = $this->dispatcher->getContainer()->get('mautic.helper.core_parameters');
+        }
+
+        return $this->parameterHelper;
     }
 
     /**

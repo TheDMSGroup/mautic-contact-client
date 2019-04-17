@@ -88,6 +88,7 @@ class Transport implements TransportInterface
         $original = $this->settings;
         $this->mergeSettings($settings, $this->settings);
         if ($this->settings != $original) {
+            // @todo - Log Curl equivalent during test mode (adds overhead and risk so only do it during test)
             // if (!isset($this->settings['handler']) && class_exists(
             //         '\Namshi\Cuzzle\Middleware\CurlFormatterMiddleware'
             //     )) {
