@@ -176,7 +176,7 @@ class ContactClient extends FormEntity
         }
 
         if (null === $this->schedule_queue_spread) {
-            $this->schedule_queue_spread = 1;
+            $this->schedule_queue_spread = 3;
         }
 
         if (null === $this->limits_queue_spread) {
@@ -846,7 +846,7 @@ class ContactClient extends FormEntity
      */
     public function getScheduleQueueSpread()
     {
-        return $this->schedule_queue_spread ? $this->schedule_queue_spread : 1;
+        return $this->schedule_queue_spread ? $this->schedule_queue_spread : 3;
     }
 
     /**
