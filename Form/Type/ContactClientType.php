@@ -253,6 +253,27 @@ class ContactClientType extends AbstractType
         );
 
         $builder->add(
+            'limits_queue_spread',
+            'range',
+            [
+                'required'   => false,
+                'data'       => min(7, max(1, (int) $options['data']->getLimitsQueueSpread())),
+                'label'      => 'mautic.contactclient.form.limits_queue_spread',
+                'label_attr' => [
+                    'class' => 'control-label pr-10',
+                    'style' => 'display: block;',
+                ],
+                'attr'       => [
+                    'min'     => 1,
+                    'max'     => 7,
+                    'step'    => 1,
+                    'class'   => 'form-control form-control-range',
+                    'tooltip' => 'mautic.contactclient.form.limits_queue_spread.tooltip',
+                ],
+            ]
+        );
+
+        $builder->add(
             'schedule_timezone',
             'timezone',
             [
@@ -293,9 +314,30 @@ class ContactClientType extends AbstractType
                 'label'      => 'mautic.contactclient.form.schedule_queue',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'       => 'form-control hide',
+                    'class'       => 'form-control',
                     'empty_value' => false,
                     'tooltip'     => 'mautic.contactclient.form.schedule_queue.tooltip',
+                ],
+            ]
+        );
+
+        $builder->add(
+            'schedule_queue_spread',
+            'range',
+            [
+                'required'   => false,
+                'data'       => min(7, max(1, (int) $options['data']->getScheduleQueueSpread())),
+                'label'      => 'mautic.contactclient.form.schedule_queue_spread',
+                'label_attr' => [
+                    'class' => 'control-label pr-10',
+                    'style' => 'display: block;',
+                ],
+                'attr'       => [
+                    'min'     => 1,
+                    'max'     => 7,
+                    'step'    => 1,
+                    'class'   => 'form-control form-control-range',
+                    'tooltip' => 'mautic.contactclient.form.schedule_queue_spread.tooltip',
                 ],
             ]
         );
