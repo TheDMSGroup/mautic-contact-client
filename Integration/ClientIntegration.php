@@ -736,8 +736,9 @@ class ClientIntegration extends AbstractIntegration
             ) {
                 // API request during a closed hour/day but the queue is enabled for this.
                 // Attempt to reschedule given the spread setting and scheduling.
-                $maxDay = $this->contactClient->getScheduleQueueSpread();
-                if ($this->addRescheduleItemToSession(1, $maxDay, null, $exception->getMessage())) {
+                $maxDay    = $this->contactClient->getScheduleQueueSpread();
+                $startTime = new \DateTime('+1 hour');
+                if ($this->addRescheduleItemToSession(0, $maxDay, $startTime, $exception->getMessage())) {
                     // Requeue the contact to be sent at a later time per API Schedule Queue setting,
                     $this->retry = true;
                     $exception->setStatType(Stat::TYPE_SCHEDULE_QUEUE);
