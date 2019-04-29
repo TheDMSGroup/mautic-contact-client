@@ -20,8 +20,6 @@
         ['objectAction' => 'view', 'objectId' => $client->getId()]
     ); ?>" data-toggle="ajax">
         <span><?php echo $client->getName(); ?></span>
-        <?php
-        ?>
         <span class="label label-default pull-right" data-toggle="tooltip" data-placement="left"
               title="ID: <?php echo $client->getId(); ?>" ; ?>ID: <?php echo $client->getId(); ?></span>
     </a>
