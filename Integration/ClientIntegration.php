@@ -809,7 +809,6 @@ class ClientIntegration extends AbstractIntegration
                     ).'] in Campaign: '.$this->campaign->getName().' ['.$this->campaign->getId().']',
                     $exception
                 );
-                $this->logIntegrationError($exception, $this->contact);
             }
         } else {
             if (function_exists('newrelic_notice_error')) {
@@ -820,12 +819,12 @@ class ClientIntegration extends AbstractIntegration
                     ).' ['.$this->campaign->getId().']',
                     $exception
                 );
-                // Unexpected issue with the Client plugin.
-                $this->logIntegrationError($exception, $this->contact);
             }
-            $this->setLogs($exception->getMessage(), 'error');
-            $this->setLogs($this->retry, 'retry');
+            // Unexpected issue with the Client plugin.
+            $this->logIntegrationError($exception, $this->contact);
         }
+        $this->setLogs($exception->getMessage(), 'error');
+        $this->setLogs($this->retry, 'retry');
     }
 
     /**
