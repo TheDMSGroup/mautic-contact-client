@@ -70,4 +70,36 @@ Mautic.contactclientLimits = function () {
         });
         $limits.addClass('limits-checked');
     }
+
+    var $limitsQueueSpreadTarget = mQuery('#contactclient_limits_queue_spread:first:not(.spread-checked)');
+    if ($limitsQueueSpreadTarget.length) {
+        $limitsQueueSpreadTarget.addClass('spread-checked');
+        $limitsQueueSpreadTarget.each(function () {
+            var $slider = mQuery(this),
+                min = parseInt(mQuery(this).attr('min')),
+                max = parseInt(mQuery(this).attr('max')),
+                step = parseInt(mQuery(this).attr('step')),
+                value = parseInt(mQuery(this).val()),
+                options = {
+                    'min': min,
+                    'max': max,
+                    'value': value,
+                    'step': step,
+                    formatter: function (val) {
+                        return val + ' day' + (val > 1 ? 's' : '') + ' forward';
+                    }
+                };
+            new Slider($slider[0], options);
+        });
+
+        mQuery('input[name="contactclient[limits_queue]"]').change(function () {
+            var val = parseInt(mQuery('input[name="contactclient[limits_queue]"]:checked:first').val());
+            if (1 === val) {
+                $limitsQueueSpreadTarget.parent().parent().removeClass('hide');
+            }
+            else {
+                $limitsQueueSpreadTarget.parent().parent().addClass('hide');
+            }
+        }).first().parent().parent().find('label.active input:first').trigger('change');
+    }
 };

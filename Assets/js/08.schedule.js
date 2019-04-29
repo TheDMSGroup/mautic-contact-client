@@ -72,20 +72,20 @@ Mautic.contactclientSchedule = function () {
                 });
             },
             dayTmpl: '<div class="dayContainer">' +
-                '<div class="weekday"></div>' +
-                '<div data-original-title="" style="padding:2px; width: 103%; height:auto;" class="colorBox schedule-toggle">' +
-                    '<input type="checkbox" class="invisible operationState">' +
-                    '<div class="operationDayTimeContainer">' +
-                        '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-sun-o"></i></span><input type="text" name="startTime" class="mini-time form-control operationTimeFrom" value=""></div>' +
-                        '<div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-moon-o"></i></span><input type="text" name="endTime" class="mini-time form-control operationTimeTill" value=""></div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>'
+                '  <div class="weekday"></div>' +
+                '  <div data-original-title="" style="padding:2px; width: 103%; height:auto;" class="colorBox schedule-toggle">' +
+                '    <input type="checkbox" class="invisible operationState">' +
+                '    <div class="operationDayTimeContainer">' +
+                '      <div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-sun-o"></i></span><input type="text" name="startTime" class="mini-time form-control operationTimeFrom" value=""></div>' +
+                '      <div class="operationTime input-group"><span class="input-group-addon"><i class="fa fa-moon-o"></i></span><input type="text" name="endTime" class="mini-time form-control operationTimeTill" value=""></div>' +
+                '    </div>' +
+                '  </div>' +
+                '</div>'
         });
         mQuery('#contactclient_schedule_hours_widget .operationState, #contactclient_schedule_hours_widget input').change(function () {
             mQuery('#contactclient_schedule_hours').val(JSON.stringify(scheduleHours.serialize(), null, 2));
         });
-        $scheduleHoursTarget.find('div.input-group').click(function(event) {
+        $scheduleHoursTarget.find('div.input-group').click(function (event) {
             event.stopPropagation();
             return false;
         });
@@ -148,5 +148,37 @@ Mautic.contactclientSchedule = function () {
                 $exclusionsJSONEditor.show();
             }
         });
+    }
+
+    var $scheduleQueueSpreadTarget = mQuery('#contactclient_schedule_queue_spread:first:not(.spread-checked)');
+    if ($scheduleQueueSpreadTarget.length) {
+        $scheduleQueueSpreadTarget.addClass('spread-checked');
+        $scheduleQueueSpreadTarget.each(function () {
+            var $slider = mQuery(this),
+                min = parseInt(mQuery(this).attr('min')),
+                max = parseInt(mQuery(this).attr('max')),
+                step = parseInt(mQuery(this).attr('step')),
+                value = parseInt(mQuery(this).val()),
+                options = {
+                    'min': min,
+                    'max': max,
+                    'value': value,
+                    'step': step,
+                    formatter: function (val) {
+                        return val + ' day' + (val > 1 ? 's' : '') + ' forward';
+                    }
+                };
+            new Slider($slider[0], options);
+        });
+
+        mQuery('input[name="contactclient[schedule_queue]"]').change(function () {
+            var val = parseInt(mQuery('input[name="contactclient[schedule_queue]"]:checked:first').val());
+            if (1 === val) {
+                $scheduleQueueSpreadTarget.parent().parent().removeClass('hide');
+            }
+            else {
+                $scheduleQueueSpreadTarget.parent().parent().addClass('hide');
+            }
+        }).first().parent().parent().find('label.active input:first').trigger('change');
     }
 };
