@@ -98,6 +98,12 @@ return [
                     'doctrine.orm.entity_manager',
                 ],
             ],
+            'mautic.contactclient.search.subscriber'         => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\SearchSubscriber',
+                'arguments' => [
+                    'mautic.contactclient.model.contactclient',
+                    ],
+                ],
         ],
         'forms'        => [
             'mautic.contactclient.form.type.contactclientshow_list' => [
