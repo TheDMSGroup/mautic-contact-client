@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
 use Exception;
+use GuzzleHttp\Exception\ConnectException;
 use Mautic\CampaignBundle\Model\CampaignModel;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\UTF8Helper;
@@ -800,7 +801,25 @@ class ClientIntegration extends AbstractIntegration
             if ($errorData) {
                 $this->setLogs($errorData, $exception->getStatType());
             }
+        } elseif ($exception instanceof ConnectException) {
+            if (function_exists('newrelic_notice_error')) {
+                call_user_func(
+                    'newrelic_notice_error',
+                    'ContactClient Connection Error: '.$this->contactClient->getName().' ['.$this->contactClient->getId(
+                    ).'] in Campaign: '.$this->campaign->getName().' ['.$this->campaign->getId().']',
+                    $exception
+                );
+            }
         } else {
+            if (function_exists('newrelic_notice_error')) {
+                call_user_func(
+                    'newrelic_notice_error',
+                    'ContactClient Integration Error: '.$this->contactClient->getName(
+                    ).' ['.$this->contactClient->getId().'] in Campaign: '.$this->campaign->getName(
+                    ).' ['.$this->campaign->getId().']',
+                    $exception
+                );
+            }
             // Unexpected issue with the Client plugin.
             $this->logIntegrationError($exception, $this->contact);
         }
