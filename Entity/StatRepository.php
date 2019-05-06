@@ -80,6 +80,8 @@ class StatRepository extends CommonRepository
 
         if (empty($type)) {
             $q->andWhere('s.type !=""');
+        } elseif ('revenue' == $type) {
+            $q->andWhere('s.type ="converted"');
         } else {
             $q->andWhere('s.type = :type')
                 ->setParameter('type', $type);
