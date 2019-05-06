@@ -95,6 +95,11 @@ trait ContactClientDetailsTrait
             $filters['type'] = $chartFilters['type'];
         }
 
+        if('revenue' == $filters['type'])
+        {
+            $filters['type'] = 'converted';
+        }
+
         if (
             !isset($filters['campaignId'])
             && !empty($chartFilters['campaign'])
