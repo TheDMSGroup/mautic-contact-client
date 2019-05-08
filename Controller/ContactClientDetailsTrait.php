@@ -17,8 +17,8 @@ use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
  * Trait ContactClientDetailsTrait.
@@ -96,8 +96,7 @@ trait ContactClientDetailsTrait
             $filters['type'] = $chartFilters['type'];
         }
 
-        if('revenue' == $filters['type'])
-        {
+        if ('revenue' == $filters['type']) {
             $filters['type'] = Stat::TYPE_CONVERTED;
         }
 
