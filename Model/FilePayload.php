@@ -671,7 +671,7 @@ class FilePayload
     }
 
     /**
-     * @return Queue|null|object
+     * @return Queue|object|null
      *
      * @throws ContactClientException
      */
@@ -1041,7 +1041,7 @@ class FilePayload
      *
      * @param string $compression
      *
-     * @return null|string
+     * @return string|null
      */
     private function fileGenerateTmp($compression = null)
     {
@@ -1824,7 +1824,7 @@ class FilePayload
     /**
      * Since there is no external ID when sending files, we'll include the file name and CRC check at creation.
      *
-     * @return null|string
+     * @return string|null
      */
     public function getExternalId()
     {

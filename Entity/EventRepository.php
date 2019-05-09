@@ -19,7 +19,6 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class EventRepository extends CommonRepository
 {
-
     /**
      * Fetch the base event data from the database.
      *
@@ -34,10 +33,10 @@ class EventRepository extends CommonRepository
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->select([
                 'c.*',
-                'cc.name client_name'
+                'cc.name client_name',
             ])
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-        ->join('c', 'contactclient', 'cc','cc.id = c.contactclient_id');
+        ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');
 
         $expr = $q->expr()->eq('c.contact_id', ':contactId');
         $q->where($expr)
