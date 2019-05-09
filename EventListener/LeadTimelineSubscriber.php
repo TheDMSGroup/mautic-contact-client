@@ -28,7 +28,7 @@ class LeadTimelineSubscriber extends CommonSubscriber
 
         foreach ($clientEvents as $srcEvent) {
             $srcEvent['eventLabel'] = [
-                'label' => 'Contact Client: '. $srcEvent['client_name'],
+                'label' => 'Contact Client: '.$srcEvent['client_name'],
                 'href'  => "/s/contactclient/view/{$srcEvent['contactclient_id']}",
             ];
             $srcEvent['timestamp'] = $srcEvent['date_added'];
