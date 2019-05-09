@@ -38,8 +38,9 @@ class LeadTimelineSubscriber extends CommonSubscriber
                 'logs'    => $srcEvent['logs'],
                 'message' => $srcEvent['message'],
             ];
-            $srcEvent['contentTemplate'] = 'MauticContactClientBundle:Timeline:sourceevent.html.php';
+            $srcEvent['contentTemplate'] = 'MauticContactClientBundle:Timeline:clientevent.html.php';
             $srcEvent['icon']            = 'fa-plus-square-o contact-client-button';
+
             $event->addEvent($srcEvent);
         }
     }
