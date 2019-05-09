@@ -105,18 +105,24 @@ $logs    = $event['extra']['logs'];
 </dl>
 
 <script defer>
-mQuery('textarea.codeMirror-json').each(function(i, element){
-    console.log(element);
-    CodeMirror.fromTextArea(element, {
-        mode: {
-            name: 'javascript',
-            json: true
-        },
-        theme: 'cc',
-        gutters: [],
-        lineNumbers: false,
-        lineWrapping: true,
-        readOnly: true
-    });
+$buttons = mQuery('.contact-client-button').parent().parent();
+$buttons.on('click', function(){ 
+    console.log('lol');
+    mQuery('textarea.codeMirror-json').each(function(i, element){ 
+        if(mQuery(element).is(':visible')) {
+        CodeMirror.fromTextArea(element, {
+            mode: {
+                name: 'javascript',
+                json: true
+            },
+            theme: 'cc',
+            gutters: [],
+            lineNumbers: false,
+            lineWrapping: true,
+            readOnly: true
+        });
+        }
 });
+
+}); 
 </script>
