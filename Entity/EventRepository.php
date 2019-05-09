@@ -19,6 +19,49 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class EventRepository extends CommonRepository
 {
+
+    /**
+     * Fetch the base event data from the database.
+     *
+     * @param                $contactSourceId
+     * @param                $eventType
+     * @param \DateTime|null $dateAdded
+     *
+     * @return array
+     */
+    public function getEventsByContactId($contactId, $eventType = null, \DateTime $dateAdded = null)
+    {
+        $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
+            ->select([
+                'c.*',
+                'cc.name client_name'
+            ])
+            ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
+        ->join('c', 'contactclient', 'cc','cc.id = c.contactclient_id');
+
+        $expr = $q->expr()->eq('c.contact_id', ':contactId');
+        $q->where($expr)
+            ->setParameter('contactId', (int) $contactId);
+
+        if ($dateAdded) {
+            $expr->add(
+                $q->expr()->gte('c.date_added', ':dateAdded')
+            );
+            $q->setParameter('dateAdded', $dateAdded);
+        }
+
+        if ($eventType) {
+            $expr->add(
+                $q->expr()->eq('c.type', ':type')
+            );
+            $q->setParameter('type', $eventType);
+        }
+
+        $results = $q->execute()->fetchAll();
+
+        return $results;
+    }
+
     /**
      * Fetch the base event data from the database.
      *

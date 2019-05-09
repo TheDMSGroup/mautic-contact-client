@@ -18,6 +18,7 @@ use Mautic\CoreBundle\Entity\CommonRepository;
  */
 class StatRepository extends CommonRepository
 {
+ 
     /**
      * Fetch the base stat data from the database.
      *
