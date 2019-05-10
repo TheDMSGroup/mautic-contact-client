@@ -310,10 +310,10 @@ class ClientIntegration extends AbstractIntegration
 
         try {
             $this->validateClient($client, $force);
+            $this->addTrace('contactClient', $this->contactClient->getName());
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
-            $this->validateContact($contact);
-            $this->addTrace('contactClientContactId', $this->contact->getId());
+            $this->validateContact();
 
             // Check all rules that may preclude sending this contact, in order of performance cost.
 
@@ -416,13 +416,11 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param Contact|null $contact
-     *
      * @throws ContactClientException
      */
-    private function validateContact(Contact $contact = null)
+    private function validateContact()
     {
-        if (!$contact && !$this->test) {
+        if (!$this->contact && !$this->test) {
             throw new ContactClientException(
                 $this->translator->trans('mautic.contactclient.sendcontact.error.contact.load'),
                 0,
@@ -431,6 +429,7 @@ class ClientIntegration extends AbstractIntegration
                 false
             );
         }
+        $this->addTrace('contactClientContactId', $this->contact->getId());
     }
 
     /**
@@ -707,6 +706,10 @@ class ClientIntegration extends AbstractIntegration
                 } catch (\Exception $e) {
                 }
             }
+            if ($this->campaign) {
+                $this->addTrace('campaign', $this->campaign->getName());
+                $this->addTrace('campaignId', $this->campaign->getId());
+            }
         }
 
         return $this->campaign;
@@ -805,8 +808,7 @@ class ClientIntegration extends AbstractIntegration
             if (function_exists('newrelic_notice_error')) {
                 call_user_func(
                     'newrelic_notice_error',
-                    'ContactClient Connection Error: '.$this->contactClient->getName().' ['.$this->contactClient->getId(
-                    ).'] in Campaign: '.$this->campaign->getName().' ['.$this->campaign->getId().']',
+                    'ContactClient Connection Error '.($this->contactClient ? $this->contactClient->getId() : 'NA'),
                     $exception
                 );
             }
@@ -814,9 +816,7 @@ class ClientIntegration extends AbstractIntegration
             if (function_exists('newrelic_notice_error')) {
                 call_user_func(
                     'newrelic_notice_error',
-                    'ContactClient Integration Error: '.$this->contactClient->getName(
-                    ).' ['.$this->contactClient->getId().'] in Campaign: '.$this->campaign->getName(
-                    ).' ['.$this->campaign->getId().']',
+                    'ContactClient Integration Error '.($this->contactClient ? $this->contactClient->getId() : 'NA'),
                     $exception
                 );
             }
