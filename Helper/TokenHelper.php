@@ -118,6 +118,7 @@ class TokenHelper
         'trim.255'          => 'Trim to 255 characters (varchar)',
         'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
+        'zip.plus4'         => 'The zipcode +4 digits only',
     ];
 
     /** @var array */
@@ -156,6 +157,7 @@ class TokenHelper
         'trim.65535'        => 'Trim to 65535 characters (text/blog)',
         'url.encode'        => 'Encode for use in a URL',
         'zip.short'         => 'Exclude zipcode +4',
+        'zip.plus4'         => 'The zipcode +4 digits only',
     ];
 
     /** @var array */
@@ -343,6 +345,21 @@ class TokenHelper
                                 $dash = strpos((string) $value, '-');
 
                                 return $dash ? substr((string) $value, 0, $dash) : $value;
+                            },
+                            'plus4' => function ($value) {
+                                $dash = strrpos((string) $value, '-');
+                                if (!$dash) {
+                                    // No dash found, thus this is not a ZIP+4
+                                    return '';
+                                }
+                                $start = 1 - (strlen($value) - $dash);
+                                $value = substr((string) $value, $start);
+                                if (4 !== strlen($value)) {
+                                    // Not precisely 4 digits, thus this is not a ZIP+4
+                                    return '';
+                                }
+
+                                return $value;
                             },
                         ]
                     );
