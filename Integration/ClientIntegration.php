@@ -369,6 +369,10 @@ class ClientIntegration extends AbstractIntegration
             if ($operationLogs) {
                 $this->setLogs($operationLogs, 'operations');
             }
+            $lastOp = $this->payloadModel->getLastOp();
+            if ($lastOp) {
+                $this->addTrace('contactClientLastOp', $lastOp);
+            }
         }
 
         $this->updateContact();
