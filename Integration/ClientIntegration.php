@@ -789,7 +789,9 @@ class ClientIntegration extends AbstractIntegration
                     }
                     // Add randomized drift of up to 30 minutes to reduce likelihood of stampedes.
                     $startTime->modify('+'.rand(0, 1800).' seconds');
-                    if ($this->addRescheduleItemToSession(0, 1, $startTime, $exception->getMessage())) {
+                    // Prefer that we retry in the next (first) quarter of the available window.
+                    $rangeModifier = .25;
+                    if ($this->addRescheduleItemToSession(0, 1, $startTime, $exception->getMessage(), $rangeModifier)) {
                         $this->retry = true;
                     }
                 }
@@ -828,15 +830,21 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param int            $startDay
-     * @param int            $endDay
-     * @param \DateTime|null $startTime
-     * @param null           $reason
+     * @param int            $startDay      The first day to possibly reschedule to.
+     * @param int            $endDay        The last day to possibly reschedule to.
+     * @param \DateTime|null $startTime     If today is an option, set this as the first possible start time.
+     * @param null           $reason        If we are logging a failure, provide a reason for the UI.
+     * @param int            $rangeModifier Set to less than 1 to prefer an earlier time in the opening (multiplier).
      *
      * @return bool
      */
-    public function addRescheduleItemToSession($startDay = 1, $endDay = 7, \DateTime $startTime = null, $reason = null)
-    {
+    public function addRescheduleItemToSession(
+        $startDay = 1,
+        $endDay = 7,
+        \DateTime $startTime = null,
+        $reason = null,
+        $rangeModifier = 1
+    ) {
         $result = false;
         if (isset($this->getEvent()['leadEventLog'])) {
             // To randomly disperse API requests we must get all openings within the date range first.
@@ -845,7 +853,13 @@ class ClientIntegration extends AbstractIntegration
             // Get all openings if API, otherwise just get the first available.
             $openings = [];
             try {
-                $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 1, $all, $startTime);
+                $openings = $this->payloadModel->getScheduleModel()->findOpening(
+                    $startDay,
+                    $endDay,
+                    1,
+                    $all,
+                    $startTime
+                );
             } catch (\Exception $e) {
                 // Irrelevant exceptions.
             }
@@ -857,7 +871,7 @@ class ClientIntegration extends AbstractIntegration
                     $opening = reset($openings);
                 }
                 /**
-                 * @var \DateTime
+                 * @var $start    \DateTime
                  * @var $end      \DateTime
                  */
                 list($start, $end) = $opening;
@@ -866,7 +880,7 @@ class ClientIntegration extends AbstractIntegration
                 if ($all) {
                     // How many seconds are there in this range, minus a minute for margin of error at the end of day?
                     $rangeSeconds = max(0, (intval($end->format('U')) - intval($start->format('U')) - 60));
-                    $randSeconds  = rand(0, $rangeSeconds);
+                    $randSeconds  = rand(0, round($rangeSeconds * $rangeModifier));
                     try {
                         $start->modify('+'.$randSeconds.' seconds');
                     } catch (\Exception $e) {
