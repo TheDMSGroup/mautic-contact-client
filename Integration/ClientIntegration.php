@@ -831,11 +831,9 @@ class ClientIntegration extends AbstractIntegration
      * @param int            $startDay
      * @param int            $endDay
      * @param \DateTime|null $startTime
-     * @param string|null    $reason
+     * @param null           $reason
      *
      * @return bool
-     *
-     * @throws Exception
      */
     public function addRescheduleItemToSession($startDay = 1, $endDay = 7, \DateTime $startTime = null, $reason = null)
     {
@@ -845,7 +843,12 @@ class ClientIntegration extends AbstractIntegration
             $all = 'api' === $this->contactClient->getType();
 
             // Get all openings if API, otherwise just get the first available.
-            $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 1, $all, $startTime);
+            $openings = [];
+            try {
+                $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 1, $all, $startTime);
+            } catch (\Exception $e) {
+                // Irrelevant exceptions.
+            }
             if ($openings) {
                 // Select an opening.
                 if ($all) {
@@ -862,9 +865,13 @@ class ClientIntegration extends AbstractIntegration
                 // Randomly disperse within this range of time if needed.
                 if ($all) {
                     // How many seconds are there in this range, minus a minute for margin of error at the end of day?
-                    $rangeSeconds = max(0, ($end->format('U') - $start->format('U') - 60));
+                    $rangeSeconds = max(0, (intval($end->format('U')) - intval($start->format('U')) - 60));
                     $randSeconds  = rand(0, $rangeSeconds);
-                    $start->modify('+'.$randSeconds.' seconds');
+                    try {
+                        $start->modify('+'.$randSeconds.' seconds');
+                    } catch (\Exception $e) {
+                        // Irrelevant exceptions.
+                    }
                 }
 
                 // Add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
