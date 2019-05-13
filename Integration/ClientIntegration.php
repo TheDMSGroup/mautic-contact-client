@@ -239,6 +239,12 @@ class ClientIntegration extends AbstractIntegration
                     }
                 } catch (\Exception $e) {
                 }
+                if (isset($this->event['name']) && !empty($this->event['name'])) {
+                    $this->addTrace('event', $this->event['name']);
+                }
+                if (isset($this->event['id']) && $this->event['id']) {
+                    $this->addTrace('eventId', $this->event['id']);
+                }
             }
         }
 
