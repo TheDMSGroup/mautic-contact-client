@@ -791,7 +791,7 @@ class ClientIntegration extends AbstractIntegration
                     $startTime->modify('+'.rand(0, 1800).' seconds');
                     // Prefer that we retry quicker than other re-queue events.
                     $rangeModifier = .20;
-                    if ($this->addRescheduleItemToSession(0, 1, $startTime, $exception->getMessage(), $rangeModifier)) {
+                    if ($this->addRescheduleItemToSession(0, 7, $startTime, $exception->getMessage(), $rangeModifier, false, true)) {
                         $this->retry = true;
                     }
                 }
@@ -835,6 +835,8 @@ class ClientIntegration extends AbstractIntegration
      * @param \DateTime|null $startTime     If today is an option, set this as the first possible start time.
      * @param null           $reason        If we are logging a failure, provide a reason for the UI.
      * @param int            $rangeModifier Set to less than 1 to prefer an earlier time in the opening (multiplier).
+     * @param bool           $spreadDays    Set to false to prevent random spreading over more than the first day.
+     * @param bool           $spreadTime    Set to false to prevent random spreading within the day.
      *
      * @return bool
      */
@@ -843,13 +845,12 @@ class ClientIntegration extends AbstractIntegration
         $endDay = 7,
         \DateTime $startTime = null,
         $reason = null,
-        $rangeModifier = 1
+        $rangeModifier = 1,
+        $spreadDays = true,
+        $spreadTime = true
     ) {
         $result = false;
         if (isset($this->getEvent()['leadEventLog'])) {
-            // To randomly disperse API requests we must get all openings within the date range first.
-            $all = 'api' === $this->contactClient->getType();
-
             // Get all openings if API, otherwise just get the first available.
             $openings = [];
             try {
@@ -857,7 +858,7 @@ class ClientIntegration extends AbstractIntegration
                     $startDay,
                     $endDay,
                     1,
-                    $all,
+                    ($spreadDays && 'api' === $this->contactClient->getType()),
                     $startTime
                 );
             } catch (\Exception $e) {
@@ -865,7 +866,7 @@ class ClientIntegration extends AbstractIntegration
             }
             if ($openings) {
                 // Select an opening.
-                if ($all) {
+                if (count($openings) > 1 && $spreadDays) {
                     $opening = $openings[rand(0, count($openings) - 1)];
                 } else {
                     $opening = reset($openings);
@@ -877,7 +878,7 @@ class ClientIntegration extends AbstractIntegration
                 list($start, $end) = $opening;
 
                 // Randomly disperse within this range of time if needed.
-                if ($all) {
+                if ($spreadTime && 'api' === $this->contactClient->getType()) {
                     // How many seconds are there in this range, minus a minute for margin of error at the end of day?
                     $rangeSeconds = max(0, (intval($end->format('U')) - intval($start->format('U')) - 60));
                     $randSeconds  = rand(0, round($rangeSeconds * $rangeModifier));
