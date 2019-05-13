@@ -358,7 +358,7 @@ class ClientIntegration extends AbstractIntegration
             $this->valid = $this->payloadModel->getValid();
 
             if ($this->valid) {
-                $this->statType = Stat::TYPE_CONVERTED;
+                $this->setStatType(Stat::TYPE_CONVERTED);
             }
         } catch (\Exception $e) {
             $this->handleException($e);
@@ -416,7 +416,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function addTrace($parameter, $value)
     {
-        if (function_exists('newrelic_add_custom_parameter')) {
+        if ($parameter && function_exists('newrelic_add_custom_parameter')) {
             call_user_func('newrelic_add_custom_parameter', $parameter, $value);
         }
     }
@@ -803,7 +803,7 @@ class ClientIntegration extends AbstractIntegration
 
             // We will persist exception information to logs/stats.
             if ($exception->getStatType()) {
-                $this->statType = $exception->getStatType();
+                $this->setStatType($exception->getStatType());
                 $this->setLogs($this->statType, 'status');
             }
             $errorData = $exception->getData();
@@ -1055,8 +1055,7 @@ class ClientIntegration extends AbstractIntegration
 
         // Stats - contactclient_stats
         $errors         = $this->getLogs('error');
-        $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
-        $this->addTrace('contactClientStatType', $this->statType);
+        $this->setStatType(!empty($this->statType) ? $this->statType : Stat::TYPE_ERROR);
         $message = '';
         if ($this->valid) {
             $statLevel = 'INFO';
@@ -1575,6 +1574,7 @@ class ClientIntegration extends AbstractIntegration
     public function setStatType($statType = '')
     {
         $this->statType = $statType;
+        $this->addTrace('contactClientStatType', $this->statType);
 
         return $this;
     }
