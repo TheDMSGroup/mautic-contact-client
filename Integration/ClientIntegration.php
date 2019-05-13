@@ -316,6 +316,7 @@ class ClientIntegration extends AbstractIntegration
 
         try {
             $this->validateClient($client, $force);
+            $this->clearTraces();
             $this->addTrace('contactClient', $this->contactClient->getName());
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
@@ -422,6 +423,40 @@ class ClientIntegration extends AbstractIntegration
     {
         if ($parameter && function_exists('newrelic_add_custom_parameter')) {
             call_user_func('newrelic_add_custom_parameter', $parameter, $value);
+        }
+    }
+
+    /**
+     * If available add a noticed exception to NewRelic to aid in debugging.
+     *
+     * @param      $message
+     * @param null $exception
+     */
+    private function addError($message, $exception = null)
+    {
+        if ($message && function_exists('newrelic_notice_error')) {
+            call_user_func('newrelic_notice_error', $message, $exception);
+        }
+    }
+
+    /**
+     * Clears any NewRelic trace params we use here to prevent occlusion as there can be multiple clients per session.
+     */
+    private function clearTraces()
+    {
+        $parameters = [
+            'contactClientStatType',
+            'contactClient',
+            'contactClientId',
+            'contactClientLastOp',
+            'contactClientContactId',
+            'campaign',
+            'campaignId',
+            'event',
+            'eventId',
+        ];
+        foreach ($parameters as $trace) {
+            $this->addTrace($trace, null);
         }
     }
 
