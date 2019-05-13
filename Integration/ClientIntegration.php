@@ -849,27 +849,18 @@ class ClientIntegration extends AbstractIntegration
             if ($errorData) {
                 $this->setLogs($errorData, $exception->getStatType());
             }
+
+            $message = 'ContactClient '.$this->contactClient->getType().' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
         } elseif ($exception instanceof ConnectException) {
-            if (function_exists('newrelic_notice_error')) {
-                call_user_func(
-                    'newrelic_notice_error',
-                    'ContactClient Connection Error '.($this->contactClient ? $this->contactClient->getId() : 'NA'),
-                    $exception
-                );
-            }
+            $message = 'ContactClient Connection Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
         } else {
-            if (function_exists('newrelic_notice_error')) {
-                call_user_func(
-                    'newrelic_notice_error',
-                    'ContactClient Integration Error '.($this->contactClient ? $this->contactClient->getId() : 'NA'),
-                    $exception
-                );
-            }
             // Unexpected issue with the Client plugin.
             $this->logIntegrationError($exception, $this->contact);
+            $message = 'ContactClient Integration Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');
+        $this->addError($message, $exception);
     }
 
     /**
