@@ -785,12 +785,12 @@ class ClientIntegration extends AbstractIntegration
                         $startTime->add($interval);
                     } catch (\Exception $e) {
                         // If no interval is set default to a few hours in the future
-                        $startTime = new \DateTime('+6 hours');
+                        $startTime = new \DateTime('+1 hours');
                     }
                     // Add randomized drift of up to 30 minutes to reduce likelihood of stampedes.
                     $startTime->modify('+'.rand(0, 1800).' seconds');
-                    // Prefer that we retry in the next (first) quarter of the available window.
-                    $rangeModifier = .25;
+                    // Prefer that we retry quicker than other re-queue events.
+                    $rangeModifier = .20;
                     if ($this->addRescheduleItemToSession(0, 1, $startTime, $exception->getMessage(), $rangeModifier)) {
                         $this->retry = true;
                     }
