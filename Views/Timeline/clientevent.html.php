@@ -10,7 +10,7 @@
  */
 
 $message = $event['extra']['message'];
-$logs    = $event['extra']['logs']; 
+$logs    = $event['extra']['logs'];
 ?>
 
 <dl class="dl-horizontal small">
