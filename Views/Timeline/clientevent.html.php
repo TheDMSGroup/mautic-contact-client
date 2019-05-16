@@ -10,7 +10,7 @@
  */
 
 $message = $event['extra']['message'];
-$logs    = $event['extra']['logs'];
+$logs    = $event['extra']['logs']; 
 ?>
 
 <dl class="dl-horizontal small">
@@ -24,6 +24,7 @@ $logs    = $event['extra']['logs'];
 </dl>
 
 <script defer>
+mQuery(document).ready(function(){ 
     $buttons = mQuery('.contact-client-button').parent().parent();
     $buttons.on('click', function(){ 
         mQuery('textarea.codeMirror-json').each(function(i, element){ 
@@ -42,4 +43,8 @@ $logs    = $event['extra']['logs'];
             }
     }); 
     }); 
+});
 </script>
+<?php
+echo $view['assets']->includeStylesheet('plugins/MauticContactClientBundle/Assets/build/contactclient.min.css');
+?>

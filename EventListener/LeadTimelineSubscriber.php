@@ -3,11 +3,17 @@
 namespace MauticPlugin\MauticContactClientBundle\EventListener;
 
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
+use Mautic\CoreBundle\Templating\Helper\AssetsHelper;
 use Mautic\LeadBundle\Event\LeadTimelineEvent;
 use Mautic\LeadBundle\LeadEvents;
 
 class LeadTimelineSubscriber extends CommonSubscriber
 {
+    /**
+     * @var AssetsHelper
+     */
+    private $assets;
+
     /**
      * {@inheritdoc}
      */
