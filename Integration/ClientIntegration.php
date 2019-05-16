@@ -830,13 +830,13 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param int            $startDay      The first day to possibly reschedule to.
-     * @param int            $endDay        The last day to possibly reschedule to.
-     * @param \DateTime|null $startTime     If today is an option, set this as the first possible start time.
-     * @param null           $reason        If we are logging a failure, provide a reason for the UI.
-     * @param int            $rangeModifier Set to less than 1 to prefer an earlier time in the opening (multiplier).
-     * @param bool           $spreadDays    Set to false to prevent random spreading over more than the first day.
-     * @param bool           $spreadTime    Set to false to prevent random spreading within the day.
+     * @param int            $startDay      the first day to possibly reschedule to
+     * @param int            $endDay        the last day to possibly reschedule to
+     * @param \DateTime|null $startTime     if today is an option, set this as the first possible start time
+     * @param null           $reason        if we are logging a failure, provide a reason for the UI
+     * @param int            $rangeModifier set to less than 1 to prefer an earlier time in the opening (multiplier)
+     * @param bool           $spreadDays    set to false to prevent random spreading over more than the first day
+     * @param bool           $spreadTime    set to false to prevent random spreading within the day
      *
      * @return bool
      */
@@ -872,7 +872,7 @@ class ClientIntegration extends AbstractIntegration
                     $opening = reset($openings);
                 }
                 /**
-                 * @var $start    \DateTime
+                 * @var \DateTime
                  * @var $end      \DateTime
                  */
                 list($start, $end) = $opening;
