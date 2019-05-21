@@ -33,7 +33,7 @@ class EventRepository extends CommonRepository
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
             ->select([
                 'c.*',
-                'cc.name client_name',
+                'cc.name AS client_name',
             ])
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
         ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');

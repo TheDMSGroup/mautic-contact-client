@@ -15,7 +15,7 @@ $logs    = $event['extra']['logs'];
 
 <dl class="dl-horizontal small">
     <dt><?php echo $view['translator']->trans('mautic.contactclient.timeline.logs.message'); ?></dt>
-    <dd><?=$message; ?></dd>
+    <dd><?php echo $message; ?></dd>
     <div class="small" style="max-width: 100%;">
         <strong><?php echo $view['translator']->trans('mautic.contactsource.timeline.logs.heading'); ?></strong>
         <br/>
