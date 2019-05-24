@@ -109,6 +109,9 @@ class ApiPayload
     /** @var int Starting operation ID. */
     protected $start = 0;
 
+    /** @var mixed Current operation ID/name. */
+    protected $op;
+
     /**
      * ApiPayload constructor.
      *
@@ -429,6 +432,7 @@ class ApiPayload
         $opsRemaining  = count($this->payload->operations);
 
         foreach ($this->payload->operations as $id => &$operation) {
+            $this->op = $id.(!empty($operation['name']) ? ' '.$operation['name'] : '');
             if ($id < $this->start) {
                 // Running a pre-auth attempt with step/s to be skipped at the beginning.
                 continue;
@@ -693,6 +697,16 @@ class ApiPayload
         } else {
             $this->logs[] = $value;
         }
+    }
+
+    /**
+     * Get the last Operation ID that was assembled/attempted.
+     *
+     * @return mixed
+     */
+    public function getLastOp()
+    {
+        return $this->op;
     }
 
     /**
