@@ -347,19 +347,12 @@ class TokenHelper
                                 return $dash ? substr((string) $value, 0, $dash) : $value;
                             },
                             'plus4' => function ($value) {
-                                $dash = strrpos((string) $value, '-');
-                                if (!$dash) {
-                                    // No dash found, thus this is not a ZIP+4
-                                    return '';
-                                }
-                                $start = 1 - (strlen($value) - $dash);
-                                $value = substr((string) $value, $start);
-                                if (4 !== strlen($value)) {
-                                    // Not precisely 4 digits, thus this is not a ZIP+4
+                                preg_match('/\d-([\d]{4})/', $value, $matches);
+                                if (empty($matches)) {
                                     return '';
                                 }
 
-                                return $value;
+                                return $matches[1];
                             },
                         ]
                     );
