@@ -302,7 +302,7 @@ class ApiPayloadRequest
                     }
                 }
             }
-            if (null === $value || '' === $value) {
+            if (null === $value || '' === trim($value)) {
                 // The field value is empty and not 0/false.
                 if (true === (isset($field->required) ? $field->required : false)) {
                     // The field is required. Abort.
