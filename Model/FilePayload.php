@@ -169,6 +169,9 @@ class FilePayload
     /** @var UtmSourceHelper */
     protected $utmSourceHelper;
 
+    /** @var mixed Current operation ID/name. */
+    protected $op;
+
     /**
      * FilePayload constructor.
      *
@@ -1372,6 +1375,7 @@ class FilePayload
         $successCount = 0;
         if (isset($this->payload->operations)) {
             foreach ($this->payload->operations as $type => $operation) {
+                $this->op = $type;
                 if (is_object($operation)) {
                     ++$attemptCount;
                     $result = false;
@@ -1857,6 +1861,16 @@ class FilePayload
         }
 
         return array_merge($fileLogs, $this->logs);
+    }
+
+    /**
+     * Get the last Operation ID that was assembled/attempted.
+     *
+     * @return mixed
+     */
+    public function getLastOp()
+    {
+        return $this->op;
     }
 
     /**

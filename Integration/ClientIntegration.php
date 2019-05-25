@@ -239,6 +239,12 @@ class ClientIntegration extends AbstractIntegration
                     }
                 } catch (\Exception $e) {
                 }
+                if (isset($this->event['name']) && !empty($this->event['name'])) {
+                    $this->addTrace('event', $this->event['name']);
+                }
+                if (isset($this->event['id']) && $this->event['id']) {
+                    $this->addTrace('eventId', $this->event['id']);
+                }
             }
         }
 
@@ -310,6 +316,7 @@ class ClientIntegration extends AbstractIntegration
 
         try {
             $this->validateClient($client, $force);
+            $this->clearTraces();
             $this->addTrace('contactClient', $this->contactClient->getName());
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
@@ -352,7 +359,7 @@ class ClientIntegration extends AbstractIntegration
             $this->valid = $this->payloadModel->getValid();
 
             if ($this->valid) {
-                $this->statType = Stat::TYPE_CONVERTED;
+                $this->setStatType(Stat::TYPE_CONVERTED);
             }
         } catch (\Exception $e) {
             $this->handleException($e);
@@ -362,6 +369,10 @@ class ClientIntegration extends AbstractIntegration
             $operationLogs = $this->payloadModel->getLogs();
             if ($operationLogs) {
                 $this->setLogs($operationLogs, 'operations');
+            }
+            $lastOp = $this->payloadModel->getLastOp();
+            if ($lastOp) {
+                $this->addTrace('contactClientLastOp', $lastOp);
             }
         }
 
@@ -410,8 +421,42 @@ class ClientIntegration extends AbstractIntegration
      */
     private function addTrace($parameter, $value)
     {
-        if (function_exists('newrelic_add_custom_parameter')) {
+        if ($parameter && function_exists('newrelic_add_custom_parameter')) {
             call_user_func('newrelic_add_custom_parameter', $parameter, $value);
+        }
+    }
+
+    /**
+     * If available add a noticed exception to NewRelic to aid in debugging.
+     *
+     * @param      $message
+     * @param null $exception
+     */
+    private function addError($message, $exception = null)
+    {
+        if ($message && function_exists('newrelic_notice_error')) {
+            call_user_func('newrelic_notice_error', $message, $exception);
+        }
+    }
+
+    /**
+     * Clears any NewRelic trace params we use here to prevent occlusion as there can be multiple clients per session.
+     */
+    private function clearTraces()
+    {
+        $parameters = [
+            'contactClientStatType',
+            'contactClient',
+            'contactClientId',
+            'contactClientLastOp',
+            'contactClientContactId',
+            'campaign',
+            'campaignId',
+            'event',
+            'eventId',
+        ];
+        foreach ($parameters as $trace) {
+            $this->addTrace($trace, null);
         }
     }
 
@@ -797,34 +842,25 @@ class ClientIntegration extends AbstractIntegration
 
             // We will persist exception information to logs/stats.
             if ($exception->getStatType()) {
-                $this->statType = $exception->getStatType();
+                $this->setStatType($exception->getStatType());
                 $this->setLogs($this->statType, 'status');
             }
             $errorData = $exception->getData();
             if ($errorData) {
                 $this->setLogs($errorData, $exception->getStatType());
             }
+
+            $message = 'ContactClient '.$this->contactClient->getType().' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
         } elseif ($exception instanceof ConnectException) {
-            if (function_exists('newrelic_notice_error')) {
-                call_user_func(
-                    'newrelic_notice_error',
-                    'ContactClient Connection Error '.($this->contactClient ? $this->contactClient->getId() : 'NA'),
-                    $exception
-                );
-            }
+            $message = 'ContactClient Connection Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
         } else {
-            if (function_exists('newrelic_notice_error')) {
-                call_user_func(
-                    'newrelic_notice_error',
-                    'ContactClient Integration Error '.($this->contactClient ? $this->contactClient->getId() : 'NA'),
-                    $exception
-                );
-            }
             // Unexpected issue with the Client plugin.
             $this->logIntegrationError($exception, $this->contact);
+            $message = 'ContactClient Integration Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');
+        $this->addError($message, $exception);
     }
 
     /**
@@ -1049,8 +1085,7 @@ class ClientIntegration extends AbstractIntegration
 
         // Stats - contactclient_stats
         $errors         = $this->getLogs('error');
-        $this->statType = !empty($this->statType) ? $this->statType : Stat::TYPE_ERROR;
-        $this->addTrace('contactClientStatType', $this->statType);
+        $this->setStatType(!empty($this->statType) ? $this->statType : Stat::TYPE_ERROR);
         $message = '';
         if ($this->valid) {
             $statLevel = 'INFO';
@@ -1569,6 +1604,7 @@ class ClientIntegration extends AbstractIntegration
     public function setStatType($statType = '')
     {
         $this->statType = $statType;
+        $this->addTrace('contactClientStatType', $this->statType);
 
         return $this;
     }
