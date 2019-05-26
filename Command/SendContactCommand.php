@@ -44,10 +44,17 @@ class SendContactCommand extends ModeratedCommand
                 null
             )
             ->addOption(
-                'contact',
-                'l',
+                'contact-id',
+                null,
                 InputOption::VALUE_REQUIRED,
                 'The id of a contact/lead to send.',
+                null
+            )
+            ->addOption(
+                'contact-ids',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The ids of a contact/lead to send, comma separated',
                 null
             )
             ->addOption(
@@ -79,7 +86,15 @@ class SendContactCommand extends ModeratedCommand
             return 1;
         }
 
-        if (!$options['contact'] || !is_numeric($options['contact'])) {
+        $contactIds = [];
+        if (!empty($options['contact-ids'])) {
+            $contactIds = explode(',', $options['contact-ids']);
+            $contactIds = array_walk($contactIds, 'trim');
+        } elseif (!empty($options['contact-id']) && is_numeric($options['contact-id'])) {
+            $contactIds[] = (int) $options['contact-id'];
+        }
+
+        if (!$contactIds) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact').'</error>');
 
             return 1;
@@ -105,54 +120,50 @@ class SendContactCommand extends ModeratedCommand
             return 1;
         }
 
-        /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
-        $contactModel = $container->get('mautic.lead.model.lead');
-        /** @var \Mautic\LeadBundle\Entity\Lead $contact */
-        $contact = $contactModel->getEntity($options['contact']);
-        if (!$contact) {
+        // Load the integration helper for our general ClientIntegration
+        /** @var IntegrationHelper $integrationHelper */
+        $integrationHelper = $container->get('mautic.helper.integration');
+        /** @var ClientIntegration $integrationObject */
+        $integrationObject = $integrationHelper->getIntegrationObject('Client');
+        if (
+            !$integrationObject
+            || (false === $integrationObject->getIntegrationSettings()->getIsPublished() && !$options['force'])
+        ) {
             $output->writeln(
-                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load').'</error>'
+                '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.plugin.publish').'</error>'
             );
 
             return 1;
         }
 
-        if (in_array($client->getType(), ['api', 'file'])) {
-            // Load the integration helper for our general ClientIntegration
-            /** @var IntegrationHelper $integrationHelper */
-            $integrationHelper = $container->get('mautic.helper.integration');
-            /** @var ClientIntegration $integrationObject */
-            $integrationObject = $integrationHelper->getIntegrationObject('Client');
-            if (
-                !$integrationObject
-                || (false === $integrationObject->getIntegrationSettings()->getIsPublished() && !$options['force'])
-            ) {
+        /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
+        $contactModel = $container->get('mautic.lead.model.lead');
+        foreach ($contactIds as $contactId) {
+            /** @var \Mautic\LeadBundle\Entity\Lead $contact */
+            $contact = $contactModel->getEntity($contactId);
+            if (!$contact) {
                 $output->writeln(
-                    '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.plugin.publish').'</error>'
+                    '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load', ['%contactId%' => $contactId]).'</error>'
                 );
-
-                return 1;
-            }
-            $integrationObject->sendContact($client, $contact, (bool) $options['test'], (bool) $options['force']);
-            if ($integrationObject->getValid()) {
-                $output->writeln(
-                    '<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted').'</info>'
-                );
-                if (isset($options['verbose']) && $options['verbose']) {
-                    $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
-                }
             } else {
-                $output->writeln(
-                    '<error>'.$translator->trans('mautic.contactclient.sendcontact.contact.rejected').'</error>'
-                );
-                if (isset($options['verbose']) && $options['verbose']) {
-                    $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
+                $integrationObject->sendContact($client, $contact, (bool) $options['test'], (bool) $options['force']);
+                if ($integrationObject->getValid()) {
+                    $output->writeln(
+                        '<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted', ['%contactId%' => $contactId]).'</info>'
+                    );
+                    if (isset($options['verbose']) && $options['verbose']) {
+                        $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
+                    }
+                } else {
+                    $output->writeln(
+                        '<error>'.$translator->trans('mautic.contactclient.sendcontact.contact.rejected', ['%contactId%' => $contactId]).'</error>'
+                    );
+                    if (isset($options['verbose']) && $options['verbose']) {
+                        $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
+                    }
                 }
             }
-        } else {
-            $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.client.type').'</error>');
-
-            return 1;
+            $contactModel->clearEntities();
         }
 
         $this->completeRun();
