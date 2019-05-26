@@ -830,11 +830,13 @@ class ClientIntegration extends AbstractIntegration
                         $startTime->add($interval);
                     } catch (\Exception $e) {
                         // If no interval is set default to a few hours in the future
-                        $startTime = new \DateTime('+6 hours');
+                        $startTime = new \DateTime('+1 hours');
                     }
                     // Add randomized drift of up to 30 minutes to reduce likelihood of stampedes.
                     $startTime->modify('+'.rand(0, 1800).' seconds');
-                    if ($this->addRescheduleItemToSession(0, 1, $startTime, $exception->getMessage())) {
+                    // Prefer that we retry quicker than other re-queue events.
+                    $rangeModifier = .20;
+                    if ($this->addRescheduleItemToSession(0, 7, $startTime, $exception->getMessage(), $rangeModifier, false, true)) {
                         $this->retry = true;
                     }
                 }
@@ -864,27 +866,43 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param int            $startDay
-     * @param int            $endDay
-     * @param \DateTime|null $startTime
-     * @param string|null    $reason
+     * @param int            $startDay      the first day to possibly reschedule to
+     * @param int            $endDay        the last day to possibly reschedule to
+     * @param \DateTime|null $startTime     if today is an option, set this as the first possible start time
+     * @param null           $reason        if we are logging a failure, provide a reason for the UI
+     * @param int            $rangeModifier set to less than 1 to prefer an earlier time in the opening (multiplier)
+     * @param bool           $spreadDays    set to false to prevent random spreading over more than the first day
+     * @param bool           $spreadTime    set to false to prevent random spreading within the day
      *
      * @return bool
-     *
-     * @throws Exception
      */
-    public function addRescheduleItemToSession($startDay = 1, $endDay = 7, \DateTime $startTime = null, $reason = null)
-    {
+    public function addRescheduleItemToSession(
+        $startDay = 1,
+        $endDay = 7,
+        \DateTime $startTime = null,
+        $reason = null,
+        $rangeModifier = 1,
+        $spreadDays = true,
+        $spreadTime = true
+    ) {
         $result = false;
         if (isset($this->getEvent()['leadEventLog'])) {
-            // To randomly disperse API requests we must get all openings within the date range first.
-            $all = 'api' === $this->contactClient->getType();
-
             // Get all openings if API, otherwise just get the first available.
-            $openings = $this->payloadModel->getScheduleModel()->findOpening($startDay, $endDay, 1, $all, $startTime);
+            $openings = [];
+            try {
+                $openings = $this->payloadModel->getScheduleModel()->findOpening(
+                    $startDay,
+                    $endDay,
+                    1,
+                    ($spreadDays && 'api' === $this->contactClient->getType()),
+                    $startTime
+                );
+            } catch (\Exception $e) {
+                // Irrelevant exceptions.
+            }
             if ($openings) {
                 // Select an opening.
-                if ($all) {
+                if (count($openings) > 1 && $spreadDays) {
                     $opening = $openings[rand(0, count($openings) - 1)];
                 } else {
                     $opening = reset($openings);
@@ -896,11 +914,15 @@ class ClientIntegration extends AbstractIntegration
                 list($start, $end) = $opening;
 
                 // Randomly disperse within this range of time if needed.
-                if ($all) {
+                if ($spreadTime && 'api' === $this->contactClient->getType()) {
                     // How many seconds are there in this range, minus a minute for margin of error at the end of day?
-                    $rangeSeconds = max(0, ($end->format('U') - $start->format('U') - 60));
-                    $randSeconds  = rand(0, $rangeSeconds);
-                    $start->modify('+'.$randSeconds.' seconds');
+                    $rangeSeconds = max(0, (intval($end->format('U')) - intval($start->format('U')) - 60));
+                    $randSeconds  = rand(0, round($rangeSeconds * $rangeModifier));
+                    try {
+                        $start->modify('+'.$randSeconds.' seconds');
+                    } catch (\Exception $e) {
+                        // Irrelevant exceptions.
+                    }
                 }
 
                 // Add leadEventLog id instance to global session array for later processing in reschedule() dispatch.
