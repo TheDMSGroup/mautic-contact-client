@@ -1536,7 +1536,7 @@ class TokenHelper
     }
 
     /**
-     * @param   $string
+     * @param $string
      *
      * @return bool|float|int
      */

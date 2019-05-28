@@ -119,7 +119,7 @@ class ContactClientModel extends FormModel
     /**
      * @param null $id
      *
-     * @return ContactClient|null|object
+     * @return ContactClient|object|null
      */
     public function getEntity($id = null)
     {

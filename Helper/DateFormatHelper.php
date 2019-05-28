@@ -356,7 +356,7 @@ class DateFormatHelper
      * @param string $format
      * @param bool   $validate
      *
-     * @return null|string
+     * @return string|null
      */
     public function format($date, $format = 'iso8601', $validate = true)
     {

@@ -246,7 +246,7 @@ class Schedule
     }
 
     /**
-     * @param null|\DateTime $date
+     * @param \DateTime|null $date
      *
      * @return $this
      *
@@ -328,7 +328,7 @@ class Schedule
      * Test if we can send/build another file for the day in question.
      *
      * @param int            $fileRate
-     * @param null|\DateTime $date
+     * @param \DateTime|null $date
      *
      * @return int
      *
