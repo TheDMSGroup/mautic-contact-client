@@ -183,7 +183,7 @@ class ApiPayloadOperation
                     }
                     // Check if header/body field is unexpected.
                     $fieldId = isset($fieldKeys[$key]) ? $fieldKeys[$key] : -1;
-                    if ($fieldId == -1) {
+                    if (-1 == $fieldId) {
                         // This is a new field.
                         $newField          = new stdClass();
                         $newField->key     = $key;

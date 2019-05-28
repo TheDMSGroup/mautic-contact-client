@@ -78,6 +78,10 @@ return [
                     'mautic.contactclient.model.contactclient',
                 ],
             ],
+            'mautic.contactclient.subscriber.lead_timeline'          => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\LeadTimelineSubscriber',
+                'arguments' => [],
+            ],
             'mautic.contactclient.subscriber.contactclient' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\ContactClientSubscriber',
                 'arguments' => [

@@ -205,7 +205,7 @@ class ContactClientSubscriber extends CommonSubscriber
             $event->setQueryTotal($total);
             $event->addToCounter($eventTypeKey, 1);
 
-            $log = $row['logs'][0] === '{' ? json_encode(json_decode($row['logs']), JSON_PRETTY_PRINT) : $row['logs'];
+            $log = '{' === $row['logs'][0] ? json_encode(json_decode($row['logs']), JSON_PRETTY_PRINT) : $row['logs'];
 
             if (!$event->isEngagementCount()) {
                 $event->addEvent(
