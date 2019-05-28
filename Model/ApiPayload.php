@@ -432,7 +432,7 @@ class ApiPayload
         $opsRemaining  = count($this->payload->operations);
 
         foreach ($this->payload->operations as $id => &$operation) {
-            $this->op = $id.(!empty($operation['name']) ? ' '.$operation['name'] : '');
+            $this->op = $id.(!empty($operation->name) ? ' '.$operation->name : '');
             if ($id < $this->start) {
                 // Running a pre-auth attempt with step/s to be skipped at the beginning.
                 continue;
