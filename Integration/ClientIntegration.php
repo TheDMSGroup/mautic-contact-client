@@ -852,17 +852,21 @@ class ClientIntegration extends AbstractIntegration
                 $this->setLogs($errorData, $exception->getStatType());
             }
 
-            $message = 'ContactClient '.$this->contactClient->getType().' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
+            if (Stat::TYPE_ERROR === $exception->getStatType()) {
+                $message = 'ContactClient '.$this->contactClient->getType().' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
+                $this->addError($message, $exception);
+            }
         } elseif ($exception instanceof ConnectException) {
             $message = 'ContactClient Connection Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
+            $this->addError($message, $exception);
         } else {
             // Unexpected issue with the Client plugin.
             $this->logIntegrationError($exception, $this->contact);
             $message = 'ContactClient Integration Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
+            $this->addError($message, $exception);
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');
-        $this->addError($message, $exception);
     }
 
     /**
