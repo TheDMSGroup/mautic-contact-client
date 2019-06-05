@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Entity;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Connections\MasterSlaveConnection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Types\Type;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -660,10 +661,12 @@ class CacheRepository extends CommonRepository
         $oldest = new \DateTime('-1 month -1 day');
         $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
         $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
-        $q->where(
+        $q->andwhere(
+            $q->expr()->isNotNull('contactclient_id'),
             $q->expr()->lt('date_added', 'FROM_UNIXTIME(:oldest)')
         );
-        $q->setParameter('oldest', $oldest->getTimestamp());
+        $q->setParameter('oldest', $oldest->getTimestamp(), Type::INTEGER);
+        $this->getEntityManager()->getConnection()->getDatabasePlatform()->modifyLimitQuery($q, 100000);
         $q->execute();
     }
 
