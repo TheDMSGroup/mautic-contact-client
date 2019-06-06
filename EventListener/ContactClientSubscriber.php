@@ -266,23 +266,8 @@ class ContactClientSubscriber extends CommonSubscriber
                     $log->setIsScheduled(true);
 
                     if ($reason) {
-                        /** @var FailedLeadEventLog $failedLog */
-                        $failedLog = $log->getFailedLog();
-                        if ($failedLog) {
-                            if ($failedLog->getReason() !== $reason) {
-                                // There is a failed log, let's put the data there to keep the main table light.
-                                $failedLog->setReason($reason);
-                                /** @var FailedLeadEventLogRepository $failedLeadEventLogRepository */
-                                $failedLeadEventLogRepository = $this->em->getRepository(
-                                    'MauticCampaignBundle:FailedLeadEventLog'
-                                );
-                                $failedLeadEventLogRepository->saveEntity($failedLog);
-                            }
-                            $log->setMetadata([]);
-                        } else {
-                            // Persist to the metadata of the event log as a fall-back (non-failing events).
-                            $log->appendToMetadata(['reason' => $reason]);
-                        }
+                        // Persist to the metadata of the event log (faster than a secondary entity).
+                        $log->appendToMetadata(['reason' => $reason]);
                     }
 
                     /** @var LeadEventLogRepository $leadEventLogRepo */
