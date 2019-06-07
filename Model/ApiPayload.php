@@ -407,7 +407,7 @@ class ApiPayload
     }
 
     /**
-     * Prepare the APIPayloadAuth model and get the starting operation ID it reccomends.
+     * Prepare the APIPayloadAuth model and get the starting operation ID it recommends.
      */
     private function preparePayloadAuth()
     {

@@ -279,10 +279,6 @@ class ApiPayloadRequest
     {
         $result = [];
         foreach ($fields as $field) {
-            if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
-                // Skip this field as it is for test mode only.
-                continue;
-            }
             $key = isset($field->key) ? trim($field->key) : '';
             if ('' === $key) {
                 // Skip if we have an empty key.
