@@ -29,29 +29,56 @@ class LeadTimelineSubscriber extends CommonSubscriber
      */
     public function onTimelineGenerate(LeadTimelineEvent $event)
     {
+        // Add this event to the list of available events which generates the event type filters
+        $eventTypeKey  = 'contactclient.event';
+        $eventTypeName = 'Contact Client';
+        $event->addEventType($eventTypeKey, $eventTypeName);
+
         $repo         = $this->em->getRepository('MauticContactClientBundle:Event');
-        $clientEvents = $repo->getEventsByContactId($event->getLeadId());
 
-        if (!is_array($clientEvents)) {
-            return;
-        }
+        // $event->getQueryOptions() provide timeline filters, etc.
+        // This method should use DBAL to obtain the events to be injected into the timeline based on pagination
+        // but also should query for a total number of events and return an array of ['total' => $x, 'results' => []].
+        // There is a TimelineTrait to assist with this. See repository example.$repo         = $this->em->getRepository('MauticContactSourceBundle:Event');
+        $stats = $repo->getTimelineStats($event->getLeadId(), $event->getQueryOptions());
 
-        foreach ($clientEvents as $srcEvent) {
-            $srcEvent['eventLabel'] = [
-                'label' => 'Contact Client: '.$srcEvent['client_name'],
-                'href'  => "/s/contactclient/view/{$srcEvent['contactclient_id']}",
-            ];
-            $srcEvent['timestamp'] = $srcEvent['date_added'];
-            $srcEvent['event']     = '';
-            $srcEvent['eventType'] = ucfirst($srcEvent['type']);
-            $srcEvent['extra']     = [
-                'logs'    => $srcEvent['logs'],
-                'message' => $srcEvent['message'],
-            ];
-            $srcEvent['contentTemplate'] = 'MauticContactClientBundle:Timeline:clientevent.html.php';
-            $srcEvent['icon']            = 'fa-plus-square-o contact-client-button';
+        // If isEngagementCount(), this event should only inject $stats into addToCounter() to append to data to generate
+        // the engagements graph. Not all events are engagements if they are just informational so it could be that this
+        // line should only be used when `!$event->isEngagementCount()`. Using TimelineTrait will determine the appropriate
+        // return value based on the data included in getQueryOptions() if used in the stats method above.
+        $event->addToCounter($eventTypeKey, $stats);
 
-            $event->addEvent($srcEvent);
+        if (!$event->isEngagementCount()) {
+            // Add the events to the event array
+            foreach ($stats['results'] as $stat) {
+                if ($stat['date_added']) {
+                    $event->addEvent(
+                        [
+                            // Event key type
+                            'event'           => $eventTypeKey,
+                            // Event name/label - can be a string or an array as below to convert to a link
+                            'eventLabel'      => [
+                                'label' => $stat['client_name'],
+                                'href'  => "/s/contactclient/view/{$stat['contactclient_id']}",
+                            ],
+                            // Translated string displayed in the Event Type column
+                            'eventType'       => $stat['type'],
+                            // \DateTime object for the timestamp column
+                            'timestamp'       => $stat['date_added'],
+                            // Optional details passed through to the contentTemplate
+                            'extra'           => [
+                                'stat'    => $stat,
+                                'logs'    => $stat['logs'],
+                                'message' => $stat['message'],
+                            ],
+                            // Optional template to customize the details of the event in the timeline
+                            'contentTemplate' => 'MauticContactClientBundle:Timeline:clientevent.html.php',
+                            // Font Awesome class to display as the icon
+                            'icon'            => 'fa-plus-square-o contact-client-button',
+                        ]
+                    );
+                }
+            }
         }
     }
 }
