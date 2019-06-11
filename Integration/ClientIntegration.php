@@ -11,14 +11,23 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Integration;
 
+use DateInterval;
+use DateTime;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use GuzzleHttp\Exception\ConnectException;
+use InvalidArgumentException;
+use Mautic\CampaignBundle\Entity\Campaign;
+use Mautic\CampaignBundle\Entity\Event;
 use Mautic\CampaignBundle\Model\CampaignModel;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\LeadBundle\Entity\DoNotContactRepository;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
+use Mautic\PluginBundle\Entity\IntegrationEntityRepository;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
@@ -26,11 +35,18 @@ use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Event\ContactLedgerContextEvent;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\FilterHelper;
+use MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Model\Attribution;
+use MauticPlugin\MauticContactClientBundle\Model\Cache;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
+use MauticPlugin\MauticContactClientBundle\Model\Schedule;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Yaml\Yaml;
 
@@ -75,13 +91,13 @@ class ClientIntegration extends AbstractIntegration
     /** @var ApiPayload */
     protected $apiPayloadModel;
 
-    /** @var \MauticPlugin\MauticContactClientBundle\Model\Cache */
+    /** @var Cache */
     protected $cacheModel;
 
-    /** @var \MauticPlugin\MauticContactClientBundle\Model\Schedule */
+    /** @var Schedule */
     protected $scheduleModel;
 
-    /** @var \Mautic\CampaignBundle\Entity\Campaign */
+    /** @var Campaign */
     protected $campaign;
 
     /** @var bool */
@@ -90,13 +106,13 @@ class ClientIntegration extends AbstractIntegration
     /** @var array */
     protected $integrationSettings;
 
-    /** @var \DateTime */
+    /** @var DateTime */
     protected $dateSend;
 
     /** @var float */
     protected $attribution;
 
-    /** @var \Mautic\LeadBundle\Model\LeadModel $model */
+    /** @var LeadModel $model */
     protected $contactModel;
 
     /** @var DoNotContactRepository */
@@ -215,13 +231,13 @@ class ClientIntegration extends AbstractIntegration
             // If the campaign event ID is missing, backfill it.
             if (!isset($this->event['id']) || !is_numeric($this->event['id'])) {
                 try {
-                    $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
+                    $identityMap = $this->getEntityManager()->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Event'])) {
                         if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
                             $memoryCampaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                             $campaignId     = $memoryCampaign->getId();
 
-                            /** @var \Mautic\CampaignBundle\Entity\Event $leadEvent */
+                            /** @var Event $leadEvent */
                             foreach ($identityMap['Mautic\CampaignBundle\Entity\Event'] as $leadEvent) {
                                 $properties = $leadEvent->getProperties();
                                 $campaign   = $leadEvent->getCampaign();
@@ -237,7 +253,7 @@ class ClientIntegration extends AbstractIntegration
                             }
                         }
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                 }
                 if (isset($this->event['name']) && !empty($this->event['name'])) {
                     $this->addTrace('event', $this->event['name']);
@@ -262,6 +278,42 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
+        return $this->em;
+    }
+
+    /**
+     * If available add a parameter to NewRelic tracing to aid in debugging.
+     *
+     * @param $parameter
+     * @param $value
+     */
+    private function addTrace($parameter, $value)
+    {
+        if ($parameter && function_exists('newrelic_add_custom_parameter')) {
+            call_user_func('newrelic_add_custom_parameter', $parameter, $value);
+        }
+    }
+
+    /**
      * @return ContactClientModel|object
      *
      * @throws Exception
@@ -277,7 +329,7 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return Container|\Symfony\Component\DependencyInjection\ContainerInterface
+     * @return Container|ContainerInterface
      */
     private function getContainer()
     {
@@ -355,16 +407,16 @@ class ClientIntegration extends AbstractIntegration
 
             // Send all operations (API) or queue the contact (file).
             $this->payloadModel->run();
-
+            // -- Here?
             $this->valid = $this->payloadModel->getValid();
 
             if ($this->valid) {
                 $this->setStatType(Stat::TYPE_CONVERTED);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->handleException($e);
         }
-
+        // --- Entitymanager is closed at this point
         if ($this->payloadModel) {
             $operationLogs = $this->payloadModel->getLogs();
             if ($operationLogs) {
@@ -410,32 +462,6 @@ class ClientIntegration extends AbstractIntegration
                 Stat::TYPE_UNPUBLISHED,
                 false
             );
-        }
-    }
-
-    /**
-     * If available add a parameter to NewRelic tracing to aid in debugging.
-     *
-     * @param $parameter
-     * @param $value
-     */
-    private function addTrace($parameter, $value)
-    {
-        if ($parameter && function_exists('newrelic_add_custom_parameter')) {
-            call_user_func('newrelic_add_custom_parameter', $parameter, $value);
-        }
-    }
-
-    /**
-     * If available add a noticed exception to NewRelic to aid in debugging.
-     *
-     * @param      $message
-     * @param null $exception
-     */
-    private function addError($message, $exception = null)
-    {
-        if ($message && function_exists('newrelic_notice_error')) {
-            call_user_func('newrelic_notice_error', $message, $exception);
         }
     }
 
@@ -486,7 +512,7 @@ class ClientIntegration extends AbstractIntegration
      */
     private function evaluateSchedule()
     {
-        /* @var \DateTime $dateSend */
+        /* @var DateTime $dateSend */
         $this->dateSend = $this->getPayloadModel()->evaluateSchedule();
 
         return $this;
@@ -511,7 +537,7 @@ class ClientIntegration extends AbstractIntegration
             } elseif ('file' == $clientType) {
                 $model = $this->getFilePayloadModel();
             } else {
-                throw new \InvalidArgumentException('Client type is invalid.');
+                throw new InvalidArgumentException('Client type is invalid.');
             }
             $model->reset();
             $model->setTest($this->test);
@@ -576,7 +602,7 @@ class ClientIntegration extends AbstractIntegration
                 ->getContext(true);
             try {
                 $filterResult = $filter->filter($definition, $context);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new ContactClientException(
                     'Error in filter: '.$e->getMessage(),
                     0,
@@ -659,12 +685,12 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return \Doctrine\ORM\EntityRepository|DoNotContactRepository
+     * @return EntityRepository|DoNotContactRepository
      */
     private function getDncRepo()
     {
         if (!$this->dncRepo) {
-            $this->dncRepo = $this->em->getRepository('MauticLeadBundle:DoNotContact');
+            $this->dncRepo = $this->getEntityManager()->getRepository('MauticLeadBundle:DoNotContact');
         }
 
         return $this->dncRepo;
@@ -694,7 +720,7 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return \Mautic\LeadBundle\Model\LeadModel
+     * @return LeadModel
      */
     private function getContactModel()
     {
@@ -708,14 +734,14 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Get the Cache model for duplicate/exclusive/limit checking.
      *
-     * @return \MauticPlugin\MauticContactClientBundle\Model\Cache
+     * @return Cache
      *
      * @throws Exception
      */
     private function getCacheModel()
     {
         if (!$this->cacheModel) {
-            /* @var \MauticPlugin\MauticContactClientBundle\Model\Cache $cacheModel */
+            /* @var Cache $cacheModel */
             $this->cacheModel = $this->getContainer()->get('mautic.contactclient.model.cache');
             $this->cacheModel->setContact($this->contact);
             $this->cacheModel->setContactClient($this->contactClient);
@@ -728,7 +754,7 @@ class ClientIntegration extends AbstractIntegration
     /**
      * Attempt to discern if we are being triggered by/within a campaign.
      *
-     * @return \Mautic\CampaignBundle\Entity\Campaign|mixed|null
+     * @return Campaign|mixed|null
      *
      * @throws Exception
      */
@@ -744,11 +770,11 @@ class ClientIntegration extends AbstractIntegration
             // Sometimes we have a campaignId as a hash.
             if (!$this->campaign) {
                 try {
-                    $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
+                    $identityMap = $this->getEntityManager()->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
                         $this->campaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                 }
             }
             if ($this->campaign) {
@@ -765,7 +791,7 @@ class ClientIntegration extends AbstractIntegration
      *
      * @throws ContactClientException
      */
-    private function handleException(\Exception $exception)
+    private function handleException(Exception $exception)
     {
         // Any exception means the client send has failed.
         $this->valid = false;
@@ -786,7 +812,7 @@ class ClientIntegration extends AbstractIntegration
                 // API request during a closed hour/day but the queue is enabled for this.
                 // Attempt to reschedule given the spread setting and scheduling.
                 $maxDay    = $this->contactClient->getScheduleQueueSpread();
-                $startTime = new \DateTime('+1 hour');
+                $startTime = new DateTime('+1 hour');
                 if ($this->addRescheduleItemToSession(0, $maxDay, $startTime, $exception->getMessage())) {
                     // Requeue the contact to be sent at a later time per API Schedule Queue setting,
                     $this->retry = true;
@@ -825,18 +851,26 @@ class ClientIntegration extends AbstractIntegration
                 );
                 if ($intervalString) {
                     try {
-                        $interval  = new \DateInterval($intervalString);
-                        $startTime = new \DateTime();
+                        $interval  = new DateInterval($intervalString);
+                        $startTime = new DateTime();
                         $startTime->add($interval);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         // If no interval is set default to a few hours in the future
-                        $startTime = new \DateTime('+1 hours');
+                        $startTime = new DateTime('+1 hours');
                     }
                     // Add randomized drift of up to 30 minutes to reduce likelihood of stampedes.
                     $startTime->modify('+'.rand(0, 1800).' seconds');
                     // Prefer that we retry quicker than other re-queue events.
                     $rangeModifier = .20;
-                    if ($this->addRescheduleItemToSession(0, 7, $startTime, $exception->getMessage(), $rangeModifier, false, true)) {
+                    if ($this->addRescheduleItemToSession(
+                        0,
+                        7,
+                        $startTime,
+                        $exception->getMessage(),
+                        $rangeModifier,
+                        false,
+                        true
+                    )) {
                         $this->retry = true;
                     }
                 }
@@ -853,7 +887,8 @@ class ClientIntegration extends AbstractIntegration
             }
 
             if (Stat::TYPE_ERROR === $exception->getStatType()) {
-                $message = 'ContactClient '.$this->contactClient->getType().' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
+                $message = 'ContactClient '.$this->contactClient->getType(
+                    ).' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
                 $this->addError($message, $exception);
             }
         } elseif ($exception instanceof ConnectException) {
@@ -870,20 +905,20 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param int            $startDay      the first day to possibly reschedule to
-     * @param int            $endDay        the last day to possibly reschedule to
-     * @param \DateTime|null $startTime     if today is an option, set this as the first possible start time
-     * @param null           $reason        if we are logging a failure, provide a reason for the UI
-     * @param int            $rangeModifier set to less than 1 to prefer an earlier time in the opening (multiplier)
-     * @param bool           $spreadDays    set to false to prevent random spreading over more than the first day
-     * @param bool           $spreadTime    set to false to prevent random spreading within the day
+     * @param int           $startDay      the first day to possibly reschedule to
+     * @param int           $endDay        the last day to possibly reschedule to
+     * @param DateTime|null $startTime     if today is an option, set this as the first possible start time
+     * @param null          $reason        if we are logging a failure, provide a reason for the UI
+     * @param int           $rangeModifier set to less than 1 to prefer an earlier time in the opening (multiplier)
+     * @param bool          $spreadDays    set to false to prevent random spreading over more than the first day
+     * @param bool          $spreadTime    set to false to prevent random spreading within the day
      *
      * @return bool
      */
     public function addRescheduleItemToSession(
         $startDay = 1,
         $endDay = 7,
-        \DateTime $startTime = null,
+        DateTime $startTime = null,
         $reason = null,
         $rangeModifier = 1,
         $spreadDays = true,
@@ -901,7 +936,7 @@ class ClientIntegration extends AbstractIntegration
                     ($spreadDays && 'api' === $this->contactClient->getType()),
                     $startTime
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Irrelevant exceptions.
             }
             if ($openings) {
@@ -912,8 +947,8 @@ class ClientIntegration extends AbstractIntegration
                     $opening = reset($openings);
                 }
                 /**
-                 * @var \DateTime
-                 * @var $end      \DateTime
+                 * @var DateTime
+                 * @var $end     DateTime
                  */
                 list($start, $end) = $opening;
 
@@ -924,7 +959,7 @@ class ClientIntegration extends AbstractIntegration
                     $randSeconds  = rand(0, round($rangeSeconds * $rangeModifier));
                     try {
                         $start->modify('+'.$randSeconds.' seconds');
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         // Irrelevant exceptions.
                     }
                 }
@@ -945,7 +980,7 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @return object|\Symfony\Component\HttpFoundation\Session\Session|\Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     * @return object|Session|SessionInterface|null
      */
     private function getSession()
     {
@@ -967,6 +1002,19 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $this->parameterHelper;
+    }
+
+    /**
+     * If available add a noticed exception to NewRelic to aid in debugging.
+     *
+     * @param      $message
+     * @param null $exception
+     */
+    private function addError($message, $exception = null)
+    {
+        if ($message && function_exists('newrelic_notice_error')) {
+            call_user_func('newrelic_notice_error', $message, $exception);
+        }
     }
 
     /**
@@ -1019,18 +1067,20 @@ class ClientIntegration extends AbstractIntegration
             // If any fields were updated, save the Contact entity.
             if ($updatedFields || $updatedAttribution) {
                 $this->getContactModel()->saveEntity($this->contact);
-                $this->setLogs('Operation successful. The contact was updated.', 'updated');
+                $this->setLogs('The contact was updated.', 'updated');
             } else {
-                $this->setLogs('Operation successful, but no fields on the contact needed updating.', 'info');
+                $this->setLogs('No fields on the contact needed updating.', 'info');
             }
             if (!$updatedAttribution) {
                 // Fields may have updated, but not attribution, so the ledger needs an event to capture conversions.
                 $this->dispatchContextCapture();
             }
-        } catch (\Exception $e) {
-            $this->valid = false;
-            $this->setLogs('Operation completed, but we failed to update our Contact. '.$e->getMessage(), 'error');
-            $this->logIntegrationError($e, $this->contact);
+        } catch (Exception $exception) {
+            // This could still have been a successful conversion.
+            // $this->valid = false;
+            $message = 'Completed with an internal error. '.$exception->getMessage();
+            $this->setLogs($message, 'error');
+            $this->addError('ContactClient '.$message, $exception);
             $this->retry = false;
         }
     }
@@ -1046,7 +1096,7 @@ class ClientIntegration extends AbstractIntegration
 
         $campaign = $this->getCampaign();
         $event    = new ContactLedgerContextEvent(
-            $campaign, $this->contactClient, $this->statType, '0 Revenue conversion', $this->contact
+            $campaign, $this->contactClient, $this->statType, null, $this->contact
         );
         $this->dispatcher->dispatch(
             'mautic.contactledger.context_create',
@@ -1110,7 +1160,7 @@ class ClientIntegration extends AbstractIntegration
         $clientModel = $this->getContactClientModel();
 
         // Stats - contactclient_stats
-        $errors         = $this->getLogs('error');
+        $errors = $this->getLogs('error');
         $this->setStatType(!empty($this->statType) ? $this->statType : Stat::TYPE_ERROR);
         $message = '';
         if ($this->valid) {
@@ -1147,10 +1197,10 @@ class ClientIntegration extends AbstractIntegration
         $utmSource = null;
         if ($this->contact) {
             try {
-                /** @var \MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper $utmHelper */
+                /** @var UtmSourceHelper $utmHelper */
                 $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
                 $utmSource = $utmHelper->getFirstUtmSource($this->contact);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
         }
 
@@ -1166,7 +1216,7 @@ class ClientIntegration extends AbstractIntegration
             $campaignId,
             $eventId
         );
-        $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
+        $this->getEntityManager()->clear('MauticPlugin\MauticContactClientBundle\Entity\Stat');
 
         // Add transactional event for deep dive into logs.
         if ($this->contact && $this->contactClient) {
@@ -1178,7 +1228,7 @@ class ClientIntegration extends AbstractIntegration
                 $message,
                 $integrationEntityId
             );
-            $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Event');
+            $this->getEntityManager()->clear('MauticPlugin\MauticContactClientBundle\Entity\Event');
         }
 
         // Lead event log (lead_event_log) I've decided to leave this out for now because it's not very useful.
@@ -1209,8 +1259,10 @@ class ClientIntegration extends AbstractIntegration
                 ),
             ];
             if (!empty($integrationEntities)) {
-                $this->em->getRepository('MauticPluginBundle:IntegrationEntity')->saveEntities($integrationEntities);
-                $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
+                /** @var IntegrationEntityRepository $integrationRepo */
+                $integrationRepo = $this->getEntityManager()->getRepository('MauticPluginBundle:IntegrationEntity');
+                $integrationRepo->saveEntities($integrationEntities);
+                $this->getEntityManager()->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
             }
         }
 
@@ -1300,7 +1352,7 @@ class ClientIntegration extends AbstractIntegration
     ) {
         /** @var IntegrationEntity $newIntegrationEntity */
         $newIntegrationEntity = new IntegrationEntity();
-        $newIntegrationEntity->setDateAdded(new \DateTime());
+        $newIntegrationEntity->setDateAdded(new DateTime());
         $newIntegrationEntity->setIntegration($integrationName);
         $newIntegrationEntity->setIntegrationEntity($integrationEntity);
         $newIntegrationEntity->setIntegrationEntityId($integrationEntityId);
@@ -1308,7 +1360,7 @@ class ClientIntegration extends AbstractIntegration
         if ($entity) {
             $newIntegrationEntity->setInternalEntityId($entity->getId());
         }
-        $newIntegrationEntity->setLastSyncDate(new \DateTime());
+        $newIntegrationEntity->setLastSyncDate(new DateTime());
 
         // This is too heavy of data to log in multiple locations.
         if ($internalData) {
@@ -1319,9 +1371,9 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
-     * @param \Symfony\Component\Form\FormBuilder $builder
-     * @param array                               $data
-     * @param string                              $formArea
+     * @param FormBuilder $builder
+     * @param array       $data
+     * @param string      $formArea
      *
      * @throws Exception
      */
@@ -1346,7 +1398,7 @@ class ClientIntegration extends AbstractIntegration
                         try {
                             $overrides[$id] = $this->getPayloadModel($contactClientEntity)
                                 ->getOverrides();
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             if ($this->logger) {
                                 $this->logger->error($e->getMessage());
                             }

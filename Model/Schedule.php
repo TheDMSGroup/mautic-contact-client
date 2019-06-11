@@ -11,28 +11,33 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManager;
+use Exception;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class Schedule.
  */
 class Schedule
 {
-    /** @var \DateTimeZone */
+    /** @var DateTimeZone */
     protected $timezone;
 
-    /** @var \DateTime $now */
+    /** @var DateTime $now */
     protected $now;
 
     /** @var ContactClient $contactClient */
     protected $contactClient;
 
-    /** @var \Symfony\Component\DependencyInjection\Container */
+    /** @var Container */
     protected $container;
 
     /** @var array */
@@ -52,13 +57,13 @@ class Schedule
      * @param EntityManager        $em
      * @param CoreParametersHelper $coreParametersHelper
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(EntityManager $em, CoreParametersHelper $coreParametersHelper)
     {
         $this->em                   = $em;
         $this->coreParametersHelper = $coreParametersHelper;
-        $this->now                  = new \DateTime();
+        $this->now                  = new DateTime();
     }
 
     /**
@@ -105,7 +110,7 @@ class Schedule
      *
      * @return array
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function findOpening($startDay = 0, $endDay = 7, $fileRate = 1, $all = false, $startTime = null)
     {
@@ -113,15 +118,15 @@ class Schedule
         for ($day = $startDay; $day <= $endDay; ++$day) {
             if (0 === $day) {
                 // Current day.
-                if ($startTime && $startTime instanceof \DateTime) {
+                if ($startTime && $startTime instanceof DateTime) {
                     $date = clone $startTime;
                 } else {
-                    $date = new \DateTime();
+                    $date = new DateTime();
                 }
             } else {
                 // Future days.
                 // Use noon to begin to evaluate days in the future to avoiding timezones during day checks.
-                $date = new \DateTime('noon +'.$day.' day');
+                $date = new DateTime('noon +'.$day.' day');
             }
             try {
                 // Initialize the range (will expand as appropriate later).
@@ -180,7 +185,7 @@ class Schedule
                 if (!$all) {
                     break;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 if ($e instanceof ContactClientException) {
                     // Expected.
                 } else {
@@ -193,8 +198,8 @@ class Schedule
     }
 
     /**\
-     * @param bool           $returnHours
-     * @param null|\DateTime $date
+     * @param bool          $returnHours
+     * @param null|DateTime $date
      *
      * @return $this|mixed
      * @throws ContactClientException
@@ -232,7 +237,7 @@ class Schedule
     /**
      * @return array|mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getScheduleHours()
     {
@@ -246,7 +251,7 @@ class Schedule
     }
 
     /**
-     * @param \DateTime|null $date
+     * @param DateTime|null $date
      *
      * @return $this
      *
@@ -327,8 +332,8 @@ class Schedule
     /**
      * Test if we can send/build another file for the day in question.
      *
-     * @param int            $fileRate
-     * @param \DateTime|null $date
+     * @param int           $fileRate
+     * @param DateTime|null $date
      *
      * @return int
      *
@@ -357,11 +362,37 @@ class Schedule
     }
 
     /**
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\FileRepository
+     * @return FileRepository
      */
     public function getFileRepository()
     {
-        return $this->em->getRepository('MauticContactClientBundle:File');
+        /** @var FileRepository $repo */
+        $repo = $this->getEntityManager()->getRepository('MauticContactClientBundle:File');
+
+        return $repo;
+    }
+
+    /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                // $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            // $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
+        return $this->em;
     }
 
     /**
@@ -385,8 +416,8 @@ class Schedule
                 } else {
                     $timeFrom  = !empty($hours[$day]->timeFrom) ? $hours[$day]->timeFrom : '00:00';
                     $timeTill  = !empty($hours[$day]->timeTill) ? $hours[$day]->timeTill : '23:59';
-                    $startDate = \DateTime::createFromFormat('H:i', $timeFrom, $this->timezone);
-                    $endDate   = \DateTime::createFromFormat('H:i', $timeTill, $this->timezone);
+                    $startDate = DateTime::createFromFormat('H:i', $timeFrom, $this->timezone);
+                    $endDate   = DateTime::createFromFormat('H:i', $timeTill, $this->timezone);
                     if (
                         !($this->now > $startDate && $this->now < $endDate)
                         && !('00:00' == $timeFrom && '23:59' == $timeTill)
@@ -410,7 +441,7 @@ class Schedule
     }
 
     /**
-     * @return \DateTime
+     * @return DateTime
      */
     public function getNow()
     {
@@ -418,16 +449,16 @@ class Schedule
     }
 
     /**
-     * @param \DateTime|null $now
+     * @param DateTime|null $now
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function setNow(\DateTime $now = null)
+    public function setNow(DateTime $now = null)
     {
         if (!$now) {
-            $now = new \DateTime();
+            $now = new DateTime();
         }
 
         $this->now = $now;
@@ -436,7 +467,7 @@ class Schedule
     }
 
     /**
-     * @return \DateTimeZone
+     * @return DateTimeZone
      */
     public function getTimezone()
     {
@@ -446,11 +477,11 @@ class Schedule
     /**
      * Set Client timezone, defaulting to Mautic or System as is relevant.
      *
-     * @param \DateTimeZone $timezone
+     * @param DateTimeZone $timezone
      *
      * @return $this
      */
-    public function setTimezone(\DateTimeZone $timezone = null)
+    public function setTimezone(DateTimeZone $timezone = null)
     {
         if (!$timezone) {
             $timezone = $this->contactClient->getScheduleTimezone();
@@ -460,7 +491,7 @@ class Schedule
                 );
                 $timezone = !empty($timezone) ? $timezone : date_default_timezone_get();
             }
-            $timezone = new \DateTimeZone($timezone);
+            $timezone = new DateTimeZone($timezone);
         }
         $this->timezone = $timezone;
         $this->now->setTimezone($timezone);

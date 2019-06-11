@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
 use Doctrine\ORM\EntityManager;
+use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Symfony\Component\EventDispatcher\Event;
@@ -91,10 +92,25 @@ class ContactClientStatEvent extends Event
     }
 
     /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
      * @return EntityManager
      */
-    public function getEntityManager()
+    private function getEntityManager()
     {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                // $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            // $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
         return $this->em;
     }
 }
