@@ -58,11 +58,11 @@ class LeadTimelineSubscriber extends CommonSubscriber
                             'event'           => $eventTypeKey,
                             // Event name/label - can be a string or an array as below to convert to a link
                             'eventLabel'      => [
-                                'label' => $stat['client_name'],
+                                'label' => 'Client: '.$stat['client_name'],
                                 'href'  => "/s/contactclient/view/{$stat['contactclient_id']}",
                             ],
                             // Translated string displayed in the Event Type column
-                            'eventType'       => $stat['type'],
+                            'eventType'       => ucfirst($stat['type']),
                             // \DateTime object for the timestamp column
                             'timestamp'       => $stat['date_added'],
                             // Optional details passed through to the contentTemplate
