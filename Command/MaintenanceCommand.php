@@ -13,8 +13,10 @@ namespace MauticPlugin\MauticContactClientBundle\Command;
 
 use Exception;
 use Mautic\CoreBundle\Command\ModeratedCommand;
+use MauticPlugin\MauticContactClientBundle\Entity\CacheRepository;
 use MauticPlugin\MauticContactClientBundle\Model\Cache;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -30,7 +32,21 @@ class MaintenanceCommand extends ModeratedCommand
     protected function configure()
     {
         $this->setName('mautic:contactclient:maintenance')
-            ->setDescription('Performs maintenance tasks required by the client plugin.');
+            ->setDescription('Performs maintenance tasks required by the client plugin.')
+            ->addOption(
+                'limit',
+                'l',
+                InputOption::VALUE_OPTIONAL,
+                'Limit the number of rows to delete per batch',
+                10000
+            )
+            ->addOption(
+                'delay',
+                'd',
+                InputOption::VALUE_OPTIONAL,
+                'Alter the delay between deletions by second.',
+                1
+            );
 
         parent::configure();
     }
@@ -47,20 +63,23 @@ class MaintenanceCommand extends ModeratedCommand
     {
         $container  = $this->getContainer();
         $translator = $container->get('translator');
+        $limit      = (int) $input->getOption('limit');
+        $delay      = (int) $input->getOption('delay');
         if (!$this->checkRunStatus($input, $output)) {
             return 0;
         }
 
         /** @var Cache $cacheModel */
         $cacheModel = $container->get('mautic.contactclient.model.cache');
+        /** @var CacheRepository $cacheRepo */
+        $cacheRepo = $cacheModel->getRepository();
         $output->writeln(
             '<info>'.$translator->trans(
                 'mautic.contactclient.maintenance.running'
             ).'</info>'
         );
-        $cacheModel->getRepository()
-            ->deleteExpired()
-            ->reduceExclusivityIndex();
+        $cacheRepo->deleteExpired($limit, $delay);
+        $cacheRepo->reduceExclusivityIndex($limit, $delay);
         $output->writeln(
             '<info>'.$translator->trans(
                 'mautic.contactclient.maintenance.complete'

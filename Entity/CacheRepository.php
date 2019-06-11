@@ -658,37 +658,61 @@ class CacheRepository extends CommonRepository
     /**
      * Delete all Cache entities that are no longer needed for duplication/exclusivity/limit checks.
      *
-     * @throws \Exception
+     * @param int $limit
+     * @param int $delay
+     *
+     * @throws DBALException
      */
-    public function deleteExpired()
+    public function deleteExpired($limit = 10000, $delay = 1)
     {
-        // General expirations. Maximum limiter is 1m.
-        $oldest = new \DateTime('-1 month -1 day');
-        $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
-        $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
-        $q->andwhere(
-            $q->expr()->isNotNull('contactclient_id'),
-            $q->expr()->lt('date_added', 'FROM_UNIXTIME(:oldest)')
-        );
-        $q->setParameter('oldest', $oldest->getTimestamp(), Type::INTEGER);
-        $this->getEntityManager()->getConnection()->getDatabasePlatform()->modifyLimitQuery($q, 100000);
-        $q->execute();
+        $start    = strtotime('-1 month -1 day');
+        $rowCount = $limit;
+        while ($rowCount === $limit) {
+            $conn = $this->getEntityManager()->getConnection();
+            $q    = $conn->createQueryBuilder();
+            $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
+            $q->where(
+                $q->expr()->isNotNull('contactclient_id'),
+                $q->expr()->lt('date_added', 'FROM_UNIXTIME('.$start.')')
+            );
+            $platform = $conn->getDatabasePlatform();
+            $result   = $conn->executeQuery($platform->modifyLimitQuery($q->getSQL(), $limit));
+            $rowCount = $result->rowCount();
+            if ($rowCount !== $limit) {
+                sleep($delay);
+            }
+        }
     }
 
     /**
      * Update exclusivity rows to reduce the index size and thus reduce processing required to check exclusivity.
+     *
+     * @param int $limit
+     * @param int $delay
+     *
+     * @throws DBALException
      */
-    public function reduceExclusivityIndex()
+    public function reduceExclusivityIndex($limit = 10000, $delay = 1)
     {
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
-        $q->update(MAUTIC_TABLE_PREFIX.$this->getTableName());
-        $q->where(
-            $q->expr()->isNotNull('exclusive_expire_date'),
-            $q->expr()->lte('exclusive_expire_date', 'NOW()')
-        );
-        $q->set('exclusive_expire_date', 'NULL');
-        $q->set('exclusive_pattern', 'NULL');
-        $q->set('exclusive_scope', 'NULL');
-        $q->execute();
+        $start    = strtotime('-15 minutes');
+        $rowCount = $limit;
+        while ($rowCount === $limit) {
+            $conn = $this->getEntityManager()->getConnection();
+            $q    = $conn->createQueryBuilder();
+            $q->update(MAUTIC_TABLE_PREFIX.$this->getTableName());
+            $q->where(
+                $q->expr()->isNotNull('exclusive_expire_date'),
+                $q->expr()->lte('exclusive_expire_date', 'FROM_UNIXTIME('.$start.')')
+            );
+            $q->set('exclusive_expire_date', 'NULL');
+            $q->set('exclusive_pattern', 'NULL');
+            $q->set('exclusive_scope', 'NULL');
+            $platform = $conn->getDatabasePlatform();
+            $result   = $conn->executeQuery($platform->modifyLimitQuery($q->getSQL(), $limit));
+            $rowCount = $result->rowCount();
+            if ($rowCount !== $limit) {
+                sleep($delay);
+            }
+        }
     }
 }
