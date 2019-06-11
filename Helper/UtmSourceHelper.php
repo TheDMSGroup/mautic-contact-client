@@ -13,6 +13,7 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Entity\UtmTag;
 
 /**
  * Class UtmSourceHelper.
@@ -47,7 +48,7 @@ class UtmSourceHelper
             $utmTags = $contact->getUtmTags();
             if ($utmTags) {
                 $utmTags = $utmTags instanceof ArrayCollection ? $utmTags->toArray() : $utmTags;
-                /** @var \Mautic\LeadBundle\Entity\UtmTag $utmTag */
+                /** @var UtmTag $utmTag */
                 foreach ($utmTags as $utmTag) {
                     $tags[$utmTag->getDateAdded()->getTimestamp()] = $utmTag;
                 }

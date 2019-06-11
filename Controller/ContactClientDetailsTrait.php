@@ -11,6 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use DateTime;
+use InvalidArgumentException;
+use Mautic\CampaignBundle\Entity\ContactClientEventLogRepository;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\InputHelper;
@@ -18,6 +21,7 @@ use Mautic\CoreBundle\Model\AuditLogModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 
 /**
@@ -32,12 +36,12 @@ trait ContactClientDetailsTrait
      *
      * @return array
      *
-     * @throws \InvalidArgumentException if not an array
+     * @throws InvalidArgumentException if not an array
      */
     public function sanitizeEventFilter($filters)
     {
         if (!is_array($filters)) {
-            throw new \InvalidArgumentException('filters parameter must be an array');
+            throw new InvalidArgumentException('filters parameter must be an array');
         }
 
         if (!isset($filters['search'])) {
@@ -78,13 +82,13 @@ trait ContactClientDetailsTrait
         $chartFilters = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
 
         if (!isset($filters['dateFrom'])) {
-            $dateFrom = new \DateTime($chartFilters['date_from']);
+            $dateFrom = new DateTime($chartFilters['date_from']);
             $dateFrom->setTime(00, 00, 00); // set to beginning of day, Timezone should be OK.
             $filters['dateFrom'] = $dateFrom;
         }
 
         if (!isset($filters['dateTo'])) {
-            $dateTo = new \DateTime($chartFilters['date_to']);
+            $dateTo = new DateTime($chartFilters['date_to']);
             $dateTo->setTime(23, 59, 59);
             $filters['dateTo'] = $dateTo;
         }
@@ -107,7 +111,7 @@ trait ContactClientDetailsTrait
             $filters['campaignId'] = $chartFilters['campaign'];
         }
 
-        /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $engagements */
+        /** @var ContactClientTimelineEvent $engagements */
         $engagements = $this->getModel('contactclient')->getEngagements(
             $contactClient,
             $filters,
@@ -270,25 +274,25 @@ trait ContactClientDetailsTrait
     }
 
     /**
-     * @param ContactClient  $contactClient
-     * @param \DateTime|null $fromDate
-     * @param \DateTime|null $toDate
+     * @param ContactClient $contactClient
+     * @param DateTime|null $fromDate
+     * @param DateTime|null $toDate
      *
      * @return mixed
      */
     protected function getEngagementData(
         ContactClient $contactClient,
-        \DateTime $fromDate = null,
-        \DateTime $toDate = null
+        DateTime $fromDate = null,
+        DateTime $toDate = null
     ) {
         $translator = $this->get('translator');
 
         if (null == $fromDate) {
-            $fromDate = new \DateTime('first day of this month 00:00:00');
+            $fromDate = new DateTime('first day of this month 00:00:00');
             $fromDate->modify('-6 months');
         }
         if (null == $toDate) {
-            $toDate = new \DateTime();
+            $toDate = new DateTime();
         }
 
         $lineChart  = new LineChart(null, $fromDate, $toDate);
@@ -485,7 +489,7 @@ trait ContactClientDetailsTrait
     protected function getScheduledCampaignEvents(ContactClient $contactClient)
     {
         // Upcoming events from Campaign Bundle
-        /** @var \Mautic\CampaignBundle\Entity\ContactClientEventLogRepository $contactClientEventLogRepository */
+        /** @var ContactClientEventLogRepository $contactClientEventLogRepository */
         $contactClientEventLogRepository = $this->getDoctrine()->getManager()->getRepository(
             'MauticCampaignBundle:ContactClientEventLog'
         );

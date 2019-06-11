@@ -11,6 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use DateTime;
+use Doctrine\ORM\EntityManager;
+use Exception;
 use FOS\RestBundle\Util\Codes;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\CoreBundle\Model\AbstractCommonModel;
@@ -21,6 +24,7 @@ use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * Class Cache.
@@ -36,7 +40,7 @@ class Cache extends AbstractCommonModel
     /** @var PhoneNumberHelper */
     protected $phoneHelper;
 
-    /** @var \Symfony\Component\DependencyInjection\Container */
+    /** @var Container */
     protected $container;
 
     /** @var string */
@@ -45,13 +49,13 @@ class Cache extends AbstractCommonModel
     /** @var string */
     protected $timezone;
 
-    /** @var \DateTime */
+    /** @var DateTime */
     protected $dateSend;
 
     /**
      * Create all necessary cache entities for the given Contact and Contact Client.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function create()
     {
@@ -84,14 +88,14 @@ class Cache extends AbstractCommonModel
         }
         if (count($entities)) {
             $this->getRepository()->saveEntities($entities);
-            $this->em->clear('MauticPlugin\MauticContactClientBundle\Entity\Cache');
+            $this->getEntityManager()->clear('MauticPlugin\MauticContactClientBundle\Entity\Cache');
         }
     }
 
     /**
      * Given the Contact and Contact Client, discern which exclusivity entries need to be cached.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getExclusiveRules()
     {
@@ -108,7 +112,7 @@ class Cache extends AbstractCommonModel
      *
      * @param $rules
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function excludeIrrelevantRules(&$rules)
     {
@@ -143,21 +147,21 @@ class Cache extends AbstractCommonModel
      *
      * @return string
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getUtmSource()
     {
         if (!$this->utmSource) {
             $utmHelper       = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
             $this->utmSource = $utmHelper->getFirstUtmSource($this->contact);
-            $this->em->clear('Mautic\LeadBundle\Entity\UtmTag');
+            $this->getEntityManager()->clear('Mautic\LeadBundle\Entity\UtmTag');
         }
 
         return $this->utmSource;
     }
 
     /**
-     * @return \Symfony\Component\DependencyInjection\Container
+     * @return Container
      */
     private function getContainer()
     {
@@ -166,6 +170,29 @@ class Cache extends AbstractCommonModel
         }
 
         return $this->container;
+    }
+
+    /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
+        return $this->em;
     }
 
     /**
@@ -223,7 +250,7 @@ class Cache extends AbstractCommonModel
      *
      * @return CacheEntity
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function createEntity()
     {
@@ -278,7 +305,7 @@ class Cache extends AbstractCommonModel
                 if (!empty($phone)) {
                     $result = $phone;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
         }
 
@@ -286,11 +313,11 @@ class Cache extends AbstractCommonModel
     }
 
     /**
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\CacheRepository
+     * @return CacheRepository
      */
     public function getRepository()
     {
-        return $this->em->getRepository('MauticContactClientBundle:Cache');
+        return $this->getEntityManager()->getRepository('MauticContactClientBundle:Cache');
     }
 
     /**
@@ -298,7 +325,7 @@ class Cache extends AbstractCommonModel
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getTimezone()
     {
@@ -315,7 +342,7 @@ class Cache extends AbstractCommonModel
      * Given a contact, evaluate exclusivity rules of all cache entries against it.
      *
      * @throws ContactClientException
-     * @throws \Exception
+     * @throws Exception
      */
     public function evaluateExclusive()
     {
@@ -343,7 +370,7 @@ class Cache extends AbstractCommonModel
      * Using the duplicate rules, evaluate if the current contact matches any entry in the cache.
      *
      * @throws ContactClientException
-     * @throws \Exception
+     * @throws Exception
      */
     public function evaluateDuplicate()
     {
@@ -371,7 +398,7 @@ class Cache extends AbstractCommonModel
     /**
      * Given the Contact and Contact Client, get the rules used to evaluate duplicates.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDuplicateRules()
     {
@@ -385,7 +412,7 @@ class Cache extends AbstractCommonModel
      * Using the duplicate rules, evaluate if the current contact matches any entry in the cache.
      *
      * @throws ContactClientException
-     * @throws \Exception
+     * @throws Exception
      */
     public function evaluateLimits()
     {
@@ -411,7 +438,7 @@ class Cache extends AbstractCommonModel
     /**
      * Given the Contact and Contact Client, get the rules used to evaluate limits.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getLimitRules()
     {
@@ -451,7 +478,7 @@ class Cache extends AbstractCommonModel
     public function setDateSend($dateSend = null)
     {
         if (!$dateSend) {
-            $this->dateSend = new \DateTime();
+            $this->dateSend = new DateTime();
         } else {
             $this->dateSend = $dateSend;
         }
@@ -472,7 +499,7 @@ class Cache extends AbstractCommonModel
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setContactClient(ContactClient $contactClient)
     {

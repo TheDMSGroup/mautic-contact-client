@@ -108,7 +108,8 @@ Mautic.contactclientTransactionsOnLoad = function (container, response) {
     });
 
     mQuery('#transactions-filters').submit(function (event) {
-        event.preventDefault(); // Prevent the form from submitting via the browser
+        event.preventDefault(); // Prevent the form from submitting via the
+                                // browser
         Mautic.contactClientTransactionFormSubmit(this);
 
     });
@@ -142,8 +143,9 @@ Mautic.contactClientTimelineFile = function (fileId) {
     document.body.appendChild(frame);
 };
 
-Mautic.contactClientTransactionFormSubmit = function(form){
-    //merge the contactclient_chart form to the transaction filter before re-submiting it
+Mautic.contactClientTransactionFormSubmit = function (form) {
+    //merge the contactclient_chart form to the transaction filter before
+    // re-submiting it
     mQuery('#transactions_dateFrom').val(mQuery('#contactclient_chart_date_from').val());
     mQuery('#transactions_dateTo').val(mQuery('#contactclient_chart_date_to').val());
     mQuery('#transactions_campaignId').val(mQuery('#contactclient_chart_campaign').val());
@@ -173,4 +175,4 @@ Mautic.contactClientTransactionFormSubmit = function(form){
         // Optionally alert the user of an error here...
         alert('Ooops! Something went wrong');
     });
-}
+};

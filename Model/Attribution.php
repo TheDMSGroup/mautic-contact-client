@@ -11,6 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use DateTime;
+use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
@@ -52,7 +54,7 @@ class Attribution
      *
      * @return bool
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function applyAttribution()
     {
@@ -120,7 +122,7 @@ class Attribution
                 $originalAttribution
             );
             // Unsure if we should keep this next line for BC.
-            $this->contact->addUpdatedField('attribution_date', (new \DateTime())->format('Y-m-d H:i:s'));
+            $this->contact->addUpdatedField('attribution_date', (new DateTime())->format('Y-m-d H:i:s'));
         }
 
         return $update;

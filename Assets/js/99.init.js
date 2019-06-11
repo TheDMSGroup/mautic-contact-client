@@ -9,7 +9,8 @@ Mautic.contactclientOnLoad = function () {
         Mautic.contactclientLimits();
         Mautic.contactclientSchedule();
         Mautic.contactclientAttribution();
-    } else {
+    }
+    else {
         // Client view screen.
         Mautic.contactclientEventsDatatable();
         Mautic.contactclientTransactionsTable();

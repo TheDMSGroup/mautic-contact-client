@@ -11,15 +11,19 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use DateTime;
+use Exception;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\CacheStorageHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use Mautic\LeadBundle\Model\FieldModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -35,9 +39,9 @@ class AjaxController extends CommonAjaxController
     /**
      * @param Request $request
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @return JsonResponse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function transactionsAction(Request $request)
     {
@@ -51,7 +55,7 @@ class AjaxController extends CommonAjaxController
         if ($request->request->has('filters')) {
             foreach ($request->request->get('filters') as $filter) {
                 if (in_array($filter['name'], ['dateTo', 'dateFrom']) && !empty($filter['value'])) {
-                    $filter['value']        = new \DateTime($filter['value']);
+                    $filter['value']        = new DateTime($filter['value']);
                     list($hour, $min, $sec) = 'dateTo' == $filter['name'] ? [23, 59, 59] : [00, 00, 00];
                     $filter['value']->setTime($hour, $min, $sec);
                 }
@@ -103,9 +107,9 @@ class AjaxController extends CommonAjaxController
     /**
      * @param Request $request
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @return JsonResponse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getApiPayloadTestAction(Request $request)
     {
@@ -154,9 +158,9 @@ class AjaxController extends CommonAjaxController
     /**
      * @param Request $request
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @return JsonResponse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getFilePayloadTestAction(Request $request)
     {
@@ -205,9 +209,9 @@ class AjaxController extends CommonAjaxController
     /**
      * @param Request $request
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @return JsonResponse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getTokensAction(Request $request)
     {
@@ -247,7 +251,7 @@ class AjaxController extends CommonAjaxController
                 'success' => 0,
             ];
 
-            /** @var \Mautic\LeadBundle\Model\FieldModel $fieldModel */
+            /** @var FieldModel $fieldModel */
             $fieldModel = $this->get('mautic.lead.model.field');
 
             // Exclude company fields as they are not currently used by the token helper.

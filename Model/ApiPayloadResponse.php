@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
+use Exception;
 use FOS\RestBundle\Util\Codes;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
@@ -76,7 +77,7 @@ class ApiPayloadResponse
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function parse()
     {
@@ -167,7 +168,7 @@ class ApiPayloadResponse
      *
      * @return array|bool return false if there is an error or we are unable to parse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getResponseArray($data, $responseExpectedFormat = 'json')
     {
@@ -267,7 +268,7 @@ class ApiPayloadResponse
                     }
                     break;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Sub-parsing may fail, but we only care about acceptable values when validating.
             // Logging will capture the full response for debugging.
         }
@@ -413,7 +414,7 @@ class ApiPayloadResponse
                         );
                     }
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new ContactClientException(
                     'Error in validation: '.$e->getMessage(),
                     0,

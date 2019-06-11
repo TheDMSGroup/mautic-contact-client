@@ -117,7 +117,9 @@ Mautic.contactclientFilterStart = function () {
                 timeout = setTimeout(function () {
                     $parent = $queryBuilder.parent();
                     rules = $queryBuilder.queryBuilder('getRules', Mautic.contactclientQBDefaultGet);
-                    if (rules === null) return;
+                    if (rules === null) {
+                        return;
+                    }
                     var rulesString = JSON.stringify(rules, null, 2);
                     rulesString = (rulesString === 'null' ? '' : rulesString);
 

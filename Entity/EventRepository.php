@@ -11,7 +11,10 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Exception;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
@@ -22,21 +25,23 @@ class EventRepository extends CommonRepository
     /**
      * Fetch the base event data from the database.
      *
-     * @param                $contactSourceId
-     * @param                $eventType
-     * @param \DateTime|null $dateAdded
+     * @param               $contactSourceId
+     * @param               $eventType
+     * @param DateTime|null $dateAdded
      *
      * @return array
      */
-    public function getEventsByContactId($contactId, $eventType = null, \DateTime $dateAdded = null)
+    public function getEventsByContactId($contactId, $eventType = null, DateTime $dateAdded = null)
     {
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
-            ->select([
-                'c.*',
-                'cc.name AS client_name',
-            ])
+            ->select(
+                [
+                    'c.*',
+                    'cc.name AS client_name',
+                ]
+            )
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-        ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');
+            ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');
 
         $expr = $q->expr()->eq('c.contact_id', ':contactId');
         $q->where($expr)
@@ -81,12 +86,12 @@ class EventRepository extends CommonRepository
             ->setParameter('contactClient', (int) $contactClientId);
 
         if (isset($dateRange['dateFrom'])) {
-            if (!($dateRange['dateFrom'] instanceof \DateTime)) {
+            if (!($dateRange['dateFrom'] instanceof DateTime)) {
                 try {
-                    $dateRange['datefrom'] = new \DateTime($dateRange['dateFrom']);
+                    $dateRange['datefrom'] = new DateTime($dateRange['dateFrom']);
                     $dateRange['dateFrom']->setTime(0, 0, 0);
-                } catch (\Exception $e) {
-                    $dateRange['datefrom'] = new \DateTime('midnight -1 month');
+                } catch (Exception $e) {
+                    $dateRange['datefrom'] = new DateTime('midnight -1 month');
                 }
             }
             $q->andWhere(
@@ -95,12 +100,12 @@ class EventRepository extends CommonRepository
                 ->setParameter('dateFrom', $dateRange['dateFrom']->format('Y-m-d H:i:s'));
         }
         if (isset($dateRange['dateTo'])) {
-            if (!($dateRange['dateTo'] instanceof \DateTime)) {
+            if (!($dateRange['dateTo'] instanceof DateTime)) {
                 try {
-                    $dateRange['datefrom'] = new \DateTime($dateRange['dateTo']);
+                    $dateRange['datefrom'] = new DateTime($dateRange['dateTo']);
                     $dateRange['dateTo']->setTime(0, 0, 0);
-                } catch (\Exception $e) {
-                    $dateRange['datefrom'] = new \DateTime('midnight');
+                } catch (Exception $e) {
+                    $dateRange['datefrom'] = new DateTime('midnight');
                 }
                 $dateRange['dateTo']->modify('+1 day');
             }
@@ -378,8 +383,8 @@ class EventRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param \Doctrine\ORM\QueryBuilder|QueryBuilder $q
+     * @param                                         $filter
      *
      * @return array
      */
@@ -393,8 +398,8 @@ class EventRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param \Doctrine\ORM\QueryBuilder|QueryBuilder $q
+     * @param                                         $filter
      *
      * @return array
      */

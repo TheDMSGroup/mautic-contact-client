@@ -11,7 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
 use Mautic\CoreBundle\Entity\CommonRepository;
+use PDO;
 
 /**
  * Class StatRepository.
@@ -57,17 +59,17 @@ class StatRepository extends CommonRepository
     }
 
     /**
-     * @param                $contactClientId
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param string|null    $type
+     * @param               $contactClientId
+     * @param DateTime|null $dateFrom
+     * @param DateTime|null $dateTo
+     * @param string|null   $type
      *
      * @return array
      */
     public function getSourcesByClient(
         $contactClientId,
-        \DateTime $dateFrom = null,
-        \DateTime $dateTo = null,
+        DateTime $dateFrom = null,
+        DateTime $dateTo = null,
         $type = null
     ) {
         $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
@@ -90,8 +92,8 @@ class StatRepository extends CommonRepository
 
         if ($dateFrom && $dateTo) {
             $q->andWhere('s.date_added BETWEEN FROM_UNIXTIME(:dateFrom) AND FROM_UNIXTIME(:dateTo)')
-                ->setParameter('dateFrom', $dateFrom->getTimestamp(), \PDO::PARAM_INT)
-                ->setParameter('dateTo', $dateTo->getTimestamp(), \PDO::PARAM_INT);
+                ->setParameter('dateFrom', $dateFrom->getTimestamp(), PDO::PARAM_INT)
+                ->setParameter('dateTo', $dateTo->getTimestamp(), PDO::PARAM_INT);
         }
 
         $utmSources = [];

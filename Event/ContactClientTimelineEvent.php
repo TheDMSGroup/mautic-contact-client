@@ -11,6 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Event;
 
+use DateTime;
+use Exception;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -83,12 +85,12 @@ class ContactClientTimelineEvent extends Event
     protected $countOnly = false;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      */
     protected $dateFrom;
 
     /**
-     * @var \DateTime|null
+     * @var DateTime|null
      */
     protected $dateTo;
 
@@ -142,7 +144,7 @@ class ContactClientTimelineEvent extends Event
      * @param bool               $forTimeline
      * @param null               $siteDomain
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(
         ContactClient $contactClient = null,
@@ -162,15 +164,15 @@ class ContactClientTimelineEvent extends Event
         $this->siteDomain    = $siteDomain;
 
         if (!empty($filters['dateFrom'])) {
-            $this->dateFrom = ($filters['dateFrom'] instanceof \DateTime)
+            $this->dateFrom = ($filters['dateFrom'] instanceof DateTime)
                 ? $filters['dateFrom']
-                : new \DateTime($filters['dateFrom']);
+                : new DateTime($filters['dateFrom']);
         }
 
         if (!empty($filters['dateTo'])) {
-            $this->dateTo = ($filters['dateTo'] instanceof \DateTime)
+            $this->dateTo = ($filters['dateTo'] instanceof DateTime)
                 ? $filters['dateTo']
-                : new \DateTime($filters['dateTo']);
+                : new DateTime($filters['dateTo']);
         }
     }
 
@@ -359,7 +361,7 @@ class ContactClientTimelineEvent extends Event
         $events = call_user_func_array('array_merge', $this->events);
 
         foreach ($events as &$e) {
-            if (!$e['timestamp'] instanceof \DateTime) {
+            if (!$e['timestamp'] instanceof DateTime) {
                 $dt             = new DateTimeHelper($e['timestamp'], 'Y-m-d H:i:s', 'UTC');
                 $e['timestamp'] = $dt->getDateTime();
                 unset($dt);
@@ -597,14 +599,14 @@ class ContactClientTimelineEvent extends Event
     /**
      * Calculate engagement counts only.
      *
-     * @param \DateTime       $dateFrom
-     * @param \DateTime       $dateTo
+     * @param DateTime        $dateFrom
+     * @param DateTime        $dateTo
      * @param string          $groupUnit
      * @param ChartQuery|null $chartQuery
      */
     public function setCountOnly(
-        \DateTime $dateFrom,
-        \DateTime $dateTo,
+        DateTime $dateFrom,
+        DateTime $dateTo,
         $groupUnit = '',
         ChartQuery $chartQuery = null
     ) {

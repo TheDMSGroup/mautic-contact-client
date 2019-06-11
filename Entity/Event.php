@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -58,7 +59,7 @@ class Event
     protected $integration_entity_id;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      */
     private $dateAdded;
 
@@ -67,7 +68,7 @@ class Event
      */
     public function __construct()
     {
-        $this->dateAdded = new \DateTime();
+        $this->dateAdded = new DateTime();
         $this->type      = 'undefined';
     }
 

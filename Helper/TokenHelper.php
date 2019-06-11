@@ -11,13 +11,17 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
+use DateTime;
+use Exception;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Entity\LeadDeviceRepository;
+use Mautic\LeadBundle\Model\DoNotContact;
 use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Mustache_Engine as Engine;
+use Mustache_Tokenizer;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -200,7 +204,7 @@ class TokenHelper
      * @param ContactModel         $contactModel
      * @param UtmSourceHelper      $utmSourceHelper
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(
         CoreParametersHelper $coreParametersHelper,
@@ -234,8 +238,8 @@ class TokenHelper
             $this->addHelper('number');
             $this->addHelper('boolean');
             $this->addHelper('string');
-        } catch (\Exception $e) {
-            throw new \Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
+        } catch (Exception $e) {
+            throw new Exception('You may need to install Mustache via "composer require mustache/mustache".', 0, $e);
         }
     }
 
@@ -456,7 +460,7 @@ class TokenHelper
                                             // 12223334444
                                             $value = substr($phone, -10);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -474,7 +478,7 @@ class TokenHelper
                                             // 222
                                             $value = substr($phone, -10, 3);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -492,7 +496,7 @@ class TokenHelper
                                             // 222
                                             $value = '('.substr($phone, -10, 3).')';
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -510,7 +514,7 @@ class TokenHelper
                                             // 3334444
                                             $value = substr($phone, -7);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -530,7 +534,7 @@ class TokenHelper
                                                 .substr($phone, -8, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -548,7 +552,7 @@ class TokenHelper
                                             // 12223334444
                                             $value = substr($phone, 1);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -566,7 +570,7 @@ class TokenHelper
                                             // 1
                                             $value = substr($phone, 1, strlen($phone) - 10);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -584,7 +588,7 @@ class TokenHelper
                                             // +1
                                             $value = substr($phone, 0, strlen($phone) - 10);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -602,7 +606,7 @@ class TokenHelper
                                             // +12223334444
                                             $value = $phone;
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -623,7 +627,7 @@ class TokenHelper
                                                 .substr($phone, -7, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -643,7 +647,7 @@ class TokenHelper
                                                 .substr($phone, -7, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -664,7 +668,7 @@ class TokenHelper
                                                 .substr($phone, -8, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -684,7 +688,7 @@ class TokenHelper
                                                 .substr($phone, -7, 3).'-'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -705,7 +709,7 @@ class TokenHelper
                                                 .substr($phone, -7, 3).'.'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -725,7 +729,7 @@ class TokenHelper
                                                 .substr($phone, -7, 3).'.'
                                                 .substr($phone, -4, 4);
                                         }
-                                    } catch (\Exception $e) {
+                                    } catch (Exception $e) {
                                     }
                                 }
 
@@ -754,7 +758,7 @@ class TokenHelper
             if (
                 isset($scanResult['type'])
                 && isset($scanResult['name'])
-                && \Mustache_Tokenizer::T_ESCAPED === $scanResult['type']
+                && Mustache_Tokenizer::T_ESCAPED === $scanResult['type']
             ) {
                 $tokens[$scanResult['name']] = true;
             }
@@ -1013,13 +1017,13 @@ class TokenHelper
         }
 
         // Add Identified date.
-        /** @var \DateTime $dateIdentified */
+        /** @var DateTime $dateIdentified */
         $dateIdentified            = $contact->getDateIdentified();
         $context['dateIdentified'] = $dateIdentified ? $this->dateFormatHelper->format($dateIdentified) : null;
         $conType['dateIdentified'] = 'datetime';
 
         // Add Modified date.
-        /** @var \DateTime $dateModified */
+        /** @var DateTime $dateModified */
         $dateModified            = $contact->getDateModified();
         $context['dateModified'] = $dateModified ? $this->dateFormatHelper->format($dateModified) : null;
         $conType['dateModified'] = 'datetime';
@@ -1028,7 +1032,7 @@ class TokenHelper
         $context['doNotContacts'] = [];
         $context['doNotContact']  = false;
         if ($contactId && $this->needsDncData) {
-            /** @var \Mautic\LeadBundle\Model\DoNotContact $record */
+            /** @var DoNotContact $record */
             foreach ($contact->getDoNotContact() as $record) {
                 $context['doNotContacts'][$record->getChannel()]           = [
                     'comments' => $record->getComments(),

@@ -11,8 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
+use ReflectionClass;
+use ReflectionException;
 
 /**
  * Class Stat.
@@ -152,7 +155,7 @@ class Stat
     /** @var string $type */
     private $type = '';
 
-    /** @var \DateTime $dateAdded */
+    /** @var DateTime $dateAdded */
     private $dateAdded;
 
     /** @var int $contactId */
@@ -236,9 +239,9 @@ class Stat
     {
         $result = [];
         try {
-            $reflection = new \ReflectionClass(__CLASS__);
+            $reflection = new ReflectionClass(__CLASS__);
             $result     = $reflection->getConstants();
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
         }
 
         return $result;

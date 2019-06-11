@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Command;
 
+use Exception;
 use Mautic\CoreBundle\Command\ModeratedCommand;
 use MauticPlugin\MauticContactClientBundle\Model\Cache;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,7 +41,7 @@ class MaintenanceCommand extends ModeratedCommand
      *
      * @return int|null
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

@@ -11,8 +11,12 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use Exception;
 use Mautic\CoreBundle\Controller\AbstractFormController;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -68,9 +72,9 @@ class FilesController extends AbstractFormController
      * @param null $contactClientId
      * @param null $fileId
      *
-     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|BinaryFileResponse|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+     * @return array|ContactClient|BinaryFileResponse|JsonResponse|RedirectResponse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function fileAction($objectId, $fileId)
     {

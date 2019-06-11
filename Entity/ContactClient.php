@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
@@ -78,12 +79,12 @@ class ContactClient extends FormEntity
     private $website;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      */
     private $publishUp;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      */
     private $publishDown;
 
