@@ -405,6 +405,7 @@ class ApiPayloadResponse
                 // -404 is just a falsy value to signify this from the filter helper.
                 if (-404 === $this->valid) {
                     if (!$this->responseActual['status'] || Codes::HTTP_OK != $this->responseActual['status']) {
+                        $this->valid = false;
                         throw new ContactClientException(
                             'Status code is not 200. Default validation failure.',
                             0,
@@ -413,6 +414,7 @@ class ApiPayloadResponse
                             false
                         );
                     }
+                    $this->valid = true;
                 }
             } catch (Exception $e) {
                 throw new ContactClientException(
