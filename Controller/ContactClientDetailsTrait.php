@@ -95,6 +95,7 @@ trait ContactClientDetailsTrait
 
         if (
             !isset($filters['type'])
+            && isset($chartFilters['type'])
             && !empty($chartFilters['type'])
         ) {
             $filters['type'] = $chartFilters['type'];
