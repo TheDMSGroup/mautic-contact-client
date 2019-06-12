@@ -68,7 +68,7 @@ class LeadTimelineSubscriber extends CommonSubscriber
                             // Optional details passed through to the contentTemplate
                             'extra'           => [
                                 'stat'    => $stat,
-                                'logs'    => $stat['logs'],
+                                'logs'    => json_decode($stat['logs']),
                                 'message' => $stat['message'],
                             ],
                             // Optional template to customize the details of the event in the timeline
