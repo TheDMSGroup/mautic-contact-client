@@ -74,10 +74,10 @@ class Transport implements TransportInterface
      */
     public function __construct(Client $client)
     {
-        if(is_null($client)){ 
+        if (is_null($client)) {
             $client = new Client($this->settings);
         }
-        $this->client = new $client;
+        $this->client = $client;
     }
 
     /**
