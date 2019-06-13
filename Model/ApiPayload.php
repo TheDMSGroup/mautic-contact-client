@@ -124,7 +124,7 @@ class ApiPayload
     public function __construct(
         contactClientModel $contactClientModel,
         Transport $transport,
-        tokenHelper $tokenHelper,
+        TokenHelper $tokenHelper,
         Schedule $scheduleModel,
         ApiPayloadAuth $apiPayloadAuth
     ) {
@@ -445,6 +445,7 @@ class ApiPayload
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
+                var_dump($this->valid);
             } catch (\Exception $e) {
                 // Delay this exception throw till after we can do some important logging.
             }

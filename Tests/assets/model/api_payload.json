@@ -1,0 +1,1322 @@
+{
+  "operations": [
+    {
+      "name": "",
+      "description": "",
+      "request": {
+        "url": "https://enpbq09g1z39r.x.pipedream.net/?subid={{ utm.source | url.encode }}&addr={{ address1 | url.encode }}&ad1={{ address1 }}",
+        "overridableUrl": false,
+        "testUrl": "https://enpbq09g1z39r.x.pipedream.net/?subid={{ utm.source | url.encode }}&addr={{ address1 | url.encode }}&ad1={{ address1 }}",
+        "method": "post",
+        "format": "form",
+        "auth": false,
+        "headers": [],
+        "manual": false,
+        "template": "",
+        "body": [
+          {
+            "key": "address1",
+            "value": "{{ address1 | url.encode }}",
+            "test_value": "1234 Test St.",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "address2",
+            "value": "{{ address2 }}",
+            "test_value": "Apt. 123",
+            "default_value": "",
+            "required": false,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "city",
+            "value": "{{ city }}",
+            "test_value": "Testopolis",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "email",
+            "value": "{{ email }}",
+            "test_value": "test.testerson@testing.com",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "eventToken",
+            "value": "{{ event.token }}",
+            "test_value": "10101",
+            "default_value": "",
+            "required": false,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "firstname",
+            "value": "{{ firstname }}",
+            "test_value": "Test",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "lastname",
+            "value": "{{ lastname }}",
+            "test_value": "Testerson",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "phone",
+            "value": "{{ phone }}",
+            "test_value": "+15555555555",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "state",
+            "value": "{{ state }}",
+            "test_value": "CA",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          },
+          {
+            "key": "zipcode",
+            "value": "{{ zipcode | zip.short }}",
+            "test_value": "90210",
+            "default_value": "",
+            "required": true,
+            "overridable": false,
+            "test_only": false,
+            "description": ""
+          }
+        ]
+      },
+      "response": {
+        "format": "html",
+        "headers": [
+          {
+            "key": "Accept-Ranges",
+            "destination": "",
+            "default_value": "",
+            "example": "none",
+            "description": ""
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "destination": "",
+            "default_value": "",
+            "example": "*",
+            "description": ""
+          },
+          {
+            "key": "Allow",
+            "destination": "",
+            "default_value": "",
+            "example": "GET, HEAD",
+            "description": ""
+          },
+          {
+            "key": "Alt-Svc",
+            "destination": "",
+            "default_value": "",
+            "example": "quic=\":443\"; ma=2592000; v=\"46,44,43,39\"",
+            "description": ""
+          },
+          {
+            "key": "Cache-Control",
+            "destination": "",
+            "default_value": "",
+            "example": "no-cache",
+            "description": ""
+          },
+          {
+            "key": "Connection",
+            "destination": "",
+            "default_value": "",
+            "example": "keep-alive",
+            "description": ""
+          },
+          {
+            "key": "Content-Length",
+            "destination": "",
+            "default_value": "",
+            "example": "16",
+            "description": ""
+          },
+          {
+            "key": "Content-Type",
+            "destination": "",
+            "default_value": "",
+            "example": "application/json; charset=utf-8",
+            "description": ""
+          },
+          {
+            "key": "Date",
+            "destination": "",
+            "default_value": "",
+            "example": "Fri, 07 Jun 2019 17:37:05 GMT",
+            "description": ""
+          },
+          {
+            "key": "Expires",
+            "destination": "",
+            "default_value": "",
+            "example": "-1",
+            "description": ""
+          },
+          {
+            "key": "P3P",
+            "destination": "",
+            "default_value": "",
+            "example": "CP=\"This is not a P3P policy! See g.co/p3phelp for more info.\"",
+            "description": ""
+          },
+          {
+            "key": "Server",
+            "destination": "",
+            "default_value": "",
+            "example": "Apache/2.4.39 (Unix) PHP/7.2.18",
+            "description": ""
+          },
+          {
+            "key": "Set-Cookie",
+            "destination": "",
+            "default_value": "",
+            "example": "1P_JAR=2019-05-09-17; expires=Sat, 08-Jun-2019 17:48:36 GMT; path=/; domain=.google.com; NID=183=FmiuwqjqL97guYO4NUsirP1IQUSeGl4RsCZUoV5AstTn2G99g8HDbLuDmlNvR6-IrozrduNIl09npFjU1fyBBfaohfAOP9cgNrBe1FEAztEBoJIZFZdK7CEMu-YjSUMlxEIMEIXSWj_Dc8CpKeic8mLwHT-aufeVulxZYblva5g; expires=Fri, 08-Nov-2019 17:48:36 GMT; path=/; domain=.google.com; HttpOnly",
+            "description": ""
+          },
+          {
+            "key": "Transfer-Encoding",
+            "destination": "",
+            "default_value": "",
+            "example": "chunked",
+            "description": ""
+          },
+          {
+            "key": "Vary",
+            "destination": "",
+            "default_value": "",
+            "example": "Accept-Encoding",
+            "description": ""
+          },
+          {
+            "key": "X-Frame-Options",
+            "destination": "",
+            "default_value": "",
+            "example": "SAMEORIGIN",
+            "description": ""
+          },
+          {
+            "key": "X-Guzzle-Redirect-History",
+            "destination": "",
+            "default_value": "",
+            "example": "http://mautic.loc/s/dashboard; http://mautic.loc/s/login",
+            "description": ""
+          },
+          {
+            "key": "X-Guzzle-Redirect-Status-History",
+            "destination": "",
+            "default_value": "",
+            "example": "302; 302",
+            "description": ""
+          },
+          {
+            "key": "X-Powered-By",
+            "destination": "",
+            "default_value": "",
+            "example": "Express",
+            "description": ""
+          },
+          {
+            "key": "X-XSS-Protection",
+            "destination": "",
+            "default_value": "",
+            "example": "0",
+            "description": ""
+          },
+          {
+            "key": "x-pd-status",
+            "destination": "",
+            "default_value": "",
+            "example": "sent to primary",
+            "description": ""
+          }
+        ],
+        "body": [
+          {
+            "key": "html.1.@attributes.lang",
+            "destination": "",
+            "default_value": "",
+            "example": "en",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic-eb-login",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.a.@attributes.href",
+            "destination": "",
+            "default_value": "",
+            "example": "//www.google.com/",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.a.span.@attributes.aria-label",
+            "destination": "",
+            "default_value": "",
+            "example": "Google",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.a.span.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "logo",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.p.0.b",
+            "destination": "",
+            "default_value": "",
+            "example": "405.",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.p.0.ins",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.p.1.code.0",
+            "destination": "",
+            "default_value": "",
+            "example": "POST",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.p.1.code.1",
+            "destination": "",
+            "default_value": "",
+            "example": "/",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.p.1.ins",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "main",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.@attributes.role",
+            "destination": "",
+            "default_value": "",
+            "example": "main",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.0.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "main-panel-flash-msgs",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.0.div.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "alert-growl-container",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.0.div.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "flashes",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.0.div._value",
+            "destination": "",
+            "default_value": "",
+            "example": "    ",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "container",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic-eb-login-container",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "row",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "col-lg-4 col-lg-offset-4",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "panel",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "form-login",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "panel-body",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.div.0.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic-logo img-circle mb-md text-center",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.div.0._value",
+            "destination": "",
+            "default_value": "",
+            "example": "                                                    ",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.div.1.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "text-center text-muted",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.div.1._value",
+            "destination": "",
+            "default_value": "",
+            "example": "                            Copyright ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ© 2019 Digital Media Solutions Group                        ",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.@attributes.action",
+            "destination": "",
+            "default_value": "",
+            "example": "/s/login_check",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "form-group login-form",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.@attributes.data-toggle",
+            "destination": "",
+            "default_value": "",
+            "example": "ajax",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.@attributes.method",
+            "destination": "",
+            "default_value": "",
+            "example": "post",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "login",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.@attributes.role",
+            "destination": "",
+            "default_value": "",
+            "example": "form",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.button.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "btn btn-lg btn-primary btn-block",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.button.@attributes.type",
+            "destination": "",
+            "default_value": "",
+            "example": "submit",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.button._value",
+            "destination": "",
+            "default_value": "",
+            "example": "login",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "input-group mb-md",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.autofocus",
+            "destination": "",
+            "default_value": "",
+            "example": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "form-control input-lg",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "username",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "_username",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.placeholder",
+            "destination": "",
+            "default_value": "",
+            "example": "Username or email",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.required",
+            "destination": "",
+            "default_value": "",
+            "example": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.type",
+            "destination": "",
+            "default_value": "",
+            "example": "text",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.input.@attributes.value",
+            "destination": "",
+            "default_value": "",
+            "example": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.label.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "sr-only",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.label.@attributes.for",
+            "destination": "",
+            "default_value": "",
+            "example": "username",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.label._value",
+            "destination": "",
+            "default_value": "",
+            "example": "Username or email",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.span.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "input-group-addon",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.0.span.i.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "fa fa-user",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "input-group mb-md",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.input.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "form-control input-lg",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.input.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "password",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.input.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "_password",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.input.@attributes.placeholder",
+            "destination": "",
+            "default_value": "",
+            "example": "Password",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.input.@attributes.required",
+            "destination": "",
+            "default_value": "",
+            "example": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.input.@attributes.type",
+            "destination": "",
+            "default_value": "",
+            "example": "password",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.label.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "sr-only",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.label.@attributes.for",
+            "destination": "",
+            "default_value": "",
+            "example": "password",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.label._value",
+            "destination": "",
+            "default_value": "",
+            "example": "Password:",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.span.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "input-group-addon",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.1.span.i.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "fa fa-key",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.2.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "checkbox-inline custom-primary pull-left mb-md",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.2.label.@attributes.for",
+            "destination": "",
+            "default_value": "",
+            "example": "remember_me",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.2.label.input.@attributes.id",
+            "destination": "",
+            "default_value": "",
+            "example": "remember_me",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.2.label.input.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "_remember_me",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.2.label.input.@attributes.type",
+            "destination": "",
+            "default_value": "",
+            "example": "checkbox",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.3.@attributes.class",
+            "destination": "",
+            "default_value": "",
+            "example": "mt-sm text-right",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.3.a.@attributes.href",
+            "destination": "",
+            "default_value": "",
+            "example": "/passwordreset",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.div.3.a._value",
+            "destination": "",
+            "default_value": "",
+            "example": "forgot your password?",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.input.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "_csrf_token",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.input.@attributes.type",
+            "destination": "",
+            "default_value": "",
+            "example": "hidden",
+            "description": ""
+          },
+          {
+            "key": "html.1.body.section.div.1.div.div.div.div.form.input.@attributes.value",
+            "destination": "",
+            "default_value": "",
+            "example": "qHgYygZ8SdowpS5iVUcaB-lL5t18DvVdtBRfnFtqgJo",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.0.@attributes.href",
+            "destination": "",
+            "default_value": "",
+            "example": "/media/images/favicon.ico",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.0.@attributes.rel",
+            "destination": "",
+            "default_value": "",
+            "example": "icon",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.0.@attributes.type",
+            "destination": "",
+            "default_value": "",
+            "example": "image/x-icon",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.1.@attributes.href",
+            "destination": "",
+            "default_value": "",
+            "example": "/media/images/apple-touch-icon.png",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.1.@attributes.rel",
+            "destination": "",
+            "default_value": "",
+            "example": "apple-touch-icon",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.2.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.2.@attributes.href",
+            "destination": "",
+            "default_value": "",
+            "example": "/media/css/libraries.css?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.2.@attributes.rel",
+            "destination": "",
+            "default_value": "",
+            "example": "stylesheet",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.3.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.3.@attributes.href",
+            "destination": "",
+            "default_value": "",
+            "example": "/media/css/app.css?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.link.3.@attributes.rel",
+            "destination": "",
+            "default_value": "",
+            "example": "stylesheet",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.meta.0.@attributes.charset",
+            "destination": "",
+            "default_value": "",
+            "example": "UTF-8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.meta.1.@attributes.content",
+            "destination": "",
+            "default_value": "",
+            "example": "noindex, nofollow",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.meta.1.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "robots",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.meta.2.@attributes.content",
+            "destination": "",
+            "default_value": "",
+            "example": "width=device-width, initial-scale=1, maximum-scale=1",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.meta.2.@attributes.name",
+            "destination": "",
+            "default_value": "",
+            "example": "viewport",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.0",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.1.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.1.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/media/js/libraries.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.2.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.2.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/media/js/app.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.3.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.3.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/froala_editor.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.4.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.4.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/align.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.5.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.5.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/code_beautifier.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.6.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.6.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/code_view.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.7.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.7.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/colors.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.8.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.8.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/font_family.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.9.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.9.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/font_size.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.10.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.10.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/fullscreen.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.11.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.11.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/image.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.12.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.12.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/filemanager.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.13.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.13.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/inline_style.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.14.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.14.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/line_breaker.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.15.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.15.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/link.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.16.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.16.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/lists.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.17.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.17.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/paragraph_format.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.18.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.18.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/paragraph_style.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.19.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.19.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/quick_insert.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.20.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.20.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/quote.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.21.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.21.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/table.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.22.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.22.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/url.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.23.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.23.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/gatedvideo.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.24.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.24.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/token.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.25.@attributes.data-source",
+            "destination": "",
+            "default_value": "",
+            "example": "mautic",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.script.25.@attributes.src",
+            "destination": "",
+            "default_value": "",
+            "example": "/app/bundles/CoreBundle/Assets/js/libraries/froala/plugins/dynamic_content.js?v464a43e8",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.style",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "html.1.head.title",
+            "destination": "",
+            "default_value": "",
+            "example": "DMS Engage",
+            "description": ""
+          },
+          {
+            "key": "line 1",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "line 2",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "line 3",
+            "destination": "",
+            "default_value": "",
+            "example": "if (!iesg){document.f&&document.f.q.focus();document.gbqf&&document.gbqf.q.focus();}",
+            "description": ""
+          },
+          {
+            "key": "line 4",
+            "destination": "",
+            "default_value": "",
+            "example": "}",
+            "description": ""
+          },
+          {
+            "key": "line 5",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "line 6",
+            "destination": "",
+            "default_value": "",
+            "description": ""
+          },
+          {
+            "key": "success",
+            "destination": "",
+            "default_value": "",
+            "example": "true",
+            "description": ""
+          }
+        ],
+        "success": {
+          "definition": "{\n  \"condition\": \"AND\",\n  \"rules\": [\n    {\n      \"id\": \"status\",\n      \"field\": \"status\",\n      \"type\": \"string\",\n      \"input\": \"select\",\n      \"operator\": \"equal\",\n      \"value\": \"200\"\n    }\n  ],\n  \"valid\": true\n}"
+        }
+      }
+    }
+  ],
+  "settings": {
+    "autoUpdate": true,
+    "autoRetry": true,
+    "verify": false,
+    "limit": 300,
+    "timeout": 30,
+    "connect_timeout": 5,
+    "attempts": 3
+  }
+}
