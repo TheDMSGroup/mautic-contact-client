@@ -63,10 +63,13 @@ class ApiPayloadRequest
      */
     public function send()
     {
+        if($this->test) {
+            $this->tokenHelper->addContext((array)$this->request->body);
+        }
         // The URI has already been overriden (if applicable) by this point.
         $uri = isset($this->request->url) ? $this->request->url : null;
         if ($this->test && !empty($this->request->testUrl)) {
-            $uri = $this->request->testUrl;
+            $uri = $this->request->testUrl; 
         }
         $uri = trim($this->renderTokens($uri));
         if (empty($uri)) {
@@ -279,6 +282,10 @@ class ApiPayloadRequest
     {
         $result = [];
         foreach ($fields as $field) {
+           if (!$this->test && (isset($field->test_only) ? $field->test_only : false)) {
+                // Skip this field as it is for test mode only.
+                continue;
+            }
             $key = isset($field->key) ? trim($field->key) : '';
             if ('' === $key) {
                 // Skip if we have an empty key.

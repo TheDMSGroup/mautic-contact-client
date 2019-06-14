@@ -7,12 +7,14 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use Mautic\CoreBundle\Test\MauticSqliteTestCase;
+use Mautic\LeadBundle\Entity\Lead;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
 class ApiPayloadTest extends MauticSqliteTestCase
 {
-    public function testTestApiSend()
+    /** @test */
+    public function it_tokenizes_a_post_url_in_test_mode()
     {
         $container = [];
         $history   = Middleware::history($container);
@@ -28,8 +30,13 @@ class ApiPayloadTest extends MauticSqliteTestCase
         $payload = $this->getPayload();
         $client->setAPIPayload($payload);
 
-        $apiPayload->setTest(true)
-                    ->setContactClient($client);
+        $contact = new Lead();
+        $contact->setAddress1('Real Address');
+
+        $test = true;
+        $apiPayload->setTest($test)
+                   ->setContactClient($client)
+                   ->setContact($contact);
 
         $apiPayload->run();
 
