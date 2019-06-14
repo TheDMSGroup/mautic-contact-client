@@ -72,12 +72,15 @@ class Transport implements TransportInterface
      *
      * @param Client $client
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, HandlerStack $handler = null)
     {
-        if (is_null($client)) {
-            $client = new Client($this->settings);
+        if(is_null($client)){
+            $client = new Client();
         }
         $this->client = $client;
+        if(!is_null($handler)){
+            $this->mergeSettings(['handler' => $handler], $this->settings);
+        }
     }
 
     /**
@@ -115,8 +118,11 @@ class Transport implements TransportInterface
      */
     private function mergeSettings($settingsa, &$settingsb)
     {
+        echo "============";
+        return;
         foreach ($settingsb as $key => &$value) {
             if (isset($settingsa[$key])) {
+                var_dump($key);
                 if (is_array($value)) {
                     $this->mergeSettings($settingsa[$key], $value);
                 } else {

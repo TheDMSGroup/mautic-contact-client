@@ -17,22 +17,26 @@ class ApiPayloadTest extends MauticSqliteTestCase
         $container = [];
         $history   = Middleware::history($container);
         $stack     = HandlerStack::create();
+        // Add the history middleware to the handler stack.
         $stack->push($history);
         $guzzle = new Client(['handler' => $stack]);
+        /* $this->container->set('mautic.contactclient.guzzle.client', $guzzle); */
+        $this->container->set('mautic.contactclient.service.transport', new Transport($guzzle, $stack));
 
-        $this->container->set('mautic.contactclient.guzzle.client', $guzzle);
+        $apiPayload = $this->container->get('mautic.contactclient.model.apipayload');
 
         $client = new ContactClient();
         $client->setType('api');
         $payload = $this->getPayload(); 
         $client->setAPIPayload($payload);
 
-
-        $apiPayload = $this->container->get('mautic.contactclient.model.apipayload');
         $apiPayload->setTest(true)
                     ->setContactClient($client); 
 
         $apiPayload->run();
+
+        echo "Good";
+        var_dump(!empty($container));
 
     }
 

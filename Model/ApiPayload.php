@@ -273,6 +273,7 @@ class ApiPayload
      */
     private function setSettings($settings)
     {
+        return;
         if ($settings) {
             foreach ($this->settings as $key => &$value) {
                 if (!empty($settings->{$key}) && $settings->{$key}) {
