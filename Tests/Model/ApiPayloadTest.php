@@ -5,9 +5,9 @@ namespace MauticPlugin\MauticContactClient\Tests\Model;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Request;
 use Mautic\CoreBundle\Test\MauticSqliteTestCase;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
-use MauticPlugin\MauticContactClientBundle\Model\ApiPayload;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
 class ApiPayloadTest extends MauticSqliteTestCase
@@ -18,23 +18,26 @@ class ApiPayloadTest extends MauticSqliteTestCase
         $history   = Middleware::history($container);
         $stack     = HandlerStack::create();
         // Add the history middleware to the handler stack.
-        $stack->push($history); 
+        $stack->push($history);
         $this->container->set('mautic.contactclient.service.transport', new Transport(new Client(), $stack));
 
         $apiPayload = $this->container->get('mautic.contactclient.model.apipayload');
 
         $client = new ContactClient();
         $client->setType('api');
-        $payload = $this->getPayload(); 
+        $payload = $this->getPayload();
         $client->setAPIPayload($payload);
 
         $apiPayload->setTest(true)
-                    ->setContactClient($client); 
+                    ->setContactClient($client);
 
         $apiPayload->run();
 
-        foreach($container as $req) {
-            dump($req['request']); 
+        foreach ($container as $item) {
+            /** @var Request $req */
+            $req = $item['request'];
+            $q   = $req->getUri()->getQuery();
+            $this->assertEquals('?addr=1234%20Test%20St.&ad1=1234 Test St.', $q);
         }
     }
 
