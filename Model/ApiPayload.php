@@ -331,7 +331,7 @@ class ApiPayload
      * @throws ContactClientException
      */
     public function run()
-    {
+    { 
         $this->validateOperations();
         $this->prepareTransport();
         $this->prepareTokenHelper();

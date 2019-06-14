@@ -8,6 +8,7 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use Mautic\CoreBundle\Test\MauticSqliteTestCase;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
@@ -31,7 +32,13 @@ class ApiPayloadTest extends MauticSqliteTestCase
         $client->setAPIPayload($payload);
 
         $contact = new Lead();
-        $contact->setAddress1('Real Address');
+        $contact->setAddress1('Fake Address 1234');
+
+        /** @var LeadModel $leadModel */
+        $leadModel = $this->container->get(LeadModel::class);
+        $leadModel->saveEntity($contact);
+
+        dump($contact->getFields());
 
         $test = true;
         $apiPayload->setTest($test)
