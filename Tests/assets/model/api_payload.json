@@ -4,9 +4,9 @@
       "name": "",
       "description": "",
       "request": {
-        "url": "https://enpbq09g1z39r.x.pipedream.net/?subid={{ utm.source | url.encode }}&addr={{ address1 | url.encode }}&ad1={{ address1 }}",
+        "url": "https://enpbq09g1z39r.x.pipedream.net/?addr={{ address1 | url.encode }}&ad1={{ address1 }}",
         "overridableUrl": false,
-        "testUrl": "https://enpbq09g1z39r.x.pipedream.net/?subid={{ utm.source | url.encode }}&addr={{ address1 | url.encode }}&ad1={{ address1 }}",
+        "testUrl": "https://enpbq09g1z39r.x.pipedream.net/?addr={{ address1 | url.encode }}&ad1={{ address1 }}",
         "method": "post",
         "format": "form",
         "auth": false,
