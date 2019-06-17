@@ -3,9 +3,11 @@
 namespace MauticPlugin\MauticContactClientBundle\Tests\Model;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
@@ -17,7 +19,7 @@ class ApiPayloadTest extends MauticMysqlTestCase
     {
         $container = [];
         $history   = Middleware::history($container);
-        $stack     = HandlerStack::create();
+        $stack     = HandlerStack::create(new MockHandler([new Response(200, ['X-Foo' => 'Bar'])]));
         // Add the history middleware to the handler stack.
         $stack->push($history);
         $this->container->set('mautic.contactclient.service.transport', new Transport(new Client(), $stack));
