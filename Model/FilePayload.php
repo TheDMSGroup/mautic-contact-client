@@ -675,9 +675,9 @@ class FilePayload
     }
 
     /**
-     * @return Queue|object|null
-     *
+     * @return Queue
      * @throws ContactClientException
+     * @throws \Doctrine\ORM\ORMException
      */
     private function addContactToQueue()
     {
