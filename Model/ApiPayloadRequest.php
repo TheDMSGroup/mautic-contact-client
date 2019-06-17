@@ -64,7 +64,7 @@ class ApiPayloadRequest
     public function send()
     {
         // If it's in test mode, add test_values to TokenHelper.
-        if ($this->test && !is_null($this->request) && !is_null($this->request->body)) {
+        if ($this->test && false === is_null($this->request) && false === is_null($this->request->body)) {
             $testValues = [];
             foreach ($this->request->body as $item) {
                 $testValues[$item->key] = $item->test_value;
