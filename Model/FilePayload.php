@@ -1906,16 +1906,6 @@ class FilePayload
     }
 
     /**
-     * Get the last Operation ID that was assembled/attempted.
-     *
-     * @return mixed
-     */
-    public function getLastOp()
-    {
-        return $this->op;
-    }
-
-    /**
      * @param      $value
      * @param null $type
      */
@@ -1937,6 +1927,16 @@ class FilePayload
         } else {
             $this->logs[] = $value;
         }
+    }
+
+    /**
+     * Get the last Operation ID that was assembled/attempted.
+     *
+     * @return mixed
+     */
+    public function getLastOp()
+    {
+        return $this->op;
     }
 
     /**
