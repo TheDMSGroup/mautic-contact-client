@@ -138,7 +138,7 @@ class EventRepository extends CommonRepository
             'c',
             MAUTIC_TABLE_PREFIX.'contactclient_stats',
             's',
-            'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+            'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id AND c.date_added = s.date_added'
         );
 
         $query->where('c.contactclient_id = :contactClientId')
@@ -221,7 +221,7 @@ class EventRepository extends CommonRepository
                     'c',
                     MAUTIC_TABLE_PREFIX.'contactclient_stats',
                     's',
-                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id AND c.date_added = s.date_added'
                 );
             }
 
