@@ -676,6 +676,7 @@ class FilePayload
 
     /**
      * @return Queue
+     *
      * @throws ContactClientException
      * @throws \Doctrine\ORM\ORMException
      */
@@ -1353,9 +1354,6 @@ class FilePayload
      */
     public function setEvent($event = [])
     {
-        if (!empty($event['id'])) {
-            $this->setLogs($event['id'], 'campaignEventId');
-        }
         $overrides = [];
         if (!empty($event['config']['contactclient_overrides'])) {
             // Flatten overrides to key-value pairs.

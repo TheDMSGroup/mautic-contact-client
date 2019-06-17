@@ -244,6 +244,7 @@ class ClientIntegration extends AbstractIntegration
                 }
                 if (isset($this->event['id']) && $this->event['id']) {
                     $this->addTrace('eventId', $this->event['id']);
+                    $this->setLogs($this->event['id'], 'campaignEventId');
                 }
             }
         }
@@ -729,32 +730,31 @@ class ClientIntegration extends AbstractIntegration
      * Attempt to discern if we are being triggered by/within a campaign.
      *
      * @return \Mautic\CampaignBundle\Entity\Campaign|mixed|null
-     *
-     * @throws Exception
      */
     private function getCampaign()
     {
-        if (!$this->campaign && $this->event) {
-            // Sometimes we have a campaignId as an integer ID.
-            if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
-                /** @var CampaignModel $campaignModel */
-                $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
-                $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
-            }
-            // Sometimes we have a campaignId as a hash.
-            if (!$this->campaign) {
-                try {
+        try {
+            if (!$this->campaign && $this->event) {
+                // Sometimes we have a campaignId as an integer ID.
+                if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
+                    /** @var CampaignModel $campaignModel */
+                    $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
+                    $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
+                }
+                // Sometimes we have a campaignId as a hash.
+                if (!$this->campaign) {
                     $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
                         $this->campaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                     }
-                } catch (\Exception $e) {
+                }
+                if ($this->campaign) {
+                    $this->addTrace('campaign', $this->campaign->getName());
+                    $this->addTrace('campaignId', $this->campaign->getId());
+                    $this->setLogs($this->campaign->getId(), 'campaignId');
                 }
             }
-            if ($this->campaign) {
-                $this->addTrace('campaign', $this->campaign->getName());
-                $this->addTrace('campaignId', $this->campaign->getId());
-            }
+        } catch (\Exception $e) {
         }
 
         return $this->campaign;
@@ -867,18 +867,6 @@ class ClientIntegration extends AbstractIntegration
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');
-        // Make an attempt to log the campaign and event with the error if not already there.
-        try {
-            if (!isset($this->logs['campaign'])) {
-                if ($this->getCampaign() instanceof Campaign) {
-                    $this->setLogs($this->getCampaign()->getId(), 'campaign');
-                }
-
-                if (!empty($event['id'])) {
-                    $this->setLogs($event['id'], 'campaignEventId');
-                }
-            }
-        } catch (\Exception $exception) {}
     }
 
     /**
