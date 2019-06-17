@@ -12,6 +12,9 @@
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
 use DateTime;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use PDO;
 
@@ -32,7 +35,7 @@ class StatRepository extends CommonRepository
      */
     public function getStats($contactClientId, $type, $fromDate = null, $toDate = null)
     {
-        $q = $this->createQueryBuilder('s');
+        $q = $this->slaveQueryBuilder()->select('s');
 
         $expr = $q->expr()->andX(
             $q->expr()->eq('IDENTITY(s.contactclient)', (int) $contactClientId),
@@ -59,6 +62,23 @@ class StatRepository extends CommonRepository
     }
 
     /**
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->getEntityManager()->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        return new QueryBuilder($connection);
+    }
+
+    /**
      * @param               $contactClientId
      * @param DateTime|null $dateFrom
      * @param DateTime|null $dateTo
@@ -72,7 +92,7 @@ class StatRepository extends CommonRepository
         DateTime $dateTo = null,
         $type = null
     ) {
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q = $this->slaveQueryBuilder();
 
         $q->select('distinct(s.utm_source)')
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_stats', 's')
