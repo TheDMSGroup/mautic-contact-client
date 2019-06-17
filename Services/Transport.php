@@ -74,7 +74,7 @@ class Transport implements TransportInterface
      */
     public function __construct(Client $client, HandlerStack $handler = null)
     {
-        if(!is_null($handler)){
+        if ($handler instanceof HandlerStack) {
             $this->settings['handler'] = $handler;
         }
 
