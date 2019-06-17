@@ -13,5 +13,6 @@ Mautic.contactclientOnLoad = function () {
         // Client view screen.
         Mautic.contactclientEventsDatatable();
         Mautic.contactclientTransactionsTable();
+        Mautic.contactclientPendingEventsTable();
     }
 };

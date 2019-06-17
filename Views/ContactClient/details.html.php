@@ -151,7 +151,14 @@ $website = $item->getWebsite();
                         </a>
                     </li>
                 <?php endif; ?>
-
+                <!-- pending client events -->
+                <li class="">
+                    <a href="#pending-container" role="tab" data-toggle="tab">
+                    <span class="label label-primary mr-sm" id="PendingEventsCount">
+                    </span>
+                        <?php echo $view['translator']->trans('mautic.contactclient.pending.events'); ?>
+                    </a>
+                </li>
                 <?php echo $view['content']->getCustomContent('tabs', $mauticTemplateVars); ?>
             </ul>
             <!--/ tabs controls -->
@@ -180,7 +187,15 @@ $website = $item->getWebsite();
                         ); ?>
                     </div>
                 <?php endif; ?>
-
+                <div class="tab-pane fade in bdr-w-0" id="pending-events-container">
+                    <?php echo $view->render(
+                        'MauticContactClientBundle:PendingEvents:index.html.php',
+                        [
+                            'contactClient' => $item,
+                            'tmpl'          => 'index',
+                        ]
+                    ); ?>
+                </div>
                 <!-- custom content -->
                 <?php echo $view['content']->getCustomContent('tabs.content', $mauticTemplateVars); ?>
                 <!-- end: custom content -->

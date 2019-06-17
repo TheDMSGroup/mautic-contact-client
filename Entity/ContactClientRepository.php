@@ -110,4 +110,21 @@ class ContactClientRepository extends CommonRepository
             [$this->getTableAlias().'.name', 'ASC'],
         ];
     }
+
+    /**
+     * @param $clientId
+     *
+     * @return array
+     */
+    public function getPendingEventsData($clientId)
+    {
+        $data = [];
+
+        $data[] = [1,'CampaignName1', 1, 'EventName1', 5434];
+        $data[] = [1,'CampaignName1', 2, 'EventName2', 145];
+        $data[] = [2,'CampaignName1', 3, 'EventName3', 9746];
+        $data[] = [2,'CampaignName1', 4, 'EventName4', 354];
+
+        return $data;
+    }
 }

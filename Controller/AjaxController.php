@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\CacheStorageHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
+use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -296,5 +297,41 @@ class AjaxController extends CommonAjaxController
         }
 
         return $this->sendJsonResponse($dataArray);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
+     * @throws \Exception
+     */
+    public function pendingEventsAction()
+    {
+        $objectId = $this->request->request->get('objectId') ? (int)($this->request->request->get('objectId')) : null;
+        $data = [];
+        $total = 0;
+        $events = [];
+
+        if (!empty($objectId)){
+
+            $em      = $this->dispatcher->getContainer()->get('doctrine.orm.default_entity_manager');
+            $repo    = $em->getRepository(\MauticPlugin\MauticContactClientBundle\Entity\ContactClient::class);
+
+            $events       = $repo->getPendingEventsData($objectId);
+
+            $headers    = [
+                'mautic.contactclient.pending.events.campaign',
+                'mautic.contactclient.pending.events.event',
+                'mautic.contactclient.pending.events.count',
+            ];
+
+            foreach ($headers as $header) {
+                $data['columns'][] = [
+                    'title' => $this->translator->trans($header),
+                ];
+            }
+        }
+        $data['events'] = $events;
+        $data['total'] = $total;
+        $data = UTF8Helper::fixUTF8($data);
+        return $this->sendJsonResponse($data);
     }
 }
