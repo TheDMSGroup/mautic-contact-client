@@ -867,6 +867,18 @@ class ClientIntegration extends AbstractIntegration
         }
         $this->setLogs($exception->getMessage(), 'error');
         $this->setLogs($this->retry, 'retry');
+        // Make an attempt to log the campaign and event with the error if not already there.
+        try {
+            if (!isset($this->logs['campaign'])) {
+                if ($this->getCampaign() instanceof Campaign) {
+                    $this->setLogs($this->getCampaign()->getId(), 'campaign');
+                }
+
+                if (!empty($event['id'])) {
+                    $this->setLogs($event['id'], 'campaignEventId');
+                }
+            }
+        } catch (\Exception $exception) {}
     }
 
     /**
