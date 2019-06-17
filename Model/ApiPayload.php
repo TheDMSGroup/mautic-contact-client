@@ -331,7 +331,7 @@ class ApiPayload
      * @throws ContactClientException
      */
     public function run()
-    { 
+    {
         $this->validateOperations();
         $this->prepareTransport();
         $this->prepareTokenHelper();
@@ -388,7 +388,7 @@ class ApiPayload
     }
 
     /**
-     * Apply our context to create a new tokenhelper session.
+     * Apply our context to create a new TokenHelper session.
      */
     private function prepareTokenHelper()
     {
@@ -405,6 +405,10 @@ class ApiPayload
                 'api_date' => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime()),
             ]
         );
+
+        if (!empty($this->additionalTokenContext)) {
+            $this->tokenHelper->addContext($this->additionalTokenContext);
+        }
     }
 
     /**

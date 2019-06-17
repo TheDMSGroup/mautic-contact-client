@@ -6,13 +6,11 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
-use Mautic\CoreBundle\Test\MauticSqliteTestCase;
-use Mautic\LeadBundle\Entity\Lead;
-use Mautic\LeadBundle\Model\LeadModel;
+use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Services\Transport;
 
-class ApiPayloadTest extends MauticSqliteTestCase
+class ApiPayloadTest extends MauticMysqlTestCase
 {
     /** @test */
     public function it_tokenizes_a_post_url_in_test_mode()
@@ -31,19 +29,8 @@ class ApiPayloadTest extends MauticSqliteTestCase
         $payload = $this->getPayload();
         $client->setAPIPayload($payload);
 
-        $contact = new Lead();
-        $contact->setAddress1('Fake Address 1234');
-
-        /** @var LeadModel $leadModel */
-        $leadModel = $this->container->get(LeadModel::class);
-        $leadModel->saveEntity($contact);
-
-        dump($contact->getFields());
-
-        $test = true;
-        $apiPayload->setTest($test)
-                   ->setContactClient($client)
-                   ->setContact($contact);
+        $apiPayload->setTest(true)
+                   ->setContactClient($client);
 
         $apiPayload->run();
 
@@ -51,7 +38,7 @@ class ApiPayloadTest extends MauticSqliteTestCase
             /** @var Request $req */
             $req = $item['request'];
             $q   = $req->getUri()->getQuery();
-            $this->assertEquals('?addr=1234%20Test%20St.&ad1=1234 Test St.', $q);
+            $this->assertEquals('subid=&addr=1234%20Test%20St.&ad1=1234%20Test%20St.', $q);
         }
     }
 
