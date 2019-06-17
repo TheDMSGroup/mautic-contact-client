@@ -12,9 +12,8 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Aws\S3\S3Client;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
-use Exporter\Writer\CsvWriter;
-use Exporter\Writer\XlsWriter;
 use FOS\RestBundle\Util\Codes;
 use League\Flysystem\Adapter\Ftp as FtpAdapter;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
@@ -39,6 +38,8 @@ use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper;
+use Sonata\Exporter\Writer\CsvWriter;
+use Sonata\Exporter\Writer\XlsWriter;
 use Symfony\Component\Filesystem\Filesystem as FileSystemLocal;
 use Symfony\Component\Yaml\Yaml;
 
@@ -687,13 +688,32 @@ class FilePayload
             && $this->contact
         ) {
             // Check for a pre-existing instance of this contact queued for this file.
-            $queue = $this->getQueueRepository()->findOneBy(
+            $queues = $this->getQueueRepository()->getEntities(
                 [
-                    'contactClient' => $this->contactClient,
-                    'file'          => $this->file,
-                    'contact'       => (int) $this->contact->getId(),
+                    'limit'            => 1,
+                    'filter'           => [
+                        'force' => [
+                            [
+                                'column' => 'q.contactClient',
+                                'expr'   => 'eq',
+                                'value'  => (int) $this->contactClient->getId(),
+                            ],
+                            [
+                                'column' => 'q.file',
+                                'expr'   => 'eq',
+                                'value'  => (int) $this->file->getId(),
+                            ],
+                            [
+                                'column' => 'q.contact',
+                                'expr'   => 'eq',
+                                'value'  => (int) $this->contact->getId(),
+                            ],
+                        ],
+                    ],
+                    'ignore_paginator' => 1,
                 ]
             );
+            $queue  = $queues ? reset($queues) : null;
             if ($queue) {
                 throw new ContactClientException(
                     'Skipping duplicate Contact. Already queued for file delivery.',
@@ -718,9 +738,31 @@ class FilePayload
                 }
                 if ($queue) {
                     $this->queue = $queue;
-                    $this->getQueueRepository()->saveEntity($this->queue);
+                    try {
+                        $this->getQueueRepository()->saveEntity($this->queue);
+                        $this->setLogs($this->queue->getId(), 'queueId');
+                    } catch (\Exception $e) {
+                        // Reopen the EntityManager if closed.
+                        if (!$this->em->isOpen()) {
+                            $this->em = $this->em->create(
+                                $this->em->getConnection(),
+                                $this->em->getConfiguration(),
+                                $this->em->getEventManager()
+                            );
+                        }
+                        if ($e instanceof UniqueConstraintViolationException) {
+                            $this->valid = false;
+                            throw new ContactClientException(
+                                'Skipping duplicate Contact. Already queued for file delivery!',
+                                Codes::HTTP_CONFLICT,
+                                null,
+                                Stat::TYPE_DUPLICATE,
+                                false,
+                                $queue
+                            );
+                        }
+                    }
                     $this->valid = true;
-                    $this->setLogs($this->queue->getId(), 'queueId');
                 }
             }
         }
