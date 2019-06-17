@@ -1,6 +1,6 @@
 <?php
 
-namespace MauticPlugin\MauticContactClient\Tests\Model;
+namespace MauticPlugin\MauticContactClientBundle\Tests\Model;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
@@ -44,13 +44,7 @@ class ApiPayloadTest extends MauticMysqlTestCase
 
     private function getPayload()
     {
-        $reflection = new \ReflectionClass($this);
-
-        $dir =  explode('/', $reflection->getFilename());
-        array_pop($dir);
-        $dir = implode('/', $dir);
-        // Looks good to me, ship it!
-        $dir .= '/../assets/model/api_payload.json';
+        $dir     = __DIR__.'/../assets/model/api_payload.json';
         $payload = file_get_contents($dir);
 
         return $payload;
