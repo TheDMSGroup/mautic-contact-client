@@ -333,18 +333,14 @@ class ClientIntegration extends AbstractIntegration
             // DNC - Check Do Not Contact channels for an entry for this contact that is not permitted for this client.
             $this->evaluateDnc();
 
-            // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
             if (!$this->test) {
+                // Limits - Check limit rules to ensure we have not sent too many contacts in our window.
                 $this->getCacheModel()->evaluateLimits();
-            }
 
-            // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
-            if (!$this->test) {
+                // Duplicates - Check duplicate cache to ensure we have not already sent this contact.
                 $this->getCacheModel()->evaluateDuplicate();
-            }
 
-            // Exclusivity - Check exclusivity rules on the cache to ensure this contact hasn't been sent to a disallowed competitor.
-            if (!$this->test) {
+                // Exclusivity - Check exclusivity rules on the cache to ensure this contact hasn't been sent to a disallowed competitor.
                 $this->getCacheModel()->evaluateExclusive();
             }
 
