@@ -14,6 +14,8 @@ namespace MauticPlugin\MauticContactClientBundle\Model;
 use Aws\S3\S3Client;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
+use Exporter\Writer\CsvWriter;
+use Exporter\Writer\XlsWriter;
 use FOS\RestBundle\Util\Codes;
 use League\Flysystem\Adapter\Ftp as FtpAdapter;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
@@ -38,8 +40,6 @@ use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper;
-use Sonata\Exporter\Writer\CsvWriter;
-use Sonata\Exporter\Writer\XlsWriter;
 use Symfony\Component\Filesystem\Filesystem as FileSystemLocal;
 use Symfony\Component\Yaml\Yaml;
 
