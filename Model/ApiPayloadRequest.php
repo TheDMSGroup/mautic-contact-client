@@ -63,6 +63,15 @@ class ApiPayloadRequest
      */
     public function send()
     {
+        // If it's in test mode, add test_values to TokenHelper.
+        if (true === $this->test && null !== $this->request && null !== $this->request->body) {
+            $testValues = [];
+            foreach ($this->request->body as $item) {
+                $testValues[$item->key] = $item->test_value;
+            }
+            $this->tokenHelper->addContext($testValues);
+        }
+
         // The URI has already been overriden (if applicable) by this point.
         $uri = isset($this->request->url) ? $this->request->url : null;
         if ($this->test && !empty($this->request->testUrl)) {
