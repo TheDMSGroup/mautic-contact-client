@@ -1389,8 +1389,14 @@ class ClientIntegration extends AbstractIntegration
                             'tooltip'  => 'mautic.contactclient.integration.client.tooltip',
                             // Auto-set the integration name based on the client.
                             'onchange' => "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
-                                "    eventName = mQuery('#campaignevent_name');".
-                                'if (client.length && client.val() && eventName.length) {'.
+                                '    eventName = mQuery("#campaignevent_name");'.
+                                '    var previousClient = false;'.
+                                '    mQuery("#campaignevent_properties_config_contactclient option").each(function(ii, i) {'.
+                                '        if (i.innerText == eventName.val()) {'.
+                                '            previousClient = true;'.
+                                '        }'.
+                                '    });'.
+                                'if (client.length && client.val() && eventName.length && (!eventName.val() || previousClient)) {'.
                                 '    eventName.val(client.find("option:selected:first").text().trim());'.
                                 '}',
                         ],
