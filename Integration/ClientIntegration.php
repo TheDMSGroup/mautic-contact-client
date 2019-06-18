@@ -19,6 +19,7 @@ use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\LeadBundle\Entity\DoNotContactRepository;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\PluginBundle\Entity\IntegrationEntity;
+use Mautic\PluginBundle\Entity\IntegrationEntityRepository;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
@@ -85,7 +86,7 @@ class ClientIntegration extends AbstractIntegration
     protected $campaign;
 
     /** @var bool */
-    protected $retry;
+    protected $retry = false;
 
     /** @var array */
     protected $integrationSettings;
@@ -107,6 +108,9 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var array */
     private $dncChannels = [];
+
+    /** @var IntegrationEntityRepository */
+    private $integrationRepo;
 
     /**
      * @return string
@@ -155,13 +159,18 @@ class ClientIntegration extends AbstractIntegration
 
         /** @var Contact $contactModel */
         $clientModel = $this->getContactClientModel();
-        $client      = $clientModel->getEntity($this->event['config']['contactclient']);
+        $client      = $clientModel->getEntity((int) $this->event['config']['contactclient']);
 
         $this->sendContact($client, $contact, false);
 
-        // Returning false will typically cause a retry.
-        // If an error occurred and we do not wish to retry we should return true.
-        return $this->valid ? $this->valid : !$this->retry;
+        if (false === $this->valid && true === $this->retry) {
+            // Were not successful, and retry is enabled.
+            // Return false to signify a failed campaign event that will be scheduled for another execution.
+            return false;
+        } else {
+            // This is a final action and we do not wish the campaign system to repeat it.
+            return true;
+        }
     }
 
     /**
@@ -171,7 +180,7 @@ class ClientIntegration extends AbstractIntegration
      *
      * @return $this
      */
-    public function reset($exclusions = [])
+    public function reset($exclusions = ['contactClientModel', 'dncRepo', 'integrationRepo'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
@@ -244,6 +253,7 @@ class ClientIntegration extends AbstractIntegration
                 }
                 if (isset($this->event['id']) && $this->event['id']) {
                     $this->addTrace('eventId', $this->event['id']);
+                    $this->setLogs($this->event['id'], 'campaignEventId');
                 }
             }
         }
@@ -259,6 +269,19 @@ class ClientIntegration extends AbstractIntegration
     public function getName()
     {
         return 'Client';
+    }
+
+    /**
+     * If available add a parameter to NewRelic tracing to aid in debugging.
+     *
+     * @param $parameter
+     * @param $value
+     */
+    private function addTrace($parameter, $value)
+    {
+        if ($parameter && function_exists('newrelic_add_custom_parameter')) {
+            call_user_func('newrelic_add_custom_parameter', $parameter, $value);
+        }
     }
 
     /**
@@ -406,32 +429,6 @@ class ClientIntegration extends AbstractIntegration
                 Stat::TYPE_UNPUBLISHED,
                 false
             );
-        }
-    }
-
-    /**
-     * If available add a parameter to NewRelic tracing to aid in debugging.
-     *
-     * @param $parameter
-     * @param $value
-     */
-    private function addTrace($parameter, $value)
-    {
-        if ($parameter && function_exists('newrelic_add_custom_parameter')) {
-            call_user_func('newrelic_add_custom_parameter', $parameter, $value);
-        }
-    }
-
-    /**
-     * If available add a noticed exception to NewRelic to aid in debugging.
-     *
-     * @param      $message
-     * @param null $exception
-     */
-    private function addError($message, $exception = null)
-    {
-        if ($message && function_exists('newrelic_notice_error')) {
-            call_user_func('newrelic_notice_error', $message, $exception);
         }
     }
 
@@ -725,32 +722,31 @@ class ClientIntegration extends AbstractIntegration
      * Attempt to discern if we are being triggered by/within a campaign.
      *
      * @return \Mautic\CampaignBundle\Entity\Campaign|mixed|null
-     *
-     * @throws Exception
      */
     private function getCampaign()
     {
-        if (!$this->campaign && $this->event) {
-            // Sometimes we have a campaignId as an integer ID.
-            if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
-                /** @var CampaignModel $campaignModel */
-                $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
-                $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
-            }
-            // Sometimes we have a campaignId as a hash.
-            if (!$this->campaign) {
-                try {
+        try {
+            if (!$this->campaign && $this->event) {
+                // Sometimes we have a campaignId as an integer ID.
+                if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
+                    /** @var CampaignModel $campaignModel */
+                    $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
+                    $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
+                }
+                // Sometimes we have a campaignId as a hash.
+                if (!$this->campaign) {
                     $identityMap = $this->em->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
                         $this->campaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                     }
-                } catch (\Exception $e) {
+                }
+                if ($this->campaign) {
+                    $this->addTrace('campaign', $this->campaign->getName());
+                    $this->addTrace('campaignId', $this->campaign->getId());
+                    $this->setLogs($this->campaign->getId(), 'campaignId');
                 }
             }
-            if ($this->campaign) {
-                $this->addTrace('campaign', $this->campaign->getName());
-                $this->addTrace('campaignId', $this->campaign->getId());
-            }
+        } catch (\Exception $e) {
         }
 
         return $this->campaign;
@@ -966,6 +962,19 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * If available add a noticed exception to NewRelic to aid in debugging.
+     *
+     * @param      $message
+     * @param null $exception
+     */
+    private function addError($message, $exception = null)
+    {
+        if ($message && function_exists('newrelic_notice_error')) {
+            call_user_func('newrelic_notice_error', $message, $exception);
+        }
+    }
+
+    /**
      * Loop through the API Operation responses and find valid field mappings.
      * Set the new values to the contact and log the changes thereof.
      */
@@ -1106,7 +1115,7 @@ class ClientIntegration extends AbstractIntegration
         $clientModel = $this->getContactClientModel();
 
         // Stats - contactclient_stats
-        $errors         = $this->getLogs('error');
+        $errors = $this->getLogs('error');
         $this->setStatType(!empty($this->statType) ? $this->statType : Stat::TYPE_ERROR);
         $message = '';
         if ($this->valid) {
@@ -1205,7 +1214,7 @@ class ClientIntegration extends AbstractIntegration
                 ),
             ];
             if (!empty($integrationEntities)) {
-                $this->em->getRepository('MauticPluginBundle:IntegrationEntity')->saveEntities($integrationEntities);
+                $this->getIntegrationRepo()->saveEntities($integrationEntities);
                 $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
             }
         }
@@ -1312,6 +1321,18 @@ class ClientIntegration extends AbstractIntegration
         }
 
         return $newIntegrationEntity;
+    }
+
+    /**
+     * @return \Doctrine\ORM\EntityRepository|IntegrationEntityRepository
+     */
+    private function getIntegrationRepo()
+    {
+        if (!$this->integrationRepo) {
+            $this->integrationRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
+        }
+
+        return $this->integrationRepo;
     }
 
     /**
@@ -1528,9 +1549,8 @@ class ClientIntegration extends AbstractIntegration
     ) {
         $client = null;
         if ($contactClientId) {
-            $clientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
             /** @var ContactClient $client */
-            $client = $clientModel->getEntity($contactClientId);
+            $client = $this->getContactClientModel()->getEntity($contactClientId);
         }
         if (!$client) {
             $client = new ContactClient();

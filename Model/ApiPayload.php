@@ -190,9 +190,6 @@ class ApiPayload
      */
     public function setCampaign(Campaign $campaign = null)
     {
-        if ($campaign instanceof Campaign) {
-            $this->setLogs($campaign->getId(), 'campaign');
-        }
         $this->campaign = $campaign;
 
         return $this;

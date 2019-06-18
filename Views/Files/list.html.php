@@ -157,7 +157,7 @@ $baseUrl = $view['router']->path(
             </tr>
             <?php if (!empty($details)): ?>
                 <tr class="timeline-details hide"
-                    id="timeline-details-e<?php echo $counter; ?>">
+                    id="timeline-details-f<?php echo $counter; ?>">
                     <td colspan="6">
                         <?php echo $details; ?>
                     </td>
