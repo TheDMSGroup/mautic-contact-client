@@ -96,7 +96,7 @@ class ContactClientStatEvent extends Event
      *
      * @return EntityManager
      */
-    private function getEntityManager()
+    public function getEntityManager()
     {
         try {
             if ($this->em && !$this->em->isOpen()) {
@@ -105,10 +105,8 @@ class ContactClientStatEvent extends Event
                     $this->em->getConfiguration(),
                     $this->em->getEventManager()
                 );
-                // $this->logger->error('ContactClient: EntityManager was closed.');
             }
         } catch (Exception $exception) {
-            // $this->logger->error('ContactClient: EntityManager could not be reopened.');
         }
 
         return $this->em;

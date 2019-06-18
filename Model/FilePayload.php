@@ -271,10 +271,8 @@ class FilePayload
                     $this->em->getConfiguration(),
                     $this->em->getEventManager()
                 );
-                // $this->logger->error('ContactClient: EntityManager was closed.');
             }
         } catch (Exception $exception) {
-            // $this->logger->error('ContactClient: EntityManager could not be reopened.');
         }
 
         return $this->em;

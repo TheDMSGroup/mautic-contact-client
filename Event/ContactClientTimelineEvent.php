@@ -361,7 +361,7 @@ class ContactClientTimelineEvent extends Event
         $events = call_user_func_array('array_merge', $this->events);
 
         foreach ($events as &$e) {
-            if (!$e['timestamp'] instanceof DateTime) {
+            if (!($e['timestamp'] instanceof DateTime)) {
                 $dt             = new DateTimeHelper($e['timestamp'], 'Y-m-d H:i:s', 'UTC');
                 $e['timestamp'] = $dt->getDateTime();
                 unset($dt);
