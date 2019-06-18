@@ -72,8 +72,12 @@ class Transport implements TransportInterface
      *
      * @param Client $client
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, HandlerStack $handler = null)
     {
+        if ($handler instanceof HandlerStack) {
+            $this->settings['handler'] = $handler;
+        }
+
         $this->client = new $client($this->settings);
     }
 

@@ -124,7 +124,7 @@ class ApiPayload
     public function __construct(
         contactClientModel $contactClientModel,
         Transport $transport,
-        tokenHelper $tokenHelper,
+        TokenHelper $tokenHelper,
         Schedule $scheduleModel,
         ApiPayloadAuth $apiPayloadAuth
     ) {
@@ -384,7 +384,7 @@ class ApiPayload
     }
 
     /**
-     * Apply our context to create a new tokenhelper session.
+     * Apply our context to create a new TokenHelper session.
      */
     private function prepareTokenHelper()
     {
@@ -404,7 +404,7 @@ class ApiPayload
     }
 
     /**
-     * Prepare the APIPayloadAuth model and get the starting operation ID it reccomends.
+     * Prepare the APIPayloadAuth model and get the starting operation ID it recommends.
      */
     private function preparePayloadAuth()
     {
