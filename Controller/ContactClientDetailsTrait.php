@@ -96,7 +96,10 @@ trait ContactClientDetailsTrait
             $filters['type'] = $chartFilters['type'];
         }
 
-        if ('revenue' == $filters['type']) {
+        if (
+            isset($filters['type'])
+            && 'revenue' == $filters['type']
+        ) {
             $filters['type'] = Stat::TYPE_CONVERTED;
         }
 
