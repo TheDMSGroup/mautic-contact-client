@@ -101,7 +101,7 @@ class ClientIntegration extends AbstractIntegration
     protected $campaign;
 
     /** @var bool */
-    protected $retry;
+    protected $retry = false;
 
     /** @var array */
     protected $integrationSettings;
@@ -123,6 +123,9 @@ class ClientIntegration extends AbstractIntegration
 
     /** @var array */
     private $dncChannels = [];
+
+    /** @var IntegrationEntityRepository */
+    private $integrationRepo;
 
     /**
      * @return string
@@ -171,13 +174,18 @@ class ClientIntegration extends AbstractIntegration
 
         /** @var Contact $contactModel */
         $clientModel = $this->getContactClientModel();
-        $client      = $clientModel->getEntity($this->event['config']['contactclient']);
+        $client      = $clientModel->getEntity((int) $this->event['config']['contactclient']);
 
         $this->sendContact($client, $contact, false);
 
-        // Returning false will typically cause a retry.
-        // If an error occurred and we do not wish to retry we should return true.
-        return $this->valid ? $this->valid : !$this->retry;
+        if (false === $this->valid && true === $this->retry) {
+            // Were not successful, and retry is enabled.
+            // Return false to signify a failed campaign event that will be scheduled for another execution.
+            return false;
+        } else {
+            // This is a final action and we do not wish the campaign system to repeat it.
+            return true;
+        }
     }
 
     /**
@@ -187,7 +195,7 @@ class ClientIntegration extends AbstractIntegration
      *
      * @return $this
      */
-    public function reset($exclusions = [])
+    public function reset($exclusions = ['contactClientModel', 'dncRepo', 'integrationRepo'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
@@ -260,6 +268,7 @@ class ClientIntegration extends AbstractIntegration
                 }
                 if (isset($this->event['id']) && $this->event['id']) {
                     $this->addTrace('eventId', $this->event['id']);
+                    $this->setLogs($this->event['id'], 'campaignEventId');
                 }
             }
         }
@@ -403,7 +412,7 @@ class ClientIntegration extends AbstractIntegration
 
             // Send all operations (API) or queue the contact (file).
             $this->payloadModel->run();
-            // -- Here?
+
             $this->valid = $this->payloadModel->getValid();
 
             if ($this->valid) {
@@ -412,7 +421,6 @@ class ClientIntegration extends AbstractIntegration
         } catch (Exception $e) {
             $this->handleException($e);
         }
-        // --- Entitymanager is closed at this point
         if ($this->payloadModel) {
             $operationLogs = $this->payloadModel->getLogs();
             if ($operationLogs) {
@@ -751,32 +759,31 @@ class ClientIntegration extends AbstractIntegration
      * Attempt to discern if we are being triggered by/within a campaign.
      *
      * @return Campaign|mixed|null
-     *
-     * @throws Exception
      */
     private function getCampaign()
     {
-        if (!$this->campaign && $this->event) {
-            // Sometimes we have a campaignId as an integer ID.
-            if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
-                /** @var CampaignModel $campaignModel */
-                $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
-                $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
-            }
-            // Sometimes we have a campaignId as a hash.
-            if (!$this->campaign) {
-                try {
+        try {
+            if (!$this->campaign && $this->event) {
+                // Sometimes we have a campaignId as an integer ID.
+                if (!empty($this->event['campaignId']) && is_integer($this->event['campaignId'])) {
+                    /** @var CampaignModel $campaignModel */
+                    $campaignModel  = $this->getContainer()->get('mautic.campaign.model.campaign');
+                    $this->campaign = $campaignModel->getEntity($this->event['campaignId']);
+                }
+                // Sometimes we have a campaignId as a hash.
+                if (!$this->campaign) {
                     $identityMap = $this->getEntityManager()->getUnitOfWork()->getIdentityMap();
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
                         $this->campaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                     }
-                } catch (Exception $e) {
+                    if ($this->campaign) {
+                        $this->addTrace('campaign', $this->campaign->getName());
+                        $this->addTrace('campaignId', $this->campaign->getId());
+                        $this->setLogs($this->campaign->getId(), 'campaignId');
+                    }
                 }
             }
-            if ($this->campaign) {
-                $this->addTrace('campaign', $this->campaign->getName());
-                $this->addTrace('campaignId', $this->campaign->getId());
-            }
+        } catch (Exception $e) {
         }
 
         return $this->campaign;
@@ -858,15 +865,7 @@ class ClientIntegration extends AbstractIntegration
                     $startTime->modify('+'.rand(0, 1800).' seconds');
                     // Prefer that we retry quicker than other re-queue events.
                     $rangeModifier = .20;
-                    if ($this->addRescheduleItemToSession(
-                        0,
-                        7,
-                        $startTime,
-                        $exception->getMessage(),
-                        $rangeModifier,
-                        false,
-                        true
-                    )) {
+                    if ($this->addRescheduleItemToSession(0, 7, $startTime, $exception->getMessage(), $rangeModifier, false, true)) {
                         $this->retry = true;
                     }
                 }
@@ -883,8 +882,7 @@ class ClientIntegration extends AbstractIntegration
             }
 
             if (Stat::TYPE_ERROR === $exception->getStatType()) {
-                $message = 'ContactClient '.$this->contactClient->getType(
-                    ).' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
+                $message = 'ContactClient '.$this->contactClient->getType().' Error '.($this->contactClient ? $this->contactClient->getId() : 'NA');
                 $this->addError($message, $exception);
             }
         } elseif ($exception instanceof ConnectException) {
@@ -1255,10 +1253,8 @@ class ClientIntegration extends AbstractIntegration
                 ),
             ];
             if (!empty($integrationEntities)) {
-                /** @var IntegrationEntityRepository $integrationRepo */
-                $integrationRepo = $this->getEntityManager()->getRepository('MauticPluginBundle:IntegrationEntity');
-                $integrationRepo->saveEntities($integrationEntities);
-                $this->getEntityManager()->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
+                $this->getIntegrationRepo()->saveEntities($integrationEntities);
+                $this->em->clear('Mautic\PluginBundle\Entity\IntegrationEntity');
             }
         }
 
@@ -1367,6 +1363,18 @@ class ClientIntegration extends AbstractIntegration
     }
 
     /**
+     * @return \Doctrine\ORM\EntityRepository|IntegrationEntityRepository
+     */
+    private function getIntegrationRepo()
+    {
+        if (!$this->integrationRepo) {
+            $this->integrationRepo = $this->em->getRepository('MauticPluginBundle:IntegrationEntity');
+        }
+
+        return $this->integrationRepo;
+    }
+
+    /**
      * @param FormBuilder $builder
      * @param array       $data
      * @param string      $formArea
@@ -1420,8 +1428,14 @@ class ClientIntegration extends AbstractIntegration
                             'tooltip'  => 'mautic.contactclient.integration.client.tooltip',
                             // Auto-set the integration name based on the client.
                             'onchange' => "var client = mQuery('#campaignevent_properties_config_contactclient:first'),".
-                                "    eventName = mQuery('#campaignevent_name');".
-                                'if (client.length && client.val() && eventName.length) {'.
+                                '    eventName = mQuery("#campaignevent_name");'.
+                                '    var previousClient = false;'.
+                                '    mQuery("#campaignevent_properties_config_contactclient option").each(function(ii, i) {'.
+                                '        if (i.innerText == eventName.val()) {'.
+                                '            previousClient = true;'.
+                                '        }'.
+                                '    });'.
+                                'if (client.length && client.val() && eventName.length && (!eventName.val() || previousClient)) {'.
                                 '    eventName.val(client.find("option:selected:first").text().trim());'.
                                 '}',
                         ],
@@ -1580,9 +1594,8 @@ class ClientIntegration extends AbstractIntegration
     ) {
         $client = null;
         if ($contactClientId) {
-            $clientModel = $this->getContainer()->get('mautic.contactclient.model.contactclient');
             /** @var ContactClient $client */
-            $client = $clientModel->getEntity($contactClientId);
+            $client = $this->getContactClientModel()->getEntity($contactClientId);
         }
         if (!$client) {
             $client = new ContactClient();

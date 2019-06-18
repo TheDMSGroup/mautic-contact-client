@@ -18,12 +18,15 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Exception;
 use Mautic\CoreBundle\Entity\CommonRepository;
+use Mautic\LeadBundle\Entity\TimelineTrait;
 
 /**
  * Class EventRepository.
  */
 class EventRepository extends CommonRepository
 {
+    use TimelineTrait;
+
     /**
      * Fetch the base event data from the database.
      *
@@ -33,39 +36,27 @@ class EventRepository extends CommonRepository
      *
      * @return array
      */
-    public function getEventsByContactId($contactId, $eventType = null, DateTime $dateAdded = null)
+    public function getTimelineStats($leadId, $options = [])
     {
-        $q = $this->slaveQueryBuilder()
-            ->select(
-                [
-                    'c.*',
-                    'cc.name AS client_name',
-                ]
-            )
+        $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
+            ->select([
+                'c.*',
+                'cc.name AS client_name',
+            ])
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-            ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');
+        ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');
 
         $expr = $q->expr()->eq('c.contact_id', ':contactId');
         $q->where($expr)
-            ->setParameter('contactId', (int) $contactId);
+            ->setParameter('contactId', (int) $leadId);
 
-        if ($dateAdded) {
-            $expr->add(
-                $q->expr()->gte('c.date_added', ':dateAdded')
+        if (isset($options['search']) && $options['search']) {
+            $query->andWhere(
+                $query->expr()->like('cc.name', $query->expr()->literal('%'.$options['search'].'%'))
             );
-            $q->setParameter('dateAdded', $dateAdded);
         }
 
-        if ($eventType) {
-            $expr->add(
-                $q->expr()->eq('c.type', ':type')
-            );
-            $q->setParameter('type', $eventType);
-        }
-
-        $results = $q->execute()->fetchAll();
-
-        return $results;
+        return $this->getTimelineResults($q, $options, 'cc.name', 'cc.date_added', [], ['cc.date_added']);
     }
 
     /**
@@ -162,7 +153,7 @@ class EventRepository extends CommonRepository
             'c',
             MAUTIC_TABLE_PREFIX.'contactclient_stats',
             's',
-            'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+            'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id AND c.date_added = s.date_added'
         );
 
         $query->where('c.contactclient_id = :contactClientId')
@@ -245,7 +236,7 @@ class EventRepository extends CommonRepository
                     'c',
                     MAUTIC_TABLE_PREFIX.'contactclient_stats',
                     's',
-                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id'
+                    'c.contact_id = s.contact_id AND c.contactclient_id = s.contactclient_id AND c.date_added = s.date_added'
                 );
             }
 
