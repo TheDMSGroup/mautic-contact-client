@@ -2,13 +2,10 @@
 
 namespace MauticPlugin\MauticContactClientBundle\EventListener;
 
-use Doctrine\ORM\EntityManager;
-use Exception;
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
 use Mautic\CoreBundle\Templating\Helper\AssetsHelper;
 use Mautic\LeadBundle\Event\LeadTimelineEvent;
 use Mautic\LeadBundle\LeadEvents;
-use MauticPlugin\MauticContactClientBundle\Entity\EventRepository;
 
 class LeadTimelineSubscriber extends CommonSubscriber
 {
