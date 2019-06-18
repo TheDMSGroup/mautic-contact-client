@@ -102,9 +102,9 @@ class ChartFilterType extends AbstractType
                 'empty_data'  => 'All Events',
                 'required'    => false,
                 'disabled'    => false,
-                'placeholder' => 'All Sources By Events',
+                'placeholder' => 'All Clients By Events',
                 'group_by'    => function ($value, $key, $index) {
-                    return 'By Source';
+                    return 'By Client';
                 },
             ]
         );
