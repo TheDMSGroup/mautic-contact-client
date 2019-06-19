@@ -11,6 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use DateTime;
+use Exception;
 use Mautic\CampaignBundle\Entity\Campaign;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -247,7 +249,7 @@ class ApiPayload
         $jsonHelper = new JSONHelper();
         try {
             $this->payload = $jsonHelper->decodeObject($payload, 'Payload');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new ContactClientException(
                 'API instructions malformed.',
                 0,
@@ -303,7 +305,7 @@ class ApiPayload
      * Returns the expected send time for limit evaluation.
      * Throws an exception if an open slot is not available.
      *
-     * @return \DateTime
+     * @return DateTime
      *
      * @throws ContactClientException
      */
@@ -316,7 +318,7 @@ class ApiPayload
             ->evaluateTime()
             ->evaluateExclusions();
 
-        return new \DateTime();
+        return new DateTime();
     }
 
     /**
@@ -335,7 +337,7 @@ class ApiPayload
 
         try {
             $this->runApiOperations();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (
                 $this->start
                 && $e instanceof ContactClientException
@@ -398,7 +400,7 @@ class ApiPayload
         // Add any additional tokens here that are only needed for API payloads.
         $this->tokenHelper->addContext(
             [
-                'api_date' => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime()),
+                'api_date' => $this->tokenHelper->getDateFormatHelper()->format(new DateTime()),
             ]
         );
     }
@@ -421,7 +423,7 @@ class ApiPayload
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function runApiOperations()
     {
@@ -442,7 +444,7 @@ class ApiPayload
             try {
                 $apiOperation->run();
                 $this->valid = $apiOperation->getValid();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Delay this exception throw till after we can do some important logging.
             }
             $logs = array_merge($apiOperation->getLogs(), $logs);
@@ -752,7 +754,7 @@ class ApiPayload
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setEvent($event = [])
     {

@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle;
 
 use Doctrine\DBAL\Schema\Schema;
+use Exception;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\PluginBundle\Bundle\PluginBundleBase;
 use Mautic\PluginBundle\Entity\Plugin;
@@ -26,7 +27,7 @@ class MauticContactClientBundle extends PluginBundleBase
      * @param null          $metadata
      * @param Schema        $installedSchema
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public static function onPluginUpdate(
         Plugin $plugin,

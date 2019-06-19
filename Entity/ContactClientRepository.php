@@ -11,6 +11,8 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
@@ -23,7 +25,7 @@ class ContactClientRepository extends CommonRepository
      *
      * @param array $args
      *
-     * @return \Doctrine\ORM\Tools\Pagination\Paginator
+     * @return Paginator
      */
     public function getEntities(array $args = [])
     {
@@ -74,8 +76,8 @@ class ContactClientRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param \Doctrine\ORM\QueryBuilder|QueryBuilder $q
+     * @param                                         $filter
      *
      * @return array
      */
@@ -91,8 +93,8 @@ class ContactClientRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param \Doctrine\ORM\QueryBuilder|QueryBuilder $q
+     * @param                                         $filter
      *
      * @return array
      */

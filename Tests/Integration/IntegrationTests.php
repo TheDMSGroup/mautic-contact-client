@@ -20,7 +20,11 @@ class IntegrationTests extends ContactClientTestCase
         $integrationObject = $integrationHelper->getIntegrationObject('Client');
 
         $results = $integrationObject->sendContact($client, $contact);
-        $this->assertEquals(Stat::TYPE_CONVERTED, $results->getStatType(), 'Stat Type "Converted" Expected. Received '.$results->getStatType());
+        $this->assertEquals(
+            Stat::TYPE_CONVERTED,
+            $results->getStatType(),
+            'Stat Type "Converted" Expected. Received '.$results->getStatType()
+        );
     }
 
     public function testFieldsPushLead()
@@ -34,7 +38,11 @@ class IntegrationTests extends ContactClientTestCase
         $integrationObject = $integrationHelper->getIntegrationObject('Client');
 
         $results = $integrationObject->sendContact($client, $contact);
-        $this->assertEquals(Stat::TYPE_FIELDS, $results->getStatType(), 'Stat Type "Fields" Expected. Received '.$results->getStatType());
+        $this->assertEquals(
+            Stat::TYPE_FIELDS,
+            $results->getStatType(),
+            'Stat Type "Fields" Expected. Received '.$results->getStatType()
+        );
     }
 
     public function testOffSchedulePushLead()
@@ -48,7 +56,11 @@ class IntegrationTests extends ContactClientTestCase
         $integrationObject = $integrationHelper->getIntegrationObject('Client');
 
         $results = $integrationObject->sendContact($client, $contact);
-        $this->assertEquals(Stat::TYPE_SCHEDULE, $results->getStatType(), 'Stat Type "Schedule" Expected. Received '.$results->getStatType());
+        $this->assertEquals(
+            Stat::TYPE_SCHEDULE,
+            $results->getStatType(),
+            'Stat Type "Schedule" Expected. Received '.$results->getStatType()
+        );
     }
 
     public function testDuplicatesPushLead()
@@ -62,8 +74,16 @@ class IntegrationTests extends ContactClientTestCase
         $integrationObject = $integrationHelper->getIntegrationObject('Client');
 
         $results1 = $integrationObject->sendContact($client, $contact);
-        $this->assertEquals(Stat::TYPE_CONVERTED, $results1->getStatType(), 'Stat Type "Converted" Expected. Received '.$results1->getStatType());
+        $this->assertEquals(
+            Stat::TYPE_CONVERTED,
+            $results1->getStatType(),
+            'Stat Type "Converted" Expected. Received '.$results1->getStatType()
+        );
         $results2 = $integrationObject->sendContact($client, $contact);
-        $this->assertEquals(Stat::TYPE_DUPLICATE, $results2->getStatType(), 'Stat Type "Duplicate" Expected. Received '.$results2->getStatType());
+        $this->assertEquals(
+            Stat::TYPE_DUPLICATE,
+            $results2->getStatType(),
+            'Stat Type "Duplicate" Expected. Received '.$results2->getStatType()
+        );
     }
 }

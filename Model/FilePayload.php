@@ -12,8 +12,10 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Aws\S3\S3Client;
+use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
+use Exception;
 use Exporter\Writer\CsvWriter;
 use Exporter\Writer\XlsWriter;
 use FOS\RestBundle\Util\Codes;
@@ -34,14 +36,21 @@ use Mautic\PluginBundle\Entity\Integration;
 use Mautic\PluginBundle\Entity\IntegrationRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\File;
+use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Queue;
+use MauticPlugin\MauticContactClientBundle\Entity\QueueRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\UtmSourceHelper;
+use Phar;
+use PharData;
+use ReflectionException;
+use ReflectionMethod;
 use Symfony\Component\Filesystem\Filesystem as FileSystemLocal;
 use Symfony\Component\Yaml\Yaml;
+use ZipArchive;
 
 /**
  * Class FilePayload.
@@ -164,7 +173,7 @@ class FilePayload
     /** @var Schedule */
     protected $scheduleModel;
 
-    /** @var \DateTime */
+    /** @var DateTime */
     protected $scheduleStart;
 
     /** @var UtmSourceHelper */
@@ -239,11 +248,35 @@ class FilePayload
     }
 
     /**
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\QueueRepository
+     * @return QueueRepository
      */
     private function getQueueRepository()
     {
-        return $this->em->getRepository('MauticContactClientBundle:Queue');
+        /** @var QueueRepository $repo */
+        $repo = $this->getEntityManager()->getRepository('MauticContactClientBundle:Queue');
+
+        return $repo;
+    }
+
+    /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+            }
+        } catch (Exception $exception) {
+        }
+
+        return $this->em;
     }
 
     /**
@@ -351,7 +384,7 @@ class FilePayload
         $jsonHelper = new JSONHelper();
         try {
             $this->payload = $jsonHelper->decodeObject($payload, 'Payload');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new ContactClientException(
                 'File instructions malformed.',
                 0,
@@ -588,7 +621,7 @@ class FilePayload
                 $file->setIsPublished(true);
                 $file->setTest($this->test);
                 if (!$this->test) {
-                    $this->em->persist($file);
+                    $this->getEntityManager()->persist($file);
                 }
             }
 
@@ -613,11 +646,11 @@ class FilePayload
     }
 
     /**
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\FileRepository
+     * @return FileRepository
      */
     private function getFileRepository()
     {
-        return $this->em->getRepository('MauticContactClientBundle:File');
+        return $this->getEntityManager()->getRepository('MauticContactClientBundle:File');
     }
 
     /**
@@ -787,7 +820,7 @@ class FilePayload
      *
      * @param bool $prepFile
      *
-     * @return \DateTime|null
+     * @return DateTime|null
      *
      * @throws ContactClientException
      */
@@ -817,7 +850,7 @@ class FilePayload
 
             // More stringent schedule check to discern if now is a good time to prepare a file for build/send.
             if ($prepFile) {
-                $now       = new \DateTime();
+                $now       = new DateTime();
                 $prepStart = clone $start;
                 $prepEnd   = clone $end;
                 $prepStart->modify('-'.self::FILE_PREP_BEFORE_TIME);
@@ -913,7 +946,7 @@ class FilePayload
                 $this->fileAddRow($fieldValues);
 
                 $queueEntriesProcessed[] = $queue->getId();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Cancel this contact and any attribution applied to it.
                 $this->setLogs($e->getMessage(), 'error');
                 $attribution = $queue->getAttribution();
@@ -925,7 +958,7 @@ class FilePayload
                     $this->setLogs($attributionChange, 'attributionCancelled');
                     try {
                         $utmSource = $this->utmSourceHelper->getFirstUtmSource($this->contact);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $utmSource = null;
                     }
                     $this->contactClientModel->addStat(
@@ -939,9 +972,9 @@ class FilePayload
             }
 
             if ($this->contact) {
-                $this->em->detach($this->contact);
+                $this->getEntityManager()->detach($this->contact);
             }
-            $this->em->detach($queue);
+            $this->getEntityManager()->detach($queue);
             unset($queue, $contact);
         }
         unset($queues);
@@ -984,7 +1017,7 @@ class FilePayload
             // Get tokenized field values (will include overrides).
             $fieldValues = $this->getFieldValues();
             $this->fileAddRow($fieldValues);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->setLogs($e->getMessage(), 'notice');
         }
 
@@ -1034,15 +1067,15 @@ class FilePayload
                     // This writer doesn't always support Null/Terminate
                     try {
                         $paramCount = null;
-                        $reflection = new \ReflectionMethod('CsvWriter::__construct');
+                        $reflection = new ReflectionMethod('CsvWriter::__construct');
                         $paramCount = $reflection->getNumberOfParameters();
-                    } catch (\ReflectionException $e) {
+                    } catch (ReflectionException $e) {
                     }
                     switch ($paramCount) {
                         // Future-proofing support for custom terminators.
                         // https://github.com/sonata-project/exporter/pull/220
                         case 6:
-                            /* @var \Exporter\Writer\CsvWriter fileWriter */
+                            /* @var CsvWriter fileWriter */
                             $this->fileWriter = new CsvWriter(
                                 $this->fileGenerateTmp(),
                                 $this->settings['type']['delimiter'],
@@ -1055,7 +1088,7 @@ class FilePayload
 
                         // All previous versions.
                         default:
-                            /* @var \Exporter\Writer\CsvWriter fileWriter */
+                            /* @var CsvWriter fileWriter */
                             $this->fileWriter = new CsvWriter(
                                 $this->fileGenerateTmp(),
                                 $this->settings['type']['delimiter'],
@@ -1068,7 +1101,7 @@ class FilePayload
                     break;
 
                 case 'Excel2007':
-                    /* @var \Exporter\Writer\XlsWriter fileWriter */
+                    /* @var XlsWriter fileWriter */
                     $this->fileWriter = new XlsWriter(
                         $this->fileGenerateTmp(),
                         $this->settings['headers']
@@ -1115,7 +1148,7 @@ class FilePayload
      *
      * @return string
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getFileName($compression = null)
     {
@@ -1156,7 +1189,7 @@ class FilePayload
             [
                 'file_count'       => ($this->count ? $this->count : 0),
                 'file_test'        => $this->test ? '.test' : '',
-                'file_date'        => $this->tokenHelper->getDateFormatHelper()->format(new \DateTime()),
+                'file_date'        => $this->tokenHelper->getDateFormatHelper()->format(new DateTime()),
                 'file_type'        => $type,
                 'file_compression' => $compression,
                 'file_extension'   => $extension,
@@ -1214,23 +1247,23 @@ class FilePayload
                 try {
                     switch ($compression) {
                         case 'tar.gz':
-                            $phar = new \PharData($target);
+                            $phar = new PharData($target);
                             $phar->addFile($this->file->getTmp(), $fileName);
-                            $phar->compress(\Phar::GZ, $compression);
+                            $phar->compress(Phar::GZ, $compression);
                             $target = $phar->getRealPath();
                             break;
 
                         case 'tar.bz2':
-                            $phar = new \PharData($target);
+                            $phar = new PharData($target);
                             $phar->addFile($this->file->getTmp(), $fileName);
-                            $phar->compress(\Phar::BZ2, $compression);
+                            $phar->compress(Phar::BZ2, $compression);
                             $target = $phar->getRealPath();
                             break;
 
                         default:
                         case 'zip':
-                            $zip = new \ZipArchive();
-                            if (true !== $zip->open($target, \ZipArchive::CREATE)) {
+                            $zip = new ZipArchive();
+                            if (true !== $zip->open($target, ZipArchive::CREATE)) {
                                 throw new ContactClientException(
                                     'Cound not open zip '.$target,
                                     Codes::HTTP_INTERNAL_SERVER_ERROR,
@@ -1245,7 +1278,7 @@ class FilePayload
                     }
                     $this->file->setTmp($target);
                     $this->setLogs($target, 'fileCompressed');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     throw new ContactClientException(
                         'Could not create compressed file '.$target,
                         Codes::HTTP_INTERNAL_SERVER_ERROR,
@@ -1289,7 +1322,7 @@ class FilePayload
                     $this->file->setName($fileName);
                     $this->setLogs($fileName, 'fileName');
 
-                    $this->file->setDateAdded(new \DateTime());
+                    $this->file->setDateAdded(new DateTime());
 
                     $this->file->setLocation($target);
                     $this->setLogs($target, 'fileLocation');
@@ -1336,7 +1369,7 @@ class FilePayload
             // Add our new logs to the entity.
             $logs               = $this->file->getLogs();
             $logs               = $logs ? json_decode($logs, true) : [];
-            $this->logs['date'] = $this->tokenHelper->getDateFormatHelper()->format(new \DateTime());
+            $this->logs['date'] = $this->tokenHelper->getDateFormatHelper()->format(new DateTime());
             $logs[]             = $this->logs;
             $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
             $this->logs = [];
@@ -1350,7 +1383,7 @@ class FilePayload
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function setEvent($event = [])
     {
@@ -1419,8 +1452,8 @@ class FilePayload
                 if (is_object($operation)) {
                     ++$attemptCount;
                     $result = false;
-                    $now    = new \DateTime();
-                    $this->setLogs($now->format(\DateTime::ISO8601), $type.'started');
+                    $now    = new DateTime();
+                    $this->setLogs($now->format(DateTime::ISO8601), $type.'started');
                     try {
                         switch ($type) {
                             case 'email':
@@ -1439,7 +1472,7 @@ class FilePayload
                                 $result = $this->operationS3($operation);
                                 break;
                         }
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $message = 'Unable to send file to '.$type.': '.$e->getMessage();
                         $this->setLogs($message, $type.'error');
                     }
@@ -1561,7 +1594,7 @@ class FilePayload
         if (null === $this->integrationSettings) {
             $this->integrationSettings = [];
             /** @var IntegrationRepository $integrationRepo */
-            $integrationRepo = $this->em->getRepository('MauticPluginBundle:Integration');
+            $integrationRepo = $this->getEntityManager()->getRepository('MauticPluginBundle:Integration');
             $integrations    = $integrationRepo->getIntegrations();
             if (!empty($integrations['Client'])) {
                 /** @var Integration $integration */

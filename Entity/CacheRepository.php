@@ -11,12 +11,18 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateInterval;
+use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Connections\MasterSlaveConnection;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Exception;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Helper\PhoneNumberHelper;
 use Mautic\LeadBundle\Entity\Lead as Contact;
+use PDO;
 
 /**
  * Class CacheRepository.
@@ -45,20 +51,20 @@ class CacheRepository extends CommonRepository
     /**
      * Given a matching pattern and a contact, find any exceeded limits (aka caps/budgets).
      *
-     * @param ContactClient  $contactClient
-     * @param array          $rules
-     * @param null           $timezone
-     * @param \DateTime|null $dateSend
+     * @param ContactClient $contactClient
+     * @param array         $rules
+     * @param null          $timezone
+     * @param DateTime|null $dateSend
      *
      * @return array|null
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function findLimit(
         ContactClient $contactClient,
         $rules = [],
         $timezone = null,
-        \DateTime $dateSend = null
+        DateTime $dateSend = null
     ) {
         $filters = [];
         $result  = null;
@@ -110,27 +116,27 @@ class CacheRepository extends CommonRepository
     /**
      * Support non-rolling durations when P is not prefixing.
      *
-     * @param                $duration
-     * @param string|null    $timezone
-     * @param \DateTime|null $dateSend
+     * @param               $duration
+     * @param string|null   $timezone
+     * @param DateTime|null $dateSend
      *
-     * @return \DateTime
+     * @return DateTime
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function oldestDateAdded($duration, string $timezone = null, \DateTime $dateSend = null)
+    public function oldestDateAdded($duration, string $timezone = null, DateTime $dateSend = null)
     {
         if (!$timezone) {
             $timezone = date_default_timezone_get();
         }
         if (is_string($timezone)) {
-            $timezone = new \DateTimeZone($timezone);
+            $timezone = new DateTimeZone($timezone);
         }
         if ($dateSend) {
             $oldest = clone $dateSend;
             $oldest->setTimezone($timezone);
         } else {
-            $oldest = new \DateTime('now', $timezone);
+            $oldest = new DateTime('now', $timezone);
         }
         if (0 !== strpos($duration, 'P')) {
             // Non-rolling interval, go to previous interval segment.
@@ -153,10 +159,10 @@ class CacheRepository extends CommonRepository
             $duration = 'P'.$duration;
         }
         try {
-            $interval = new \DateInterval($duration);
-        } catch (\Exception $e) {
+            $interval = new DateInterval($duration);
+        } catch (Exception $e) {
             // Default to monthly if the interval is faulty.
-            $interval = new \DateInterval('P1M');
+            $interval = new DateInterval('P1M');
         }
         $oldest->sub($interval);
 
@@ -227,7 +233,7 @@ class CacheRepository extends CommonRepository
                             }
                             if (in_array($property, ['category_id', 'contact_id', 'campaign_id', 'contactclient_id'])) {
                                 // Explicit integers for faster queries.
-                                $query->setParameter($property.$k, (int) $value, \PDO::PARAM_INT);
+                                $query->setParameter($property.$k, (int) $value, PDO::PARAM_INT);
                             } else {
                                 $query->setParameter($property.$k, $value);
                             }
@@ -254,7 +260,7 @@ class CacheRepository extends CommonRepository
                             (isset($expr) ? $expr : null)
                         )
                     );
-                    $query->setParameter('contactClientId'.$k, (int) $set['contactclient_id'], \PDO::PARAM_INT);
+                    $query->setParameter('contactClientId'.$k, (int) $set['contactclient_id'], PDO::PARAM_INT);
                     $query->setParameter('dateAdded'.$k, $set['date_added']);
                 }
             }
@@ -301,16 +307,16 @@ class CacheRepository extends CommonRepository
      * Given a matching pattern and a contact, discern if there is a match in the cache.
      * Used for exclusivity and duplicate checking.
      *
-     * @param Contact        $contact
-     * @param ContactClient  $contactClient
-     * @param array          $rules
-     * @param string         $utmSource
-     * @param string|null    $timezone
-     * @param \DateTime|null $dateSend
+     * @param Contact       $contact
+     * @param ContactClient $contactClient
+     * @param array         $rules
+     * @param string        $utmSource
+     * @param string|null   $timezone
+     * @param DateTime|null $dateSend
      *
      * @return mixed|null
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function findDuplicate(
         Contact $contact,
@@ -318,7 +324,7 @@ class CacheRepository extends CommonRepository
         $rules = [],
         string $utmSource = null,
         string $timezone = null,
-        \DateTime $dateSend = null
+        DateTime $dateSend = null
     ) {
         // Generate our filters based on the rules provided.
         $filters = [];
@@ -443,7 +449,7 @@ class CacheRepository extends CommonRepository
                 if (!empty($phone)) {
                     $result = $phone;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
         }
 
@@ -456,20 +462,20 @@ class CacheRepository extends CommonRepository
      * Only the first 4 matching rules are allowed for exclusivity (by default).
      * Only the first two scopes are allowed for exclusivity.
      *
-     * @param Contact        $contact
-     * @param ContactClient  $contactClient
-     * @param \DateTime|null $dateSend
-     * @param int            $matching
-     * @param int            $scope
+     * @param Contact       $contact
+     * @param ContactClient $contactClient
+     * @param DateTime|null $dateSend
+     * @param int           $matching
+     * @param int           $scope
      *
      * @return mixed|null
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function findExclusive(
         Contact $contact,
         ContactClient $contactClient,
-        \DateTime $dateSend = null,
+        DateTime $dateSend = null,
         $matching = self::MATCHING_EXPLICIT | self::MATCHING_EMAIL | self::MATCHING_PHONE | self::MATCHING_MOBILE,
         $scope = self::SCOPE_GLOBAL | self::SCOPE_CATEGORY
     ) {
@@ -631,17 +637,17 @@ class CacheRepository extends CommonRepository
     /**
      * Add Exclusion Expiration date.
      *
-     * @param array          $filters
-     * @param \DateTime|null $dateSend
+     * @param array         $filters
+     * @param DateTime|null $dateSend
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function addExpiration(
         &$filters = [],
-        \DateTime $dateSend = null
+        DateTime $dateSend = null
     ) {
         if ($filters) {
-            $expiration = $dateSend ? $dateSend : new \DateTime();
+            $expiration = $dateSend ? $dateSend : new DateTime();
             $expiration = $expiration->getTimestamp();
             foreach ($filters as &$filter) {
                 $filter['exclusive_expire_date'] = $expiration;
@@ -652,35 +658,61 @@ class CacheRepository extends CommonRepository
     /**
      * Delete all Cache entities that are no longer needed for duplication/exclusivity/limit checks.
      *
-     * @throws \Exception
+     * @param int $limit
+     * @param int $delay
+     *
+     * @throws DBALException
      */
-    public function deleteExpired()
+    public function deleteExpired($limit = 10000, $delay = 1)
     {
-        // General expirations. Maximum limiter is 1m.
-        $oldest = new \DateTime('-1 month -1 day');
-        $q      = $this->getEntityManager()->getConnection()->createQueryBuilder();
-        $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
-        $q->where(
-            $q->expr()->lt('date_added', 'FROM_UNIXTIME(:oldest)')
-        );
-        $q->setParameter('oldest', $oldest->getTimestamp());
-        $q->execute();
+        $start    = strtotime('-1 month -1 day');
+        $rowCount = $limit;
+        while ($rowCount === $limit) {
+            $conn = $this->getEntityManager()->getConnection();
+            $q    = $conn->createQueryBuilder();
+            $q->delete(MAUTIC_TABLE_PREFIX.$this->getTableName());
+            $q->where(
+                $q->expr()->isNotNull('contactclient_id'),
+                $q->expr()->lt('date_added', 'FROM_UNIXTIME('.$start.')')
+            );
+            $platform = $conn->getDatabasePlatform();
+            $result   = $conn->executeQuery($platform->modifyLimitQuery($q->getSQL(), $limit));
+            $rowCount = $result->rowCount();
+            if ($rowCount !== $limit) {
+                sleep($delay);
+            }
+        }
     }
 
     /**
      * Update exclusivity rows to reduce the index size and thus reduce processing required to check exclusivity.
+     *
+     * @param int $limit
+     * @param int $delay
+     *
+     * @throws DBALException
      */
-    public function reduceExclusivityIndex()
+    public function reduceExclusivityIndex($limit = 10000, $delay = 1)
     {
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
-        $q->update(MAUTIC_TABLE_PREFIX.$this->getTableName());
-        $q->where(
-            $q->expr()->isNotNull('exclusive_expire_date'),
-            $q->expr()->lte('exclusive_expire_date', 'NOW()')
-        );
-        $q->set('exclusive_expire_date', 'NULL');
-        $q->set('exclusive_pattern', 'NULL');
-        $q->set('exclusive_scope', 'NULL');
-        $q->execute();
+        $start    = strtotime('-15 minutes');
+        $rowCount = $limit;
+        while ($rowCount === $limit) {
+            $conn = $this->getEntityManager()->getConnection();
+            $q    = $conn->createQueryBuilder();
+            $q->update(MAUTIC_TABLE_PREFIX.$this->getTableName());
+            $q->where(
+                $q->expr()->isNotNull('exclusive_expire_date'),
+                $q->expr()->lte('exclusive_expire_date', 'FROM_UNIXTIME('.$start.')')
+            );
+            $q->set('exclusive_expire_date', 'NULL');
+            $q->set('exclusive_pattern', 'NULL');
+            $q->set('exclusive_scope', 'NULL');
+            $platform = $conn->getDatabasePlatform();
+            $result   = $conn->executeQuery($platform->modifyLimitQuery($q->getSQL(), $limit));
+            $rowCount = $result->rowCount();
+            if ($rowCount !== $limit) {
+                sleep($delay);
+            }
+        }
     }
 }

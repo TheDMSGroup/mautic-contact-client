@@ -11,7 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use DateTime;
 use Mautic\CoreBundle\Controller\AbstractFormController;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -29,7 +33,7 @@ class TransactionsController extends AbstractFormController
      * @param Request $request
      * @param         $objectId
      *
-     * @return array|\MauticPlugin\MauticContactClientBundle\Entity\ContactClient|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|StreamedResponse
+     * @return array|ContactClient|JsonResponse|RedirectResponse|StreamedResponse
      */
     public function exportAction(Request $request, $objectId)
     {
@@ -79,8 +83,8 @@ class TransactionsController extends AbstractFormController
         $session     = $this->get('session');
         $chartFilter = $session->get('mautic.contactclient.'.$contactClient->getId().'.chartfilter');
         $params      = [
-            'dateTo'     => new \DateTime($chartFilter['date_to']),
-            'dateFrom'   => new \DateTime($chartFilter['date_from']),
+            'dateTo'     => new DateTime($chartFilter['date_to']),
+            'dateFrom'   => new DateTime($chartFilter['date_from']),
             'campaignId' => $chartFilter['campaign'],
             'message'    => !empty($request->query->get('message')) ? $request->query->get('message') : null,
             'type'       => !empty($request->query->get('type')) ? $request->query->get('type') : null,

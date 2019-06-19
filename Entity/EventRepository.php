@@ -11,7 +11,12 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Exception;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\LeadBundle\Entity\TimelineTrait;
 
@@ -25,9 +30,9 @@ class EventRepository extends CommonRepository
     /**
      * Fetch the base event data from the database.
      *
-     * @param                $contactSourceId
-     * @param                $eventType
-     * @param \DateTime|null $dateAdded
+     * @param               $contactSourceId
+     * @param               $eventType
+     * @param DateTime|null $dateAdded
      *
      * @return array
      */
@@ -55,6 +60,23 @@ class EventRepository extends CommonRepository
     }
 
     /**
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->getEntityManager()->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        return new QueryBuilder($connection);
+    }
+
+    /**
      * Fetch the base event data from the database.
      *
      * @param            $contactClientId
@@ -65,7 +87,7 @@ class EventRepository extends CommonRepository
      */
     public function getEvents($contactClientId, $eventType = null, $dateRange = [])
     {
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder()
+        $q = $this->slaveQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
             ->select('c.*');
 
@@ -74,12 +96,12 @@ class EventRepository extends CommonRepository
             ->setParameter('contactClient', (int) $contactClientId);
 
         if (isset($dateRange['dateFrom'])) {
-            if (!($dateRange['dateFrom'] instanceof \DateTime)) {
+            if (!($dateRange['dateFrom'] instanceof DateTime)) {
                 try {
-                    $dateRange['datefrom'] = new \DateTime($dateRange['dateFrom']);
+                    $dateRange['datefrom'] = new DateTime($dateRange['dateFrom']);
                     $dateRange['dateFrom']->setTime(0, 0, 0);
-                } catch (\Exception $e) {
-                    $dateRange['datefrom'] = new \DateTime('midnight -1 month');
+                } catch (Exception $e) {
+                    $dateRange['datefrom'] = new DateTime('midnight -1 month');
                 }
             }
             $q->andWhere(
@@ -88,12 +110,12 @@ class EventRepository extends CommonRepository
                 ->setParameter('dateFrom', $dateRange['dateFrom']->format('Y-m-d H:i:s'));
         }
         if (isset($dateRange['dateTo'])) {
-            if (!($dateRange['dateTo'] instanceof \DateTime)) {
+            if (!($dateRange['dateTo'] instanceof DateTime)) {
                 try {
-                    $dateRange['datefrom'] = new \DateTime($dateRange['dateTo']);
+                    $dateRange['datefrom'] = new DateTime($dateRange['dateTo']);
                     $dateRange['dateTo']->setTime(0, 0, 0);
-                } catch (\Exception $e) {
-                    $dateRange['datefrom'] = new \DateTime('midnight');
+                } catch (Exception $e) {
+                    $dateRange['datefrom'] = new DateTime('midnight');
                 }
                 $dateRange['dateTo']->modify('+1 day');
             }
@@ -122,7 +144,7 @@ class EventRepository extends CommonRepository
      */
     public function getEventsForTimeline($contactClientId, array $options = [])
     {
-        $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
+        $query = $this->slaveQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c');
 
         $query->select('c.*, s.utm_source');
@@ -239,7 +261,7 @@ class EventRepository extends CommonRepository
      */
     public function getEventsForTimelineExport($contactClientId, array $options = [], $count)
     {
-        $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
+        $query = $this->slaveQueryBuilder()
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
             ->join(
                 'c',
@@ -342,8 +364,7 @@ class EventRepository extends CommonRepository
     {
         $alias = $this->getTableAlias();
 
-        $q = $this->_em
-            ->createQueryBuilder()
+        $q = $this->slaveQueryBuilder()
             ->select($alias)
             ->from('MauticContactClientBundle:Event', $alias, $alias.'.id');
 
@@ -371,8 +392,8 @@ class EventRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param \Doctrine\ORM\QueryBuilder|QueryBuilder $q
+     * @param                                         $filter
      *
      * @return array
      */
@@ -386,8 +407,8 @@ class EventRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param \Doctrine\ORM\QueryBuilder|QueryBuilder $q
+     * @param                                         $filter
      *
      * @return array
      */

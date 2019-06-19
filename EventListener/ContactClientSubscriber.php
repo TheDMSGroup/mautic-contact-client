@@ -11,10 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\EventListener;
 
+use DateTime;
+use Doctrine\ORM\EntityManager;
+use Exception;
 use Mautic\AssetBundle\Helper\TokenHelper as AssetTokenHelper;
 use Mautic\CampaignBundle\CampaignEvents;
-use Mautic\CampaignBundle\Entity\FailedLeadEventLog;
-use Mautic\CampaignBundle\Entity\FailedLeadEventLogRepository;
 use Mautic\CampaignBundle\Entity\LeadEventLog;
 use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
 use Mautic\CampaignBundle\Event\ScheduledEvent;
@@ -181,7 +182,7 @@ class ContactClientSubscriber extends CommonSubscriber
     public function onTimelineGenerate(ContactClientTimelineEvent $event)
     {
         /** @var EventRepository $eventRepository */
-        $eventRepository = $this->em->getRepository('MauticContactClientBundle:Event');
+        $eventRepository = $this->getEntityManager()->getRepository('MauticContactClientBundle:Event');
 
         // Set available event types
         // $event->addSerializerGroup(['formList', 'submissionEventDetails']);
@@ -237,6 +238,29 @@ class ContactClientSubscriber extends CommonSubscriber
     }
 
     /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
+        return $this->em;
+    }
+
+    /**
      * @param ScheduledEvent $event
      */
     public function onEventScheduled(ScheduledEvent $event)
@@ -250,7 +274,7 @@ class ContactClientSubscriber extends CommonSubscriber
             $events = $this->session->get('contact.client.reschedule.event');
 
             if (!empty($events) && isset($events[$logId])) {
-                if ($events[$logId] instanceof \DateTime) {
+                if ($events[$logId] instanceof DateTime) {
                     // For BC.
                     $triggerDate = $events[$logId];
                     $reason      = null;
@@ -266,27 +290,12 @@ class ContactClientSubscriber extends CommonSubscriber
                     $log->setIsScheduled(true);
 
                     if ($reason) {
-                        /** @var FailedLeadEventLog $failedLog */
-                        $failedLog = $log->getFailedLog();
-                        if ($failedLog) {
-                            if ($failedLog->getReason() !== $reason) {
-                                // There is a failed log, let's put the data there to keep the main table light.
-                                $failedLog->setReason($reason);
-                                /** @var FailedLeadEventLogRepository $failedLeadEventLogRepository */
-                                $failedLeadEventLogRepository = $this->em->getRepository(
-                                    'MauticCampaignBundle:FailedLeadEventLog'
-                                );
-                                $failedLeadEventLogRepository->saveEntity($failedLog);
-                            }
-                            $log->setMetadata([]);
-                        } else {
-                            // Persist to the metadata of the event log as a fall-back (non-failing events).
-                            $log->appendToMetadata(['reason' => $reason]);
-                        }
+                        // Persist to the metadata of the event log (faster than a secondary entity).
+                        $log->appendToMetadata(['reason' => $reason]);
                     }
 
                     /** @var LeadEventLogRepository $leadEventLogRepo */
-                    $leadEventLogRepo = $this->em->getRepository('MauticCampaignBundle:LeadEventLog');
+                    $leadEventLogRepo = $this->getEntityManager()->getRepository('MauticCampaignBundle:LeadEventLog');
                     $leadEventLogRepo->saveEntity($log);
                 }
 

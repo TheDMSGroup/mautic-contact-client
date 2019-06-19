@@ -11,6 +11,13 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
+use Closure;
+use DateInterval;
+use DatePeriod;
+use DateTime;
+use DateTimeZone;
+use Exception;
+
 /**
  * Class DateFormatHelper.
  */
@@ -208,9 +215,9 @@ class DateFormatHelper
     /**
      * @param $format
      *
-     * @return \Closure
+     * @return Closure
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __get($format)
     {
@@ -229,7 +236,7 @@ class DateFormatHelper
                                 $date = $this->parse($date);
 
                                 return $this->getIntervalUnits($now, $date, $intervalFormat);
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 return null;
                             }
                         };
@@ -242,7 +249,7 @@ class DateFormatHelper
                                 $date = $this->parse($date);
 
                                 return $this->getIntervalUnits($date, $now, $intervalFormat);
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 return null;
                             }
                         };
@@ -255,7 +262,7 @@ class DateFormatHelper
                                 $result = $this->getIntervalUnits($now, $date, $intervalFormat);
 
                                 return $result ? $result : $this->getIntervalUnits($date, $now, $intervalFormat);
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 return null;
                             }
                         };
@@ -297,7 +304,7 @@ class DateFormatHelper
         return function ($date) use ($format) {
             try {
                 return $this->parse($date)->format($format);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 return null;
             }
         };
@@ -309,43 +316,43 @@ class DateFormatHelper
      * @param string $date
      * @param string $timezone
      *
-     * @return \DateTime
+     * @return DateTime
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function parse($date, $timezone = null)
     {
-        if (!($date instanceof \DateTime)) {
+        if (!($date instanceof DateTime)) {
             if (false === strtotime($date)) {
-                throw new \Exception('Invalid date not parsed.');
+                throw new Exception('Invalid date not parsed.');
             }
 
             if (!$timezone) {
                 $timezone = $this->timezoneSource;
             }
 
-            $date = new \DateTime($date, new \DateTimeZone($timezone));
+            $date = new DateTime($date, new DateTimeZone($timezone));
         }
 
         return $date;
     }
 
     /**
-     * @param \DateTime $date1
-     * @param \DateTime $date2
-     * @param string    $intervalFormat
+     * @param DateTime $date1
+     * @param DateTime $date2
+     * @param string   $intervalFormat
      *
      * @return int
      */
-    private function getIntervalUnits(\DateTime $date1, \DateTime $date2, string $intervalFormat)
+    private function getIntervalUnits(DateTime $date1, DateTime $date2, string $intervalFormat)
     {
         $result = 0;
         try {
-            $interval = new \DateInterval($intervalFormat);
-            $periods  = new \DatePeriod($date1, $interval, $date2);
+            $interval = new DateInterval($intervalFormat);
+            $periods  = new DatePeriod($date1, $interval, $date2);
 
             $result = max(0, iterator_count($periods) - 1);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return $result;
@@ -366,7 +373,7 @@ class DateFormatHelper
                 $format = $this->validateFormat($format);
             }
             $result = $this->parse($date)->format($format);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         return $result;

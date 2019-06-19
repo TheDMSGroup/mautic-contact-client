@@ -11,7 +11,12 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
+use PDO;
 
 /**
  * Class StatRepository.
@@ -30,7 +35,7 @@ class StatRepository extends CommonRepository
      */
     public function getStats($contactClientId, $type, $fromDate = null, $toDate = null)
     {
-        $q = $this->createQueryBuilder('s');
+        $q = $this->slaveQueryBuilder()->select('s');
 
         $expr = $q->expr()->andX(
             $q->expr()->eq('IDENTITY(s.contactclient)', (int) $contactClientId),
@@ -57,20 +62,37 @@ class StatRepository extends CommonRepository
     }
 
     /**
-     * @param                $contactClientId
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param string|null    $type
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->getEntityManager()->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        return new QueryBuilder($connection);
+    }
+
+    /**
+     * @param               $contactClientId
+     * @param DateTime|null $dateFrom
+     * @param DateTime|null $dateTo
+     * @param string|null   $type
      *
      * @return array
      */
     public function getSourcesByClient(
         $contactClientId,
-        \DateTime $dateFrom = null,
-        \DateTime $dateTo = null,
+        DateTime $dateFrom = null,
+        DateTime $dateTo = null,
         $type = null
     ) {
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q = $this->slaveQueryBuilder();
 
         $q->select('distinct(s.utm_source)')
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_stats', 's')
@@ -90,8 +112,8 @@ class StatRepository extends CommonRepository
 
         if ($dateFrom && $dateTo) {
             $q->andWhere('s.date_added BETWEEN FROM_UNIXTIME(:dateFrom) AND FROM_UNIXTIME(:dateTo)')
-                ->setParameter('dateFrom', $dateFrom->getTimestamp(), \PDO::PARAM_INT)
-                ->setParameter('dateTo', $dateTo->getTimestamp(), \PDO::PARAM_INT);
+                ->setParameter('dateFrom', $dateFrom->getTimestamp(), PDO::PARAM_INT)
+                ->setParameter('dateTo', $dateTo->getTimestamp(), PDO::PARAM_INT);
         }
 
         $utmSources = [];

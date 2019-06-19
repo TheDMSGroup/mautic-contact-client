@@ -11,7 +11,13 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use DateTime;
+use Exception;
 use Mautic\CoreBundle\Controller\FormController;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -38,7 +44,7 @@ class ContactClientController extends FormController
     /**
      * @param int $page
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return JsonResponse|RedirectResponse|Response
      */
     public function indexAction($page = 1)
     {
@@ -66,9 +72,9 @@ class ContactClientController extends FormController
     /**
      * Generates new form and processes post data.
      *
-     * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array|JsonResponse|RedirectResponse|Response
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function newAction()
     {
@@ -81,9 +87,9 @@ class ContactClientController extends FormController
      * @param      $objectId
      * @param bool $ignorePost
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return JsonResponse|RedirectResponse|Response
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function editAction($objectId, $ignorePost = false)
     {
@@ -95,7 +101,7 @@ class ContactClientController extends FormController
      *
      * @param $objectId
      *
-     * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return array|JsonResponse|RedirectResponse|Response
      */
     public function viewAction($objectId)
     {
@@ -107,7 +113,7 @@ class ContactClientController extends FormController
      *
      * @param int $objectId
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return JsonResponse|RedirectResponse|Response
      */
     public function cloneAction($objectId)
     {
@@ -119,7 +125,7 @@ class ContactClientController extends FormController
      *
      * @param int $objectId
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+     * @return JsonResponse|RedirectResponse
      */
     public function deleteAction($objectId)
     {
@@ -129,7 +135,7 @@ class ContactClientController extends FormController
     /**
      * Deletes a group of entities.
      *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+     * @return JsonResponse|RedirectResponse
      */
     public function batchDeleteAction()
     {
@@ -147,7 +153,7 @@ class ContactClientController extends FormController
         if ('view' == $view) {
             $session = $this->get('session');
 
-            /** @var \MauticPlugin\MauticContactClientBundle\Entity\ContactClient $item */
+            /** @var ContactClient $item */
             $item = $args['viewParameters']['item'];
 
             // Setup page forms in session
@@ -177,12 +183,12 @@ class ContactClientController extends FormController
             $session->set('mautic.contactclient.'.$item->getId().'.chartfilter', $chartFilterValues);
 
             //Setup for the chart and stats datatable
-            /** @var \MauticPlugin\MauticContactClientBundle\Model\ContactClientModel $model */
+            /** @var ContactClientModel $model */
             $model = $this->getModel('contactclient');
 
             $unit = $model->getTimeUnitFromDateRange(
-                new \DateTime($chartFilterValues['date_from']),
-                new \DateTime($chartFilterValues['date_to'])
+                new DateTime($chartFilterValues['date_from']),
+                new DateTime($chartFilterValues['date_to'])
             );
 
             $auditLog = $this->getAuditlogs($item);
@@ -191,8 +197,8 @@ class ContactClientController extends FormController
                 $stats = $model->getStats(
                     $item,
                     $unit,
-                    new \DateTime($chartFilterValues['date_from']),
-                    new \DateTime($chartFilterValues['date_to']),
+                    new DateTime($chartFilterValues['date_from']),
+                    new DateTime($chartFilterValues['date_to']),
                     $chartFilterValues['campaign']
                 );
             } else {
@@ -200,8 +206,8 @@ class ContactClientController extends FormController
                     $item,
                     $unit,
                     $chartFilterValues['type'],
-                    new \DateTime($chartFilterValues['date_from']),
-                    new \DateTime($chartFilterValues['date_to']),
+                    new DateTime($chartFilterValues['date_from']),
+                    new DateTime($chartFilterValues['date_to']),
                     $chartFilterValues['campaign']
                 );
             }

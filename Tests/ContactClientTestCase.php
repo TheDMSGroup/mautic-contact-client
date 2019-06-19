@@ -2,7 +2,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Tests;
 
+use DateTime;
 use Doctrine\ORM\EntityManager;
+use Mautic\ApiBundle\Entity\oAuth1\Consumer;
 use Mautic\ApiBundle\Model\ClientModel;
 use Mautic\CoreBundle\Test\MauticMysqlTestCase;
 use Mautic\LeadBundle\Entity\Lead;
@@ -59,7 +61,7 @@ class ContactClientTestCase extends MauticMysqlTestCase
     /**
      * @param $id
      *
-     * @return \Mautic\ApiBundle\Entity\oAuth1\Consumer|\Mautic\ApiBundle\Entity\oAuth2\Client|null
+     * @return Consumer|\Mautic\ApiBundle\Entity\oAuth2\Client|null
      */
     public function getClientEntity($id)
     {
@@ -70,7 +72,7 @@ class ContactClientTestCase extends MauticMysqlTestCase
 
     public function getContact()
     {
-        $now     = new \DateTime('now');
+        $now     = new DateTime('now');
         $contact = new Lead();
 
         $contact->setDateAdded($now);
@@ -82,7 +84,7 @@ class ContactClientTestCase extends MauticMysqlTestCase
         $utmTag = new UtmTag();
         $utmTag->setLead($contact);
         $utmTag->setUtmSource('10101UTM');
-        $utmTag->setDateAdded(new \DateTime());
+        $utmTag->setDateAdded(new DateTime());
         $contact->setUtmTags($utmTag);
 
         $fields = [
@@ -93,19 +95,19 @@ class ContactClientTestCase extends MauticMysqlTestCase
                     'type'  => 'text',
                     'value' => 'FirstTest',
                 ],
-                'lastname' => [
+                'lastname'  => [
                     'alias' => 'lastname',
                     'label' => 'Last Name',
                     'type'  => 'text',
                     'value' => 'LastTest',
                 ],
-                'phone' => [
+                'phone'     => [
                     'alias' => 'phone',
                     'label' => 'Phone',
                     'type'  => 'text',
                     'value' => '7273330000',
                 ],
-                'email' => [
+                'email'     => [
                     'alias' => 'email',
                     'label' => 'Email',
                     'type'  => 'text',
