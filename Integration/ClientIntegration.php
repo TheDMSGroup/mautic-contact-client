@@ -776,11 +776,11 @@ class ClientIntegration extends AbstractIntegration
                     if (isset($identityMap['Mautic\CampaignBundle\Entity\Campaign']) && !empty($identityMap['Mautic\CampaignBundle\Entity\Campaign'])) {
                         $this->campaign = end($identityMap['Mautic\CampaignBundle\Entity\Campaign']);
                     }
-                    if ($this->campaign) {
-                        $this->addTrace('campaign', $this->campaign->getName());
-                        $this->addTrace('campaignId', $this->campaign->getId());
-                        $this->setLogs($this->campaign->getId(), 'campaignId');
-                    }
+                }
+                if ($this->campaign) {
+                    $this->addTrace('campaign', $this->campaign->getName());
+                    $this->addTrace('campaignId', $this->campaign->getId());
+                    $this->setLogs($this->campaign->getId(), 'campaignId');
                 }
             }
         } catch (Exception $e) {
