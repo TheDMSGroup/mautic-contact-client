@@ -195,7 +195,7 @@ class ClientIntegration extends AbstractIntegration
      *
      * @return $this
      */
-    public function reset($exclusions = ['contactClientModel', 'dncRepo', 'integrationRepo'])
+    public function reset($exclusions = ['container', 'contactClientModel', 'dncRepo', 'integrationRepo'])
     {
         foreach (array_diff_key(
                      get_class_vars(get_class($this)),
