@@ -661,12 +661,15 @@ class CacheRepository extends CommonRepository
      * @param int $limit
      * @param int $delay
      *
+     * @return int
+     *
      * @throws DBALException
      */
     public function deleteExpired($limit = 10000, $delay = 1)
     {
         $start    = strtotime('-1 month -1 day');
         $rowCount = $limit;
+        $deleted  = 0;
         while ($rowCount === $limit) {
             $conn = $this->getEntityManager()->getConnection();
             $q    = $conn->createQueryBuilder();
@@ -677,10 +680,13 @@ class CacheRepository extends CommonRepository
             );
             $platform = $conn->getDatabasePlatform();
             $rowCount = $conn->executeUpdate($platform->modifyLimitQuery($q->getSQL(), $limit));
+            $deleted += $rowCount;
             if ($rowCount !== $limit) {
                 sleep($delay);
             }
         }
+
+        return $deleted;
     }
 
     /**
@@ -689,12 +695,15 @@ class CacheRepository extends CommonRepository
      * @param int $limit
      * @param int $delay
      *
+     * @return int
+     *
      * @throws DBALException
      */
     public function reduceExclusivityIndex($limit = 10000, $delay = 1)
     {
         $start    = strtotime('-15 minutes');
         $rowCount = $limit;
+        $reduced  = 0;
         while ($rowCount === $limit) {
             $conn = $this->getEntityManager()->getConnection();
             $q    = $conn->createQueryBuilder();
@@ -708,9 +717,12 @@ class CacheRepository extends CommonRepository
             $q->set('exclusive_scope', 'NULL');
             $platform = $conn->getDatabasePlatform();
             $rowCount = $conn->executeUpdate($platform->modifyLimitQuery($q->getSQL(), $limit));
+            $reduced += $rowCount;
             if ($rowCount !== $limit) {
                 sleep($delay);
             }
         }
+
+        return $reduced;
     }
 }

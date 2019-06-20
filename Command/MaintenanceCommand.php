@@ -78,8 +78,10 @@ class MaintenanceCommand extends ModeratedCommand
                 'mautic.contactclient.maintenance.running'
             ).'</info>'
         );
-        $cacheRepo->deleteExpired($limit, $delay);
-        $cacheRepo->reduceExclusivityIndex($limit, $delay);
+        $deleted = $cacheRepo->deleteExpired($limit, $delay);
+        $output->writeln('Deleted '.$deleted.' expired cache entries.');
+        $reduced = $cacheRepo->reduceExclusivityIndex($limit, $delay);
+        $output->writeln('Reduced '.$reduced.' exclusivity cache entries.');
         $output->writeln(
             '<info>'.$translator->trans(
                 'mautic.contactclient.maintenance.complete'
