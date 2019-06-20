@@ -1192,7 +1192,7 @@ class ClientIntegration extends AbstractIntegration
         if ($this->contact) {
             try {
                 /** @var UtmSourceHelper $utmHelper */
-                $utmHelper = $this->container->get('mautic.contactclient.helper.utmsource');
+                $utmHelper = $this->getContainer()->get('mautic.contactclient.helper.utmsource');
                 $utmSource = $utmHelper->getFirstUtmSource($this->contact);
             } catch (Exception $e) {
             }
