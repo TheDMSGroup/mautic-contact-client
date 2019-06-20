@@ -676,8 +676,7 @@ class CacheRepository extends CommonRepository
                 $q->expr()->lt('date_added', 'FROM_UNIXTIME('.$start.')')
             );
             $platform = $conn->getDatabasePlatform();
-            $result   = $conn->executeUpdate($platform->modifyLimitQuery($q->getSQL(), $limit));
-            $rowCount = $result->rowCount();
+            $rowCount = $conn->executeUpdate($platform->modifyLimitQuery($q->getSQL(), $limit));
             if ($rowCount !== $limit) {
                 sleep($delay);
             }
@@ -708,8 +707,7 @@ class CacheRepository extends CommonRepository
             $q->set('exclusive_pattern', 'NULL');
             $q->set('exclusive_scope', 'NULL');
             $platform = $conn->getDatabasePlatform();
-            $result   = $conn->executeUpdate($platform->modifyLimitQuery($q->getSQL(), $limit));
-            $rowCount = $result->rowCount();
+            $rowCount = $conn->executeUpdate($platform->modifyLimitQuery($q->getSQL(), $limit));
             if ($rowCount !== $limit) {
                 sleep($delay);
             }
