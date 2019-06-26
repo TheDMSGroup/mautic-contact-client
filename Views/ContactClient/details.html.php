@@ -153,7 +153,7 @@ $website = $item->getWebsite();
                 <?php endif; ?>
                 <!-- pending client events -->
                 <li class="">
-                    <a href="#pending-container" role="tab" data-toggle="tab">
+                    <a href="#pending-events-container" role="tab" data-toggle="tab">
                     <span class="label label-primary mr-sm" id="PendingEventsCount">
                     </span>
                         <?php echo $view['translator']->trans('mautic.contactclient.pending.events'); ?>

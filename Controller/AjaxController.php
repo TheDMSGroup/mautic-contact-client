@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use Mautic\CampaignBundle\Entity\CampaignRepository;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\CacheStorageHelper;
@@ -19,6 +20,8 @@ use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
+use MauticPlugin\MauticContactClientBundle\Helper\ClientEventHelper;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
 use Symfony\Component\HttpFoundation\Request;
@@ -313,12 +316,23 @@ class AjaxController extends CommonAjaxController
         if (!empty($objectId)){
 
             $em      = $this->dispatcher->getContainer()->get('doctrine.orm.default_entity_manager');
-            $repo    = $em->getRepository(\MauticPlugin\MauticContactClientBundle\Entity\ContactClient::class);
+            /** @var ClientEventHelper $clientEventHelper */
+            $clientEventHelper = $this->get('mautic.contactclient.helper.client_event');
+            $events = $clientEventHelper->getScheduledEvents();
 
-            $events       = $repo->getPendingEventsData($objectId);
+            /** @var ContactClientRepository $repo */
+            $clientRepo    = $em->getRepository(\MauticPlugin\MauticContactClientBundle\Entity\ContactClient::class);
+
+            // get a list of campaign events to pass into the event_log query
+
+            // get the actual event logs with counts to pass to a Datatable
+            $events       = $clientRepo->getPendingEventsData($objectId, $eventIds);
+            $total = count($events);
 
             $headers    = [
+                '',
                 'mautic.contactclient.pending.events.campaign',
+                '',
                 'mautic.contactclient.pending.events.event',
                 'mautic.contactclient.pending.events.count',
             ];

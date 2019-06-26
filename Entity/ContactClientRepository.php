@@ -11,7 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
 
 /**
  * Class ContactClientRepository.
@@ -116,15 +118,50 @@ class ContactClientRepository extends CommonRepository
      *
      * @return array
      */
-    public function getPendingEventsData($clientId)
+    public function getPendingEventsData($clientId, $eventIds)
     {
-        $data = [];
+        $query = $this->slaveQueryBuilder();
+        $query->select(
+            'el.campaign_id, 
+            #cp.name, 
+            el.event_id,
+            #ce.name, 
+            COUNT(el.lead_id) as count'
+        );
+        $query->from(MAUTIC_TABLE_PREFIX.'campaign_lead_event_log el');
+        $query->join('el', 'campaigns', 'cp', 'el.campaign_id = cp.id');
+        $query->join('el', 'campaign_events', 'ce', 'el.event_id = ce.id');
+        $query->where('el.is_scheduled = 1');
+        $query->andWhere ('el.event_id IN :eventIds');
+        $query->andWhere('el.trigger_date <= NOW()');
+        $query->andWhere('el.trigger_date > DATE_ADD(NOW(), INTERVAL -2 DAY)');
+        $query->groupBy('el.event_id');
+        $query->setParameter('eventIds', $eventIds);
+        $data = $query->execute()->fetchAll();
 
-        $data[] = [1,'CampaignName1', 1, 'EventName1', 5434];
-        $data[] = [1,'CampaignName1', 2, 'EventName2', 145];
-        $data[] = [2,'CampaignName1', 3, 'EventName3', 9746];
-        $data[] = [2,'CampaignName1', 4, 'EventName4', 354];
+
+        // $data[] = [1,'CampaignName1', 1, 'EventName1', 5434];
+        // $data[] = [1,'CampaignName1', 2, 'EventName2', 145];
+        // $data[] = [2,'CampaignName1', 3, 'EventName3', 9746];
+        // $data[] = [2,'CampaignName1', 4, 'EventName4', 354];
 
         return $data;
+    }
+
+    /**
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->_em->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        return new QueryBuilder($connection);
     }
 }

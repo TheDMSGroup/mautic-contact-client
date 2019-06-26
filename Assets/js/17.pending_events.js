@@ -21,13 +21,48 @@ Mautic.contactclientPendingEventsTable = function () {
             cache: false,
             dataType: 'json',
             success: function (response) {
-                console.log(response);
+                console.log(response.columns);
                 mQuery('#PendingEventsCount').text(response.total)
-                    mQuery('#clientPendingEvents-builder-overlay').hide();
-                    $tableTarget.append(response.html);
+                mQuery('#clientPendingEvents-builder-overlay').hide();
+                mQuery('#pending-events-table').DataTable(
+                    {
+                        columns: response.columns,
+                        data: response.events,
+                        autoFill: true,
+                        language: {
+                            emptyTable: 'No results found for this date range and filters.'
+                        },
+                        columnDefs: [
+                            {
+                                render: function (data, type, row) {
+                                    return renderCampaignLink(row[0], row[1]);
+                                },
+                                targets: 1
+                            },
+                            {
+                                render: function (data, type, row) {
+                                    return renderEventName(row[2], row[3]);
+                                },
+                                targets: 3
+                            },
+
+                            {visible: false, targets: [0, 2]},
+                            {width: '33%', targets: [1,3,4]},
+                        ],
+
+                    }
+                );
             } // end ajax success
         }); // end ajax call
     } // end if tableTarget exists
 
+    function renderCampaignLink (id, name) {
+        return '<a href = "/s/contactclient/view/'+id+'">'+name+'</a>';
+    }
+
+    function renderEventName (id, name) {
+        return name+' ('+id+' )';
+    }
 };
+
 
