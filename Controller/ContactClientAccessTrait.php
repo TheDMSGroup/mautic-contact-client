@@ -14,6 +14,7 @@ namespace MauticPlugin\MauticContactClientBundle\Controller;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Entity\File;
 use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Class ContactClientAccessTrait.
@@ -160,7 +161,7 @@ trait ContactClientAccessTrait
      *
      * @param $action
      *
-     * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
+     * @return array|RedirectResponse
      */
     protected function checkAllAccess($action, $limit)
     {

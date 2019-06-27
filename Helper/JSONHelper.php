@@ -11,6 +11,9 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
+use Exception;
+use stdClass;
+
 /**
  * Class JSONHelper.
  */
@@ -23,7 +26,7 @@ class JSONHelper
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function decodeArray($string, $fieldName = null, $assoc = false)
     {
@@ -35,7 +38,7 @@ class JSONHelper
             $array = self::decode($array, $fieldName, $assoc);
         }
         if (!is_array($array)) {
-            throw new \Exception('The field '.$fieldName.' is not a JSON array as expected.');
+            throw new Exception('The field '.$fieldName.' is not a JSON array as expected.');
         }
 
         return $array;
@@ -48,7 +51,7 @@ class JSONHelper
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function decode($string, $fieldName, $assoc = false)
     {
@@ -77,7 +80,7 @@ class JSONHelper
                 break;
         }
         if ($jsonError) {
-            throw new \Exception('JSON is invalid in field '.$fieldName.' JSON error: '.$jsonError);
+            throw new Exception('JSON is invalid in field '.$fieldName.' JSON error: '.$jsonError);
         }
 
         return $result;
@@ -89,19 +92,19 @@ class JSONHelper
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function decodeObject($string, $fieldName = null)
     {
         if (empty($string)) {
-            return new \stdClass();
+            return new stdClass();
         }
         $object = self::decode($string, $fieldName);
         if (is_string($object)) {
             $object = self::decode($object, $fieldName);
         }
         if (!is_object($object)) {
-            throw new \Exception('The field '.$fieldName.' is not a JSON object as expected.');
+            throw new Exception('The field '.$fieldName.' is not a JSON object as expected.');
         }
 
         return $object;
@@ -113,7 +116,7 @@ class JSONHelper
      *
      * @return false|string
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function encode($mixed, $fieldName)
     {
@@ -146,7 +149,7 @@ class JSONHelper
                 break;
         }
         if ($jsonError) {
-            throw new \Exception('JSON encoding failed for field '.$fieldName.' JSON error: '.$jsonError);
+            throw new Exception('JSON encoding failed for field '.$fieldName.' JSON error: '.$jsonError);
         }
 
         return $result;

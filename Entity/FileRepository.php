@@ -11,6 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
+use DateTimeZone;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
@@ -21,28 +26,28 @@ class FileRepository extends CommonRepository
     /**
      * Gets the number of files (ready/sent by default) on a given date.
      *
-     * @param \DateTime|null $date
-     * @param                $contactClientId
-     * @param array          $statuses
-     * @param bool           $test
+     * @param DateTime|null $date
+     * @param               $contactClientId
+     * @param array         $statuses
+     * @param bool          $test
      *
      * @return int
      */
     public function getCountByDate(
-        \DateTime $date = null,
+        DateTime $date = null,
         $contactClientId,
         $statuses = [File::STATUS_READY, File::STATUS_SENT, File::STATUS_ERROR],
         $test = false
     ) {
         $start = clone $date;
         $end   = clone $date;
-        $q     = $this->getEntityManager()->getConnection()->createQueryBuilder();
+        $q     = $this->slaveQueryBuilder();
         $q->select('COUNT(*)')
             ->from(MAUTIC_TABLE_PREFIX.$this->getTableName());
 
         $start->setTime(0, 0, 0);
         $end->setTime(0, 0, 0)->modify('+1 day');
-        $timezone = new \DateTimeZone(date_default_timezone_get());
+        $timezone = new DateTimeZone(date_default_timezone_get());
         $start->setTimezone($timezone);
         $end->setTimezone($timezone);
 
@@ -57,6 +62,23 @@ class FileRepository extends CommonRepository
         $q->andWhere('status IN (\''.implode('\',\'', $statuses).'\')');
 
         return (int) $q->execute()->fetchColumn();
+    }
+
+    /**
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->getEntityManager()->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        return new QueryBuilder($connection);
     }
 
     /**

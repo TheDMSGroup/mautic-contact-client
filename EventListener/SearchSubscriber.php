@@ -15,16 +15,6 @@ class SearchSubscriber extends CommonSubscriber
     protected $clientModel;
 
     /**
-     * @return array
-     */
-    public static function getSubscribedEvents()
-    {
-        return [
-            CoreEvents::GLOBAL_SEARCH => ['onGlobalSearch', 0],
-        ];
-    }
-
-    /**
      * SearchSubscriber constructor.
      *
      * @param ContactClientModel $clientModel
@@ -32,6 +22,16 @@ class SearchSubscriber extends CommonSubscriber
     public function __construct(ContactClientModel $clientModel)
     {
         $this->clientModel = $clientModel;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getSubscribedEvents()
+    {
+        return [
+            CoreEvents::GLOBAL_SEARCH => ['onGlobalSearch', 0],
+        ];
     }
 
     /**

@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use Exception;
 use MauticPlugin\MauticContactClientBundle\Helper\TokenHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadRequest as ApiRequest;
 use MauticPlugin\MauticContactClientBundle\Model\ApiPayloadResponse as ApiResponse;
@@ -115,7 +116,7 @@ class ApiPayloadOperation
      *
      * @return $this|bool
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function run()
     {
@@ -144,7 +145,7 @@ class ApiPayloadOperation
         $valid = false;
         try {
             $valid = $apiResponse->validate();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         $this->setValid($valid);

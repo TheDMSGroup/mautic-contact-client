@@ -12,6 +12,9 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityRepository;
+use Exception;
+use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Model\AbstractCommonModel;
 use MauticPlugin\MauticContactClientBundle\Entity\Auth;
 use MauticPlugin\MauticContactClientBundle\Entity\AuthRepository;
@@ -289,15 +292,38 @@ class ApiPayloadAuth extends AbstractCommonModel
     }
 
     /**
-     * @return bool|\Doctrine\ORM\EntityRepository|\Mautic\CoreBundle\Entity\CommonRepository|AuthRepository
+     * @return bool|EntityRepository|CommonRepository|AuthRepository
      */
     private function getAuthRepository()
     {
         if (!$this->authRepository) {
-            $this->authRepository = $this->em->getRepository('MauticContactClientBundle:Auth');
+            $this->authRepository = $this->getEntityManager()->getRepository('MauticContactClientBundle:Auth');
         }
 
         return $this->authRepository;
+    }
+
+    /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
+        return $this->em;
     }
 
     /**

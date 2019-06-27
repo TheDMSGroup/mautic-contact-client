@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\LeadBundle\Entity\Lead as Contact;
@@ -70,13 +71,13 @@ class Cache
     /** @var int $exclusivityPattern */
     private $exclusivePattern;
 
-    /** @var \DateTime $exclusivityExpireDate */
+    /** @var DateTime $exclusivityExpireDate */
     private $exclusiveExpireDate;
 
     /** @var int $exclusivityScope */
     private $exclusiveScope;
 
-    /** @var \DateTime $dateAdded */
+    /** @var DateTime $dateAdded */
     private $dateAdded;
 
     /**
@@ -84,7 +85,7 @@ class Cache
      */
     public function __construct()
     {
-        $this->dateAdded = new \DateTime();
+        $this->dateAdded = new DateTime();
     }
 
     /**
@@ -260,7 +261,7 @@ class Cache
     }
 
     /**
-     * @return \DateTime
+     * @return DateTime
      */
     public function getExclusiveExpireDate()
     {
@@ -268,7 +269,7 @@ class Cache
     }
 
     /**
-     * @param \DateTime $exclusiveExpireDate
+     * @param DateTime $exclusiveExpireDate
      *
      * @return $this
      */
@@ -580,7 +581,7 @@ class Cache
     }
 
     /**
-     * @return \DateTime
+     * @return DateTime
      */
     public function getDateAdded()
     {
@@ -588,7 +589,7 @@ class Cache
     }
 
     /**
-     * @param \DateTime $dateAdded
+     * @param DateTime $dateAdded
      *
      * @return $this
      */

@@ -11,9 +11,11 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Command;
 
+use Exception;
 use Mautic\CoreBundle\Command\ModeratedCommand;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use MauticPlugin\MauticContactClientBundle\Model\FilePayload;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,7 +30,7 @@ class FilesCommand extends ModeratedCommand
     /**
      * {@inheritdoc}
      *
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function configure()
     {
@@ -151,7 +153,7 @@ class FilesCommand extends ModeratedCommand
                     if (isset($options['verbose']) && $options['verbose']) {
                         $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $output->writeln(
                         $translator->trans(
                             'mautic.contactclient.files.error',

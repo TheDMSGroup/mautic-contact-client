@@ -120,10 +120,10 @@ class FilterHelper
     {
         $query = json_decode($json);
         if (json_last_error()) {
-            throw new \Exception('JSON parsing threw an error: '.json_last_error_msg());
+            throw new Exception('JSON parsing threw an error: '.json_last_error_msg());
         }
         if (!is_object($query)) {
-            throw new \Exception('The query is not valid JSON');
+            throw new Exception('The query is not valid JSON');
         }
 
         return $query;
@@ -139,7 +139,7 @@ class FilterHelper
      * @return bool
      *
      * @throws Exception
-     * @throws \Exception
+     * @throws Exception
      */
     protected function loopThroughRules(array $rules, array $context = [], $condition = 'AND')
     {
@@ -171,14 +171,14 @@ class FilterHelper
      *
      * @return string
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function validateCondition($condition)
     {
         $condition = trim(strtolower($condition));
 
         if ('and' !== $condition && 'or' !== $condition) {
-            throw new \Exception("Condition can only be one of: 'and', 'or'.");
+            throw new Exception("Condition can only be one of: 'and', 'or'.");
         }
 
         return $condition;
@@ -198,7 +198,7 @@ class FilterHelper
     {
         try {
             $ruleValue = $this->getValueFromRule($rule);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->setError('Error attempting to get a value from a rule: '.$e->getMessage());
 
             return false;
@@ -206,7 +206,7 @@ class FilterHelper
 
         try {
             $contextValue = $this->getValueFromContext($rule, $context);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->setError('Error attempting to get a value from context: '.$e->getMessage());
 
             return false;
@@ -253,7 +253,7 @@ class FilterHelper
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getRuleValue($rule)
     {
@@ -313,7 +313,7 @@ class FilterHelper
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getCorrectValue($operator, $rule, $value)
     {
@@ -343,7 +343,7 @@ class FilterHelper
      *
      * @return mixed value after enforcement
      *
-     * @throws \Exception if value is not a correct type
+     * @throws Exception if value is not a correct type
      */
     protected function enforceArrayOrString($requireArray, $value, $field)
     {
@@ -359,18 +359,18 @@ class FilterHelper
     /**
      * Ensure that a given field is an array if required.
      *
-     * @see enforceArrayOrString
-     *
      * @param bool   $requireArray
      * @param        $value
      * @param string $field
      *
-     * @throws \Exception
+     * @throws Exception
+     *
+     * @see enforceArrayOrString
      */
     protected function checkFieldIsAnArray($requireArray, $value, $field)
     {
         if ($requireArray && !is_array($value)) {
-            throw new \Exception("Field ($field) should be an array, but it isn't.");
+            throw new Exception("Field ($field) should be an array, but it isn't.");
         }
     }
 
@@ -378,19 +378,19 @@ class FilterHelper
      * Convert an array with just one item to a string.
      * In some instances, and array may be given when we want a string.
      *
-     * @see enforceArrayOrString
-     *
      * @param string $field
      * @param        $value
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws Exception
+     *
+     * @see enforceArrayOrString
      */
     protected function convertArrayToFlatValue($field, $value)
     {
         if (1 !== count($value)) {
-            throw new \Exception("Field ($field) should not be an array, but it is.");
+            throw new Exception("Field ($field) should not be an array, but it is.");
         }
 
         return $value[0];
@@ -431,7 +431,7 @@ class FilterHelper
      *
      * @return bool
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function evaluateRuleAgainstContext($rule, $contextValue, $ruleValue)
     {
@@ -506,7 +506,7 @@ class FilterHelper
                 }
                 try {
                     return 1 === preg_match($ruleValue, $contextValue);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->setError('Invalid regex pattern.');
 
                     return false;

@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Constraints;
 
+use Exception;
 use MauticPlugin\MauticContactClientBundle\Helper\JSONHelper;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -36,7 +37,7 @@ class JsonArrayValidator extends ConstraintValidator
             $jsonHelper = new JSONHelper();
             try {
                 $jsonHelper->decodeArray($value);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 if ($this->context instanceof ExecutionContextInterface) {
                     $this->context->buildViolation($constraint->message)
                         ->setParameter('{{ value }}', $this->formatValue($value))

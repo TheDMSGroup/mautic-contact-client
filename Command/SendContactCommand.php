@@ -13,9 +13,12 @@ namespace MauticPlugin\MauticContactClientBundle\Command;
 
 use Mautic\ApiBundle\Model\ClientModel;
 use Mautic\CoreBundle\Command\ModeratedCommand;
+use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
 use MauticPlugin\MauticContactClientBundle\Integration\ClientIntegration;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,7 +33,7 @@ class SendContactCommand extends ModeratedCommand
     /**
      * {@inheritdoc}
      *
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function configure()
     {
@@ -136,27 +139,36 @@ class SendContactCommand extends ModeratedCommand
             return 1;
         }
 
-        /** @var \Mautic\LeadBundle\Model\LeadModel $contactModel */
+        /** @var LeadModel $contactModel */
         $contactModel = $container->get('mautic.lead.model.lead');
         foreach ($contactIds as $contactId) {
-            /** @var \Mautic\LeadBundle\Entity\Lead $contact */
+            /** @var Lead $contact */
             $contact = $contactModel->getEntity($contactId);
             if (!$contact) {
                 $output->writeln(
-                    '<error>'.$translator->trans('mautic.contactclient.sendcontact.error.contact.load', ['%contactId%' => $contactId]).'</error>'
+                    '<error>'.$translator->trans(
+                        'mautic.contactclient.sendcontact.error.contact.load',
+                        ['%contactId%' => $contactId]
+                    ).'</error>'
                 );
             } else {
                 $integrationObject->sendContact($client, $contact, (bool) $options['test'], (bool) $options['force']);
                 if ($integrationObject->getValid()) {
                     $output->writeln(
-                        '<info>'.$translator->trans('mautic.contactclient.sendcontact.contact.accepted', ['%contactId%' => $contactId]).'</info>'
+                        '<info>'.$translator->trans(
+                            'mautic.contactclient.sendcontact.contact.accepted',
+                            ['%contactId%' => $contactId]
+                        ).'</info>'
                     );
                     if (isset($options['verbose']) && $options['verbose']) {
                         $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');
                     }
                 } else {
                     $output->writeln(
-                        '<error>'.$translator->trans('mautic.contactclient.sendcontact.contact.rejected', ['%contactId%' => $contactId]).'</error>'
+                        '<error>'.$translator->trans(
+                            'mautic.contactclient.sendcontact.contact.rejected',
+                            ['%contactId%' => $contactId]
+                        ).'</error>'
                     );
                     if (isset($options['verbose']) && $options['verbose']) {
                         $output->writeln('<info>'.$integrationObject->getLogsYAML().'</info>');

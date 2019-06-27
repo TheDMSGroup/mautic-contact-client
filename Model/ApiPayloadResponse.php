@@ -12,6 +12,7 @@
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
 use DOMDocument;
+use Exception;
 use FOS\RestBundle\Util\Codes;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
 use MauticPlugin\MauticContactClientBundle\Exception\ContactClientException;
@@ -76,7 +77,7 @@ class ApiPayloadResponse
      *
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function parse()
     {
@@ -167,7 +168,7 @@ class ApiPayloadResponse
      *
      * @return array|bool return false if there is an error or we are unable to parse
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function getResponseArray($data, $responseExpectedFormat = 'json')
     {
@@ -267,7 +268,7 @@ class ApiPayloadResponse
                     }
                     break;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Sub-parsing may fail, but we only care about acceptable values when validating.
             // Logging will capture the full response for debugging.
         }
@@ -404,6 +405,7 @@ class ApiPayloadResponse
                 // -404 is just a falsy value to signify this from the filter helper.
                 if (-404 === $this->valid) {
                     if (!$this->responseActual['status'] || Codes::HTTP_OK != $this->responseActual['status']) {
+                        $this->valid = false;
                         throw new ContactClientException(
                             'Status code is not 200. Default validation failure.',
                             0,
@@ -412,8 +414,9 @@ class ApiPayloadResponse
                             false
                         );
                     }
+                    $this->valid = true;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 throw new ContactClientException(
                     'Error in validation: '.$e->getMessage(),
                     0,

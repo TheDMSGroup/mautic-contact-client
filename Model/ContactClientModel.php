@@ -11,8 +11,15 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Model;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Exception;
 use Mautic\CampaignBundle\Entity\CampaignRepository;
+use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
@@ -22,13 +29,18 @@ use Mautic\LeadBundle\Model\LeadModel as ContactModel;
 use Mautic\PageBundle\Model\TrackableModel;
 use MauticPlugin\MauticContactClientBundle\ContactClientEvents;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
+use MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Event as EventEntity;
+use MauticPlugin\MauticContactClientBundle\Entity\EventRepository;
+use MauticPlugin\MauticContactClientBundle\Entity\FileRepository;
 use MauticPlugin\MauticContactClientBundle\Entity\Stat;
+use MauticPlugin\MauticContactClientBundle\Entity\StatRepository;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientStatEvent;
 use MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormFactory;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
@@ -93,10 +105,10 @@ class ContactClientModel extends FormModel
     /**
      * {@inheritdoc}
      *
-     * @param object                              $entity
-     * @param \Symfony\Component\Form\FormFactory $formFactory
-     * @param string                              $action
-     * @param array                               $options
+     * @param object      $entity
+     * @param FormFactory $formFactory
+     * @param string      $action
+     * @param array       $options
      *
      * @throws NotFoundHttpException
      */
@@ -144,13 +156,37 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\ContactClientRepository
+     * @return bool|CommonRepository|ContactClientRepository
      */
     public function getRepository()
     {
-        return $this->em->getRepository('MauticContactClientBundle:ContactClient');
+        /** @var ContactClientRepository $repo */
+        $repo = $this->getEntityManager()->getRepository('MauticContactClientBundle:ContactClient');
+
+        return $repo;
+    }
+
+    /**
+     * Shore up EntityManager loading, in case there is a flaw in a plugin or campaign handling.
+     *
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        try {
+            if ($this->em && !$this->em->isOpen()) {
+                $this->em = $this->em->create(
+                    $this->em->getConnection(),
+                    $this->em->getConfiguration(),
+                    $this->em->getEventManager()
+                );
+                $this->logger->error('ContactClient: EntityManager was closed.');
+            }
+        } catch (Exception $exception) {
+            $this->logger->error('ContactClient: EntityManager could not be reopened.');
+        }
+
+        return $this->em;
     }
 
     /**
@@ -174,7 +210,7 @@ class ContactClientModel extends FormModel
         $eventId = 0
     ) {
         $stat = new Stat();
-        $stat->setDateAdded(new \DateTime());
+        $stat->setDateAdded(new DateTime());
         if ($type) {
             $stat->setType($type);
         }
@@ -197,43 +233,38 @@ class ContactClientModel extends FormModel
         // dispatch Stat PostSave event
         try {
             $event = new ContactClientStatEvent(
-                $contactClient, $campaignId, $eventId, $contact, $this->em
+                $contactClient, $campaignId, $eventId, $contact, $this->getEntityManager()
             );
             $this->dispatcher->dispatch(
                 ContactClientEvents::STAT_SAVE,
                 $event
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
+     * @return StatRepository
      */
     public function getStatRepository()
     {
-        if (!$this->em->isOpen()) {
-            $this->em = $this->em->create(
-                $this->em->getConnection(),
-                $this->em->getConfiguration(),
-                $this->em->getEventManager()
-            );
-        }
+        /** @var StatRepository $repo */
+        $repo = $this->getEntityManager()->getRepository('MauticContactClientBundle:Stat');
 
-        return $this->em->getRepository('MauticContactClientBundle:Stat');
+        return $repo;
     }
 
     /**
      * Add transactional log in contactclient_events.
      *
      * @param ContactClient|null $contactClient
-     * @param string             $type
+     * @param null               $type
      * @param Contact|null       $contact
      * @param null               $logs
      * @param null               $message
      * @param null               $integrationEntityId
+     *
+     * @throws Exception
      */
     public function addEvent(
         ContactClient $contactClient = null,
@@ -244,7 +275,7 @@ class ContactClientModel extends FormModel
         $integrationEntityId = null
     ) {
         $event = new EventEntity();
-        $event->setDateAdded(new \DateTime());
+        $event->setDateAdded(new DateTime());
         if ($type) {
             $event->setType($type);
         }
@@ -268,36 +299,39 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return \MauticPlugin\MauticContactClientBundle\Entity\StatRepository
+     * @return EventRepository
      */
     public function getEventRepository()
     {
-        return $this->em->getRepository('MauticContactClientBundle:Event');
+        /** @var EventRepository $repo */
+        $repo = $this->getEntityManager()->getRepository('MauticContactClientBundle:Event');
+
+        return $repo;
     }
 
     /**
-     * @param ContactClient  $contactClient
-     * @param                $unit
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param null           $campaignId
-     * @param null           $dateFormat
-     * @param bool           $canViewOthers
+     * @param ContactClient $contactClient
+     * @param               $unit
+     * @param DateTime|null $dateFrom
+     * @param DateTime|null $dateTo
+     * @param null          $campaignId
+     * @param null          $dateFormat
+     * @param bool          $canViewOthers
      *
      * @return array
+     *
+     * @throws Exception
      */
     public function getStats(
         ContactClient $contactClient,
         $unit,
-        \DateTime $dateFrom = null,
-        \DateTime $dateTo = null,
+        DateTime $dateFrom = null,
+        DateTime $dateTo = null,
         $campaignId = null,
         $dateFormat = null,
         $canViewOthers = true
     ) {
-        $query = new ChartQuery($this->em->getConnection(), $dateFrom, $dateTo, $unit);
+        $query = new ChartQuery($this->getEntityManager()->getConnection(), $dateFrom, $dateTo, $unit);
         $unit  = (null === $unit) ? $this->getTimeUnitFromDateRange($dateFrom, $dateTo) : $unit;
         $chart = new LineChart($unit, $dateFrom, $dateTo, $dateFormat);
         $stat  = new Stat();
@@ -320,15 +354,15 @@ class ContactClientModel extends FormModel
                 // For some reason, Mautic only sets UTC in Query Date builder
                 // if its an intra-day date range ¯\_(ツ)_/¯
                 // so we have to do it here.
-                $userTZ        = new \DateTime('now');
+                $userTZ        = new DateTime('now');
                 $userTzName    = $userTZ->getTimezone()->getName();
                 $paramDateTo   = $q->getParameter('dateTo');
                 $paramDateFrom = $q->getParameter('dateFrom');
-                $paramDateTo   = new \DateTime($paramDateTo);
-                $paramDateTo->setTimeZone(new \DateTimeZone('UTC'));
+                $paramDateTo   = new DateTime($paramDateTo);
+                $paramDateTo->setTimeZone(new DateTimeZone('UTC'));
                 $q->setParameter('dateTo', $paramDateTo->format('Y-m-d H:i:s'));
-                $paramDateFrom = new \DateTime($paramDateFrom);
-                $paramDateFrom->setTimeZone(new \DateTimeZone('UTC'));
+                $paramDateFrom = new DateTime($paramDateFrom);
+                $paramDateFrom->setTimeZone(new DateTimeZone('UTC'));
                 $q->setParameter('dateFrom', $paramDateFrom->format('Y-m-d H:i:s'));
                 $select    = $q->getQueryPart('select')[0];
                 $newSelect = str_replace(
@@ -419,23 +453,25 @@ class ContactClientModel extends FormModel
     }
 
     /**
-     * @param ContactClient  $contactClient
-     * @param                $unit
-     * @param                $type
-     * @param \DateTime|null $dateFrom
-     * @param \DateTime|null $dateTo
-     * @param null           $campaignId
-     * @param null           $dateFormat
-     * @param bool           $canViewOthers
+     * @param ContactClient $contactClient
+     * @param               $unit
+     * @param               $type
+     * @param DateTime|null $dateFrom
+     * @param DateTime|null $dateTo
+     * @param null          $campaignId
+     * @param null          $dateFormat
+     * @param bool          $canViewOthers
      *
      * @return array
+     *
+     * @throws Exception
      */
     public function getStatsBySource(
         ContactClient $contactClient,
         $unit,
         $type,
-        \DateTime $dateFrom = null,
-        \DateTime $dateTo = null,
+        DateTime $dateFrom = null,
+        DateTime $dateTo = null,
         $campaignId = null,
         $dateFormat = null,
         $canViewOthers = true
@@ -444,7 +480,7 @@ class ContactClientModel extends FormModel
         $dateToAdjusted = clone $dateTo;
         $dateToAdjusted->setTime(23, 59, 59);
         $chart      = new LineChart($unit, $dateFrom, $dateToAdjusted, $dateFormat);
-        $query      = new ChartQuery($this->em->getConnection(), $dateFrom, $dateToAdjusted, $unit);
+        $query      = new ChartQuery($this->getEntityManager()->getConnection(), $dateFrom, $dateToAdjusted, $unit);
         $utmSources = $this->getStatRepository()->getSourcesByClient(
             $contactClient->getId(),
             $dateFrom,
@@ -458,7 +494,7 @@ class ContactClientModel extends FormModel
         }
         $params['contactclient_id'] = $contactClient->getId();
 
-        $userTZ     = new \DateTime('now');
+        $userTZ     = new DateTime('now');
         $userTzName = $userTZ->getTimezone()->getName();
 
         if ('revenue' != $type) {
@@ -477,11 +513,11 @@ class ContactClientModel extends FormModel
                     // so we have to do it here.
                     $paramDateTo   = $q->getParameter('dateTo');
                     $paramDateFrom = $q->getParameter('dateFrom');
-                    $paramDateTo   = new \DateTime($paramDateTo);
-                    $paramDateTo->setTimeZone(new \DateTimeZone('UTC'));
+                    $paramDateTo   = new DateTime($paramDateTo);
+                    $paramDateTo->setTimeZone(new DateTimeZone('UTC'));
                     $q->setParameter('dateTo', $paramDateTo->format('Y-m-d H:i:s'));
-                    $paramDateFrom = new \DateTime($paramDateFrom);
-                    $paramDateFrom->setTimeZone(new \DateTimeZone('UTC'));
+                    $paramDateFrom = new DateTime($paramDateFrom);
+                    $paramDateFrom->setTimeZone(new DateTimeZone('UTC'));
                     $q->setParameter('dateFrom', $paramDateFrom->format('Y-m-d H:i:s'));
                     $select    = $q->getQueryPart('select')[0];
                     $newSelect = str_replace(
@@ -564,7 +600,7 @@ class ContactClientModel extends FormModel
      * @param int           $page
      * @param int           $limit
      *
-     * @return array|\Doctrine\ORM\Internal\Hydration\IterableResult|\Doctrine\ORM\Tools\Pagination\Paginator
+     * @return array|IterableResult|Paginator
      */
     public function getFiles(
         ContactClient $contactClient,
@@ -577,8 +613,8 @@ class ContactClientModel extends FormModel
         $args['page']  = $page;
         $args['limit'] = $limit;
 
-        /** @var \MauticPlugin\MauticContactClientBundle\Entity\FileRepository $repo */
-        $repo = $this->em->getRepository('MauticContactClientBundle:File');
+        /** @var FileRepository $repo */
+        $repo = $this->getEntityManager()->getRepository('MauticContactClientBundle:File');
 
         return $repo->getEntities($args);
     }
@@ -603,7 +639,7 @@ class ContactClientModel extends FormModel
         $limit = 25,
         $forTimeline = true
     ) {
-        /** @var \MauticPlugin\MauticContactClientBundle\Event\ContactClientTimelineEvent $event */
+        /** @var ContactClientTimelineEvent $event */
         $event = $this->dispatcher->dispatch(
             ContactClientEvents::TIMELINE_ON_GENERATE,
             new ContactClientTimelineEvent(
@@ -637,8 +673,8 @@ class ContactClientModel extends FormModel
      * Get engagement counts by time unit.
      *
      * @param ContactClient   $contactClient
-     * @param \DateTime|null  $dateFrom
-     * @param \DateTime|null  $dateTo
+     * @param DateTime|null   $dateFrom
+     * @param DateTime|null   $dateTo
      * @param string          $unit
      * @param ChartQuery|null $chartQuery
      *
@@ -646,8 +682,8 @@ class ContactClientModel extends FormModel
      */
     public function getEngagementCount(
         ContactClient $contactClient,
-        \DateTime $dateFrom = null,
-        \DateTime $dateTo = null,
+        DateTime $dateFrom = null,
+        DateTime $dateTo = null,
         $unit = 'm',
         ChartQuery $chartQuery = null
     ) {
@@ -662,12 +698,12 @@ class ContactClientModel extends FormModel
     /**
      * @param $contactclientId
      *
-     * @return array|\Doctrine\ORM\Internal\Hydration\IterableResult|\Doctrine\ORM\Tools\Pagination\Paginator
+     * @return array|IterableResult|Paginator
      */
     public function getCampaigns($contactclientId)
     {
         /** @var CampaignRepository $campaignRepo */
-        $campaignRepo = $this->em->getRepository('MauticCampaignBundle:Campaign');
+        $campaignRepo = $this->getEntityManager()->getRepository('MauticCampaignBundle:Campaign');
 
         return $campaignRepo->getEntities(
             [
@@ -687,7 +723,7 @@ class ContactClientModel extends FormModel
      *
      * @return bool|ContactClientEvent
      *
-     * @throws \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException
+     * @throws MethodNotAllowedHttpException
      */
     protected function dispatchEvent($action, &$entity, $isNew = false, Event $event = null)
     {
@@ -715,7 +751,7 @@ class ContactClientModel extends FormModel
         if ($this->dispatcher->hasListeners($name)) {
             if (empty($event)) {
                 $event = new ContactClientEvent($entity, $isNew);
-                $event->setEntityManager($this->em);
+                $event->setEntityManager($this->getEntityManager());
             }
 
             $this->dispatcher->dispatch($name, $event);

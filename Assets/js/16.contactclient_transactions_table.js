@@ -8,12 +8,12 @@ Mautic.contactclientTransactionsTable = function () {
             type: 'POST',
             data: {
                 action: 'plugin:mauticContactClient:transactions',
-                objectId: Mautic.getEntityId(),
+                objectId: Mautic.getEntityId()
             },
             cache: true,
             dataType: 'json',
             success: function (response) {
-                if(response.success>0){
+                if (response.success > 0) {
                     mQuery('#clientTransactions-builder-overlay').hide();
                     $tableTarget.append(response.html);
                     Mautic.contactclientTransactionsOnLoad();

@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Exception;
 
+use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 
 /**
@@ -19,7 +20,7 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
  * This form of exception indicates that we may re-try the send at a later date or time.
  * Also can indicate a Stat type for logging.
  */
-class ContactClientException extends \Exception
+class ContactClientException extends Exception
 {
     /** @var string */
     private $contactId;
@@ -42,18 +43,18 @@ class ContactClientException extends \Exception
     /**
      * ContactClientException constructor.
      *
-     * @param string          $message
-     * @param int             $code
-     * @param \Exception|null $previous
-     * @param string          $statType
-     * @param bool            $retry    indicates this send *can* be retried if the client is configured to allow it
-     * @param null            $field
-     * @param array           $data
+     * @param string         $message
+     * @param int            $code
+     * @param Exception|null $previous
+     * @param string         $statType
+     * @param bool           $retry    indicates this send *can* be retried if the client is configured to allow it
+     * @param null           $field
+     * @param array          $data
      */
     public function __construct(
         $message = 'Contact Client retry error',
         $code = 0,
-        \Exception $previous = null,
+        Exception $previous = null,
         $statType = '',
         $retry = true,
         $field = null,

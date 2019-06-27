@@ -78,7 +78,7 @@ return [
                     'mautic.contactclient.model.contactclient',
                 ],
             ],
-            'mautic.contactclient.subscriber.lead_timeline'          => [
+            'mautic.contactclient.subscriber.lead_timeline' => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\LeadTimelineSubscriber',
                 'arguments' => [],
             ],
@@ -102,12 +102,12 @@ return [
                     'doctrine.orm.entity_manager',
                 ],
             ],
-            'mautic.contactclient.search.subscriber'         => [
+            'mautic.contactclient.search.subscriber'        => [
                 'class'     => 'MauticPlugin\MauticContactClientBundle\EventListener\SearchSubscriber',
                 'arguments' => [
                     'mautic.contactclient.model.contactclient',
-                    ],
                 ],
+            ],
         ],
         'forms'        => [
             'mautic.contactclient.form.type.contactclientshow_list' => [

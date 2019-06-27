@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 
@@ -33,7 +34,7 @@ class Auth
     /** @var string $value */
     private $val;
 
-    /** @var \DateTime $dateAdded */
+    /** @var DateTime $dateAdded */
     private $dateAdded;
 
     /** @var bool */
@@ -50,7 +51,7 @@ class Auth
      */
     public function __construct()
     {
-        $this->dateAdded = new \DateTime();
+        $this->dateAdded = new DateTime();
         $this->test      = false;
         $this->operation = 0;
         $this->type      = 'global';

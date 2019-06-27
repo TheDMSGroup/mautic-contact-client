@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Services;
 
+use Guzzle\Http\Message\Response;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use Monolog\Handler\TestHandler;
@@ -33,7 +34,7 @@ class Transport implements TransportInterface
     /** @var Client */
     private $client;
 
-    /** @var \Guzzle\Http\Message\Response */
+    /** @var Response */
     private $response;
 
     /**
@@ -72,8 +73,12 @@ class Transport implements TransportInterface
      *
      * @param Client $client
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, HandlerStack $handler = null)
     {
+        if ($handler instanceof HandlerStack) {
+            $this->settings['handler'] = $handler;
+        }
+
         $this->client = new $client($this->settings);
     }
 
