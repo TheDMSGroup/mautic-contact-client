@@ -16,7 +16,6 @@ use Mautic\CampaignBundle\Entity\CampaignRepository;
 use Mautic\CampaignBundle\Entity\EventRepository;
 use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
 use Mautic\CoreBundle\Helper\CacheStorageHelper;
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
 
 /**
  * Class ClientEventHelper.
@@ -32,8 +31,8 @@ class ClientEventHelper
     /** @var EventRepository */
     private $campaignEventRepo;
 
-    /** @var CoreParametersHelper */
-    private $coreParametersHelper;
+    /** @var EntityManager */
+    private $em;
 
     public function __construct(
         CampaignRepository $campaignRepo,
