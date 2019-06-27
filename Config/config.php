@@ -223,6 +223,7 @@ return [
                     'mautic.campaign.repository.campaign',
                     'mautic.campaign.repository.lead_event_log',
                     'mautic.campaign.repository.event',
+                    'doctrine.orm.entity_manager',
                 ],
             ],
         ],

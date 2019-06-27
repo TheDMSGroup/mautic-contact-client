@@ -14,8 +14,11 @@ namespace MauticPlugin\MauticContactClientBundle\Helper;
 use Mautic\CampaignBundle\Entity\CampaignRepository;
 use Mautic\CampaignBundle\Entity\EventRepository;
 use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
 use DateTime;
+use Mautic\CoreBundle\Helper\CacheStorageHelper;
+use Doctrine\ORM\EntityManager;
 
 /**
  * Class ClientEventHelper.
@@ -24,52 +27,65 @@ class ClientEventHelper
 {
 
     /** @var CampaignRepository */
-    protected $campaignRepo;
+    private $campaignRepo;
 
     /** @var LeadEventLogRepository */
-    protected $eventLogRepo;
+    private $eventLogRepo;
 
     /** @var EventRepository */
-    protected $campaignEventRepo;
+    private $campaignEventRepo;
+
+    /** @var CoreParametersHelper */
+    private $coreParametersHelper;
 
     public function __construct(
         CampaignRepository $campaignRepo,
         LeadEventLogRepository $eventLogRepo,
-        EventRepository $campaignEventRepo
+        EventRepository $campaignEventRepo,
+        EntityManager $em
     ) {
-        $this->campaignRepo      = $campaignRepo;
-        $this->eventLogRepo      = $eventLogRepo;
-        $this->campaignEventRepo = $campaignEventRepo;
+        $this->campaignRepo         = $campaignRepo;
+        $this->eventLogRepo         = $eventLogRepo;
+        $this->campaignEventRepo    = $campaignEventRepo;
+        $this->em = $em;
     }
 
-    public function getScheduledEvents()
+    public function getAllClientEvents($clientId= NULL)
     {
-        $eventsByClient = $this->getEventsByClient();
-        
+        $cacheHelper = new CacheStorageHelper(
+            CacheStorageHelper::ADAPTOR_DATABASE,
+            'contactClientEventsMap',
+            $this->em->getConnection(),
+            null,
+            600
+        );
+        if (empty($contactClientEventsMap = $cacheHelper->get('contactClientEventsMap', 600)))
+        {
+            $campaigns      = $this->campaignRepo->getPublishedCampaigns(null, null, true);
+            foreach ($campaigns as $campaignId => $campaign) {
 
-    }
-
-    protected function getEventsByClient()
-    {
-        $eventsByClient = [];
-        $campaigns = $this->campaignRepo->getPublishedCampaigns(null, null, true);
-        foreach ($campaigns as $campaignId => $campaign) {
-
-            $events = $this->getClientEventsByCampaign($campaignId);
-            foreach($events as $clientId=>$event)
-            {
-                foreach($event as $item)
-                {
-                    $eventsByClient[$clientId][$item->getId()] = $item;
+                $events = $this->getClientEventsByCampaign($campaignId);
+                foreach ($events as $clientId => $event) {
+                    foreach ($event as $item) {
+                        $contactClientEventsMap[$clientId][$item->getId()] = $item->getName();
+                    }
                 }
             }
+            $cacheHelper->set('contactClientEventsMap', $contactClientEventsMap, 600);
+        }
+
+        if($clientId){
+            return isset($contactClientEventsMap[$clientId]) ? $contactClientEventsMap[$clientId] : [];
+        } else {
+            return $contactClientEventsMap;
+
         }
     }
 
-    protected function getClientEventsByCampaign($campaignId)
+    public function getClientEventsByCampaign($campaignId)
     {
         $orderedEvents = [];
-        $eventAlias = $this->campaignEventRepo->getTableAlias();
+        $eventAlias    = $this->campaignEventRepo->getTableAlias();
         $filter        = [
             'where' => [
                 0 =>
@@ -90,7 +106,7 @@ class ClientEventHelper
         foreach ($events as $event) {
             $properties = $event->getProperties();
             if ($properties['integration'] == 'Client' && isset($properties['config']['contactclient'])) {
-                $clientId = $properties['config']['contactclient'];
+                $clientId                                  = $properties['config']['contactclient'];
                 $orderedEvents[$clientId][$event->getId()] = $event;
             }
         }

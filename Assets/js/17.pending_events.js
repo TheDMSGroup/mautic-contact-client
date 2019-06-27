@@ -21,7 +21,7 @@ Mautic.contactclientPendingEventsTable = function () {
             cache: false,
             dataType: 'json',
             success: function (response) {
-                console.log(response.columns);
+                console.log(response.events);
                 mQuery('#PendingEventsCount').text(response.total)
                 mQuery('#clientPendingEvents-builder-overlay').hide();
                 mQuery('#pending-events-table').DataTable(
@@ -30,7 +30,7 @@ Mautic.contactclientPendingEventsTable = function () {
                         data: response.events,
                         autoFill: true,
                         language: {
-                            emptyTable: 'No results found for this date range and filters.'
+                            emptyTable: 'No pending events for this client found.'
                         },
                         columnDefs: [
                             {

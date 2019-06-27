@@ -122,28 +122,21 @@ class ContactClientRepository extends CommonRepository
     {
         $query = $this->slaveQueryBuilder();
         $query->select(
-            'el.campaign_id, 
-            #cp.name, 
-            el.event_id,
-            #ce.name, 
+            'el.campaign_id as campaignId, 
+            cp.name as campaignName, 
+            el.event_id as eventID,
+            ce.name as eventName, 
             COUNT(el.lead_id) as count'
         );
-        $query->from(MAUTIC_TABLE_PREFIX.'campaign_lead_event_log el');
+        $query->from(MAUTIC_TABLE_PREFIX.'campaign_lead_event_log', 'el');
         $query->join('el', 'campaigns', 'cp', 'el.campaign_id = cp.id');
         $query->join('el', 'campaign_events', 'ce', 'el.event_id = ce.id');
         $query->where('el.is_scheduled = 1');
-        $query->andWhere ('el.event_id IN :eventIds');
-        $query->andWhere('el.trigger_date <= NOW()');
+        $query->andWhere ('el.event_id IN (:eventIds)');
         $query->andWhere('el.trigger_date > DATE_ADD(NOW(), INTERVAL -2 DAY)');
         $query->groupBy('el.event_id');
-        $query->setParameter('eventIds', $eventIds);
+        $query->setParameter('eventIds', $eventIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
         $data = $query->execute()->fetchAll();
-
-
-        // $data[] = [1,'CampaignName1', 1, 'EventName1', 5434];
-        // $data[] = [1,'CampaignName1', 2, 'EventName2', 145];
-        // $data[] = [2,'CampaignName1', 3, 'EventName3', 9746];
-        // $data[] = [2,'CampaignName1', 4, 'EventName4', 354];
 
         return $data;
     }

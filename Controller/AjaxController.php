@@ -311,23 +311,27 @@ class AjaxController extends CommonAjaxController
         $objectId = $this->request->request->get('objectId') ? (int)($this->request->request->get('objectId')) : null;
         $data = [];
         $total = 0;
-        $events = [];
+        $eventIds = [];
 
         if (!empty($objectId)){
 
             $em      = $this->dispatcher->getContainer()->get('doctrine.orm.default_entity_manager');
             /** @var ClientEventHelper $clientEventHelper */
             $clientEventHelper = $this->get('mautic.contactclient.helper.client_event');
-            $events = $clientEventHelper->getScheduledEvents();
+            if($events = $clientEventHelper->getAllClientEvents($objectId))
+            {
+                $eventIds = array_keys($events);
+            };
+
 
             /** @var ContactClientRepository $repo */
             $clientRepo    = $em->getRepository(\MauticPlugin\MauticContactClientBundle\Entity\ContactClient::class);
 
-            // get a list of campaign events to pass into the event_log query
-
-            // get the actual event logs with counts to pass to a Datatable
             $events       = $clientRepo->getPendingEventsData($objectId, $eventIds);
-            $total = count($events);
+            foreach ($events as $event)
+            {
+                $total = $total + (int)$event['count'];
+            }
 
             $headers    = [
                 '',
@@ -342,8 +346,13 @@ class AjaxController extends CommonAjaxController
                     'title' => $this->translator->trans($header),
                 ];
             }
+            $values = [];
+            foreach($events as $event)
+            {
+                $values[] = array_values($event);
+            }
         }
-        $data['events'] = $events;
+        $data['events'] = $values;
         $data['total'] = $total;
         $data = UTF8Helper::fixUTF8($data);
         return $this->sendJsonResponse($data);

@@ -20,6 +20,6 @@
         </div>
     </div>
 
-    <table id="pending-events-table" class="bg-whiter table table-striped table-bordered dataTable no-footer"></table>
+    <table id="pending-events-table" class="bg-whiter table table-striped table-bordered dataTable no-footer" style="min-width: 100%"></table>
     </table>
 </div>
