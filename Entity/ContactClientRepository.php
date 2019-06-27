@@ -11,10 +11,10 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
-use Doctrine\DBAL\Connections\MasterSlaveConnection;
 
 /**
  * Class ContactClientRepository.
@@ -133,7 +133,7 @@ class ContactClientRepository extends CommonRepository
         $query->join('el', 'campaigns', 'cp', 'el.campaign_id = cp.id');
         $query->join('el', 'campaign_events', 'ce', 'el.event_id = ce.id');
         $query->where('el.is_scheduled = 1');
-        $query->andWhere ('el.event_id IN (:eventIds)');
+        $query->andWhere('el.event_id IN (:eventIds)');
         $query->andWhere('el.trigger_date > DATE_ADD(NOW(), INTERVAL -2 DAY)');
         $query->groupBy('el.event_id');
         $query->setParameter('eventIds', $eventIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);

@@ -11,14 +11,14 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Controller;
 
+use DateTime;
+use Exception;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Helper\CacheStorageHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Helper\UTF8Helper;
 use Mautic\CoreBundle\Translation\Translator;
-use DateTime;
-use Exception;
 use Mautic\LeadBundle\Entity\Lead as Contact;
 use Mautic\LeadBundle\Model\FieldModel;
 use MauticPlugin\MauticContactClientBundle\Entity\ContactClient;
@@ -307,33 +307,30 @@ class AjaxController extends CommonAjaxController
 
     /**
      * @return \Symfony\Component\HttpFoundation\JsonResponse
+     *
      * @throws \Exception
      */
     public function pendingEventsAction()
     {
-        $objectId = $this->request->request->get('objectId') ? (int)($this->request->request->get('objectId')) : null;
-        $data = [];
-        $total = 0;
+        $objectId = $this->request->request->get('objectId') ? (int) ($this->request->request->get('objectId')) : null;
+        $data     = [];
+        $total    = 0;
         $eventIds = [];
 
-        if (!empty($objectId)){
-
+        if (!empty($objectId)) {
             $em      = $this->dispatcher->getContainer()->get('doctrine.orm.default_entity_manager');
             /** @var ClientEventHelper $clientEventHelper */
             $clientEventHelper = $this->get('mautic.contactclient.helper.client_event');
-            if($events = $clientEventHelper->getAllClientEvents($objectId))
-            {
+            if ($events = $clientEventHelper->getAllClientEvents($objectId)) {
                 $eventIds = array_keys($events);
-            };
-
+            }
 
             /** @var ContactClientRepository $repo */
             $clientRepo    = $em->getRepository(\MauticPlugin\MauticContactClientBundle\Entity\ContactClient::class);
 
             $events       = $clientRepo->getPendingEventsData($objectId, $eventIds);
-            foreach ($events as $event)
-            {
-                $total = $total + (int)$event['count'];
+            foreach ($events as $event) {
+                $total = $total + (int) $event['count'];
             }
 
             $headers    = [
@@ -350,14 +347,14 @@ class AjaxController extends CommonAjaxController
                 ];
             }
             $values = [];
-            foreach($events as $event)
-            {
+            foreach ($events as $event) {
                 $values[] = array_values($event);
             }
         }
         $data['events'] = $values;
-        $data['total'] = $total;
-        $data = UTF8Helper::fixUTF8($data);
+        $data['total']  = $total;
+        $data           = UTF8Helper::fixUTF8($data);
+
         return $this->sendJsonResponse($data);
     }
 }

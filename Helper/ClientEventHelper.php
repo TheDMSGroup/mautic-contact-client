@@ -11,21 +11,18 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Helper;
 
+use Doctrine\ORM\EntityManager;
 use Mautic\CampaignBundle\Entity\CampaignRepository;
 use Mautic\CampaignBundle\Entity\EventRepository;
 use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
-use MauticPlugin\MauticContactClientBundle\Model\ContactClientModel;
-use DateTime;
 use Mautic\CoreBundle\Helper\CacheStorageHelper;
-use Doctrine\ORM\EntityManager;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 
 /**
  * Class ClientEventHelper.
  */
 class ClientEventHelper
 {
-
     /** @var CampaignRepository */
     private $campaignRepo;
 
@@ -47,10 +44,10 @@ class ClientEventHelper
         $this->campaignRepo         = $campaignRepo;
         $this->eventLogRepo         = $eventLogRepo;
         $this->campaignEventRepo    = $campaignEventRepo;
-        $this->em = $em;
+        $this->em                   = $em;
     }
 
-    public function getAllClientEvents($clientId= NULL)
+    public function getAllClientEvents($clientId= null)
     {
         $cacheHelper = new CacheStorageHelper(
             CacheStorageHelper::ADAPTOR_DATABASE,
@@ -59,11 +56,9 @@ class ClientEventHelper
             null,
             600
         );
-        if (empty($contactClientEventsMap = $cacheHelper->get('contactClientEventsMap', 600)))
-        {
+        if (empty($contactClientEventsMap = $cacheHelper->get('contactClientEventsMap', 600))) {
             $campaigns      = $this->campaignRepo->getPublishedCampaigns(null, null, true);
             foreach ($campaigns as $campaignId => $campaign) {
-
                 $events = $this->getClientEventsByCampaign($campaignId);
                 foreach ($events as $clientId => $event) {
                     foreach ($event as $item) {
@@ -74,11 +69,10 @@ class ClientEventHelper
             $cacheHelper->set('contactClientEventsMap', $contactClientEventsMap, 600);
         }
 
-        if($clientId){
+        if ($clientId) {
             return isset($contactClientEventsMap[$clientId]) ? $contactClientEventsMap[$clientId] : [];
         } else {
             return $contactClientEventsMap;
-
         }
     }
 
@@ -88,8 +82,7 @@ class ClientEventHelper
         $eventAlias    = $this->campaignEventRepo->getTableAlias();
         $filter        = [
             'where' => [
-                0 =>
-                    [
+                0 => [
                         'col'  => $eventAlias.'.properties',
                         'expr' => 'like',
                         'val'  => '%s:11:"integration";s:6:"Client"%',
@@ -105,7 +98,7 @@ class ClientEventHelper
         $events = $this->campaignEventRepo->getEntities($args);
         foreach ($events as $event) {
             $properties = $event->getProperties();
-            if ($properties['integration'] == 'Client' && isset($properties['config']['contactclient'])) {
+            if ('Client' == $properties['integration'] && isset($properties['config']['contactclient'])) {
                 $clientId                                  = $properties['config']['contactclient'];
                 $orderedEvents[$clientId][$event->getId()] = $event;
             }
