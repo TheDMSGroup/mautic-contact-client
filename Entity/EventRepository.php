@@ -44,15 +44,15 @@ class EventRepository extends CommonRepository
                 'cc.name AS client_name',
             ])
             ->from(MAUTIC_TABLE_PREFIX.'contactclient_events', 'c')
-        ->join('c', 'contactclient', 'cc', 'cc.id = c.contactclient_id');
+        ->join('c', MAUTIC_TABLE_PREFIX.'contactclient', 'cc', 'cc.id = c.contactclient_id');
 
         $expr = $q->expr()->eq('c.contact_id', ':contactId');
         $q->where($expr)
             ->setParameter('contactId', (int) $leadId);
 
         if (isset($options['search']) && $options['search']) {
-            $query->andWhere(
-                $query->expr()->like('cc.name', $query->expr()->literal('%'.$options['search'].'%'))
+            $q->andWhere(
+                $q->expr()->like('cc.name', $q->expr()->literal('%'.$options['search'].'%'))
             );
         }
 
