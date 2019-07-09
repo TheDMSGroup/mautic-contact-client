@@ -1,10 +1,10 @@
 Mautic.contactclientPendingEventsTable = function () {
 
     if ("undefined" === mQuery.fn.dataTable) {
-        mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactLedgerBundle/Assets/js/datatables.min.js', function () {
-            mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactLedgerBundle/Assets/js/datetime-moment.js');
-            mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactLedgerBundle/Assets/css/datatables.min.css');
-            mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'plugins/MauticContactLedgerBundle/Assets/css/dataTables.fontAwesome.css');
+        mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/js/libraries/datatables.min.js', function () {
+            mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/js/libraries/datetime-moment.js');
+            mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/css/libraries/datatables.min.css');
+            mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/css/libraries/dataTables.fontAwesome.css');
         });
     }
     var $tableTarget = mQuery('#pending-events-table');
@@ -21,7 +21,6 @@ Mautic.contactclientPendingEventsTable = function () {
             cache: false,
             dataType: 'json',
             success: function (response) {
-                console.log(response.events);
                 mQuery('#PendingEventsCount').text(response.total)
                 mQuery('#clientPendingEvents-builder-overlay').hide();
                 mQuery('#pending-events-table').DataTable(
