@@ -130,8 +130,8 @@ class ContactClientRepository extends CommonRepository
             COUNT(el.lead_id) as count'
         );
         $query->from(MAUTIC_TABLE_PREFIX.'campaign_lead_event_log', 'el');
-        $query->join('el', 'campaigns', 'cp', 'el.campaign_id = cp.id');
-        $query->join('el', 'campaign_events', 'ce', 'el.event_id = ce.id');
+        $query->join('el', MAUTIC_TABLE_PREFIX.'campaigns', 'cp', 'el.campaign_id = cp.id');
+        $query->join('el', MAUTIC_TABLE_PREFIX.'campaign_events', 'ce', 'el.event_id = ce.id');
         $query->where('el.is_scheduled = 1');
         $query->andWhere('el.event_id IN (:eventIds)');
         $query->andWhere('el.trigger_date > DATE_ADD(NOW(), INTERVAL -2 DAY)');
