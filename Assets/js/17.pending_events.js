@@ -1,12 +1,4 @@
 Mautic.contactclientPendingEventsTable = function () {
-
-    if ("undefined" === mQuery.fn.dataTable) {
-        mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/js/libraries/datatables.min.js', function () {
-            mQuery.getScript(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/js/libraries/datetime-moment.js');
-            mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/css/libraries/datatables.min.css');
-            mQuery.getCssOnce(mauticBasePath + '/' + mauticAssetPrefix + 'app/bundles/CoreBundle/Assets/css/libraries/dataTables.fontAwesome.css');
-        });
-    }
     var $tableTarget = mQuery('#pending-events-table');
     if ($tableTarget.length && !$tableTarget.hasClass('table-initialized')) {
         $tableTarget.addClass('table-initialized');
