@@ -234,8 +234,8 @@ JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
                 if ($input.hasClass('codeMirror-active')) {
                     var $next = $input.next();
                     if ($next.hasClass('CodeMirror') && typeof $next[0].CodeMirror !== 'undefined') {
-                        if ($next[0].CodeMirror.getValue() !== $(this).val()) {
-                            $next[0].CodeMirror.setValue($(this).val());
+                        if ($next[0].CodeMirror.getValue() !== mQuery(this).val()) {
+                            $next[0].CodeMirror.setValue(mQuery(this).val());
                             $next[0].CodeMirror.refresh();
                             return true;
                         }
