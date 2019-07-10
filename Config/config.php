@@ -217,6 +217,15 @@ return [
                     'mautic.contactclient.guzzle.client',
                 ],
             ],
+            'mautic.contactclient.helper.client_event' => [
+                'class'     => 'MauticPlugin\MauticContactClientBundle\Helper\ClientEventHelper',
+                'arguments' => [
+                    'mautic.campaign.repository.campaign',
+                    'mautic.campaign.repository.lead_event_log',
+                    'mautic.campaign.repository.event',
+                    'doctrine.orm.entity_manager',
+                ],
+            ],
         ],
     ],
 

@@ -99,6 +99,8 @@ trait ContactClientDetailsTrait
             && !empty($chartFilters['type'])
         ) {
             $filters['type'] = $chartFilters['type'];
+        } else {
+            $filters['type'] = null;
         }
 
         if (

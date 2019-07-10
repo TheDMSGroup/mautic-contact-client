@@ -11,6 +11,7 @@
 
 namespace MauticPlugin\MauticContactClientBundle\Entity;
 
+use Doctrine\DBAL\Connections\MasterSlaveConnection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
@@ -111,5 +112,50 @@ class ContactClientRepository extends CommonRepository
         return [
             [$this->getTableAlias().'.name', 'ASC'],
         ];
+    }
+
+    /**
+     * @param $clientId
+     *
+     * @return array
+     */
+    public function getPendingEventsData($clientId, $eventIds)
+    {
+        $query = $this->slaveQueryBuilder();
+        $query->select(
+            'el.campaign_id as campaignId, 
+            cp.name as campaignName, 
+            el.event_id as eventID,
+            ce.name as eventName, 
+            COUNT(el.lead_id) as count'
+        );
+        $query->from(MAUTIC_TABLE_PREFIX.'campaign_lead_event_log', 'el');
+        $query->join('el', MAUTIC_TABLE_PREFIX.'campaigns', 'cp', 'el.campaign_id = cp.id');
+        $query->join('el', MAUTIC_TABLE_PREFIX.'campaign_events', 'ce', 'el.event_id = ce.id');
+        $query->where('el.is_scheduled = 1');
+        $query->andWhere('el.event_id IN (:eventIds)');
+        $query->andWhere('el.trigger_date > DATE_ADD(NOW(), INTERVAL -2 DAY)');
+        $query->groupBy('el.event_id');
+        $query->setParameter('eventIds', $eventIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
+        $data = $query->execute()->fetchAll();
+
+        return $data;
+    }
+
+    /**
+     * Create a DBAL QueryBuilder preferring a slave connection if available.
+     *
+     * @return QueryBuilder
+     */
+    private function slaveQueryBuilder()
+    {
+        /** @var Connection $connection */
+        $connection = $this->_em->getConnection();
+        if ($connection instanceof MasterSlaveConnection) {
+            // Prefer a slave connection if available.
+            $connection->connect('slave');
+        }
+
+        return new QueryBuilder($connection);
     }
 }
