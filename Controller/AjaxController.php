@@ -316,6 +316,7 @@ class AjaxController extends CommonAjaxController
         $data     = [];
         $total    = 0;
         $eventIds = [];
+        $values   = [];
 
         if (!empty($objectId)) {
             $em      = $this->dispatcher->getContainer()->get('doctrine.orm.default_entity_manager');
@@ -346,7 +347,6 @@ class AjaxController extends CommonAjaxController
                     'title' => $this->translator->trans($header),
                 ];
             }
-            $values = [];
             foreach ($events as $event) {
                 $values[] = array_values($event);
             }
