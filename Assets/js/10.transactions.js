@@ -121,7 +121,7 @@ Mautic.contactClientTimelineExport = function () {
     var typeVar = mQuery('#filter-type').val();
     var utm_sourceVar = mQuery('#filter-utm_source').val();
     var contact_idVar = mQuery('#filter-contact_id').val();
-    var params = jQuery.param({
+    var params = mQuery.param({
         message: messageVar,
         type: typeVar,
         utm_source: utm_sourceVar,
@@ -156,7 +156,7 @@ Mautic.contactClientTransactionFormSubmit = function (form) {
     mQuery('#transaction_utmsource').val(mQuery('#filter-utm_source').val());
     mQuery('#transaction_type').val(mQuery('#filter-type').val());
 
-    var form = $(form);
+    var form = mQuery(form);
     mQuery.ajax({
         type: form.attr('method'),
         url: mauticAjaxUrl,
