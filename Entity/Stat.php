@@ -106,7 +106,7 @@ class Stat
     /**
      * Indicates that the client was over budget and that the contact was queued to be sent later.
      *
-     * Contact sent:    No
+     * Contact sent:    No (not yet)
      */
     const TYPE_LIMITS_QUEUE = 'limited_queue';
 
