@@ -376,11 +376,11 @@ class TokenHelper
                                 return substr((string) $value, 0, 255);
                             },
                             '65535' => function ($value) {
-                                if (strlen((string) $value) > 255) {
+                                if (strlen((string) $value) > 65535) {
                                     $value = trim($value);
                                 }
 
-                                return substr((string) $value, 0, 255);
+                                return substr((string) $value, 0, 65535);
                             },
                         ]
                     );
