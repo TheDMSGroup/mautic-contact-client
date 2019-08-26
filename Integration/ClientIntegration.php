@@ -376,8 +376,8 @@ class ClientIntegration extends AbstractIntegration
         $this->test          = $test;
 
         try {
-            $this->clearTraces();
             $this->validateClient($client, $force);
+            $this->clearTraces();
             $this->addTrace('contactClient', $this->contactClient->getName());
             $this->addTrace('contactClientId', $this->contactClient->getId());
 
@@ -486,7 +486,7 @@ class ClientIntegration extends AbstractIntegration
             'eventId',
         ];
         foreach ($parameters as $trace) {
-            $this->addTrace($trace, 'NA');
+            $this->addTrace($trace, null);
         }
     }
 
