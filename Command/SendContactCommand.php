@@ -90,7 +90,7 @@ class SendContactCommand extends ModeratedCommand
         }
 
         $contactIds = [];
-        if (!empty($options['contact-ids'])) {s
+        if (!empty($options['contact-ids'])) {
             $contactIds = explode(',', $options['contact-ids']);
             array_walk($contactIds, 'trim');
         } elseif (!empty($options['contact-id']) && is_numeric($options['contact-id'])) {
