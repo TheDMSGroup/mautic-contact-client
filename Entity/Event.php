@@ -21,6 +21,8 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
  */
 class Event
 {
+    use BigIntUnsignedTrait;
+
     /**
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
@@ -88,7 +90,7 @@ class Event
             ->addIndex(['id', 'contactclient_id', 'contact_id', 'date_added'], 'transaction_view')
             ->addIndex(['date_added'], 'date_added');
 
-        $builder->addId();
+        self::addBigIntUnsignedIdField($builder);
 
         $builder->addNamedField('contactClientId', 'integer', 'contactclient_id', true);
 

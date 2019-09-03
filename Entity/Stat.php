@@ -24,6 +24,8 @@ use ReflectionException;
  */
 class Stat
 {
+    use BigIntUnsignedTrait;
+
     /**
      * Indicates that an error occurred on the client side. Due to an authentication/authorization failure.
      *
@@ -183,7 +185,7 @@ class Stat
         $builder->setTable('contactclient_stats')
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\StatRepository');
 
-        $builder->addId();
+        self::addBigIntUnsignedIdField($builder);
 
         $builder->addNamedField('contactClientId', 'integer', 'contactclient_id', true);
 

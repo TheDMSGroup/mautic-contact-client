@@ -22,6 +22,8 @@ use Mautic\LeadBundle\Entity\Lead as Contact;
  */
 class Queue
 {
+    use BigIntUnsignedTrait;
+
     /** @var int $id */
     private $id;
 
@@ -53,7 +55,7 @@ class Queue
         $builder->setTable('contactclient_queue')
             ->setCustomRepositoryClass('MauticPlugin\MauticContactClientBundle\Entity\QueueRepository');
 
-        $builder->addId();
+        self::addBigIntUnsignedIdField($builder);
 
         $builder->createManyToOne('contactClient', 'ContactClient')
             ->addJoinColumn('contactclient_id', 'id', true, false, null)
