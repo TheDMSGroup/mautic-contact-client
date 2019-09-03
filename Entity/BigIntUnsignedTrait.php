@@ -26,8 +26,13 @@ trait BigIntUnsignedTrait
      * @param bool                 $isPrimary
      * @param bool                 $isNullable
      */
-    public static function addBigIntUnsignedIdField(ClassMetadataBuilder $builder, $fieldName = 'id', $columnName = 'id', $isPrimary = true, $isNullable = false)
-    {
+    public static function addBigIntUnsignedIdField(
+        ClassMetadataBuilder $builder,
+        $fieldName = 'id',
+        $columnName = 'id',
+        $isPrimary = true,
+        $isNullable = false
+    ) {
         $cm = $builder->getClassMetadata();
         $cm->mapField(
             [
