@@ -303,7 +303,9 @@ class DateFormatHelper
 
         return function ($date) use ($format) {
             try {
-                return $this->parse($date)->format($format);
+                return $this->parse($date)
+                    ->setTimezone(new \DateTimeZone($this->timezoneDestination))
+                    ->format($format);
             } catch (Exception $e) {
                 return null;
             }
@@ -372,7 +374,9 @@ class DateFormatHelper
             if ($validate) {
                 $format = $this->validateFormat($format);
             }
-            $result = $this->parse($date)->format($format);
+            $result = $this->parse($date)
+                ->setTimezone(new \DateTimeZone($this->timezoneDestination))
+                ->format($format);
         } catch (Exception $e) {
         }
 
