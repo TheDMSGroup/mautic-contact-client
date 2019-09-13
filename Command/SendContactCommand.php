@@ -83,7 +83,7 @@ class SendContactCommand extends ModeratedCommand
             return 0;
         }
 
-        if (!$options['client'] || !is_numeric($options['client'])) {
+        if (!$options['client']) {
             $output->writeln('<error>'.$translator->trans('mautic.contactclient.sendcontact.error.client').'</error>');
 
             return 1;
@@ -92,7 +92,7 @@ class SendContactCommand extends ModeratedCommand
         $contactIds = [];
         if (!empty($options['contact-ids'])) {
             $contactIds = explode(',', $options['contact-ids']);
-            $contactIds = array_walk($contactIds, 'trim');
+            array_walk($contactIds, 'trim');
         } elseif (!empty($options['contact-id']) && is_numeric($options['contact-id'])) {
             $contactIds[] = (int) $options['contact-id'];
         }
