@@ -57,7 +57,7 @@ class SendContactCommand extends ModeratedCommand
                 'contact-ids',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'The ids of a contact/lead to send, comma separated',
+                'The ids of a contacts/leads to send, comma separated',
                 null
             )
             ->addOption(
@@ -79,7 +79,7 @@ class SendContactCommand extends ModeratedCommand
         $container  = $this->getContainer();
         $translator = $container->get('translator');
 
-        if (!$this->checkRunStatus($input, $output, $options['client'].$options['contact'])) {
+        if (!$this->checkRunStatus($input, $output, $options['client'])) {
             return 0;
         }
 
