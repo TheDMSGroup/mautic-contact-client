@@ -3,8 +3,8 @@
 Mautic.contactclientQBDefaultOps = [
     'equal',
     'not_equal',
-    // 'in',
-    // 'not_in',
+    'in',
+    'not_in',
     'less',
     'less_or_equal',
     'greater',
@@ -20,7 +20,8 @@ Mautic.contactclientQBDefaultOps = [
     'is_empty',
     'is_not_empty',
     // 'is_null'
-    'regex'
+    'regex',
+    'not_regex',
 ];
 
 // Used as the default filters (others are added on demand).
@@ -137,6 +138,12 @@ Mautic.contactclientQBDefaultSettings = function () {
     var operators = Object.values(mQuery.fn.queryBuilder.defaults('operators'));
     operators.push({
         type: 'regex',
+        nb_inputs: 1,
+        multiple: false,
+        apply_to: ['string']
+    });
+    operators.push({
+        type: 'not_regex',
         nb_inputs: 1,
         multiple: false,
         apply_to: ['string']
