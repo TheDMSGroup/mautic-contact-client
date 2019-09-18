@@ -18,6 +18,9 @@ use Exception;
  */
 class FilterHelper
 {
+    /** @var int */
+    protected $max_string_length = 32;
+
     /** @var array */
     protected $errors = [];
 
@@ -43,6 +46,7 @@ class FilterHelper
         'is_null'          => ['accept_values' => false, 'apply_to' => ['string', 'number', 'datetime']],
         'is_not_null'      => ['accept_values' => false, 'apply_to' => ['string', 'number', 'datetime']],
         'regex'            => ['accept_values' => true, 'apply_to' => ['string']],
+        'not_regex'        => ['accept_values' => true, 'apply_to' => ['string']],
     ];
 
     /**
@@ -52,17 +56,7 @@ class FilterHelper
      */
     public function getErrors($clean = true)
     {
-        $errors = $this->errors;
-        if ($clean) {
-            foreach ($errors as $key => $error) {
-                $errors[$key] = trim(strip_tags($error));
-                if (empty($errors[$key])) {
-                    unset($errors[$key]);
-                }
-            }
-        }
-
-        return $errors;
+        return $this->errors;
     }
 
     /**
@@ -199,7 +193,7 @@ class FilterHelper
         try {
             $ruleValue = $this->getValueFromRule($rule);
         } catch (Exception $e) {
-            $this->setError('Error attempting to get a value from a rule: '.$e->getMessage());
+            $this->setError('Error attempting to get a value from a rule: '.$this->minify($e->getMessage()));
 
             return false;
         }
@@ -207,17 +201,17 @@ class FilterHelper
         try {
             $contextValue = $this->getValueFromContext($rule, $context);
         } catch (Exception $e) {
-            $this->setError('Error attempting to get a value from context: '.$e->getMessage());
+            $this->setError('Error attempting to get a value from context: '.$this->minify($e->getMessage()));
 
             return false;
         }
 
         $result = $this->evaluateRuleAgainstContext($rule, $contextValue, $ruleValue);
         if (!$result) {
-            $contextValue = $contextValue ? '"'.$contextValue.'"' : 'empty';
-            $ruleValue    = $ruleValue ? '"'.$ruleValue.'"' : 'empty';
             $this->setError(
-                $rule->field.' must '.rtrim($rule->operator, 's').' '.$ruleValue.' (value was '.trim($contextValue).').'
+                $rule->field.' must be '.rtrim(str_replace('_', ' ', $rule->operator), 's').' '.
+                $this->minify($ruleValue).
+                ' value was '.$this->minify($contextValue).'.'
             );
         }
 
@@ -367,8 +361,11 @@ class FilterHelper
      *
      * @see enforceArrayOrString
      */
-    protected function checkFieldIsAnArray($requireArray, $value, $field)
+    protected function checkFieldIsAnArray($requireArray, &$value, $field)
     {
+        if ($requireArray && is_string($value)) {
+            $value = (array) str_getcsv($value);
+        }
         if ($requireArray && !is_array($value)) {
             throw new Exception("Field ($field) should be an array, but it isn't.");
         }
@@ -394,6 +391,33 @@ class FilterHelper
         }
 
         return $value[0];
+    }
+
+    /**
+     * @param $string
+     *
+     * @return string
+     */
+    private function minify($string)
+    {
+        if (is_array($string)) {
+            $string = implode(',', $string);
+        }
+        $start = microtime(true);
+        // Remove HTML since this will be shown in the UI at some point.
+        $string = strip_tags($string);
+        // Remove extra/duplicate whitespace.
+        $string = preg_replace('/\s+/', ' ', $string);
+        // Trim the ends.
+        $string = trim($string);
+        // Cut length to avoid spamming logs.
+        if (strlen($string) > $this->max_string_length) {
+            $string = substr($string, 0, $this->max_string_length).'…';
+        } elseif (empty($string)) {
+            $string = 'empty';
+        }
+
+        return $string;
     }
 
     /**
@@ -506,6 +530,21 @@ class FilterHelper
                 }
                 try {
                     return 1 === preg_match($ruleValue, $contextValue);
+                } catch (Exception $e) {
+                    $this->setError('Invalid regex pattern.');
+
+                    return false;
+                }
+                break;
+            case 'not_regex':
+                if (
+                    '/' !== substr($ruleValue, 0, 1)
+                    && '/' !== substr($ruleValue, -1, 1)
+                ) {
+                    $ruleValue = '/'.$ruleValue.'/';
+                }
+                try {
+                    return 0 === preg_match($ruleValue, $contextValue);
                 } catch (Exception $e) {
                     $this->setError('Invalid regex pattern.');
 

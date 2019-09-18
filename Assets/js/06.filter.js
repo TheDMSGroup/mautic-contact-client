@@ -78,6 +78,7 @@ Mautic.contactclientFilterStart = function () {
 
                         default:
                             operators.push('regex');
+                            operators.push('not_regex');
                             break;
                     }
                 }
