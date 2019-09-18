@@ -363,7 +363,7 @@ class FilterHelper
      */
     protected function checkFieldIsAnArray($requireArray, &$value, $field)
     {
-        if (is_string($value)) {
+        if ($requireArray && is_string($value)) {
             $value = (array) str_getcsv($value);
         }
         if ($requireArray && !is_array($value)) {
