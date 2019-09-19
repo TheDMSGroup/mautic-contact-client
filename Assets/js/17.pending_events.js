@@ -48,7 +48,7 @@ Mautic.contactclientPendingEventsTable = function () {
     } // end if tableTarget exists
 
     function renderCampaignLink (id, name) {
-        return '<a href = "/s/contactclient/view/'+id+'">'+name+'</a>';
+        return '<a href = "/s/campaigns/view/'+id+'">'+name+'</a>';
     }
 
     function renderEventName (id, name) {

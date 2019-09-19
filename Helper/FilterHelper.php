@@ -231,8 +231,12 @@ class FilterHelper
     {
         $value = $this->getRuleValue($rule);
 
-        if (isset($this->operators[$rule->operator]['accept_values'])
-            && false === $this->operators[$rule->operator]['accept_values']) {
+        if (
+            isset($rule->operator)
+            && isset($this->operators[$rule->operator])
+            && isset($this->operators[$rule->operator]['accept_values'])
+            && false === $this->operators[$rule->operator]['accept_values']
+        ) {
             return $this->operatorValueWhenNotAcceptingOne($rule);
         }
 
