@@ -125,41 +125,38 @@ class FilesCommand extends ModeratedCommand
                 $clientId   = $client->getId();
                 $clientName = $client->getName();
 
-                try {
-                    $payloadModel->reset()
-                        ->setContactClient($client)
-                        ->setTest($options['test']);
+                // Perform builds, then send.
+                foreach (['build', 'send'] as $op) {
+                    if (in_array($mode, [$op, 'both'])) {
+                        try {
+                            $payloadModel->reset()
+                                ->setContactClient($client)
+                                ->setTest($options['test']);
 
-                    if (in_array($mode, ['build', 'both'])) {
-                        $output->writeln(
-                            '<info>'.$translator->trans(
-                                'mautic.contactclient.files.building',
-                                ['%clientId%' => $clientId, '%clientName%' => $clientName]
-                            ).'</info>'
-                        );
-                        $payloadModel->run('build');
+                            $output->writeln(
+                                '<info>'.$translator->trans(
+                                    'mautic.contactclient.files.'.$op,
+                                    ['%clientId%' => $clientId, '%clientName%' => $clientName]
+                                ).'</info>'
+                            );
+                            $payloadModel->run($op);
+                        } catch (Exception $e) {
+                            $output->writeln(
+                                $translator->trans(
+                                    'mautic.contactclient.files.error',
+                                    [
+                                        '%clientId%'   => $clientId,
+                                        '%clientName%' => $clientName,
+                                        '%message%'    => $e->getMessage(),
+                                    ]
+                                )
+                            );
+                        }
                     }
+                }
 
-                    if (in_array($mode, ['send', 'both'])) {
-                        $output->writeln(
-                            '<info>'.$translator->trans(
-                                'mautic.contactclient.files.sending',
-                                ['%clientId%' => $clientId, '%clientName%' => $clientName]
-                            ).'</info>'
-                        );
-                        $payloadModel->run('send');
-                    }
-
-                    if (isset($options['verbose']) && $options['verbose']) {
-                        $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
-                    }
-                } catch (Exception $e) {
-                    $output->writeln(
-                        $translator->trans(
-                            'mautic.contactclient.files.error',
-                            ['%clientId%' => $clientId, '%clientName%' => $clientName, '%message%' => $e->getMessage()]
-                        )
-                    );
+                if (isset($options['verbose']) && $options['verbose']) {
+                    $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
                 }
             }
             $em->detach($client);
