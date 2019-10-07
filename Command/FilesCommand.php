@@ -152,11 +152,10 @@ class FilesCommand extends ModeratedCommand
                                 )
                             );
                         }
+                        if (isset($options['verbose']) && $options['verbose']) {
+                            $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
+                        }
                     }
-                }
-
-                if (isset($options['verbose']) && $options['verbose']) {
-                    $output->writeln('<info>'.$payloadModel->getLogsYAML().'</info>');
                 }
             }
             $em->detach($client);
