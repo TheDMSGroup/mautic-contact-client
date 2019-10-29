@@ -486,7 +486,7 @@ class FilePayload
             // Step 4: Perform file send operations, if any are configured.
             case 'send':
                 $this->fileEntitySelect(false, File::STATUS_READY);
-                $this->evaluateSchedule(true);
+                $this->evaluateSchedule(false);
                 $this->fileSend();
                 break;
         }
@@ -1369,7 +1369,10 @@ class FilePayload
             // Add our new logs to the entity.
             $logs               = $this->file->getLogs();
             $logs               = $logs ? json_decode($logs, true) : [];
-            $this->logs['date'] = $this->tokenHelper->getDateFormatHelper()->format(new DateTime());
+            $this->logs['date'] = $this->tokenHelper
+                ->setContactClient($this->contactClient)
+                ->getDateFormatHelper()
+                ->format(new DateTime());
             $logs[]             = $this->logs;
             $this->file->setLogs(json_encode($logs, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT));
             $this->logs = [];
