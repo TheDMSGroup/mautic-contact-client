@@ -161,6 +161,10 @@ class Schedule
 
                     // If we have already built a file in this day and can send more...
                     if ($fileCount > 0 && $fileRate > 1) {
+                        if ($fileCount >= $fileRate) {
+                            // Already hit limit for the day.
+                            continue;
+                        }
                         // Push the start time to the next available slot in this day.
                         $daySeconds = $end->format('U') - $start->format('U');
                         if ('00:00' === $timeFrom && '23:59' === $timeTill) {
