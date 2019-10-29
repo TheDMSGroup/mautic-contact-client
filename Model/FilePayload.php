@@ -486,7 +486,7 @@ class FilePayload
             // Step 4: Perform file send operations, if any are configured.
             case 'send':
                 $this->fileEntitySelect(false, File::STATUS_READY);
-                $this->evaluateSchedule(true);
+                $this->evaluateSchedule(false);
                 $this->fileSend();
                 break;
         }
