@@ -150,10 +150,10 @@ class FilterHelper
                 $result = $this->evaluate($rule, $context);
             }
             // Conditions upon which we can stop evaluation.
-            if ('and' == $condition && !$result) {
+            if ('and' == $condition && false === $result) {
                 break;
             } else {
-                if ('or' == $condition && $result) {
+                if ('or' == $condition && true === $result) {
                     break;
                 }
             }
@@ -244,7 +244,10 @@ class FilterHelper
             return $this->operatorValueWhenNotAcceptingOne($rule);
         }
 
-        if (!isset($rule->operator)) {
+        if (
+            !isset($rule->operator)
+            || !isset($rule->field)
+        ) {
             return null;
         }
 
