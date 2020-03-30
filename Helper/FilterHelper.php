@@ -140,10 +140,14 @@ class FilterHelper
         $result    = true;
         $condition = strtolower($condition);
         $this->validateCondition($condition);
+        if (count($rules) == 0){
+            return $result;
+        }
         foreach ($rules as $rule) {
-            $result = $this->evaluate($rule, $context);
-            if ($result && $this->isNested($rule)) {
+            if ($this->isNested($rule)) {
                 $result = $this->loopThroughRules($rule->rules, $context, $condition);
+            } else {
+                $result = $this->evaluate($rule, $context);
             }
             // Conditions upon which we can stop evaluation.
             if ('and' == $condition && !$result) {
@@ -238,6 +242,10 @@ class FilterHelper
             && false === $this->operators[$rule->operator]['accept_values']
         ) {
             return $this->operatorValueWhenNotAcceptingOne($rule);
+        }
+
+        if (!isset($rule->operator)) {
+            return null;
         }
 
         return $this->getCorrectValue($rule->operator, $rule, $value);
@@ -434,6 +442,10 @@ class FilterHelper
      */
     protected function getValueFromContext($rule, $context)
     {
+        if (!isset($rule->field)) {
+            return null;
+        }
+
         // Fields are only nested one level deep and flattened thereafter.
         $parts = explode('.', $rule->field);
         $key   = array_shift($parts);
@@ -567,7 +579,7 @@ class FilterHelper
      */
     protected function isNested($rule)
     {
-        if (isset($rule->rules) && is_array($rule->rules) && count($rule->rules) > 0) {
+        if (isset($rule->rules) && is_array($rule->rules)) {
             return true;
         }
 
