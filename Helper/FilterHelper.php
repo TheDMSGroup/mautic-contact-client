@@ -145,7 +145,7 @@ class FilterHelper
         }
         foreach ($rules as $rule) {
             if ($this->isNested($rule)) {
-                $result = $this->loopThroughRules($rule->rules, $context, $condition);
+                $result = $this->loopThroughRules($rule->rules, $context, $rule->condition);
             } else {
                 $result = $this->evaluate($rule, $context);
             }
