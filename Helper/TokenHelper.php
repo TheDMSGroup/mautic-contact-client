@@ -1151,6 +1151,8 @@ class TokenHelper
                         }
                     }
                     $context[$fkey] = $value;
+                    // Support pseudo-conditional field mapping like: {{#degree_education=GED}}2{{/degree_education=GED}}
+                    $context[$fkey.'='.$value] = true;
                     if ($type) {
                         $conType[$fkey] = $type;
                     }
