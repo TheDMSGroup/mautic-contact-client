@@ -472,7 +472,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "value": {
           "propertyOrder": 20,
@@ -487,7 +487,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "test_value": {
           "propertyOrder": 30,
@@ -498,7 +498,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "default_value": {
           "propertyOrder": 40,
@@ -512,7 +512,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "required": {
           "propertyOrder": 50,
@@ -553,7 +553,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         }
       }
     },
@@ -575,7 +575,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "destination": {
           "propertyOrder": 20,
@@ -587,7 +587,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "default_value": {
           "propertyOrder": 30,
@@ -599,7 +599,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         },
         "example": {
           "propertyOrder": 60,
@@ -611,7 +611,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 1024
+          "maxLength": 9000
         },
         "description": {
           "propertyOrder": 70,
@@ -622,7 +622,7 @@
           },
           "default": "",
           "minLength": 0,
-          "maxLength": 255
+          "maxLength": 9000
         }
       }
     }
