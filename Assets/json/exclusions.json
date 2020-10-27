@@ -24,11 +24,21 @@
           "propertyOrder": 10,
           "type": "string",
           "format": "date",
-          "title": "Date",
+          "title": "From Date",
           "default": ""
         },
-        "description": {
+        "value2": {
           "propertyOrder": 20,
+          "type": "string",
+          "format": "date",
+          "title": "Till Date",
+          "default": "",
+          "options": {
+            "infoText": "Any date specified here will be the end of the exclusion. Leads will be allowed on this date. You can leave this blank for single-date exclusions."
+          }
+        },
+        "description": {
+          "propertyOrder": 30,
           "type": "string",
           "title": "Description",
           "options": {

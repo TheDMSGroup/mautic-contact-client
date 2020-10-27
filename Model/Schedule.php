@@ -327,6 +327,63 @@ class Schedule
                         );
                     }
                 }
+                if (!empty($exclusion->value2)) {
+                    $dateString2   = trim(str_ireplace('yyyy-', '', $exclusion->value2));
+                    $segments2     = explode('-', $dateString2);
+                    $segmentCount2 = count($segments2);
+                    if (3 == $segmentCount2) {
+                        $year  = !empty($segments2[0]) ? str_pad(
+                            $segments2[0],
+                            4,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $date->format(
+                            'Y'
+                        );
+                        $month = !empty($segments2[1]) ? str_pad(
+                            $segments2[1],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $date->format('m');
+                        $day   = !empty($segments2[2]) ? str_pad(
+                            $segments2[2],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $date->format('d');
+                    } elseif (2 == $segmentCount2) {
+                        $year  = $date->format('Y');
+                        $month = !empty($segments2[0]) ? str_pad(
+                            $segments2[0],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $date->format('m');
+                        $day   = !empty($segments2[1]) ? str_pad(
+                            $segments2[1],
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ) : $date->format('d');
+                    }
+                    $dateString2 = $year.'-'.$month.'-'.$day;
+                    if (isset($dateString)) {
+                        $till = new DateTime($dateString2, $date->getTimezone());
+                        if ($date < $till) {
+                            $from = new DateTime($dateString, $date->getTimezone());
+                            if ($date >= $from) {
+                                throw new ContactClientException(
+                                    'This contact client does not allow contacts between '.$dateString.' and '.$dateString2.'.',
+                                    0,
+                                    null,
+                                    Stat::TYPE_SCHEDULE,
+                                    false
+                                );
+                            }
+                        }
+                    }
+                }
             }
         }
 
