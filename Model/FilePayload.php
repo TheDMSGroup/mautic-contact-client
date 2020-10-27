@@ -454,13 +454,16 @@ class FilePayload
     /**
      * These steps can occur in different sessions.
      *
-     * @param string $step
+     * @param  string  $step
+     *
+     * @param  bool  $force
      *
      * @return $this
      *
      * @throws ContactClientException
+     * @throws \Doctrine\ORM\ORMException
      */
-    public function run($step = 'add')
+    public function run($step = 'add', $force = false)
     {
         $this->setLogs($step, 'step');
         switch ($step) {
@@ -478,7 +481,9 @@ class FilePayload
                     $this->getFieldValues();
                 }
                 $this->fileEntitySelect();
-                $this->evaluateSchedule(true);
+                if (!$force) {
+                    $this->evaluateSchedule(true);
+                }
                 $this->fileEntityRefreshSettings();
                 $this->fileBuild();
                 break;
@@ -486,7 +491,9 @@ class FilePayload
             // Step 4: Perform file send operations, if any are configured.
             case 'send':
                 $this->fileEntitySelect(false, File::STATUS_READY);
-                $this->evaluateSchedule(false);
+                if (!$force) {
+                    $this->evaluateSchedule(false);
+                }
                 $this->fileSend();
                 break;
         }

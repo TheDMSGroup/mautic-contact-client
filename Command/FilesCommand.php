@@ -50,6 +50,12 @@ class FilesCommand extends ModeratedCommand
                 'Run client requests in test mode.'
             )
             ->addOption(
+                'force',
+                'f',
+                InputOption::VALUE_NONE,
+                'Ignore schedule.'
+            )
+            ->addOption(
                 'mode',
                 'm',
                 InputOption::VALUE_OPTIONAL,
@@ -139,7 +145,7 @@ class FilesCommand extends ModeratedCommand
                                     ['%clientId%' => $clientId, '%clientName%' => $clientName]
                                 ).'</info>'
                             );
-                            $payloadModel->run($op);
+                            $payloadModel->run($op, $options['force']);
                         } catch (Exception $e) {
                             $output->writeln(
                                 $translator->trans(
