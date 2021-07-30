@@ -1769,7 +1769,7 @@ class FilePayload
      */
     private function operationS3($operation)
     {
-        $config        = [];
+        $config        = ['version' => '2006-03-01'];
         $config['key'] = isset($operation->key) ? trim($operation->key) : null;
         if (!$config['key']) {
             $this->setLogs('Key is required.', 'error');
